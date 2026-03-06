@@ -17,14 +17,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -51,6 +54,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -80,8 +84,11 @@ fun CollectionsScreen(
     var dropTargetKey by remember { mutableStateOf<String?>(null) }
     val itemBounds = remember { mutableStateMapOf<String, Rect>() }
 
-    val treeItems = remember(vm.allFolders, vm.allRequests, vm.expandedFolderIds) {
-        vm.buildTreeItems()
+    val isSearching = vm.searchQuery.isNotBlank()
+
+    val treeItems = remember(vm.allFolders, vm.allRequests, vm.expandedFolderIds, vm.searchQuery) {
+        if (isSearching) vm.buildFilteredTreeItems(vm.searchQuery)
+        else vm.buildTreeItems()
     }
 
     Column(modifier = modifier) {
@@ -98,10 +105,17 @@ fun CollectionsScreen(
         )
         HorizontalDivider()
 
+        CollectionsSearchBar(
+            query = vm.searchQuery,
+            onQueryChange = vm::setSearchFilterQuery,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)
+        )
+        HorizontalDivider()
+
         if (treeItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    "No saved requests",
+                    if (isSearching) "No results for \"${vm.searchQuery}\"" else "No saved requests",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -118,54 +132,55 @@ fun CollectionsScreen(
                         is TreeItem.Folder -> "f_${item.folder.id}"
                         is TreeItem.Request -> "r_${item.request.id}"
                     }
-                    val isDragging = draggedKey == key
-                    val isDropTarget = dropTargetKey == key
+                    val isDragging = !isSearching && draggedKey == key
+                    val isDropTarget = !isSearching && dropTargetKey == key
 
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(if (isDragging) 0.35f else 1f)
-                            .onGloballyPositioned { itemBounds[key] = it.boundsInRoot() }
-                            .pointerInput(Unit) {
-                                detectDragGesturesAfterLongPress(
-                                    onDragStart = { draggedKey = key },
-                                    onDrag = { change, _ ->
-                                        change.consume()
-                                        val bounds = itemBounds[key]
-                                            ?: return@detectDragGesturesAfterLongPress
-                                        val absY = bounds.top + change.position.y
-                                        dropTargetKey = itemBounds.entries
-                                            .filter { it.key.startsWith("f_") && it.key != draggedKey }
-                                            .firstOrNull { absY in it.value.top..it.value.bottom }
-                                            ?.key
-                                    },
-                                    onDragEnd = {
-                                        val src = draggedKey
-                                        val dst = dropTargetKey
-                                        if (src != null && dst != null) {
-                                            val targetId = dst.removePrefix("f_").toLongOrNull()
-                                            when {
-                                                src.startsWith("f_") ->
-                                                    vm.moveFolder(src.removePrefix("f_").toLong(), targetId)
-                                                src.startsWith("r_") ->
-                                                    vm.moveRequest(src.removePrefix("r_").toLong(), targetId)
+                            .then(if (!isSearching) Modifier
+                                .onGloballyPositioned { itemBounds[key] = it.boundsInRoot() }
+                                .pointerInput(Unit) {
+                                    detectDragGesturesAfterLongPress(
+                                        onDragStart = { draggedKey = key },
+                                        onDrag = { change, _ ->
+                                            change.consume()
+                                            val bounds = itemBounds[key]
+                                                ?: return@detectDragGesturesAfterLongPress
+                                            val absY = bounds.top + change.position.y
+                                            dropTargetKey = itemBounds.entries
+                                                .filter { it.key.startsWith("f_") && it.key != draggedKey }
+                                                .firstOrNull { absY in it.value.top..it.value.bottom }
+                                                ?.key
+                                        },
+                                        onDragEnd = {
+                                            val src = draggedKey
+                                            val dst = dropTargetKey
+                                            if (src != null && dst != null) {
+                                                val targetId = dst.removePrefix("f_").toLongOrNull()
+                                                when {
+                                                    src.startsWith("f_") ->
+                                                        vm.moveFolder(src.removePrefix("f_").toLong(), targetId)
+                                                    src.startsWith("r_") ->
+                                                        vm.moveRequest(src.removePrefix("r_").toLong(), targetId)
+                                                }
                                             }
+                                            draggedKey = null
+                                            dropTargetKey = null
+                                        },
+                                        onDragCancel = {
+                                            draggedKey = null
+                                            dropTargetKey = null
                                         }
-                                        draggedKey = null
-                                        dropTargetKey = null
-                                    },
-                                    onDragCancel = {
-                                        draggedKey = null
-                                        dropTargetKey = null
-                                    }
-                                )
-                            }
+                                    )
+                                } else Modifier)
                     ) {
                         when (item) {
                             is TreeItem.Folder -> FolderTreeRow(
                                 item = item,
                                 isDropTarget = isDropTarget,
-                                onToggle = { vm.toggleFolder(item.folder.id) },
+                                onToggle = { if (!isSearching) vm.toggleFolder(item.folder.id) },
                                 onNewSubfolder = {
                                     newFolderParentId = item.folder.id
                                     showNewFolderDialog = true
@@ -175,6 +190,7 @@ fun CollectionsScreen(
                             is TreeItem.Request -> RequestTreeRow(
                                 item = item,
                                 isActive = item.request.id == activeRequestId,
+                                highlightQuery = vm.searchQuery,
                                 onLoad = { onRequestSelected(item.request) },
                                 onSaveChanges = onSaveChanges,
                                 onDelete = { vm.deleteRequest(item.request.id) }
@@ -198,6 +214,113 @@ fun CollectionsScreen(
             }
         )
     }
+}
+
+// ── Search bar ────────────────────────────────────────────────────────────────
+
+@Composable
+private fun CollectionsSearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BasicTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        singleLine = true,
+        textStyle = MaterialTheme.typography.bodySmall.copy(
+            color = MaterialTheme.colorScheme.onSurface
+        ),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox = { inner ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
+                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Box(modifier = Modifier.weight(1f)) {
+                    if (query.isEmpty()) {
+                        Text(
+                            "Search requests…",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    inner()
+                }
+                if (query.isNotEmpty()) {
+                    IconButton(
+                        onClick = { onQueryChange("") },
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Clear search",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        },
+        modifier = modifier
+    )
+}
+
+// ── Highlighted text ──────────────────────────────────────────────────────────
+
+@Composable
+private fun HighlightedText(
+    text: String,
+    query: String,
+    style: androidx.compose.ui.text.TextStyle,
+    modifier: Modifier = Modifier
+) {
+    val highlight = MaterialTheme.colorScheme.primary
+    val annotated = remember(text, query) {
+        androidx.compose.ui.text.buildAnnotatedString {
+            if (query.isBlank()) {
+                append(text)
+            } else {
+                var start = 0
+                val lower = text.lowercase()
+                val lowerQ = query.lowercase()
+                while (start < text.length) {
+                    val idx = lower.indexOf(lowerQ, start)
+                    if (idx < 0) {
+                        append(text.substring(start))
+                        break
+                    }
+                    append(text.substring(start, idx))
+                    pushStyle(
+                        androidx.compose.ui.text.SpanStyle(
+                            color = highlight,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        )
+                    )
+                    append(text.substring(idx, idx + query.length))
+                    pop()
+                    start = idx + query.length
+                }
+            }
+        }
+    }
+    Text(
+        text = annotated,
+        style = style,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+    )
 }
 
 // ── Folder tree row ───────────────────────────────────────────────────────────
@@ -289,6 +412,7 @@ private fun FolderTreeRow(
 private fun RequestTreeRow(
     item: TreeItem.Request,
     isActive: Boolean,
+    highlightQuery: String = "",
     onLoad: () -> Unit,
     onSaveChanges: () -> Unit,
     onDelete: () -> Unit
@@ -332,11 +456,10 @@ private fun RequestTreeRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
+                HighlightedText(
                     text = request.name,
+                    query = highlightQuery,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)
                 )
                 Text(

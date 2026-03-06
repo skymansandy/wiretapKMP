@@ -32,6 +32,11 @@ class CollectionsViewModel : ViewModel() {
     var folderPaths by mutableStateOf(emptyMap<Long, String>())
         private set
 
+    var searchQuery by mutableStateOf("")
+        private set
+
+    fun setSearchFilterQuery(q: String) { searchQuery = q }
+
     init { refresh() }
 
     fun refresh() {
@@ -63,6 +68,51 @@ class CollectionsViewModel : ViewModel() {
             }
         allRequests
             .filter { it.folder_id == parentId }
+            .sortedBy { it.name }
+            .forEach { request ->
+                result.add(TreeItem.Request(request, depth))
+            }
+    }
+
+    fun buildFilteredTreeItems(query: String): List<TreeItem> {
+        val q = query.trim()
+        if (q.isBlank()) return buildTreeItems()
+
+        val matchingIds = allRequests
+            .filter { it.name.contains(q, ignoreCase = true) || it.url.contains(q, ignoreCase = true) }
+            .map { it.id }.toSet()
+
+        // Collect every ancestor folder that leads to a matching request
+        val visibleFolderIds = mutableSetOf<Long>()
+        allRequests.filter { it.id in matchingIds }.forEach { req ->
+            var fid = req.folder_id
+            while (fid != null) {
+                visibleFolderIds.add(fid)
+                fid = allFolders.find { it.id == fid }?.parent_id
+            }
+        }
+
+        val result = mutableListOf<TreeItem>()
+        appendFilteredChildren(null, 0, result, matchingIds, visibleFolderIds)
+        return result
+    }
+
+    private fun appendFilteredChildren(
+        parentId: Long?,
+        depth: Int,
+        result: MutableList<TreeItem>,
+        matchingIds: Set<Long>,
+        visibleFolderIds: Set<Long>
+    ) {
+        allFolders
+            .filter { it.parent_id == parentId && it.id in visibleFolderIds }
+            .sortedBy { it.name }
+            .forEach { folder ->
+                result.add(TreeItem.Folder(folder, depth, isExpanded = true))
+                appendFilteredChildren(folder.id, depth + 1, result, matchingIds, visibleFolderIds)
+            }
+        allRequests
+            .filter { it.folder_id == parentId && it.id in matchingIds }
             .sortedBy { it.name }
             .forEach { request ->
                 result.add(TreeItem.Request(request, depth))
