@@ -1,7 +1,9 @@
 package dev.skymansandy.kurlclient.ui.collections
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,11 +41,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -64,6 +74,11 @@ fun CollectionsScreen(
 ) {
     var showNewFolderDialog by remember { mutableStateOf(false) }
     var newFolderParentId by remember { mutableStateOf<Long?>(null) }
+
+    // ── Drag & drop state ─────────────────────────────────────────────────────
+    var draggedKey by remember { mutableStateOf<String?>(null) }
+    var dropTargetKey by remember { mutableStateOf<String?>(null) }
+    val itemBounds = remember { mutableStateMapOf<String, Rect>() }
 
     val treeItems = remember(vm.allFolders, vm.allRequests, vm.expandedFolderIds) {
         vm.buildTreeItems()
@@ -99,23 +114,72 @@ fun CollectionsScreen(
                         is TreeItem.Request -> "r_${item.request.id}"
                     }
                 }) { item ->
-                    when (item) {
-                        is TreeItem.Folder -> FolderTreeRow(
-                            item = item,
-                            onToggle = { vm.toggleFolder(item.folder.id) },
-                            onNewSubfolder = {
-                                newFolderParentId = item.folder.id
-                                showNewFolderDialog = true
-                            },
-                            onDelete = { vm.deleteFolder(item.folder.id) }
-                        )
-                        is TreeItem.Request -> RequestTreeRow(
-                            item = item,
-                            isActive = item.request.id == activeRequestId,
-                            onLoad = { onRequestSelected(item.request) },
-                            onSaveChanges = onSaveChanges,
-                            onDelete = { vm.deleteRequest(item.request.id) }
-                        )
+                    val key = when (item) {
+                        is TreeItem.Folder -> "f_${item.folder.id}"
+                        is TreeItem.Request -> "r_${item.request.id}"
+                    }
+                    val isDragging = draggedKey == key
+                    val isDropTarget = dropTargetKey == key
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(if (isDragging) 0.35f else 1f)
+                            .onGloballyPositioned { itemBounds[key] = it.boundsInRoot() }
+                            .pointerInput(Unit) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { draggedKey = key },
+                                    onDrag = { change, _ ->
+                                        change.consume()
+                                        val bounds = itemBounds[key]
+                                            ?: return@detectDragGesturesAfterLongPress
+                                        val absY = bounds.top + change.position.y
+                                        dropTargetKey = itemBounds.entries
+                                            .filter { it.key.startsWith("f_") && it.key != draggedKey }
+                                            .firstOrNull { absY in it.value.top..it.value.bottom }
+                                            ?.key
+                                    },
+                                    onDragEnd = {
+                                        val src = draggedKey
+                                        val dst = dropTargetKey
+                                        if (src != null && dst != null) {
+                                            val targetId = dst.removePrefix("f_").toLongOrNull()
+                                            when {
+                                                src.startsWith("f_") ->
+                                                    vm.moveFolder(src.removePrefix("f_").toLong(), targetId)
+                                                src.startsWith("r_") ->
+                                                    vm.moveRequest(src.removePrefix("r_").toLong(), targetId)
+                                            }
+                                        }
+                                        draggedKey = null
+                                        dropTargetKey = null
+                                    },
+                                    onDragCancel = {
+                                        draggedKey = null
+                                        dropTargetKey = null
+                                    }
+                                )
+                            }
+                    ) {
+                        when (item) {
+                            is TreeItem.Folder -> FolderTreeRow(
+                                item = item,
+                                isDropTarget = isDropTarget,
+                                onToggle = { vm.toggleFolder(item.folder.id) },
+                                onNewSubfolder = {
+                                    newFolderParentId = item.folder.id
+                                    showNewFolderDialog = true
+                                },
+                                onDelete = { vm.deleteFolder(item.folder.id) }
+                            )
+                            is TreeItem.Request -> RequestTreeRow(
+                                item = item,
+                                isActive = item.request.id == activeRequestId,
+                                onLoad = { onRequestSelected(item.request) },
+                                onSaveChanges = onSaveChanges,
+                                onDelete = { vm.deleteRequest(item.request.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -141,16 +205,28 @@ fun CollectionsScreen(
 @Composable
 private fun FolderTreeRow(
     item: TreeItem.Folder,
+    isDropTarget: Boolean,
     onToggle: () -> Unit,
     onNewSubfolder: () -> Unit,
     onDelete: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val indent = (item.depth * 16).dp
+    val lineColor = MaterialTheme.colorScheme.outlineVariant
+    val dropHighlight = MaterialTheme.colorScheme.primary
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .drawBehind {
+                // Vertical indent guide lines for each ancestor level
+                for (level in 0 until item.depth) {
+                    val x = 8.dp.toPx() + level * 16.dp.toPx() + 9.dp.toPx()
+                    drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.5.dp.toPx())
+                }
+            }
+            .then(if (isDropTarget) Modifier.border(1.dp, dropHighlight, MaterialTheme.shapes.extraSmall) else Modifier)
+            .then(if (isDropTarget) Modifier.background(dropHighlight.copy(alpha = 0.12f)) else Modifier)
             .clickable(onClick = onToggle)
             .padding(start = 8.dp + indent, end = 4.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -220,10 +296,17 @@ private fun RequestTreeRow(
     var menuExpanded by remember { mutableStateOf(false) }
     val indent = (item.depth * 16).dp
     val request = item.request
+    val lineColor = MaterialTheme.colorScheme.outlineVariant
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .drawBehind {
+                for (level in 0 until item.depth) {
+                    val x = 8.dp.toPx() + level * 16.dp.toPx() + 9.dp.toPx()
+                    drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.5.dp.toPx())
+                }
+            }
             .then(
                 if (isActive) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
                 else Modifier

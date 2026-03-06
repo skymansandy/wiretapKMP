@@ -52,6 +52,12 @@ SELECT * FROM SavedRequest ORDER BY name;
 getRequestById:
 SELECT * FROM SavedRequest WHERE id = :id;
 
+moveFolderToParent:
+UPDATE CollectionFolder SET parent_id = :parent_id WHERE id = :id;
+
+moveRequestToFolder:
+UPDATE SavedRequest SET folder_id = :folder_id WHERE id = :id;
+
 updateRequest:
 UPDATE SavedRequest
 SET name = :name, folder_id = :folder_id, url = :url, method = :method,

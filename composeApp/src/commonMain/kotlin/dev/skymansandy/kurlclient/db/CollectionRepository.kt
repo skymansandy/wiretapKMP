@@ -22,6 +22,10 @@ class CollectionRepository(private val db: KurlDatabase) {
         db.collectionsQueries.getAllFolders().executeAsList()
     }
 
+    suspend fun moveFolderTo(id: Long, parentId: Long?) = withContext(Dispatchers.Default) {
+        db.collectionsQueries.moveFolderToParent(parent_id = parentId, id = id)
+    }
+
     suspend fun deleteFolder(id: Long) = withContext(Dispatchers.Default) {
         db.collectionsQueries.deleteFolder(id)
     }
@@ -80,6 +84,10 @@ class CollectionRepository(private val db: KurlDatabase) {
         withContext(Dispatchers.Default) {
             db.collectionsQueries.getRequestsByFolder(folderId).executeAsList()
         }
+
+    suspend fun moveRequestTo(id: Long, folderId: Long?) = withContext(Dispatchers.Default) {
+        db.collectionsQueries.moveRequestToFolder(folder_id = folderId, id = id)
+    }
 
     suspend fun deleteRequest(id: Long) = withContext(Dispatchers.Default) {
         db.collectionsQueries.deleteRequest(id)

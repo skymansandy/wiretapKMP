@@ -78,6 +78,31 @@ class CollectionsViewModel : ViewModel() {
         }
     }
 
+    /** Returns true if [folderId] is [ancestorId] or a descendant of it. */
+    private fun isDescendantOf(ancestorId: Long, folderId: Long?): Boolean {
+        if (folderId == null) return false
+        if (folderId == ancestorId) return true
+        val parent = allFolders.find { it.id == folderId }?.parent_id
+        return isDescendantOf(ancestorId, parent)
+    }
+
+    fun moveFolder(id: Long, newParentId: Long?) {
+        if (isDescendantOf(id, newParentId)) return  // would create a cycle
+        if (allFolders.find { it.id == id }?.parent_id == newParentId) return  // no-op
+        viewModelScope.launch {
+            repo.moveFolderTo(id, newParentId)
+            refresh()
+        }
+    }
+
+    fun moveRequest(id: Long, newFolderId: Long?) {
+        if (allRequests.find { it.id == id }?.folder_id == newFolderId) return  // no-op
+        viewModelScope.launch {
+            repo.moveRequestTo(id, newFolderId)
+            refresh()
+        }
+    }
+
     fun deleteFolder(id: Long) {
         viewModelScope.launch {
             repo.deleteFolder(id)
