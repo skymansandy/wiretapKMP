@@ -143,20 +143,27 @@ private fun ResponseBodyTab(body: String, error: String?) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        else -> Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
-                .padding(12.dp)
-                .verticalScroll(rememberScrollState())
-                .horizontalScroll(rememberScrollState())
-        ) {
-            Text(
-                text = body,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        else -> {
+            val trimmed = body.trim()
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                JsonViewer(json = trimmed, modifier = Modifier.fillMaxSize())
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(6.dp))
+                        .padding(12.dp)
+                        .verticalScroll(rememberScrollState())
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = body,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
     }
 }
