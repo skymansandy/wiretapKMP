@@ -1,9 +1,9 @@
 package dev.skymansandy.kurlclient
 
-import android.os.Build
+actual fun getPlatform(): Platform {
 
-class AndroidPlatform : Platform {
-    override val name: String = "Android ${Build.VERSION.SDK_INT}"
+    return object : Platform {
+        override val name: String
+            get() = "Android"
+    }
 }
-
-actual fun getPlatform(): Platform = AndroidPlatform()

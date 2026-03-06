@@ -33,3 +33,6 @@ plugins {
 }
 
 include(":composeApp")
+include(":androidApp")
+
+include(":kurl-core")
