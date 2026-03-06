@@ -24,10 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.kurlclient.ui.ResponseState
+import kotlin.math.roundToInt
 
 private val RESPONSE_TABS = listOf("Body", "Headers")
 
@@ -119,6 +119,7 @@ private fun StatusBadge(code: Int) {
         in 400..599 -> MaterialTheme.colorScheme.error
         else -> MaterialTheme.colorScheme.secondary
     }
+
     Surface(color = color, shape = RoundedCornerShape(4.dp)) {
         Text(
             text = code.toString(),
@@ -201,5 +202,9 @@ private fun ResponseHeadersTab(headers: Map<String, String>) {
 private fun formatSize(bytes: Long): String = when {
     bytes < 1024 -> "$bytes B"
     bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-    else -> "${"%.1f".format(bytes / (1024.0 * 1024))} MB"
+    else -> {
+        val mb = bytes / (1024.0 * 1024)
+        val rounded = (mb * 10).roundToInt() / 10.0
+        "$rounded MB"
+    }
 }
