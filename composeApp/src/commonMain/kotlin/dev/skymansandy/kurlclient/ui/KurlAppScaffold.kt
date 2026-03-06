@@ -71,6 +71,14 @@ fun KurlAppScaffold() {
         }
     }
 
+    LaunchedEffect(vm.overwriteSuccess) {
+        if (vm.overwriteSuccess) {
+            collectionsVm.refresh()
+            snackbarHostState.showSnackbar("Changes saved")
+            vm.clearOverwriteSuccess()
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val windowClass = maxWidth.toWindowWidthClass()
 
@@ -110,6 +118,7 @@ fun KurlAppScaffold() {
             vm.loadSavedRequest(saved)
             selectedNav = NavDestination.New
         }
+        val onSaveChanges: () -> Unit = { vm.overwriteLoadedRequest() }
 
         when (windowClass) {
             WindowWidthClass.Compact -> CompactScaffold(
@@ -121,7 +130,8 @@ fun KurlAppScaffold() {
                 onSave = { showSaveDialog = true },
                 onCopyCurl = onCopyCurl,
                 onImportCurl = onImportCurl,
-                onRequestSelected = onRequestSelected
+                onRequestSelected = onRequestSelected,
+                onSaveChanges = onSaveChanges
             )
             else -> ExpandedScaffold(
                 vm = vm,
@@ -132,7 +142,8 @@ fun KurlAppScaffold() {
                 onSave = { showSaveDialog = true },
                 onCopyCurl = onCopyCurl,
                 onImportCurl = onImportCurl,
-                onRequestSelected = onRequestSelected
+                onRequestSelected = onRequestSelected,
+                onSaveChanges = onSaveChanges
             )
         }
     }
@@ -150,7 +161,8 @@ private fun CompactScaffold(
     onSave: () -> Unit,
     onCopyCurl: () -> Unit,
     onImportCurl: () -> Unit,
-    onRequestSelected: (dev.skymansandy.kurlclient.db.SavedRequest) -> Unit
+    onRequestSelected: (dev.skymansandy.kurlclient.db.SavedRequest) -> Unit,
+    onSaveChanges: () -> Unit
 ) {
     Scaffold(
         bottomBar = { KurlNavigationBar(selected = selectedNav, onSelect = onNavSelect) },
@@ -194,7 +206,9 @@ private fun CompactScaffold(
                 }
                 NavDestination.Collections -> CollectionsScreen(
                     vm = collectionsVm,
+                    activeRequestId = vm.loadedRequest?.id,
                     onRequestSelected = onRequestSelected,
+                    onSaveChanges = onSaveChanges,
                     modifier = Modifier.fillMaxSize()
                 )
                 NavDestination.History -> HistoryPlaceholder()
@@ -215,7 +229,8 @@ private fun ExpandedScaffold(
     onSave: () -> Unit,
     onCopyCurl: () -> Unit,
     onImportCurl: () -> Unit,
-    onRequestSelected: (dev.skymansandy.kurlclient.db.SavedRequest) -> Unit
+    onRequestSelected: (dev.skymansandy.kurlclient.db.SavedRequest) -> Unit,
+    onSaveChanges: () -> Unit
 ) {
     Scaffold(
         snackbarHost = {
@@ -261,7 +276,9 @@ private fun ExpandedScaffold(
                 }
                 NavDestination.Collections -> CollectionsScreen(
                     vm = collectionsVm,
+                    activeRequestId = vm.loadedRequest?.id,
                     onRequestSelected = onRequestSelected,
+                    onSaveChanges = onSaveChanges,
                     modifier = Modifier.fillMaxSize()
                 )
                 NavDestination.History -> HistoryPlaceholder()

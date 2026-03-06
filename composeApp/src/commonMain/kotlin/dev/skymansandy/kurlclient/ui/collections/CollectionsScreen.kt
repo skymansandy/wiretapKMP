@@ -1,5 +1,6 @@
 package dev.skymansandy.kurlclient.ui.collections
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,12 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -48,42 +50,40 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.skymansandy.kurlclient.db.CollectionFolder
 import dev.skymansandy.kurlclient.db.SavedRequest
+import dev.skymansandy.kurlclient.formatRelativeTime
 import dev.skymansandy.kurlclient.ui.HttpMethod
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionsScreen(
     vm: CollectionsViewModel = viewModel { CollectionsViewModel() },
+    activeRequestId: Long? = null,
     onRequestSelected: (SavedRequest) -> Unit,
+    onSaveChanges: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showNewFolderDialog by remember { mutableStateOf(false) }
+    var newFolderParentId by remember { mutableStateOf<Long?>(null) }
+
+    val treeItems = remember(vm.allFolders, vm.allRequests, vm.expandedFolderIds) {
+        vm.buildTreeItems()
+    }
 
     Column(modifier = modifier) {
         TopAppBar(
-            title = {
-                Breadcrumb(
-                    breadcrumb = vm.breadcrumb,
-                    onRootClick = vm::navigateToRoot,
-                    onSegmentClick = vm::navigateTo
-                )
-            },
-            navigationIcon = {
-                if (vm.breadcrumb.isNotEmpty()) {
-                    IconButton(onClick = vm::navigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Up")
-                    }
-                }
-            },
+            title = { Text("Collections", style = MaterialTheme.typography.titleMedium) },
             actions = {
-                IconButton(onClick = { showNewFolderDialog = true }) {
+                IconButton(onClick = {
+                    newFolderParentId = null
+                    showNewFolderDialog = true
+                }) {
                     Icon(Icons.Default.Add, contentDescription = "New folder")
                 }
             }
         )
         HorizontalDivider()
 
-        if (vm.folders.isEmpty() && vm.requests.isEmpty()) {
+        if (treeItems.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     "No saved requests",
@@ -93,19 +93,30 @@ fun CollectionsScreen(
             }
         } else {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(vm.folders, key = { "f_${it.id}" }) { folder ->
-                    FolderRow(
-                        folder = folder,
-                        onClick = { vm.navigateInto(folder) },
-                        onDelete = { vm.deleteFolder(folder.id) }
-                    )
-                }
-                items(vm.requests, key = { "r_${it.id}" }) { request ->
-                    RequestRow(
-                        request = request,
-                        onClick = { onRequestSelected(request) },
-                        onDelete = { vm.deleteRequest(request.id) }
-                    )
+                items(treeItems, key = { item ->
+                    when (item) {
+                        is TreeItem.Folder -> "f_${item.folder.id}"
+                        is TreeItem.Request -> "r_${item.request.id}"
+                    }
+                }) { item ->
+                    when (item) {
+                        is TreeItem.Folder -> FolderTreeRow(
+                            item = item,
+                            onToggle = { vm.toggleFolder(item.folder.id) },
+                            onNewSubfolder = {
+                                newFolderParentId = item.folder.id
+                                showNewFolderDialog = true
+                            },
+                            onDelete = { vm.deleteFolder(item.folder.id) }
+                        )
+                        is TreeItem.Request -> RequestTreeRow(
+                            item = item,
+                            isActive = item.request.id == activeRequestId,
+                            onLoad = { onRequestSelected(item.request) },
+                            onSaveChanges = onSaveChanges,
+                            onDelete = { vm.deleteRequest(item.request.id) }
+                        )
+                    }
                 }
             }
         }
@@ -115,7 +126,7 @@ fun CollectionsScreen(
         NewFolderDialog(
             allFolders = vm.allFolders,
             folderPaths = vm.folderPaths,
-            fixedParentId = vm.currentFolderId,
+            fixedParentId = newFolderParentId,
             onDismiss = { showNewFolderDialog = false },
             onCreate = { name, parentId ->
                 vm.createFolder(name, parentId)
@@ -125,98 +136,102 @@ fun CollectionsScreen(
     }
 }
 
-// ── Breadcrumb ────────────────────────────────────────────────────────────────
+// ── Folder tree row ───────────────────────────────────────────────────────────
 
 @Composable
-private fun Breadcrumb(
-    breadcrumb: List<Pair<Long?, String>>,
-    onRootClick: () -> Unit,
-    onSegmentClick: (Int) -> Unit
+private fun FolderTreeRow(
+    item: TreeItem.Folder,
+    onToggle: () -> Unit,
+    onNewSubfolder: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = onRootClick, modifier = Modifier.padding(0.dp)) {
-            Text("Collections", style = MaterialTheme.typography.titleMedium)
-        }
-        breadcrumb.forEachIndexed { index, (_, name) ->
-            Icon(
-                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (index == breadcrumb.lastIndex) {
-                Text(
-                    name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+    var menuExpanded by remember { mutableStateOf(false) }
+    val indent = (item.depth * 16).dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(start = 8.dp + indent, end = 4.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Icon(
+            imageVector = if (item.isExpanded) Icons.Default.ArrowDropDown else Icons.Default.ArrowRight,
+            contentDescription = if (item.isExpanded) "Collapse" else "Expand",
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Icon(
+            imageVector = if (item.isExpanded) Icons.Default.FolderOpen else Icons.Default.Folder,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = item.folder.name,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Box {
+            IconButton(onClick = { menuExpanded = true }, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Folder options",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            } else {
-                TextButton(
-                    onClick = { onSegmentClick(index) },
-                    modifier = Modifier.padding(0.dp)
-                ) {
-                    Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text("New subfolder") },
+                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                    onClick = { menuExpanded = false; onNewSubfolder() }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = { menuExpanded = false; onDelete() }
+                )
             }
         }
     }
 }
 
-// ── Folder row ────────────────────────────────────────────────────────────────
+// ── Request tree row ──────────────────────────────────────────────────────────
 
 @Composable
-private fun FolderRow(
-    folder: CollectionFolder,
-    onClick: () -> Unit,
+private fun RequestTreeRow(
+    item: TreeItem.Request,
+    isActive: Boolean,
+    onLoad: () -> Unit,
+    onSaveChanges: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    val indent = (item.depth * 16).dp
+    val request = item.request
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Icon(
-            Icons.Default.Folder,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-        Text(
-            folder.name,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
-        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "Delete folder",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            .then(
+                if (isActive) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+                else Modifier
             )
-        }
-    }
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-}
-
-// ── Request row ───────────────────────────────────────────────────────────────
-
-@Composable
-private fun RequestRow(
-    request: SavedRequest,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .clickable(onClick = onLoad)
+            .padding(start = 32.dp + indent, end = 4.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Surface(
             color = methodColor(request.method),
@@ -226,29 +241,70 @@ private fun RequestRow(
                 text = request.method,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
-            Text(request.name, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = request.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Text(
+                    text = formatRelativeTime(request.created_at),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Text(
-                request.url,
-                style = MaterialTheme.typography.bodySmall,
+                text = request.url,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        IconButton(onClick = onDelete, modifier = Modifier.size(28.dp)) {
-            Icon(
-                Icons.Default.Delete,
-                contentDescription = "Delete request",
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        Box {
+            IconButton(onClick = { menuExpanded = true }, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Request options",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                DropdownMenuItem(
+                    text = { Text("Load") },
+                    onClick = { menuExpanded = false; onLoad() }
+                )
+                if (isActive) {
+                    DropdownMenuItem(
+                        text = { Text("Save changes") },
+                        onClick = { menuExpanded = false; onSaveChanges() }
+                    )
+                }
+                DropdownMenuItem(
+                    text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = { menuExpanded = false; onDelete() }
+                )
+            }
         }
     }
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
 
 // ── New folder dialog ─────────────────────────────────────────────────────────
@@ -283,8 +339,11 @@ private fun NewFolderDialog(
 
                 if (fixedParentId == null) {
                     Column {
-                        Text("Parent folder", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "Parent folder",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Spacer(Modifier.height(4.dp))
                         OutlinedButton(
                             onClick = { dropdownExpanded = true },

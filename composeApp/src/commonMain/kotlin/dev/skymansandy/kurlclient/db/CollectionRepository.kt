@@ -1,5 +1,6 @@
 package dev.skymansandy.kurlclient.db
 
+import dev.skymansandy.kurlclient.currentTimeMillis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -8,7 +9,7 @@ class CollectionRepository(private val db: KurlDatabase) {
     // ── Folders ───────────────────────────────────────────────────────────────
 
     suspend fun createFolder(name: String, parentId: Long?): Long = withContext(Dispatchers.Default) {
-        db.collectionsQueries.insertFolder(name = name, parent_id = parentId, created_at = 0L)
+        db.collectionsQueries.insertFolder(name = name, parent_id = parentId, created_at = currentTimeMillis())
         db.collectionsQueries.lastInsertedRowId().executeAsOne()
     }
 
@@ -44,8 +45,35 @@ class CollectionRepository(private val db: KurlDatabase) {
             headers = headers,
             params = params,
             body = body,
-            created_at = 0L
+            created_at = currentTimeMillis()
         )
+    }
+
+    suspend fun updateRequest(
+        id: Long,
+        name: String,
+        folderId: Long?,
+        url: String,
+        method: String,
+        headers: String,
+        params: String,
+        body: String
+    ) = withContext(Dispatchers.Default) {
+        db.collectionsQueries.updateRequest(
+            id = id,
+            name = name,
+            folder_id = folderId,
+            url = url,
+            method = method,
+            headers = headers,
+            params = params,
+            body = body,
+            created_at = currentTimeMillis()
+        )
+    }
+
+    suspend fun getAllRequests(): List<SavedRequest> = withContext(Dispatchers.Default) {
+        db.collectionsQueries.getAllRequests().executeAsList()
     }
 
     suspend fun getRequestsInFolder(folderId: Long?): List<SavedRequest> =

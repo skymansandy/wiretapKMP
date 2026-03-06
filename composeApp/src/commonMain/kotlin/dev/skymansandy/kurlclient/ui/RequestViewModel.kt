@@ -102,6 +102,9 @@ class RequestViewModel : ViewModel() {
 
     // ── Save / Load ───────────────────────────────────────────────────────────
 
+    var loadedRequest by mutableStateOf<SavedRequest?>(null)
+        private set
+
     var saveSuccess by mutableStateOf(false)
         private set
 
@@ -121,6 +124,28 @@ class RequestViewModel : ViewModel() {
     }
 
     fun clearSaveSuccess() { saveSuccess = false }
+
+    var overwriteSuccess by mutableStateOf(false)
+        private set
+
+    fun overwriteLoadedRequest() {
+        val loaded = loadedRequest ?: return
+        viewModelScope.launch {
+            repo.updateRequest(
+                id = loaded.id,
+                name = loaded.name,
+                folderId = loaded.folder_id,
+                url = url,
+                method = method.name,
+                headers = headers.serialize(),
+                params = params.serialize(),
+                body = body
+            )
+            overwriteSuccess = true
+        }
+    }
+
+    fun clearOverwriteSuccess() { overwriteSuccess = false }
 
     // ── cURL export / import ──────────────────────────────────────────────────
 
@@ -145,6 +170,7 @@ class RequestViewModel : ViewModel() {
     }
 
     fun loadSavedRequest(saved: SavedRequest) {
+        loadedRequest = saved
         url = saved.url
         method = runCatching { HttpMethod.valueOf(saved.method) }.getOrDefault(HttpMethod.GET)
         val (h, idAfterHeaders) = saved.headers.deserializeKeyValueEntries(nextId)

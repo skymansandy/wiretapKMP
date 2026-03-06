@@ -7,3 +7,5 @@ actual fun getPlatform(): Platform {
             get() = "Android"
     }
 }
+
+actual fun currentTimeMillis(): Long = System.currentTimeMillis()

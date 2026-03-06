@@ -11,91 +11,85 @@ import dev.skymansandy.kurlclient.db.CollectionRepository
 import dev.skymansandy.kurlclient.db.SavedRequest
 import kotlinx.coroutines.launch
 
+sealed interface TreeItem {
+    data class Folder(val folder: CollectionFolder, val depth: Int, val isExpanded: Boolean) : TreeItem
+    data class Request(val request: SavedRequest, val depth: Int) : TreeItem
+}
+
 class CollectionsViewModel : ViewModel() {
 
     private val repo = CollectionRepository(AppDatabase.db)
 
-    // Breadcrumb stack: list of (folderId, folderName) pairs; null id = root
-    var breadcrumb by mutableStateOf(listOf<Pair<Long?, String>>())
-        private set
-
-    val currentFolderId: Long? get() = breadcrumb.lastOrNull()?.first
-
-    var folders by mutableStateOf(emptyList<CollectionFolder>())
-        private set
-
-    var requests by mutableStateOf(emptyList<SavedRequest>())
-        private set
-
     var allFolders by mutableStateOf(emptyList<CollectionFolder>())
+        private set
+
+    var allRequests by mutableStateOf(emptyList<SavedRequest>())
+        private set
+
+    var expandedFolderIds by mutableStateOf(emptySet<Long>())
         private set
 
     var folderPaths by mutableStateOf(emptyMap<Long, String>())
         private set
 
-    init {
-        loadRoot()
-    }
+    init { refresh() }
 
     fun refresh() {
-        loadCurrent()
-    }
-
-    private fun loadRoot() {
-        breadcrumb = emptyList()
-        loadCurrent()
-    }
-
-    private fun loadCurrent() {
         viewModelScope.launch {
-            val folderId = currentFolderId
-            folders = repo.getFoldersInParent(folderId)
-            requests = repo.getRequestsInFolder(folderId)
             allFolders = repo.getAllFolders()
+            allRequests = repo.getAllRequests()
             folderPaths = repo.buildFolderPaths(allFolders)
         }
     }
 
-    fun navigateInto(folder: CollectionFolder) {
-        breadcrumb = breadcrumb + (folder.id to folder.name)
-        loadCurrent()
+    fun toggleFolder(id: Long) {
+        expandedFolderIds = if (id in expandedFolderIds) expandedFolderIds - id else expandedFolderIds + id
     }
 
-    fun navigateUp() {
-        if (breadcrumb.isNotEmpty()) {
-            breadcrumb = breadcrumb.dropLast(1)
-            loadCurrent()
-        }
+    fun buildTreeItems(): List<TreeItem> {
+        val result = mutableListOf<TreeItem>()
+        appendChildren(parentId = null, depth = 0, result = result)
+        return result
     }
 
-    fun navigateTo(index: Int) {
-        breadcrumb = breadcrumb.take(index + 1)
-        loadCurrent()
-    }
-
-    fun navigateToRoot() {
-        breadcrumb = emptyList()
-        loadCurrent()
+    private fun appendChildren(parentId: Long?, depth: Int, result: MutableList<TreeItem>) {
+        allFolders
+            .filter { it.parent_id == parentId }
+            .sortedBy { it.name }
+            .forEach { folder ->
+                val expanded = folder.id in expandedFolderIds
+                result.add(TreeItem.Folder(folder, depth, expanded))
+                if (expanded) appendChildren(folder.id, depth + 1, result)
+            }
+        allRequests
+            .filter { it.folder_id == parentId }
+            .sortedBy { it.name }
+            .forEach { request ->
+                result.add(TreeItem.Request(request, depth))
+            }
     }
 
     fun createFolder(name: String, parentId: Long?) {
         viewModelScope.launch {
-            repo.createFolder(name, parentId)
-            loadCurrent()
+            val newId = repo.createFolder(name, parentId)
+            refresh()
+            if (parentId != null) expandedFolderIds = expandedFolderIds + parentId
+            expandedFolderIds = expandedFolderIds + newId
         }
     }
 
     fun deleteFolder(id: Long) {
         viewModelScope.launch {
             repo.deleteFolder(id)
-            loadCurrent()
+            expandedFolderIds = expandedFolderIds - id
+            refresh()
         }
     }
 
     fun deleteRequest(id: Long) {
         viewModelScope.launch {
             repo.deleteRequest(id)
-            loadCurrent()
+            refresh()
         }
     }
 }

@@ -52,5 +52,11 @@ SELECT * FROM SavedRequest ORDER BY name;
 getRequestById:
 SELECT * FROM SavedRequest WHERE id = :id;
 
+updateRequest:
+UPDATE SavedRequest
+SET name = :name, folder_id = :folder_id, url = :url, method = :method,
+    headers = :headers, params = :params, body = :body, created_at = :created_at
+WHERE id = :id;
+
 deleteRequest:
 DELETE FROM SavedRequest WHERE id = :id;
