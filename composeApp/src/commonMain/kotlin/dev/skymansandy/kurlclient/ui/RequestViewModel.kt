@@ -7,6 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.kurl.core.KurlEngine
 import dev.skymansandy.kurl.core.model.KurlRequest
+import dev.skymansandy.kurlclient.db.AppDatabase
+import dev.skymansandy.kurlclient.db.CollectionRepository
+import dev.skymansandy.kurlclient.db.SavedRequest
+import dev.skymansandy.kurlclient.util.deserializeKeyValueEntries
+import dev.skymansandy.kurlclient.util.serialize
 import kotlinx.coroutines.launch
 
 enum class HttpMethod { GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS }
@@ -30,6 +35,7 @@ data class ResponseState(
 class RequestViewModel : ViewModel() {
 
     private val engine = KurlEngine()
+    private val repo = CollectionRepository(AppDatabase.db)
     private var nextId = 1L
 
     var url by mutableStateOf("")
@@ -88,6 +94,41 @@ class RequestViewModel : ViewModel() {
 
     fun removeHeader(id: Long) {
         headers = headers.filter { it.id != id }
+    }
+
+    // ── Save / Load ───────────────────────────────────────────────────────────
+
+    var saveSuccess by mutableStateOf(false)
+        private set
+
+    fun saveRequest(name: String, folderId: Long?) {
+        viewModelScope.launch {
+            repo.saveRequest(
+                name = name,
+                folderId = folderId,
+                url = url,
+                method = method.name,
+                headers = headers.serialize(),
+                params = params.serialize(),
+                body = body
+            )
+            saveSuccess = true
+        }
+    }
+
+    fun clearSaveSuccess() { saveSuccess = false }
+
+    fun loadSavedRequest(saved: SavedRequest) {
+        url = saved.url
+        method = runCatching { HttpMethod.valueOf(saved.method) }.getOrDefault(HttpMethod.GET)
+        val (h, idAfterHeaders) = saved.headers.deserializeKeyValueEntries(nextId)
+        val (p, idAfterParams) = saved.params.deserializeKeyValueEntries(idAfterHeaders)
+        nextId = idAfterParams
+        headers = h.ifEmpty { listOf(KeyValueEntry(id = nextId++)) }
+        params = p.ifEmpty { listOf(KeyValueEntry(id = nextId++)) }
+        body = saved.body
+        response = null
+        error = null
     }
 
     // ── Send ──────────────────────────────────────────────────────────────────

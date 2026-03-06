@@ -19,12 +19,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
@@ -66,6 +68,7 @@ fun RequestPanel(
     onHeaderRemove: (Long) -> Unit,
     onBodyChange: (String) -> Unit,
     onSend: () -> Unit,
+    onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -78,6 +81,7 @@ fun RequestPanel(
             onMethodChange = onMethodChange,
             onUrlChange = onUrlChange,
             onSend = onSend,
+            onSave = onSave,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp)
@@ -128,6 +132,7 @@ private fun UrlBar(
     onMethodChange: (HttpMethod) -> Unit,
     onUrlChange: (String) -> Unit,
     onSend: () -> Unit,
+    onSave: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -189,6 +194,13 @@ private fun UrlBar(
             },
             modifier = Modifier.weight(1f).fillMaxSize()
         )
+
+        FilledTonalIconButton(
+            onClick = onSave,
+            enabled = !isLoading
+        ) {
+            Icon(Icons.Default.FolderOpen, contentDescription = "Save to collection")
+        }
 
         Button(
             onClick = onSend,
