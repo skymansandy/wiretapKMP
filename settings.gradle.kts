@@ -1,4 +1,4 @@
-rootProject.name = "KurlClient"
+rootProject.name = "SpektorKMP"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -35,4 +35,4 @@ plugins {
 include(":composeApp")
 include(":androidApp")
 
-include(":kurl-core")
+include(":spektor")

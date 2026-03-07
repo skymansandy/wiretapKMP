@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		32F4CF85CD8286E0AED8C6ED /* KurlClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KurlClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		32F4CF85CD8286E0AED8C6ED /* SpektorSample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpektorSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		8131E6DB40FC71B5EFED5C68 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				32F4CF85CD8286E0AED8C6ED /* KurlClient.app */,
+				32F4CF85CD8286E0AED8C6ED /* SpektorSample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 32F4CF85CD8286E0AED8C6ED /* KurlClient.app */;
+			productReference = 32F4CF85CD8286E0AED8C6ED /* SpektorSample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -12,7 +11,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "com.example.namespace"
+        namespace = "dev.skymansandy.spektorsample"
         compileSdk { version = release(36) }
     }
 
@@ -21,7 +20,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ComposeApp"
+            baseName = "SpektorSample"
             isStatic = true
         }
     }
@@ -43,7 +42,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(projects.kurlCore)
+            implementation(projects.spektor)
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
@@ -64,19 +63,19 @@ kotlin {
 
 sqldelight {
     databases {
-        create("KurlDatabase") {
-            packageName.set("dev.skymansandy.kurlclient.db")
+        create("SpektorDb") {
+            packageName.set("dev.skymansandy.spektorsample.db")
         }
     }
 }
 
 compose.desktop {
     application {
-        mainClass = "dev.skymansandy.kurlclient.MainKt"
+        mainClass = "dev.skymansandy.spektorsample.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "dev.skymansandy.kurlclient"
+            packageName = "dev.skymansandy.spektorsample"
             packageVersion = "1.0.0"
         }
     }
