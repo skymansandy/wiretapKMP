@@ -34,6 +34,5 @@ plugins {
 
 include(":androidApp")
 include(":composeApp")
-include(":studioApp")
 
-include(":wiretap-core")
+include(":wiretap")

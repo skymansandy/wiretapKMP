@@ -42,7 +42,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(projects.wiretapCore)
+            implementation(projects.wiretap)
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
