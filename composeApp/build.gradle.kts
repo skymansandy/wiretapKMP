@@ -32,6 +32,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android.driver)
+            implementation(libs.ktor.client.android)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -46,6 +47,11 @@ kotlin {
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.ktor.client.core)
+            implementation(libs.kotlinx.coroutines.core)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -54,9 +60,11 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sqldelight.sqlite.driver)
+            implementation(libs.ktor.client.java)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
+            implementation(libs.ktor.client.darwin)
         }
     }
 }

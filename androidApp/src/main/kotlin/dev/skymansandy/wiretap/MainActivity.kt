@@ -4,16 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import dev.skymansandy.wiretap.ui.theme.WiretapTheme
+import dev.skymansandy.wiretapsample.App
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            WiretapTheme {
-                App()
-            }
+            App()
         }
     }
 }

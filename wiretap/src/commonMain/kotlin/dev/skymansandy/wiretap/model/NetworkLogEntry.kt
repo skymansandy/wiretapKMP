@@ -1,0 +1,15 @@
+package dev.skymansandy.wiretap.model
+
+data class NetworkLogEntry(
+    val id: Long = 0,
+    val url: String,
+    val method: String,
+    val requestHeaders: Map<String, String> = emptyMap(),
+    val requestBody: String? = null,
+    val responseCode: Int,
+    val responseHeaders: Map<String, String> = emptyMap(),
+    val responseBody: String? = null,
+    val durationMs: Long,
+    val source: ResponseSource = ResponseSource.NETWORK,
+    val timestamp: Long,
+)
