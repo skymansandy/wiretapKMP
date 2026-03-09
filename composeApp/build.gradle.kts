@@ -43,7 +43,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(projects.wiretap)
+            compileOnly(projects.wiretap)
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
@@ -51,7 +51,6 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
-
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -61,10 +60,12 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sqldelight.sqlite.driver)
             implementation(libs.ktor.client.java)
+            implementation(projects.wiretap)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
             implementation(libs.ktor.client.darwin)
+            implementation(projects.wiretap)
         }
     }
 }

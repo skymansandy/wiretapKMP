@@ -36,3 +36,4 @@ include(":androidApp")
 include(":composeApp")
 
 include(":wiretap")
+include(":wiretap-noop")

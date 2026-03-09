@@ -71,6 +71,7 @@ kotlin {
                 implementation(libs.ktor.client.android)
                 implementation(libs.sqldelight.android.driver)
                 implementation(libs.androidx.startup.runtime)
+                implementation(libs.androidx.activity.compose)
             }
         }
 

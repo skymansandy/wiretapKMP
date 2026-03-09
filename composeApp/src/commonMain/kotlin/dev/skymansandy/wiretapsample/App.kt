@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.startWiretap
 import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -33,13 +33,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun App() {
     WiretapTheme {
-        var showWiretap by remember { mutableStateOf(false) }
-
-        if (showWiretap) {
-            WiretapScreen(onBack = { showWiretap = false })
-            return@WiretapTheme
-        }
-
         val client = remember {
             HttpClient {
                 install(WiretapKtorPlugin)
@@ -129,7 +122,7 @@ fun App() {
 
                 Spacer(Modifier.height(16.dp))
 
-                FilledTonalButton(onClick = { showWiretap = true }) {
+                FilledTonalButton(onClick = { startWiretap() }) {
                     Text("Open Wiretap Inspector")
                 }
             }
