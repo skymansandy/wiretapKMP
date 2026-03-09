@@ -13,14 +13,9 @@
 
         <activity
             android:name="dev.skymansandy.wiretap.WiretapActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="Wiretap"
-            android:theme="@android:style/Theme.Material.Light.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>
 
 </manifest>
