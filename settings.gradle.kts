@@ -1,4 +1,4 @@
-rootProject.name = "SpektorKMP"
+rootProject.name = "WiretapKMP"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -35,4 +35,4 @@ plugins {
 include(":composeApp")
 include(":androidApp")
 
-include(":spektor")
+include(":wiretap-core")

@@ -11,7 +11,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "dev.skymansandy.spektorsample"
+        namespace = "dev.skymansandy.wiretapsample"
         compileSdk { version = release(36) }
     }
 
@@ -20,7 +20,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "SpektorSample"
+            baseName = "WiretapSample"
             isStatic = true
         }
     }
@@ -42,7 +42,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            implementation(projects.spektor)
+            implementation(projects.wiretapCore)
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
@@ -63,19 +63,19 @@ kotlin {
 
 sqldelight {
     databases {
-        create("SpektorDb") {
-            packageName.set("dev.skymansandy.spektorsample.db")
+        create("WiretapDb") {
+            packageName.set("dev.skymansandy.wiretapsample.db")
         }
     }
 }
 
 compose.desktop {
     application {
-        mainClass = "dev.skymansandy.spektorsample.MainKt"
+        mainClass = "dev.skymansandy.wiretapsample.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "dev.skymansandy.spektorsample"
+            packageName = "dev.skymansandy.wiretapsample"
             packageVersion = "1.0.0"
         }
     }

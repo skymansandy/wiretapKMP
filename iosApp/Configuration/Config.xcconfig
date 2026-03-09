@@ -1,7 +1,7 @@
 TEAM_ID=
 
-PRODUCT_NAME=Spektor Sample
-PRODUCT_BUNDLE_IDENTIFIER=dev.skymansandy.spektor.SpektorSample$(TEAM_ID)
+PRODUCT_NAME=Wiretap Sample
+PRODUCT_BUNDLE_IDENTIFIER=dev.skymansandy.wiretap.WiretapSample(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1
 MARKETING_VERSION=1.0

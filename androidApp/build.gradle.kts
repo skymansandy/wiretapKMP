@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "dev.skymansandy.spektorsample"
+    namespace = "dev.skymansandy.wiretap"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.skymansandy.spektorsample"
+        applicationId = "dev.skymansandy.wiretapsample"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
