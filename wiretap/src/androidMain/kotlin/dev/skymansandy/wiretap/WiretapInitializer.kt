@@ -23,7 +23,7 @@ class WiretapInitializer : Initializer<Unit> {
                 .setIntent(
                     Intent(context, WiretapActivity::class.java).apply {
                         action = Intent.ACTION_VIEW
-                    }
+                    },
                 )
                 .build()
             shortcutManager.dynamicShortcuts = listOf(shortcut)

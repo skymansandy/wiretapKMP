@@ -22,6 +22,7 @@ koin = "4.0.2"
 kotlinx-datetime = "0.6.1"
 ktor = "3.0.0"
 sqldelight = "2.0.2"
+detekt = "1.23.7"
 runner = "1.5.2"
 core = "1.5.0"
 material = "1.10.0"
@@ -86,3 +87,4 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidLint = { id = "com.android.lint", version.ref = "agp" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

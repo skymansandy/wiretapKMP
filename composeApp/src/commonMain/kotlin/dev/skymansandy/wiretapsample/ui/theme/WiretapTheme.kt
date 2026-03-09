@@ -8,6 +8,6 @@ import androidx.compose.runtime.Composable
 fun WiretapTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = lightColorScheme(),
-        content = content
+        content = content,
     )
 }

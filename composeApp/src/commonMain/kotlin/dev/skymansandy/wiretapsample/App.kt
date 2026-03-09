@@ -79,7 +79,9 @@ fun App() {
                     scope.launch {
                         status = "Fetching users..."
                         try {
-                            val response = client.get("https://raw.githubusercontent.com/usuiat/Zoomable/refs/heads/main/samples/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json")
+                            @Suppress("MaxLineLength")
+                            val url = "https://raw.githubusercontent.com/usuiat/Zoomable/refs/heads/main/samples/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json"
+                            val response = client.get(url)
                             status = "GET /users -> ${response.status.value}"
                         } catch (e: Exception) {
                             status = "Error: ${e.message}"
