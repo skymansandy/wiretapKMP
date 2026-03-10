@@ -1,17 +1,24 @@
 package dev.skymansandy.wiretap.ui
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.model.NetworkLogEntry
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,111 +59,5 @@ fun NetworkLogDetailScreen(
                 2 -> ResponseTab(entry)
             }
         }
-    }
-}
-
-@Composable
-private fun OverviewTab(entry: NetworkLogEntry) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        DetailRow("URL", entry.url)
-        DetailRow("Method", entry.method)
-        DetailRow("Status", entry.responseCode.toString())
-        DetailRow("Duration", "${entry.durationMs}ms")
-        DetailRow("Source", entry.source.name)
-    }
-}
-
-@Composable
-private fun RequestTab(entry: NetworkLogEntry) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        SectionTitle("Headers")
-        if (entry.requestHeaders.isEmpty()) {
-            Text("No headers", style = MaterialTheme.typography.bodyMedium)
-        } else {
-            entry.requestHeaders.forEach { (key, value) ->
-                DetailRow(key, value)
-            }
-        }
-
-        SectionTitle("Body")
-        CodeBlock(entry.requestBody ?: "No body")
-    }
-}
-
-@Composable
-private fun ResponseTab(entry: NetworkLogEntry) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        SectionTitle("Headers")
-        if (entry.responseHeaders.isEmpty()) {
-            Text("No headers", style = MaterialTheme.typography.bodyMedium)
-        } else {
-            entry.responseHeaders.forEach { (key, value) ->
-                DetailRow(key, value)
-            }
-        }
-
-        SectionTitle("Body")
-        CodeBlock(entry.responseBody ?: "No body")
-    }
-}
-
-@Composable
-private fun DetailRow(label: String, value: String) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-    )
-}
-
-@Composable
-private fun CodeBlock(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.small,
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(12.dp),
-        )
     }
 }
