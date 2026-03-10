@@ -42,6 +42,15 @@ subprojects {
                     baseline.set(file("detekt-baseline.xml"))
                 }
             }
+
+            tasks.register<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>("detektBaselineAll") {
+                setSource(files("src"))
+                include("**/*.kt")
+                exclude("**/build/**")
+                config.setFrom(rootProject.files("detekt.yml"))
+                buildUponDefaultConfig = true
+                baseline.set(file("detekt-baseline.xml"))
+            }
         }
     }
 }

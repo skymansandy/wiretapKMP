@@ -229,7 +229,8 @@ formatting:
   IfElseWrapping:
     active: false
   ImportOrdering:
-    active: false
+    active: true
+    autoCorrect: true
   Indentation:
     active: true
     autoCorrect: true
@@ -237,7 +238,9 @@ formatting:
   KdocWrapping:
     active: false
   MaximumLineLength:
-    active: false
+    active: true
+    maxLineLength: 140
+    ignoreBackTickedIdentifier: false
   ModifierListSpacing:
     active: true
     autoCorrect: true
@@ -289,7 +292,8 @@ formatting:
     active: true
     autoCorrect: true
   NoWildcardImports:
-    active: false
+    active: true
+    packagesToUseImportOnDemandProperty: 'java.util.*,kotlinx.android.synthetic.**'
   NullableTypeSpacing:
     active: true
     autoCorrect: true
@@ -392,7 +396,7 @@ naming:
     active: false
   FunctionNaming:
     active: true
-    functionPattern: '([a-zA-Z][a-zA-Z0-9]*)|(`.*`)'
+    functionPattern: '([a-z][a-zA-Z0-9]*)|(`.*`)'
     excludeClassPattern: '$^'
     ignoreAnnotated:
       - 'Composable'
@@ -407,7 +411,8 @@ naming:
   LambdaParameterNaming:
     active: false
   MatchingDeclarationName:
-    active: false
+    active: true
+    mustBeFirst: true
   MemberNameEqualsClassName:
     active: false
   NoNameShadowing:
@@ -579,7 +584,7 @@ style:
     active: false
   MaxLineLength:
     active: true
-    maxLineLength: 150
+    maxLineLength: 140
     excludePackageStatements: true
     excludeImportStatements: true
     excludeCommentStatements: false
@@ -712,4 +717,7 @@ style:
     ignoreAnnotated:
       - 'Parameter'
   WildcardImport:
-    active: false
+    active: true
+    excludeImports:
+      - 'java.util.*'
+      - 'kotlinx.android.synthetic.*'
