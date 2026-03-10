@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.orchestrator
 
+import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.WiretapConfig
 import dev.skymansandy.wiretap.logger.NetworkLogger
 import dev.skymansandy.wiretap.model.NetworkLogEntry
@@ -23,9 +24,10 @@ class WiretapOrchestratorImpl(
         onNetworkEntryLogged(entry)
     }
 
-    override fun getAllLogs(): Flow<List<NetworkLogEntry>> {
-        return networkRepository.getAll()
-    }
+    override fun getAllLogs(): Flow<List<NetworkLogEntry>> = networkRepository.getAll()
+
+    override fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>> =
+        networkRepository.getPagedLogs(query)
 
     override fun getLogById(id: Long): NetworkLogEntry? {
         return networkRepository.getById(id)

@@ -42,6 +42,20 @@ DELETE FROM NetworkLogEntity;
 deleteNetworkLogById:
 DELETE FROM NetworkLogEntity WHERE id = ?;
 
+getNetworkLogsPage:
+SELECT * FROM NetworkLogEntity
+WHERE url LIKE '%' || :query || '%'
+   OR method LIKE '%' || :query || '%'
+   OR CAST(response_code AS TEXT) LIKE '%' || :query || '%'
+ORDER BY timestamp DESC
+LIMIT :limit OFFSET :offset;
+
+getNetworkLogsCount:
+SELECT COUNT(*) FROM NetworkLogEntity
+WHERE url LIKE '%' || :query || '%'
+   OR method LIKE '%' || :query || '%'
+   OR CAST(response_code AS TEXT) LIKE '%' || :query || '%';
+
 -- Rule queries
 insertRule:
 INSERT INTO RuleEntity (url_pattern, method, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)

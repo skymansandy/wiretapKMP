@@ -22,6 +22,7 @@ koin = "4.0.2"
 kotlinx-datetime = "0.6.1"
 ktor = "3.0.0"
 sqldelight = "2.0.2"
+cashAppPaging = "3.3.0-alpha02-0.5.1"
 detekt = "1.23.7"
 runner = "1.5.2"
 core = "1.5.0"
@@ -76,6 +77,8 @@ sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", 
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
+cashapp-paging-common = { module = "app.cash.paging:paging-common", version.ref = "cashAppPaging" }
+cashapp-paging-compose = { module = "app.cash.paging:paging-compose-common", version.ref = "cashAppPaging" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

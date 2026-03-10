@@ -57,6 +57,8 @@ kotlin {
                 implementation(libs.material.icons.extended)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
+                implementation(libs.cashapp.paging.common)
+                implementation(libs.cashapp.paging.compose)
             }
         }
 

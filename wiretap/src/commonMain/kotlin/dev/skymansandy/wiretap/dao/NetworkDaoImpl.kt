@@ -39,6 +39,12 @@ class NetworkDaoImpl(
             .map { entities -> entities.map { it.toDomain() } }
     }
 
+    override fun getPage(query: String, limit: Long, offset: Long): List<NetworkLogEntry> {
+        return queries.getNetworkLogsPage(query, limit, offset)
+            .executeAsList()
+            .map { it.toDomain() }
+    }
+
     override fun getById(id: Long): NetworkLogEntry? {
         return queries.getNetworkLogById(id).executeAsOneOrNull()?.toDomain()
     }

@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -60,7 +62,11 @@ internal fun KeyValueTable(rows: List<Pair<String, String>>) {
 }
 
 @Composable
-internal fun HeadersList(headers: Map<String, String>, emptyText: String) {
+internal fun HeadersList(
+    headers: Map<String, String>,
+    emptyText: String,
+    searchQuery: String = "",
+) {
     if (headers.isEmpty()) {
         Text(
             text = emptyText,
@@ -78,9 +84,10 @@ internal fun HeadersList(headers: Map<String, String>, emptyText: String) {
         headers.forEach { (key, value) ->
             Text(
                 text = buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(key) }
-                    append(": ")
-                    append(value)
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(highlightText(key, searchQuery))
+                    }
+                    append(highlightText(": $value", searchQuery))
                 },
                 style = MaterialTheme.typography.bodySmall,
             )
@@ -89,19 +96,42 @@ internal fun HeadersList(headers: Map<String, String>, emptyText: String) {
 }
 
 @Composable
-internal fun CodeBlock(text: String, modifier: Modifier = Modifier) {
+internal fun CodeBlock(
+    text: String,
+    modifier: Modifier = Modifier,
+    searchQuery: String = "",
+) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.small,
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(
-            text = text,
+            text = highlightText(text, searchQuery),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
             modifier = Modifier
                 .horizontalScroll(rememberScrollState())
                 .padding(12.dp),
         )
+    }
+}
+
+internal fun highlightText(text: String, query: String): AnnotatedString {
+    if (query.isBlank()) return AnnotatedString(text)
+    return buildAnnotatedString {
+        val lowerText = text.lowercase()
+        val lowerQuery = query.lowercase()
+        var cursor = 0
+        var match = lowerText.indexOf(lowerQuery, cursor)
+        while (match >= 0) {
+            append(text.substring(cursor, match))
+            withStyle(SpanStyle(background = Color(0xFFFFEB3B), color = Color.Black)) {
+                append(text.substring(match, match + query.length))
+            }
+            cursor = match + query.length
+            match = lowerText.indexOf(lowerQuery, cursor)
+        }
+        append(text.substring(cursor))
     }
 }

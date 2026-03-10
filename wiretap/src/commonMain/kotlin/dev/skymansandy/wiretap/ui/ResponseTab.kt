@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.model.NetworkLogEntry
 
 @Composable
-internal fun ResponseTab(entry: NetworkLogEntry) {
+internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -21,11 +21,13 @@ internal fun ResponseTab(entry: NetworkLogEntry) {
         HeadersList(
             headers = entry.responseHeaders,
             emptyText = "No headers",
+            searchQuery = searchQuery,
         )
         SectionTitle("Body")
         CodeBlock(
             text = entry.responseBody ?: "No body",
             modifier = Modifier.padding(16.dp),
+            searchQuery = searchQuery,
         )
     }
 }
