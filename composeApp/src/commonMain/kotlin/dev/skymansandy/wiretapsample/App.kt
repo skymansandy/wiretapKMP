@@ -125,7 +125,7 @@ fun App() {
                 Spacer(Modifier.height(16.dp))
 
                 FilledTonalButton(onClick = { startWiretap() }) {
-                    Text("Open Wiretap Inspector")
+                    Text("Open Wiretap Console")
                 }
             }
         }

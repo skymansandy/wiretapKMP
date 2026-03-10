@@ -19,7 +19,7 @@ class WiretapInitializer : Initializer<Unit> {
             val shortcutManager = context.getSystemService(ShortcutManager::class.java) ?: return
             val shortcut = ShortcutInfo.Builder(context, "wiretap_inspector")
                 .setShortLabel("Wiretap")
-                .setLongLabel("Open Wiretap Inspector")
+                .setLongLabel("Open Wiretap Console")
                 .setIntent(
                     Intent(context, WiretapActivity::class.java).apply {
                         action = Intent.ACTION_VIEW
