@@ -3,6 +3,8 @@ package dev.skymansandy.wiretap.orchestrator
 import dev.skymansandy.wiretap.WiretapConfig
 import dev.skymansandy.wiretap.logger.NetworkLogger
 import dev.skymansandy.wiretap.model.NetworkLogEntry
+import dev.skymansandy.wiretap.notification.onNetworkEntryLogged
+import dev.skymansandy.wiretap.notification.onNetworkLogsCleared
 import dev.skymansandy.wiretap.repository.NetworkRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +20,7 @@ class WiretapOrchestratorImpl(
         if (config.loggingEnabled) {
             networkLogger.log(entry)
         }
+        onNetworkEntryLogged(entry)
     }
 
     override fun getAllLogs(): Flow<List<NetworkLogEntry>> {
@@ -30,5 +33,6 @@ class WiretapOrchestratorImpl(
 
     override fun clearLogs() {
         networkRepository.clearAll()
+        onNetworkLogsCleared()
     }
 }

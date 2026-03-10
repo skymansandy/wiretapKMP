@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application>
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -16,6 +18,14 @@
             android:exported="false"
             android:label="Wiretap"
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+
+        <receiver
+            android:name="dev.skymansandy.wiretap.notification.WiretapClearLogsReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="dev.skymansandy.wiretap.ACTION_CLEAR_LOGS" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

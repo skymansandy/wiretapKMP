@@ -72,6 +72,7 @@ kotlin {
                 implementation(libs.sqldelight.android.driver)
                 implementation(libs.androidx.startup.runtime)
                 implementation(libs.androidx.activity.compose)
+                implementation(libs.androidx.core.ktx)
             }
         }
 

@@ -6,11 +6,13 @@ import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.startup.Initializer
+import dev.skymansandy.wiretap.notification.WiretapNotificationManager
 
 class WiretapInitializer : Initializer<Unit> {
 
     override fun create(context: Context) {
         WiretapContextProvider.init(context)
+        WiretapNotificationManager.createChannel(context)
         addWiretapShortcut(context)
     }
 
