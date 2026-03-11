@@ -84,7 +84,6 @@ fun NetworkLogDetailScreen(
                             query = searchQuery,
                             onQueryChange = { searchQuery = it },
                             focusRequester = searchFocusRequester,
-                            onDone = { isSearchActive = false; searchQuery = "" },
                         )
                     } else {
                         Text(
@@ -170,15 +169,15 @@ private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester,
-    onDone: () -> Unit,
 ) {
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { onDone() }),
+        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
         modifier = Modifier.focusRequester(focusRequester),
         decorationBox = { innerTextField ->
             Row(

@@ -86,7 +86,9 @@ fun WiretapScreen(
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) value = "" else { delay(450); value = searchQuery }
+        if (searchQuery.isEmpty()) value = "" else {
+            delay(450); value = searchQuery
+        }
     }
 
     val lazyItems = rememberPagedLogs(orchestrator, debouncedQuery)
@@ -100,14 +102,17 @@ fun WiretapScreen(
                             query = searchQuery,
                             onQueryChange = { searchQuery = it },
                             focusRequester = searchFocusRequester,
-                            onDone = { isSearchActive = false; searchQuery = "" },
                         )
                     } else {
                         Text("Wiretap")
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { if (isSearchActive) { isSearchActive = false; searchQuery = "" } else onBack() }) {
+                    IconButton(onClick = {
+                        if (isSearchActive) {
+                            isSearchActive = false
+                        } else onBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -159,16 +164,19 @@ private fun LogList(
                 CircularProgressIndicator()
             }
         }
+
         lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text("No network logs yet", style = MaterialTheme.typography.bodyLarge)
             }
         }
+
         lazyItems.loadState.refresh is LoadStateError -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text("Failed to load logs", style = MaterialTheme.typography.bodyLarge)
             }
         }
+
         else -> {
             LazyColumn(modifier = modifier) {
                 items(
@@ -202,15 +210,15 @@ private fun SearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester,
-    onDone: () -> Unit,
 ) {
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     BasicTextField(
         value = query,
         onValueChange = onQueryChange,
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { onDone() }),
+        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
         modifier = Modifier.focusRequester(focusRequester),
         decorationBox = { innerTextField ->
             Row(

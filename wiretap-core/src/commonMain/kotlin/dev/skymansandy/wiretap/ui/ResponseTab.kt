@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.jsonviewer.JsonViewer
 import dev.skymansandy.wiretap.model.NetworkLogEntry
 
 @Composable
@@ -23,11 +24,20 @@ internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
             emptyText = "No headers",
             searchQuery = searchQuery,
         )
-        SectionTitle("Body")
-        CodeBlock(
-            text = entry.responseBody ?: "No body",
-            modifier = Modifier.padding(16.dp),
-            searchQuery = searchQuery,
-        )
+        val body = entry.responseBody
+        SectionTitle("Body", action = if (body != null) ({ CopyBodyButton(body) }) else null)
+        if (body != null && looksLikeJson(body)) {
+            JsonViewer(
+                json = body,
+                searchQuery = searchQuery,
+                modifier = Modifier.padding(8.dp),
+            )
+        } else {
+            CodeBlock(
+                text = body ?: "No body",
+                modifier = Modifier.padding(16.dp),
+                searchQuery = searchQuery,
+            )
+        }
     }
 }

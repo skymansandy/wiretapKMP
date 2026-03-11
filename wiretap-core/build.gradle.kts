@@ -43,6 +43,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
+                api(projects.jsonViewer)
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)
