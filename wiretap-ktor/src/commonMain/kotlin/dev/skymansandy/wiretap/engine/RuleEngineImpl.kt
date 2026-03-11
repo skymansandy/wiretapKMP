@@ -1,0 +1,29 @@
+package dev.skymansandy.wiretap.engine
+
+import dev.skymansandy.wiretap.model.RuleAction
+import dev.skymansandy.wiretap.model.WiretapResponse
+import dev.skymansandy.wiretap.repository.RuleRepository
+import io.ktor.client.request.*
+
+class RuleEngineImpl(
+    private val ruleRepository: RuleRepository,
+    private val mockEngine: MockEngine,
+    private val throttleEngine: ThrottleEngine,
+) : RuleEngine {
+
+    override suspend fun evaluate(
+        request: HttpRequestBuilder,
+        proceed: suspend () -> WiretapResponse,
+    ): WiretapResponse {
+        val url = request.url.buildString()
+        val method = request.method.value
+
+        val matchingRule = ruleRepository.findMatchingRule(url, method)
+            ?: return proceed()
+
+        return when (matchingRule.action) {
+            RuleAction.MOCK -> mockEngine.execute(request, matchingRule)
+            RuleAction.THROTTLE -> throttleEngine.execute(request, matchingRule, proceed)
+        }
+    }
+}

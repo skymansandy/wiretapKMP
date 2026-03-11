@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>FunctionNaming:WiretapLauncher.ios.kt$fun WiretapViewController(): UIViewController</ID>
+    <ID>MatchingDeclarationName:DriverFactory.android.kt$DriverFactory</ID>
+    <ID>MatchingDeclarationName:DriverFactory.ios.kt$DriverFactory</ID>
+    <ID>MatchingDeclarationName:DriverFactory.jvm.kt$DriverFactory</ID>
+    <ID>NoWildcardImports:MockEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:MockEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:NetworkEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:NetworkLogDetailScreen.kt$import androidx.compose.foundation.layout.*</ID>
+    <ID>NoWildcardImports:NetworkLogDetailScreen.kt$import androidx.compose.material3.*</ID>
+    <ID>NoWildcardImports:NetworkLogDetailScreen.kt$import androidx.compose.runtime.*</ID>
+    <ID>NoWildcardImports:RuleEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:RuleEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:ThrottleEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:ThrottleEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>NoWildcardImports:Wiretap.kt$import io.ktor.client.*</ID>
+    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.client.plugins.api.*</ID>
+    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.client.statement.*</ID>
+    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.util.*</ID>
+    <ID>WildcardImport:MockEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:MockEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:NetworkEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:NetworkLogDetailScreen.kt$import androidx.compose.foundation.layout.*</ID>
+    <ID>WildcardImport:NetworkLogDetailScreen.kt$import androidx.compose.material3.*</ID>
+    <ID>WildcardImport:NetworkLogDetailScreen.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:RuleEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:RuleEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:ThrottleEngine.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:ThrottleEngineImpl.kt$import io.ktor.client.request.*</ID>
+    <ID>WildcardImport:Wiretap.kt$import io.ktor.client.*</ID>
+    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.client.plugins.api.*</ID>
+    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.client.statement.*</ID>
+    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.util.*</ID>
+  </CurrentIssues>
+</SmellBaseline>
