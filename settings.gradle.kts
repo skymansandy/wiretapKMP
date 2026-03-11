@@ -35,5 +35,8 @@ plugins {
 include(":androidApp")
 include(":composeApp")
 
-include(":wiretap")
-include(":wiretap-noop")
+include(":wiretap-core")
+include(":wiretap-ktor")
+include(":wiretap-ktor-noop")
+include(":wiretap-okhttp")
+include(":wiretap-okhttp-noop")

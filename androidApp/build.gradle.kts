@@ -57,6 +57,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.koin.core)
     implementation(projects.composeApp)
-    debugImplementation(projects.wiretap)
-    releaseImplementation(projects.wiretapNoop)
+    debugImplementation(projects.wiretapCore)
+    debugImplementation(projects.wiretapKtor)
+    releaseImplementation(projects.wiretapKtorNoop)
 }

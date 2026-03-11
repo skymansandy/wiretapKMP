@@ -43,7 +43,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            compileOnly(projects.wiretap)
+            compileOnly(projects.wiretapCore)
+            compileOnly(projects.wiretapKtor)
             implementation(libs.material.icons.extended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
@@ -60,12 +61,14 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.sqldelight.sqlite.driver)
             implementation(libs.ktor.client.java)
-            implementation(projects.wiretap)
+            implementation(projects.wiretapCore)
+            implementation(projects.wiretapKtor)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.native.driver)
             implementation(libs.ktor.client.darwin)
-            implementation(projects.wiretap)
+            implementation(projects.wiretapCore)
+            implementation(projects.wiretapKtor)
         }
     }
 }
