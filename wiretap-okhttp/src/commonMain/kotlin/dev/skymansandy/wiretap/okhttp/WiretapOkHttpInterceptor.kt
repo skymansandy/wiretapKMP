@@ -1,10 +1,10 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.model.NetworkLogEntry
-import dev.skymansandy.wiretap.model.ResponseSource
-import dev.skymansandy.wiretap.model.RuleAction
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.repository.RuleRepository
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.util.currentNanoTime
 import dev.skymansandy.wiretap.util.currentTimeMillis
 import okhttp3.Interceptor
@@ -64,7 +64,7 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                     durationNs = durationNs,
                     source = ResponseSource.MOCK,
                     timestamp = currentTimeMillis(),
-                )
+                ),
             )
             return mockResponse
         }
@@ -103,7 +103,7 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 durationNs = durationNs,
                 source = source,
                 timestamp = currentTimeMillis(),
-            )
+            ),
         )
 
         return response

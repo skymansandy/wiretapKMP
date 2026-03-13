@@ -1,11 +1,11 @@
 package dev.skymansandy.wiretap.plugin
 
-import dev.skymansandy.wiretap.model.NetworkLogEntry
-import dev.skymansandy.wiretap.model.ResponseSource
-import dev.skymansandy.wiretap.model.RuleAction
-import dev.skymansandy.wiretap.model.WiretapRule
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.repository.RuleRepository
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.util.currentNanoTime
 import dev.skymansandy.wiretap.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall

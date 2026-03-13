@@ -20,15 +20,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.helper.notification.startWiretap
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
-import dev.skymansandy.wiretap.startWiretap
 import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.util.logging.Logger
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 

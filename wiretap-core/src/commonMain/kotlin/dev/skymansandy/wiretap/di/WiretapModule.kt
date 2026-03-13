@@ -1,20 +1,20 @@
 package dev.skymansandy.wiretap.di
 
-import dev.skymansandy.wiretap.WiretapConfig
-import dev.skymansandy.wiretap.dao.NetworkDao
-import dev.skymansandy.wiretap.dao.NetworkDaoImpl
-import dev.skymansandy.wiretap.dao.RuleDao
-import dev.skymansandy.wiretap.dao.RuleDaoImpl
-import dev.skymansandy.wiretap.db.DriverFactory
+import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.data.db.dao.NetworkDao
+import dev.skymansandy.wiretap.data.db.dao.NetworkDaoImpl
+import dev.skymansandy.wiretap.data.db.dao.RuleDao
+import dev.skymansandy.wiretap.data.db.dao.RuleDaoImpl
+import dev.skymansandy.wiretap.data.db.driver.DriverFactory
+import dev.skymansandy.wiretap.data.repository.NetworkRepositoryImpl
+import dev.skymansandy.wiretap.data.repository.RuleRepositoryImpl
 import dev.skymansandy.wiretap.db.WiretapDatabase
-import dev.skymansandy.wiretap.logger.NetworkLogger
-import dev.skymansandy.wiretap.logger.NetworkLoggerImpl
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestratorImpl
-import dev.skymansandy.wiretap.repository.NetworkRepository
-import dev.skymansandy.wiretap.repository.NetworkRepositoryImpl
-import dev.skymansandy.wiretap.repository.RuleRepository
-import dev.skymansandy.wiretap.repository.RuleRepositoryImpl
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestratorImpl
+import dev.skymansandy.wiretap.domain.repository.NetworkRepository
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.helper.logger.NetworkLogger
+import dev.skymansandy.wiretap.helper.logger.NetworkLoggerImpl
 import org.koin.dsl.module
 
 val wiretapModule = module {

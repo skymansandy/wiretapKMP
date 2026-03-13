@@ -9,18 +9,18 @@
             android:authorities="${applicationId}.androidx-startup"
             android:exported="false">
             <meta-data
-                android:name="dev.skymansandy.wiretap.WiretapInitializer"
+                android:name="dev.skymansandy.wiretap.helper.initializer.WiretapInitializer"
                 android:value="androidx.startup" />
         </provider>
 
         <activity
-            android:name="dev.skymansandy.wiretap.WiretapActivity"
+            android:name="dev.skymansandy.wiretap.presentation.WiretapActivity"
             android:exported="false"
             android:label="Wiretap"
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
 
         <receiver
-            android:name="dev.skymansandy.wiretap.notification.WiretapClearLogsReceiver"
+            android:name="dev.skymansandy.wiretap.helper.notification.WiretapClearLogsReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="dev.skymansandy.wiretap.ACTION_CLEAR_LOGS" />
