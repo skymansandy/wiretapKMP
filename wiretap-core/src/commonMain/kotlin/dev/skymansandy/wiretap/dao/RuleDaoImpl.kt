@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import dev.skymansandy.wiretap.db.RuleEntity
 import dev.skymansandy.wiretap.db.WiretapDatabase
 import dev.skymansandy.wiretap.model.HeadersSerializer
+import dev.skymansandy.wiretap.model.MatcherType
 import dev.skymansandy.wiretap.model.RuleAction
 import dev.skymansandy.wiretap.model.WiretapRule
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ class RuleDaoImpl(
 
     override fun insert(rule: WiretapRule) {
         queries.insertRule(
+            matcher_type = rule.matcherType.name,
             url_pattern = rule.urlPattern,
             method = rule.method,
             action = rule.action.name,
@@ -46,6 +48,28 @@ class RuleDaoImpl(
         return queries.getEnabledRules().executeAsList().map { it.toDomain() }
     }
 
+    override fun update(rule: WiretapRule) {
+        queries.updateRule(
+            matcher_type = rule.matcherType.name,
+            url_pattern = rule.urlPattern,
+            method = rule.method,
+            action = rule.action.name,
+            mock_response_code = rule.mockResponseCode?.toLong(),
+            mock_response_body = rule.mockResponseBody,
+            mock_response_headers = rule.mockResponseHeaders?.let { HeadersSerializer.serialize(it) },
+            throttle_delay_ms = rule.throttleDelayMs,
+            enabled = if (rule.enabled) 1L else 0L,
+            id = rule.id,
+        )
+    }
+
+    override fun search(query: String): Flow<List<WiretapRule>> {
+        return queries.searchRules(query = query)
+            .asFlow()
+            .mapToList(Dispatchers.Default)
+            .map { entities -> entities.map { it.toDomain() } }
+    }
+
     override fun updateEnabled(id: Long, enabled: Boolean) {
         queries.updateRuleEnabled(enabled = if (enabled) 1L else 0L, id = id)
     }
@@ -61,6 +85,8 @@ class RuleDaoImpl(
     private fun RuleEntity.toDomain(): WiretapRule {
         return WiretapRule(
             id = id,
+            matcherType = runCatching { MatcherType.valueOf(matcher_type) }
+                .getOrDefault(MatcherType.URL_EXACT),
             urlPattern = url_pattern,
             method = method,
             action = RuleAction.valueOf(action),

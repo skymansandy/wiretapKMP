@@ -2,6 +2,7 @@ package dev.skymansandy.wiretap.model
 
 data class WiretapRule(
     val id: Long = 0,
+    val matcherType: MatcherType = MatcherType.URL_EXACT,
     val urlPattern: String,
     val method: String = "*",
     val action: RuleAction,

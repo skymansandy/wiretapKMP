@@ -8,6 +8,8 @@ interface RuleDao {
     fun getAll(): Flow<List<WiretapRule>>
     fun getById(id: Long): WiretapRule?
     fun getEnabledRules(): List<WiretapRule>
+    fun update(rule: WiretapRule)
+    fun search(query: String): Flow<List<WiretapRule>>
     fun updateEnabled(id: Long, enabled: Boolean)
     fun deleteById(id: Long)
     fun deleteAll()

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
 
 CREATE TABLE IF NOT EXISTS RuleEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    matcher_type TEXT NOT NULL DEFAULT "URL_EXACT",
     url_pattern TEXT NOT NULL,
     method TEXT NOT NULL DEFAULT "*",
     action TEXT NOT NULL,
@@ -53,8 +54,8 @@ LIMIT :limit;
 
 -- Rule queries
 insertRule:
-INSERT INTO RuleEntity (url_pattern, method, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO RuleEntity (matcher_type, url_pattern, method, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllRules:
 SELECT * FROM RuleEntity ORDER BY created_at DESC;
@@ -67,6 +68,20 @@ SELECT * FROM RuleEntity WHERE enabled = 1 ORDER BY created_at DESC;
 
 updateRuleEnabled:
 UPDATE RuleEntity SET enabled = ? WHERE id = ?;
+
+updateRule:
+UPDATE RuleEntity SET matcher_type = ?, url_pattern = ?, method = ?, action = ?,
+    mock_response_code = ?, mock_response_body = ?, mock_response_headers = ?,
+    throttle_delay_ms = ?, enabled = ?
+WHERE id = ?;
+
+searchRules:
+SELECT * FROM RuleEntity
+WHERE url_pattern LIKE '%' || :query || '%'
+   OR method LIKE '%' || :query || '%'
+   OR action LIKE '%' || :query || '%'
+   OR matcher_type LIKE '%' || :query || '%'
+ORDER BY created_at DESC;
 
 deleteRuleById:
 DELETE FROM RuleEntity WHERE id = ?;

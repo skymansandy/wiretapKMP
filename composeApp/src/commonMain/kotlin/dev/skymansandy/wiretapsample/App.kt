@@ -28,6 +28,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.util.logging.Logger
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,7 +40,11 @@ fun App() {
                 install(WiretapKtorPlugin)
             }
         }
-        val scope = rememberCoroutineScope()
+        val scope = rememberCoroutineScope {
+            CoroutineExceptionHandler { _, e ->
+                e
+            }
+        }
         var status by remember { mutableStateOf("Tap buttons to make requests") }
 
         Scaffold { padding ->
@@ -82,7 +88,7 @@ fun App() {
                             @Suppress("MaxLineLength")
                             val url = "https://raw.githubusercontent.com/usuiat/Zoomable/refs/heads/main/samples/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json"
                             val response = client.get(url)
-                            status = "GET /users -> ${response.status.value}"
+                            status = "GET /Contents.json -> ${response.status.value}"
                         } catch (e: Exception) {
                             status = "Error: ${e.message}"
                         }
