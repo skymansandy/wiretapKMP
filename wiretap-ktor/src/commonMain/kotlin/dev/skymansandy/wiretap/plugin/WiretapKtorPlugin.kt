@@ -1,22 +1,38 @@
 package dev.skymansandy.wiretap.plugin
 
-import dev.skymansandy.wiretap.model.NetworkLogEntry
-import dev.skymansandy.wiretap.model.ResponseSource
-import dev.skymansandy.wiretap.model.RuleAction
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.repository.RuleRepository
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.util.currentNanoTime
 import dev.skymansandy.wiretap.util.currentTimeMillis
-import io.ktor.client.plugins.api.*
-import io.ktor.client.statement.*
-import io.ktor.util.*
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.api.Send
+import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.request.HttpResponseData
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
+import io.ktor.http.Headers
+import io.ktor.http.HttpProtocolVersion
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
+import io.ktor.util.AttributeKey
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.readText
 import kotlinx.coroutines.delay
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
 private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTimestamp")
+private val MatchedRuleKey = AttributeKey<WiretapRule>("WiretapMatchedRule")
 
+@OptIn(InternalAPI::class)
 val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
 
     val deps = WiretapDeps()
@@ -24,21 +40,83 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
     onRequest { request, _ ->
         request.attributes.put(RequestTimestampKey, currentTimeMillis())
         request.attributes.put(RequestNanoTimestampKey, currentNanoTime())
+    }
 
+    on(Send) { request ->
         val url = request.url.buildString()
         val method = request.method.value
-        val matchingRule = deps.ruleRepository.findMatchingRule(url, method)
+        val requestHeaders = request.headers.entries()
+            .associate { (key, values) -> key to values.joinToString(", ") }
+        val requestBody = try {
+            when (val body = request.body) {
+                is OutgoingContent.ByteArrayContent -> body.bytes().decodeToString()
+                is OutgoingContent.ReadChannelContent -> body.readFrom().readRemaining().readText()
+                else -> null
+            }
+        } catch (_: Exception) {
+            null
+        }
 
-        if (matchingRule != null && matchingRule.action == RuleAction.THROTTLE) {
-            val delayMs = matchingRule.throttleDelayMs ?: 0L
-            if (delayMs > 0) delay(delayMs)
+        val matchingRule = deps.ruleRepository.findMatchingRule(url, method, requestHeaders, requestBody)
+        if (matchingRule != null) {
+            request.attributes.put(MatchedRuleKey, matchingRule)
+        }
+
+        when (matchingRule?.action) {
+            RuleAction.MOCK -> {
+                val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
+                val mockHeaders = Headers.build {
+                    matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
+                }
+                val responseBody = matchingRule.mockResponseBody?.encodeToByteArray() ?: ByteArray(0)
+                val call = HttpClientCall(
+                    client = client,
+                    requestData = request.build(),
+                    responseData = HttpResponseData(
+                        statusCode = statusCode,
+                        requestTime = GMTDate(),
+                        headers = mockHeaders,
+                        version = HttpProtocolVersion.HTTP_1_1,
+                        body = ByteReadChannel(responseBody),
+                        callContext = coroutineContext,
+                    ),
+                )
+
+                // onResponse is never called for mocked responses since we short-circuit
+                // proceed(), so we log the entry manually here.
+                val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+                val durationNs = currentNanoTime() - startNano
+                val logEntry = NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = requestHeaders,
+                    requestBody = requestBody,
+                    responseCode = statusCode.value,
+                    responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
+                    responseBody = matchingRule.mockResponseBody,
+                    durationMs = durationNs / 1_000_000,
+                    durationNs = durationNs,
+                    source = ResponseSource.MOCK,
+                    timestamp = currentTimeMillis(),
+                )
+                deps.orchestrator.logEntry(logEntry)
+
+                call
+            }
+
+            RuleAction.THROTTLE -> {
+                val delayMs = matchingRule.throttleDelayMs ?: 0L
+                if (delayMs > 0) delay(delayMs)
+                proceed(request)
+            }
+
+            else -> proceed(request)
         }
     }
 
     onResponse { response ->
         val request = response.request
-        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey)
-            ?: currentNanoTime()
+        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 
@@ -56,8 +134,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             null
         }
 
-        val matchingRule = deps.ruleRepository.findMatchingRule(url, method)
-        val source = when (matchingRule?.action) {
+        val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
+            RuleAction.MOCK -> ResponseSource.MOCK
             RuleAction.THROTTLE -> ResponseSource.THROTTLE
             else -> ResponseSource.NETWORK
         }

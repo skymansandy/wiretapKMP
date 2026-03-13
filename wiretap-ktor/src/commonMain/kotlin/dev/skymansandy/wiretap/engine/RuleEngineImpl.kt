@@ -1,8 +1,8 @@
 package dev.skymansandy.wiretap.engine
 
-import dev.skymansandy.wiretap.model.RuleAction
-import dev.skymansandy.wiretap.model.WiretapResponse
-import dev.skymansandy.wiretap.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.WiretapResponse
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import io.ktor.client.request.*
 
 class RuleEngineImpl(

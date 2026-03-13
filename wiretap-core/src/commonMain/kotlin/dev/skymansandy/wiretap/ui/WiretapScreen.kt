@@ -30,11 +30,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -54,9 +57,16 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
-import dev.skymansandy.wiretap.model.NetworkLogEntry
-import dev.skymansandy.wiretap.model.ResponseSource
-import dev.skymansandy.wiretap.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
+import dev.skymansandy.wiretap.ui.network.highlightText
+import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
+import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
+import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
@@ -66,8 +76,12 @@ import org.koin.compose.koinInject
 fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = koinInject(),
+    ruleRepository: RuleRepository = koinInject(),
 ) {
     var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
+    var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
+    var showCreateRule by remember { mutableStateOf(false) }
+    var editRule by remember { mutableStateOf<WiretapRule?>(null) }
 
     if (selectedLog != null) {
         NetworkLogDetailScreen(
@@ -77,6 +91,37 @@ fun WiretapScreen(
         return
     }
 
+    if (selectedRule != null) {
+        RuleDetailScreen(
+            rule = selectedRule!!,
+            ruleRepository = ruleRepository,
+            onBack = { selectedRule = null },
+            onDeleted = { selectedRule = null },
+            onEditClick = { editRule = selectedRule; selectedRule = null },
+        )
+        return
+    }
+
+    if (editRule != null) {
+        CreateRuleScreen(
+            ruleRepository = ruleRepository,
+            onBack = { editRule = null },
+            onSaved = { editRule = null },
+            existingRule = editRule,
+        )
+        return
+    }
+
+    if (showCreateRule) {
+        CreateRuleScreen(
+            ruleRepository = ruleRepository,
+            onBack = { showCreateRule = false },
+            onSaved = { showCreateRule = false },
+        )
+        return
+    }
+
+    var selectedTab by remember { mutableIntStateOf(0) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val searchFocusRequester = remember { FocusRequester() }
@@ -111,6 +156,7 @@ fun WiretapScreen(
                     IconButton(onClick = {
                         if (isSearchActive) {
                             isSearchActive = false
+                            searchQuery = ""
                         } else onBack()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -126,19 +172,46 @@ fun WiretapScreen(
                             Icon(Icons.Default.Search, contentDescription = "Search")
                         }
                     }
-                    IconButton(onClick = { orchestrator.clearLogs() }) {
-                        Icon(Icons.Default.DeleteSweep, contentDescription = "Clear logs")
+                    if (selectedTab == 0) {
+                        IconButton(onClick = { orchestrator.clearLogs() }) {
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear logs")
+                        }
                     }
                 },
             )
         },
     ) { padding ->
-        LogList(
-            lazyItems = lazyItems,
-            searchQuery = searchQuery,
-            onItemClick = { selectedLog = it },
-            modifier = Modifier.fillMaxSize().padding(padding),
-        )
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0; searchQuery = "" },
+                    text = { Text("Activity") },
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1; searchQuery = "" },
+                    text = { Text("Rules") },
+                )
+            }
+
+            when (selectedTab) {
+                0 -> LogList(
+                    lazyItems = lazyItems,
+                    searchQuery = searchQuery,
+                    onItemClick = { selectedLog = it },
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                1 -> RulesListScreen(
+                    ruleRepository = ruleRepository,
+                    searchQuery = debouncedQuery,
+                    onRuleClick = { selectedRule = it },
+                    onCreateClick = { showCreateRule = true },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
     }
 }
 
