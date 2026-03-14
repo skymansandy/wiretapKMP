@@ -12,6 +12,7 @@ import dev.skymansandy.jsonviewer.JsonViewer
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.ui.network.CodeBlock
 import dev.skymansandy.wiretap.ui.network.CopyBodyButton
+import dev.skymansandy.wiretap.ui.network.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.network.HeadersList
 import dev.skymansandy.wiretap.ui.network.SectionTitle
 import dev.skymansandy.wiretap.ui.network.looksLikeJson
@@ -23,7 +24,7 @@ internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionTitle("Headers")
+        SectionTitle("Headers", action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(entry.requestHeaders) }) else null)
         HeadersList(
             headers = entry.requestHeaders,
             emptyText = "No headers",
