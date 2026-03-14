@@ -1,13 +1,16 @@
 package dev.skymansandy.wiretap.data.db.entity
 
-import dev.skymansandy.wiretap.domain.model.MatcherType
+import dev.skymansandy.wiretap.domain.model.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
 
 data class WiretapRule(
     val id: Long = 0,
-    val matcherType: MatcherType = MatcherType.URL_EXACT,
-    val urlPattern: String,
     val method: String = "*",
+    val urlMatcher: UrlMatcher? = null,
+    val headerMatchers: List<HeaderMatcher> = emptyList(),
+    val bodyMatcher: BodyMatcher? = null,
     val action: RuleAction,
     val mockResponseCode: Int? = null,
     val mockResponseBody: String? = null,

@@ -5,8 +5,10 @@ import app.cash.sqldelight.coroutines.mapToList
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.db.RuleEntity
 import dev.skymansandy.wiretap.db.WiretapDatabase
-import dev.skymansandy.wiretap.domain.model.MatcherType
+import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.util.HeaderMatcherSerializer
 import dev.skymansandy.wiretap.util.HeadersSerializerUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -20,9 +22,13 @@ class RuleDaoImpl(
 
     override fun insert(rule: WiretapRule) {
         queries.insertRule(
-            matcher_type = rule.matcherType.name,
-            url_pattern = rule.urlPattern,
             method = rule.method,
+            url_matcher_type = rule.urlMatcher?.typeString(),
+            url_pattern = rule.urlMatcher?.pattern,
+            header_matchers = rule.headerMatchers.takeIf { it.isNotEmpty() }
+                ?.let { HeaderMatcherSerializer.serialize(it) },
+            body_matcher_type = rule.bodyMatcher?.typeString(),
+            body_pattern = rule.bodyMatcher?.pattern,
             action = rule.action.name,
             mock_response_code = rule.mockResponseCode?.toLong(),
             mock_response_body = rule.mockResponseBody,
@@ -50,9 +56,13 @@ class RuleDaoImpl(
 
     override fun update(rule: WiretapRule) {
         queries.updateRule(
-            matcher_type = rule.matcherType.name,
-            url_pattern = rule.urlPattern,
             method = rule.method,
+            url_matcher_type = rule.urlMatcher?.typeString(),
+            url_pattern = rule.urlMatcher?.pattern,
+            header_matchers = rule.headerMatchers.takeIf { it.isNotEmpty() }
+                ?.let { HeaderMatcherSerializer.serialize(it) },
+            body_matcher_type = rule.bodyMatcher?.typeString(),
+            body_pattern = rule.bodyMatcher?.pattern,
             action = rule.action.name,
             mock_response_code = rule.mockResponseCode?.toLong(),
             mock_response_body = rule.mockResponseBody,
@@ -85,10 +95,28 @@ class RuleDaoImpl(
     private fun RuleEntity.toDomain(): WiretapRule {
         return WiretapRule(
             id = id,
-            matcherType = runCatching { MatcherType.valueOf(matcher_type) }
-                .getOrDefault(MatcherType.URL_EXACT),
-            urlPattern = url_pattern,
             method = method,
+            urlMatcher = url_matcher_type?.let { type ->
+                url_pattern?.let { pattern ->
+                    when (type) {
+                        "EXACT" -> UrlMatcher.Exact(pattern)
+                        "CONTAINS" -> UrlMatcher.Contains(pattern)
+                        "REGEX" -> UrlMatcher.Regex(pattern)
+                        else -> null
+                    }
+                }
+            },
+            headerMatchers = header_matchers?.let { HeaderMatcherSerializer.deserialize(it) } ?: emptyList(),
+            bodyMatcher = body_matcher_type?.let { type ->
+                body_pattern?.let { pattern ->
+                    when (type) {
+                        "EXACT" -> BodyMatcher.Exact(pattern)
+                        "CONTAINS" -> BodyMatcher.Contains(pattern)
+                        "REGEX" -> BodyMatcher.Regex(pattern)
+                        else -> null
+                    }
+                }
+            },
             action = RuleAction.valueOf(action),
             mockResponseCode = mock_response_code?.toInt(),
             mockResponseBody = mock_response_body,
@@ -97,5 +125,17 @@ class RuleDaoImpl(
             enabled = enabled == 1L,
             createdAt = created_at,
         )
+    }
+
+    private fun UrlMatcher.typeString() = when (this) {
+        is UrlMatcher.Exact -> "EXACT"
+        is UrlMatcher.Contains -> "CONTAINS"
+        is UrlMatcher.Regex -> "REGEX"
+    }
+
+    private fun BodyMatcher.typeString() = when (this) {
+        is BodyMatcher.Exact -> "EXACT"
+        is BodyMatcher.Contains -> "CONTAINS"
+        is BodyMatcher.Regex -> "REGEX"
     }
 }

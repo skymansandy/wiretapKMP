@@ -2,7 +2,9 @@ package dev.skymansandy.wiretap.data.repository
 
 import dev.skymansandy.wiretap.data.db.dao.RuleDao
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.MatcherType
+import dev.skymansandy.wiretap.domain.model.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -10,25 +12,14 @@ class RuleRepositoryImpl(
     private val ruleDao: RuleDao,
 ) : RuleRepository {
 
-    override fun addRule(rule: WiretapRule) {
-        ruleDao.insert(rule)
-    }
-
-    override fun updateRule(rule: WiretapRule) {
-        ruleDao.update(rule)
-    }
-
-    override fun getAll(): Flow<List<WiretapRule>> {
-        return ruleDao.getAll()
-    }
-
-    override fun search(query: String): Flow<List<WiretapRule>> {
-        return ruleDao.search(query)
-    }
-
-    override fun getEnabledRules(): List<WiretapRule> {
-        return ruleDao.getEnabledRules()
-    }
+    override fun addRule(rule: WiretapRule) = ruleDao.insert(rule)
+    override fun updateRule(rule: WiretapRule) = ruleDao.update(rule)
+    override fun getAll(): Flow<List<WiretapRule>> = ruleDao.getAll()
+    override fun search(query: String): Flow<List<WiretapRule>> = ruleDao.search(query)
+    override fun getEnabledRules(): List<WiretapRule> = ruleDao.getEnabledRules()
+    override fun setEnabled(id: Long, enabled: Boolean) = ruleDao.updateEnabled(id, enabled)
+    override fun deleteById(id: Long) = ruleDao.deleteById(id)
+    override fun deleteAll() = ruleDao.deleteAll()
 
     override fun findMatchingRule(
         url: String,
@@ -36,56 +27,71 @@ class RuleRepositoryImpl(
         headers: Map<String, String>,
         body: String?,
     ): WiretapRule? {
-        val rules = ruleDao.getEnabledRules()
-        return rules.firstOrNull { rule ->
-            matchesMethod(method, rule.method) && matchesPattern(rule, url, headers, body)
+        return ruleDao.getEnabledRules().firstOrNull { rule ->
+            matchesMethod(method, rule.method) && matchesAllCriteria(rule, url, headers, body)
         }
     }
 
-    override fun setEnabled(id: Long, enabled: Boolean) {
-        ruleDao.updateEnabled(id, enabled)
-    }
+    private fun matchesMethod(requestMethod: String, ruleMethod: String): Boolean =
+        ruleMethod == "*" || ruleMethod.equals(requestMethod, ignoreCase = true)
 
-    override fun deleteById(id: Long) {
-        ruleDao.deleteById(id)
-    }
-
-    override fun deleteAll() {
-        ruleDao.deleteAll()
-    }
-
-    private fun matchesMethod(requestMethod: String, ruleMethod: String): Boolean {
-        return ruleMethod == "*" || ruleMethod.equals(requestMethod, ignoreCase = true)
-    }
-
-    private fun matchesPattern(
+    private fun matchesAllCriteria(
         rule: WiretapRule,
         url: String,
         headers: Map<String, String>,
         body: String?,
     ): Boolean {
-        return when (rule.matcherType) {
-            MatcherType.URL_EXACT -> url.equals(rule.urlPattern, ignoreCase = true)
+        // A rule must have at least one criterion, otherwise it matches nothing.
+        if (rule.urlMatcher == null && rule.headerMatchers.isEmpty() && rule.bodyMatcher == null) return false
 
-            MatcherType.URL_REGEX -> {
-                try {
-                    rule.urlPattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(url)
-                } catch (_: Exception) {
-                    false
-                }
+        // Each configured criterion must match (AND logic across url/headers/body).
+        rule.urlMatcher?.let { if (!matchesUrl(it, url)) return false }
+        if (rule.headerMatchers.isNotEmpty() && !rule.headerMatchers.all { matchesHeader(it, headers) }) return false
+        rule.bodyMatcher?.let { if (!matchesBody(it, body)) return false }
+
+        return true
+    }
+
+    private fun matchesUrl(matcher: UrlMatcher, url: String): Boolean = when (matcher) {
+        is UrlMatcher.Exact -> url.equals(matcher.pattern, ignoreCase = true)
+        is UrlMatcher.Contains -> url.contains(matcher.pattern, ignoreCase = true)
+        is UrlMatcher.Regex -> runCatching {
+            matcher.pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(url)
+        }.getOrDefault(false)
+    }
+
+    private fun matchesHeader(matcher: HeaderMatcher, headers: Map<String, String>): Boolean {
+        return when (matcher) {
+            is HeaderMatcher.KeyExists ->
+                headers.keys.any { it.equals(matcher.key, ignoreCase = true) }
+
+            is HeaderMatcher.ValueExact -> {
+                val value = headers.headerValue(matcher.key)
+                value?.equals(matcher.value, ignoreCase = true) == true
             }
 
-            MatcherType.HEADER_CONTAINS -> {
-                val pattern = rule.urlPattern
-                headers.any { (key, value) ->
-                    "$key: $value".contains(pattern, ignoreCase = true) ||
-                        key.contains(pattern, ignoreCase = true)
-                }
+            is HeaderMatcher.ValueContains -> {
+                val value = headers.headerValue(matcher.key)
+                value?.contains(matcher.value, ignoreCase = true) == true
             }
 
-            MatcherType.BODY_CONTAINS -> {
-                body?.contains(rule.urlPattern, ignoreCase = true) == true
+            is HeaderMatcher.ValueRegex -> {
+                val value = headers.headerValue(matcher.key) ?: return false
+                runCatching {
+                    matcher.pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(value)
+                }.getOrDefault(false)
             }
         }
     }
+
+    private fun matchesBody(matcher: BodyMatcher, body: String?): Boolean = when (matcher) {
+        is BodyMatcher.Exact -> body?.equals(matcher.pattern, ignoreCase = true) == true
+        is BodyMatcher.Contains -> body?.contains(matcher.pattern, ignoreCase = true) == true
+        is BodyMatcher.Regex -> runCatching {
+            body?.let { matcher.pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(it) } == true
+        }.getOrDefault(false)
+    }
+
+    private fun Map<String, String>.headerValue(key: String): String? =
+        entries.firstOrNull { it.key.equals(key, ignoreCase = true) }?.value
 }

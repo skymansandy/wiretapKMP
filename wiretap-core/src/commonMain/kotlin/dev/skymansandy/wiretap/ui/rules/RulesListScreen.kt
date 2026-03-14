@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,12 +30,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.MatcherType
+import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.network.highlightText
 
@@ -52,10 +56,7 @@ internal fun RulesListScreen(
 
     Box(modifier = modifier) {
         if (rules.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
                     if (searchQuery.isBlank()) "No rules yet" else "No rules match \"$searchQuery\"",
                     style = MaterialTheme.typography.bodyLarge,
@@ -68,9 +69,7 @@ internal fun RulesListScreen(
                         rule = rule,
                         searchQuery = searchQuery,
                         onClick = { onRuleClick(rule) },
-                        onToggle = { enabled ->
-                            ruleRepository.setEnabled(rule.id, enabled)
-                        },
+                        onToggle = { ruleRepository.setEnabled(rule.id, it) },
                     )
                 }
             }
@@ -78,15 +77,14 @@ internal fun RulesListScreen(
 
         FloatingActionButton(
             onClick = onCreateClick,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         ) {
             Icon(Icons.Default.Add, contentDescription = "Create rule")
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RuleItem(
     rule: WiretapRule,
@@ -103,25 +101,31 @@ private fun RuleItem(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MatcherTypeBadge(rule.matcherType)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (rule.method != "*") MethodBadge(rule.method)
+                if (rule.urlMatcher != null) MatcherBadge(label = urlBadgeLabel(rule.urlMatcher), color = MaterialTheme.colorScheme.primary)
+                if (rule.headerMatchers.isNotEmpty()) MatcherBadge(
+                    label = if (rule.headerMatchers.size == 1) "HDR" else "HDR×${rule.headerMatchers.size}",
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+                if (rule.bodyMatcher != null) MatcherBadge(label = bodyBadgeLabel(rule.bodyMatcher), color = MaterialTheme.colorScheme.tertiary)
                 ActionBadge(rule.action)
-                if (rule.method != "*") {
-                    MethodBadge(rule.method)
-                }
             }
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
-                text = highlightText(rule.urlPattern, searchQuery),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
+            val subtitle = rule.urlMatcher?.pattern
+                ?: rule.headerMatchers.firstOrNull()?.key
+                ?: rule.bodyMatcher?.pattern
+                ?: ""
+            if (subtitle.isNotBlank()) {
+                Text(
+                    text = highlightText(subtitle, searchQuery),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
 
             if (rule.action == RuleAction.MOCK && rule.mockResponseCode != null) {
                 Spacer(Modifier.height(2.dp))
@@ -151,23 +155,8 @@ private fun RuleItem(
 }
 
 @Composable
-private fun MatcherTypeBadge(type: MatcherType) {
-    val label = when (type) {
-        MatcherType.URL_EXACT -> "EXACT"
-        MatcherType.URL_REGEX -> "REGEX"
-        MatcherType.HEADER_CONTAINS -> "HEADER"
-        MatcherType.BODY_CONTAINS -> "BODY"
-    }
-    val color = when (type) {
-        MatcherType.URL_EXACT -> MaterialTheme.colorScheme.primary
-        MatcherType.URL_REGEX -> MaterialTheme.colorScheme.tertiary
-        MatcherType.HEADER_CONTAINS -> MaterialTheme.colorScheme.secondary
-        MatcherType.BODY_CONTAINS -> MaterialTheme.colorScheme.secondary
-    }
-    Surface(
-        color = color.copy(alpha = 0.15f),
-        shape = MaterialTheme.shapes.extraSmall,
-    ) {
+private fun MatcherBadge(label: String, color: Color) {
+    Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
@@ -184,10 +173,7 @@ internal fun ActionBadge(action: RuleAction) {
         RuleAction.MOCK -> MaterialTheme.colorScheme.error
         RuleAction.THROTTLE -> MaterialTheme.colorScheme.tertiary
     }
-    Surface(
-        color = color.copy(alpha = 0.15f),
-        shape = MaterialTheme.shapes.extraSmall,
-    ) {
+    Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
             text = action.name,
             style = MaterialTheme.typography.labelSmall,
@@ -200,10 +186,7 @@ internal fun ActionBadge(action: RuleAction) {
 
 @Composable
 private fun MethodBadge(method: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.extraSmall,
-    ) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.extraSmall) {
         Text(
             text = method,
             style = MaterialTheme.typography.labelSmall,
@@ -211,4 +194,16 @@ private fun MethodBadge(method: String) {
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
         )
     }
+}
+
+private fun urlBadgeLabel(matcher: UrlMatcher) = when (matcher) {
+    is UrlMatcher.Exact -> "URL"
+    is UrlMatcher.Contains -> "URL~"
+    is UrlMatcher.Regex -> "URL*"
+}
+
+private fun bodyBadgeLabel(matcher: BodyMatcher) = when (matcher) {
+    is BodyMatcher.Exact -> "BODY"
+    is BodyMatcher.Contains -> "BODY~"
+    is BodyMatcher.Regex -> "BODY*"
 }
