@@ -1,0 +1,1 @@
+ALTER TABLE NetworkLogEntity ADD COLUMN matched_rule_id INTEGER;

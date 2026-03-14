@@ -29,6 +29,7 @@ class NetworkDaoImpl(
             duration_ms = entry.durationMs,
             source = entry.source.name,
             timestamp = entry.timestamp,
+            matched_rule_id = entry.matchedRuleId,
         )
     }
 
@@ -70,6 +71,7 @@ class NetworkDaoImpl(
             durationMs = duration_ms,
             source = ResponseSource.valueOf(source),
             timestamp = timestamp,
+            matchedRuleId = matched_rule_id,
         )
     }
 }

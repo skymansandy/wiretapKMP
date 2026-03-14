@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     response_body TEXT,
     duration_ms INTEGER NOT NULL,
     source TEXT NOT NULL DEFAULT "NETWORK",
-    timestamp INTEGER NOT NULL
+    timestamp INTEGER NOT NULL,
+    matched_rule_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS RuleEntity (
@@ -31,8 +32,8 @@ CREATE TABLE IF NOT EXISTS RuleEntity (
 
 -- NetworkLog queries
 insertNetworkLog:
-INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllNetworkLogs:
 SELECT * FROM NetworkLogEntity ORDER BY timestamp DESC;

@@ -16,6 +16,7 @@ class RuleRepositoryImpl(
     override fun updateRule(rule: WiretapRule) = ruleDao.update(rule)
     override fun getAll(): Flow<List<WiretapRule>> = ruleDao.getAll()
     override fun search(query: String): Flow<List<WiretapRule>> = ruleDao.search(query)
+    override fun getById(id: Long): WiretapRule? = ruleDao.getById(id)
     override fun getEnabledRules(): List<WiretapRule> = ruleDao.getEnabledRules()
     override fun setEnabled(id: Long, enabled: Boolean) = ruleDao.updateEnabled(id, enabled)
     override fun deleteById(id: Long) = ruleDao.deleteById(id)

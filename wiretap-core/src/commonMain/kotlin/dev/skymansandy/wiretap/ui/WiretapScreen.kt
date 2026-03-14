@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -87,6 +89,13 @@ fun WiretapScreen(
         NetworkLogDetailScreen(
             entry = selectedLog!!,
             onBack = { selectedLog = null },
+            onViewRule = { ruleId ->
+                val rule = ruleRepository.getById(ruleId)
+                if (rule != null) {
+                    selectedLog = null
+                    selectedRule = rule
+                }
+            },
         )
         return
     }
@@ -339,12 +348,6 @@ private fun NetworkLogItem(
     val host = withoutScheme.substringBefore("/").substringBefore("?")
     val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
 
-    val sourceLabel = when (entry.source) {
-        ResponseSource.MOCK -> "  [MOCK]"
-        ResponseSource.THROTTLE -> "  [THROTTLE]"
-        ResponseSource.NETWORK -> ""
-    }
-
     val responseBytes = entry.responseBody?.encodeToByteArray()?.size ?: 0
     val formattedSize = when {
         responseBytes >= 1_048_576 -> "${"%.1f".format(responseBytes / 1_048_576f)} MB"
@@ -371,7 +374,7 @@ private fun NetworkLogItem(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = highlightText("${entry.method} $path$sourceLabel", searchQuery),
+                text = highlightText("${entry.method} $path", searchQuery),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 maxLines = 3,
@@ -401,7 +404,10 @@ private fun NetworkLogItem(
 
             Spacer(Modifier.height(4.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = formatTime(entry.timestamp),
                     style = MaterialTheme.typography.labelSmall,
@@ -419,8 +425,36 @@ private fun NetworkLogItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                if (entry.source != ResponseSource.NETWORK) {
+                    SourceChip(entry.source)
+                }
             }
         }
     }
     HorizontalDivider()
+}
+
+@Composable
+private fun SourceChip(source: ResponseSource) {
+    val (bgColor, textColor, label) = when (source) {
+        ResponseSource.MOCK -> Triple(
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer,
+            "Mock",
+        )
+        ResponseSource.THROTTLE -> Triple(
+            MaterialTheme.colorScheme.tertiaryContainer,
+            MaterialTheme.colorScheme.onTertiaryContainer,
+            "Throttle",
+        )
+        ResponseSource.NETWORK -> return
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = textColor,
+        modifier = Modifier
+            .background(bgColor, RoundedCornerShape(4.dp))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+    )
 }

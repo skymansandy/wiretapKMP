@@ -15,4 +15,5 @@ data class NetworkLogEntry(
     val durationNs: Long = 0,
     val source: ResponseSource = ResponseSource.NETWORK,
     val timestamp: Long,
+    val matchedRuleId: Long? = null,
 )
