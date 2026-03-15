@@ -26,6 +26,8 @@ import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import dev.skymansandy.wiretap.di.WiretapDi
+import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -168,6 +170,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
 }
 
 private class WiretapDeps : KoinComponent {
+    override fun getKoin(): Koin = WiretapDi.getKoin()
     val orchestrator: WiretapOrchestrator by inject()
     val ruleRepository: RuleRepository by inject()
 }
