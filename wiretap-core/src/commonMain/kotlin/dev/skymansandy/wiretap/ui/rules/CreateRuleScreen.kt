@@ -20,10 +20,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
@@ -170,7 +170,7 @@ internal fun CreateRuleScreen(
     var mockResponseBody by remember { mutableStateOf(existingRule?.mockResponseBody ?: "") }
     var responseHeaderEntries by remember {
         mutableStateOf<List<ResponseHeaderEntry>>(
-            existingRule?.mockResponseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList()
+            existingRule?.mockResponseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
         )
     }
     var responseHeadersBulk by remember {
@@ -673,9 +673,9 @@ private fun ResponseHeadersSection(
             onClick = {
                 onModeChange(
                     if (mode == ResponseHeadersEditMode.KEY_VALUE) ResponseHeadersEditMode.BULK_EDIT
-                    else ResponseHeadersEditMode.KEY_VALUE
+                    else ResponseHeadersEditMode.KEY_VALUE,
                 )
-            }
+            },
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KEY_VALUE) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
