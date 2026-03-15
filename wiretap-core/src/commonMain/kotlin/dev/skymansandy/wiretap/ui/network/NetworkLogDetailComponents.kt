@@ -63,6 +63,19 @@ internal fun CopyBodyButton(body: String) {
 }
 
 @Composable
+internal fun CopyHeadersButton(headers: Map<String, String>) {
+    TextButton(onClick = { copyToClipboard(headers.entries.joinToString("\n") { "${it.key}: ${it.value}" }) }) {
+        Icon(
+            imageVector = Icons.Filled.ContentCopy,
+            contentDescription = "Copy headers",
+            modifier = Modifier.size(14.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text("Copy", style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@Composable
 internal fun KeyValueTable(rows: List<Pair<String, String>>) {
     SelectionContainer {
         Column(

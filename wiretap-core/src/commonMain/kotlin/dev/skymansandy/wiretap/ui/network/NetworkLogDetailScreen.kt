@@ -1,5 +1,8 @@
 package dev.skymansandy.wiretap.ui.network
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.ui.network.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.network.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.network.tabs.ResponseTab
@@ -59,6 +63,7 @@ import kotlinx.coroutines.delay
 fun NetworkLogDetailScreen(
     entry: NetworkLogEntry,
     onBack: () -> Unit,
+    onViewRule: ((ruleId: Long) -> Unit)? = null,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -162,11 +167,62 @@ fun NetworkLogDetailScreen(
                 }
             }
 
+            if (entry.source != ResponseSource.NETWORK) {
+                RuleMatchBanner(entry.source, entry.matchedRuleId, onViewRule)
+            }
+
             when (selectedTab) {
                 0 -> OverviewTab(entry)
                 1 -> RequestTab(entry, debouncedQuery)
                 2 -> ResponseTab(entry, debouncedQuery)
             }
+        }
+    }
+}
+
+@Composable
+private fun RuleMatchBanner(
+    source: ResponseSource,
+    matchedRuleId: Long?,
+    onViewRule: ((ruleId: Long) -> Unit)?,
+) {
+    val (bgColor, contentColor, label) = when (source) {
+        ResponseSource.MOCK -> Triple(
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer,
+            "Mocked by rule",
+        )
+        ResponseSource.THROTTLE -> Triple(
+            MaterialTheme.colorScheme.tertiaryContainer,
+            MaterialTheme.colorScheme.onTertiaryContainer,
+            "Throttled by rule",
+        )
+        ResponseSource.NETWORK -> return
+    }
+    val clickable = matchedRuleId != null && onViewRule != null
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(bgColor)
+            .then(
+                if (clickable) Modifier.clickable { onViewRule?.invoke(matchedRuleId!!) }
+                else Modifier
+            )
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = contentColor,
+        )
+        if (clickable) {
+            Text(
+                text = "View Rule →",
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor,
+            )
         }
     }
 }

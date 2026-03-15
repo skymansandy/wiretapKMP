@@ -8,6 +8,7 @@ interface RuleRepository {
     fun updateRule(rule: WiretapRule)
     fun getAll(): Flow<List<WiretapRule>>
     fun search(query: String): Flow<List<WiretapRule>>
+    fun getById(id: Long): WiretapRule?
     fun getEnabledRules(): List<WiretapRule>
     fun findMatchingRule(
         url: String,

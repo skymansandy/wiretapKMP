@@ -9,14 +9,18 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     response_body TEXT,
     duration_ms INTEGER NOT NULL,
     source TEXT NOT NULL DEFAULT "NETWORK",
-    timestamp INTEGER NOT NULL
+    timestamp INTEGER NOT NULL,
+    matched_rule_id INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS RuleEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    matcher_type TEXT NOT NULL DEFAULT "URL_EXACT",
-    url_pattern TEXT NOT NULL,
     method TEXT NOT NULL DEFAULT "*",
+    url_matcher_type TEXT,
+    url_pattern TEXT,
+    header_matchers TEXT,
+    body_matcher_type TEXT,
+    body_pattern TEXT,
     action TEXT NOT NULL,
     mock_response_code INTEGER,
     mock_response_body TEXT,
@@ -28,8 +32,8 @@ CREATE TABLE IF NOT EXISTS RuleEntity (
 
 -- NetworkLog queries
 insertNetworkLog:
-INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllNetworkLogs:
 SELECT * FROM NetworkLogEntity ORDER BY timestamp DESC;
@@ -54,8 +58,8 @@ LIMIT :limit;
 
 -- Rule queries
 insertRule:
-INSERT INTO RuleEntity (matcher_type, url_pattern, method, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO RuleEntity (method, url_matcher_type, url_pattern, header_matchers, body_matcher_type, body_pattern, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllRules:
 SELECT * FROM RuleEntity ORDER BY created_at DESC;
@@ -70,17 +74,19 @@ updateRuleEnabled:
 UPDATE RuleEntity SET enabled = ? WHERE id = ?;
 
 updateRule:
-UPDATE RuleEntity SET matcher_type = ?, url_pattern = ?, method = ?, action = ?,
+UPDATE RuleEntity SET method = ?, url_matcher_type = ?, url_pattern = ?, header_matchers = ?,
+    body_matcher_type = ?, body_pattern = ?, action = ?,
     mock_response_code = ?, mock_response_body = ?, mock_response_headers = ?,
     throttle_delay_ms = ?, enabled = ?
 WHERE id = ?;
 
 searchRules:
 SELECT * FROM RuleEntity
-WHERE url_pattern LIKE '%' || :query || '%'
+WHERE (url_pattern LIKE '%' || :query || '%'
+   OR body_pattern LIKE '%' || :query || '%'
+   OR header_matchers LIKE '%' || :query || '%'
    OR method LIKE '%' || :query || '%'
-   OR action LIKE '%' || :query || '%'
-   OR matcher_type LIKE '%' || :query || '%'
+   OR action LIKE '%' || :query || '%')
 ORDER BY created_at DESC;
 
 deleteRuleById:

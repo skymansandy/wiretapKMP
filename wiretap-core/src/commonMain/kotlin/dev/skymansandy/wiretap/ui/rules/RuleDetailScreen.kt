@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,8 +35,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.MatcherType
+import dev.skymansandy.wiretap.domain.model.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.network.CodeBlock
 import dev.skymansandy.wiretap.ui.network.HeadersList
@@ -58,17 +61,12 @@ internal fun RuleDetailScreen(
             title = { Text("Delete Rule") },
             text = { Text("Are you sure you want to delete this rule?") },
             confirmButton = {
-                TextButton(onClick = {
-                    ruleRepository.deleteById(rule.id)
-                    onDeleted()
-                }) {
+                TextButton(onClick = { ruleRepository.deleteById(rule.id); onDeleted() }) {
                     Text("Delete")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
             },
         )
     }
@@ -100,49 +98,67 @@ internal fun RuleDetailScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "Enabled",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f),
-                )
+            // Enabled toggle
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text("Enabled", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
-                    onCheckedChange = {
-                        enabled = it
-                        ruleRepository.setEnabled(rule.id, it)
-                    },
+                    onCheckedChange = { enabled = it; ruleRepository.setEnabled(rule.id, it) },
                 )
             }
 
             Spacer(Modifier.height(16.dp))
 
-            DetailRow("Matcher Type", matcherTypeLabel(rule.matcherType))
-
-            Spacer(Modifier.height(12.dp))
-
-            DetailRow("Pattern", rule.urlPattern)
-
-            Spacer(Modifier.height(12.dp))
-
             DetailRow("Method", if (rule.method == "*") "Any" else rule.method)
 
+            // URL matcher
+            rule.urlMatcher?.let { matcher ->
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(12.dp))
+                Text("URL", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(8.dp))
+                DetailRow(urlMatcherLabel(matcher), matcher.pattern)
+            }
+
+            // Header matchers
+            if (rule.headerMatchers.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(12.dp))
+                Text("Headers", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary)
+                rule.headerMatchers.forEach { matcher ->
+                    Spacer(Modifier.height(8.dp))
+                    HeaderMatcherDetail(matcher)
+                }
+            }
+
+            // Body matcher
+            rule.bodyMatcher?.let { matcher ->
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(12.dp))
+                Text("Body", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(8.dp))
+                DetailRow(bodyMatcherLabel(matcher), matcher.pattern)
+            }
+
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider()
             Spacer(Modifier.height(12.dp))
 
+            // Action
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Action",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Text("Action", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.width(8.dp))
                 ActionBadge(rule.action)
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             when (rule.action) {
                 RuleAction.MOCK -> {
@@ -150,35 +166,29 @@ internal fun RuleDetailScreen(
 
                     if (!rule.mockResponseBody.isNullOrBlank()) {
                         Spacer(Modifier.height(12.dp))
-                        Text(
-                            text = "Response Body",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text("Response Body", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(4.dp))
-                        CodeBlock(
-                            text = rule.mockResponseBody,
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
+                        CodeBlock(text = rule.mockResponseBody, modifier = Modifier.padding(vertical = 4.dp))
                     }
 
                     if (!rule.mockResponseHeaders.isNullOrEmpty()) {
                         Spacer(Modifier.height(12.dp))
-                        Text(
-                            text = "Response Headers",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text("Response Headers", style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(4.dp))
-                        HeadersList(
-                            headers = rule.mockResponseHeaders,
-                            emptyText = "No headers",
-                        )
+                        HeadersList(headers = rule.mockResponseHeaders, emptyText = "No headers")
                     }
                 }
-
                 RuleAction.THROTTLE -> {
                     DetailRow("Delay", "${rule.throttleDelayMs ?: 0} ms")
+                }
+            }
+
+            rule.throttleDelayMs?.let { delay ->
+                if (rule.action == RuleAction.MOCK) {
+                    Spacer(Modifier.height(12.dp))
+                    DetailRow("Throttle Delay", "$delay ms")
                 }
             }
         }
@@ -186,25 +196,37 @@ internal fun RuleDetailScreen(
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-        )
+private fun HeaderMatcherDetail(matcher: HeaderMatcher) {
+    when (matcher) {
+        is HeaderMatcher.KeyExists ->
+            DetailRow("Key Exists", matcher.key)
+        is HeaderMatcher.ValueExact ->
+            DetailRow("${matcher.key}  =  Exact", matcher.value)
+        is HeaderMatcher.ValueContains ->
+            DetailRow("${matcher.key}  ~  Contains", matcher.value)
+        is HeaderMatcher.ValueRegex ->
+            DetailRow("${matcher.key}  *  Regex", matcher.pattern)
     }
 }
 
-private fun matcherTypeLabel(type: MatcherType): String = when (type) {
-    MatcherType.URL_EXACT -> "Exact URL Match"
-    MatcherType.URL_REGEX -> "URL Regex Match"
-    MatcherType.HEADER_CONTAINS -> "Header Contains"
-    MatcherType.BODY_CONTAINS -> "Body Contains"
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Column {
+        Text(label, style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(2.dp))
+        Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+    }
+}
+
+private fun urlMatcherLabel(matcher: UrlMatcher) = when (matcher) {
+    is UrlMatcher.Exact -> "Exact"
+    is UrlMatcher.Contains -> "Contains"
+    is UrlMatcher.Regex -> "Regex"
+}
+
+private fun bodyMatcherLabel(matcher: BodyMatcher) = when (matcher) {
+    is BodyMatcher.Exact -> "Exact"
+    is BodyMatcher.Contains -> "Contains"
+    is BodyMatcher.Regex -> "Regex"
 }

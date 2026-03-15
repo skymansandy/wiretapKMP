@@ -24,6 +24,7 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -64,6 +65,10 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
 
         when (matchingRule?.action) {
             RuleAction.MOCK -> {
+                matchingRule.throttleDelayMs.takeIf { it != null }?.let { delay ->
+                    delay(delay)
+                }
+
                 val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
                 val mockHeaders = Headers.build {
                     matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
@@ -78,28 +83,31 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                         headers = mockHeaders,
                         version = HttpProtocolVersion.HTTP_1_1,
                         body = ByteReadChannel(responseBody),
-                        callContext = coroutineContext,
+                        // Standalone Job so the channel's lifecycle is not tied to the
+                        // on(Send) block's coroutine context, preventing "parent job is
+                        // completed" when Ktor processes the mock response afterward.
+                        callContext = coroutineContext + Job(),
                     ),
                 )
 
-                // onResponse is never called for mocked responses since we short-circuit
-                // proceed(), so we log the entry manually here.
                 val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
-                val logEntry = NetworkLogEntry(
-                    url = url,
-                    method = method,
-                    requestHeaders = requestHeaders,
-                    requestBody = requestBody,
-                    responseCode = statusCode.value,
-                    responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
-                    responseBody = matchingRule.mockResponseBody,
-                    durationMs = durationNs / 1_000_000,
-                    durationNs = durationNs,
-                    source = ResponseSource.MOCK,
-                    timestamp = currentTimeMillis(),
+                deps.orchestrator.logEntry(
+                    NetworkLogEntry(
+                        url = url,
+                        method = method,
+                        requestHeaders = requestHeaders,
+                        requestBody = requestBody,
+                        responseCode = statusCode.value,
+                        responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
+                        responseBody = matchingRule.mockResponseBody,
+                        durationMs = durationNs / 1_000_000,
+                        durationNs = durationNs,
+                        source = ResponseSource.MOCK,
+                        timestamp = currentTimeMillis(),
+                        matchedRuleId = matchingRule.id,
+                    ),
                 )
-                deps.orchestrator.logEntry(logEntry)
 
                 call
             }
@@ -152,6 +160,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             durationNs = durationNs,
             source = source,
             timestamp = currentTimeMillis(),
+            matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
         )
 
         deps.orchestrator.logEntry(logEntry)
