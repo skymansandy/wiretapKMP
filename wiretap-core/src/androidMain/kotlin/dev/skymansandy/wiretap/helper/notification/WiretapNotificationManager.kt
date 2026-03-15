@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.presentation.WiretapActivity
+import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 internal object WiretapNotificationManager {
 
@@ -83,7 +83,7 @@ internal object WiretapNotificationManager {
         PendingIntent.getActivity(
             context,
             0,
-            Intent(context, WiretapActivity::class.java).apply {
+            Intent(context, WiretapConsoleActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,

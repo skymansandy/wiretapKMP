@@ -71,14 +71,14 @@ import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
-import org.koin.compose.koinInject
+import dev.skymansandy.wiretap.di.WiretapDi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WiretapScreen(
     onBack: () -> Unit,
-    orchestrator: WiretapOrchestrator = koinInject(),
-    ruleRepository: RuleRepository = koinInject(),
+    orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
+    ruleRepository: RuleRepository = WiretapDi.ruleRepository,
 ) {
     var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
     var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }

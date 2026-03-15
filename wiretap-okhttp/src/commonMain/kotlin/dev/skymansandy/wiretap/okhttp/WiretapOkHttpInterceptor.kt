@@ -12,10 +12,14 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import dev.skymansandy.wiretap.di.WiretapDi
+import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
+
+    override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
     private val ruleRepository: RuleRepository by inject()

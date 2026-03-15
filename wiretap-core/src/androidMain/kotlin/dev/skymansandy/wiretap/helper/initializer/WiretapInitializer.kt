@@ -7,7 +7,7 @@ import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.startup.Initializer
 import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
-import dev.skymansandy.wiretap.presentation.WiretapActivity
+import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 class WiretapInitializer : Initializer<Unit> {
 
@@ -24,7 +24,7 @@ class WiretapInitializer : Initializer<Unit> {
                 .setShortLabel("Wiretap")
                 .setLongLabel("Open Wiretap Console")
                 .setIntent(
-                    Intent(context, WiretapActivity::class.java).apply {
+                    Intent(context, WiretapConsoleActivity::class.java).apply {
                         action = Intent.ACTION_VIEW
                     },
                 )
