@@ -206,7 +206,7 @@ private fun RuleMatchBanner(
             .background(bgColor)
             .then(
                 if (clickable) Modifier.clickable { onViewRule?.invoke(matchedRuleId!!) }
-                else Modifier
+                else Modifier,
             )
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.okhttp
 
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
@@ -12,7 +13,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import dev.skymansandy.wiretap.di.WiretapDi
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject

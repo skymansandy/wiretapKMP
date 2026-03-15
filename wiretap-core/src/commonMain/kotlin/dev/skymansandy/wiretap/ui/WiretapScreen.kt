@@ -14,15 +14,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Rule
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -30,9 +34,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -42,8 +46,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -61,6 +65,7 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
@@ -71,7 +76,7 @@ import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
-import dev.skymansandy.wiretap.di.WiretapDi
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,37 +194,38 @@ fun WiretapScreen(
                 },
             )
         },
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0; searchQuery = "" },
-                    text = { Text("Activity") },
+                    icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
+                    label = { Text("Activity") },
                 )
-                Tab(
+                NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1; searchQuery = "" },
-                    text = { Text("Rules") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
+                    label = { Text("Rules") },
                 )
             }
+        },
+    ) { padding ->
+        when (selectedTab) {
+            0 -> LogList(
+                lazyItems = lazyItems,
+                searchQuery = searchQuery,
+                onItemClick = { selectedLog = it },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
 
-            when (selectedTab) {
-                0 -> LogList(
-                    lazyItems = lazyItems,
-                    searchQuery = searchQuery,
-                    onItemClick = { selectedLog = it },
-                    modifier = Modifier.fillMaxSize(),
-                )
-
-                1 -> RulesListScreen(
-                    ruleRepository = ruleRepository,
-                    searchQuery = debouncedQuery,
-                    onRuleClick = { selectedRule = it },
-                    onCreateClick = { showCreateRule = true },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+            1 -> RulesListScreen(
+                ruleRepository = ruleRepository,
+                searchQuery = debouncedQuery,
+                onRuleClick = { selectedRule = it },
+                onCreateClick = { showCreateRule = true },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
         }
     }
 }
@@ -260,7 +266,21 @@ private fun LogList(
         }
 
         else -> {
-            LazyColumn(modifier = modifier) {
+            val listState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+            val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+            }
+            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
+
+            LaunchedEffect(lazyItems.itemCount) {
+                if (lazyItems.itemCount > lastItemCount && isAtTop) {
+                    scope.launch { listState.scrollToItem(0) }
+                }
+                lastItemCount = lazyItems.itemCount
+            }
+
+            LazyColumn(state = listState, modifier = modifier) {
                 items(
                     count = lazyItems.itemCount,
                     key = lazyItems.itemKey { it.id },

@@ -2,6 +2,7 @@ package dev.skymansandy.wiretap.plugin
 
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
@@ -26,7 +27,6 @@ import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import dev.skymansandy.wiretap.di.WiretapDi
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
