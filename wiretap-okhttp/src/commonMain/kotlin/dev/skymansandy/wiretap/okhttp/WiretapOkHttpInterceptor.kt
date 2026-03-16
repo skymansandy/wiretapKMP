@@ -78,7 +78,29 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
             if (delayMs > 0) Thread.sleep(delayMs)
         }
 
-        val response = chain.proceed(request)
+        val response = try {
+            chain.proceed(request)
+        } catch (e: Exception) {
+            val durationNs = currentNanoTime() - startNano
+            val isCancelled = e is java.io.IOException && e.message == "Canceled"
+            orchestrator.logEntry(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders,
+                    requestBody = requestBody,
+                    responseCode = if (isCancelled) -1 else 0,
+                    responseHeaders = emptyMap(),
+                    responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                    durationMs = durationNs / 1_000_000,
+                    durationNs = durationNs,
+                    source = ResponseSource.NETWORK,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+            throw e
+        }
+
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 

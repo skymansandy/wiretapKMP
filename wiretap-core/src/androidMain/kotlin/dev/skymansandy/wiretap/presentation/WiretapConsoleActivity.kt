@@ -14,7 +14,9 @@ class WiretapConsoleActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
-                WiretapScreen(onBack = { finish() })
+                WiretapScreen(
+                    onBack = { finish() },
+                )
             }
         }
     }

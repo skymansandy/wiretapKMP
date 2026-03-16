@@ -25,6 +25,7 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import org.koin.core.Koin
@@ -65,62 +66,86 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
 
-        when (matchingRule?.action) {
-            RuleAction.MOCK -> {
-                matchingRule.throttleDelayMs.takeIf { it != null }?.let { delay ->
-                    delay(delay)
+        try {
+            when (matchingRule?.action) {
+                RuleAction.MOCK -> {
+                    matchingRule.throttleDelayMs.takeIf { it != null }?.let { delay ->
+                        delay(delay)
+                    }
+
+                    val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
+                    val mockHeaders = Headers.build {
+                        matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
+                    }
+                    val responseBody =
+                        matchingRule.mockResponseBody?.encodeToByteArray() ?: ByteArray(0)
+                    val call = HttpClientCall(
+                        client = client,
+                        requestData = request.build(),
+                        responseData = HttpResponseData(
+                            statusCode = statusCode,
+                            requestTime = GMTDate(),
+                            headers = mockHeaders,
+                            version = HttpProtocolVersion.HTTP_1_1,
+                            body = ByteReadChannel(responseBody),
+                            // Standalone Job so the channel's lifecycle is not tied to the
+                            // on(Send) block's coroutine context, preventing "parent job is
+                            // completed" when Ktor processes the mock response afterward.
+                            callContext = coroutineContext + Job(),
+                        ),
+                    )
+
+                    val startNano =
+                        request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+                    val durationNs = currentNanoTime() - startNano
+                    deps.orchestrator.logEntry(
+                        NetworkLogEntry(
+                            url = url,
+                            method = method,
+                            requestHeaders = requestHeaders,
+                            requestBody = requestBody,
+                            responseCode = statusCode.value,
+                            responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
+                            responseBody = matchingRule.mockResponseBody,
+                            durationMs = durationNs / 1_000_000,
+                            durationNs = durationNs,
+                            source = ResponseSource.MOCK,
+                            timestamp = currentTimeMillis(),
+                            matchedRuleId = matchingRule.id,
+                        ),
+                    )
+
+                    call
                 }
 
-                val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
-                val mockHeaders = Headers.build {
-                    matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
+                RuleAction.THROTTLE -> {
+                    val delayMs = matchingRule.throttleDelayMs ?: 0L
+                    if (delayMs > 0) delay(delayMs)
+                    proceed(request)
                 }
-                val responseBody = matchingRule.mockResponseBody?.encodeToByteArray() ?: ByteArray(0)
-                val call = HttpClientCall(
-                    client = client,
-                    requestData = request.build(),
-                    responseData = HttpResponseData(
-                        statusCode = statusCode,
-                        requestTime = GMTDate(),
-                        headers = mockHeaders,
-                        version = HttpProtocolVersion.HTTP_1_1,
-                        body = ByteReadChannel(responseBody),
-                        // Standalone Job so the channel's lifecycle is not tied to the
-                        // on(Send) block's coroutine context, preventing "parent job is
-                        // completed" when Ktor processes the mock response afterward.
-                        callContext = coroutineContext + Job(),
-                    ),
-                )
 
-                val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
-                val durationNs = currentNanoTime() - startNano
-                deps.orchestrator.logEntry(
-                    NetworkLogEntry(
-                        url = url,
-                        method = method,
-                        requestHeaders = requestHeaders,
-                        requestBody = requestBody,
-                        responseCode = statusCode.value,
-                        responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
-                        responseBody = matchingRule.mockResponseBody,
-                        durationMs = durationNs / 1_000_000,
-                        durationNs = durationNs,
-                        source = ResponseSource.MOCK,
-                        timestamp = currentTimeMillis(),
-                        matchedRuleId = matchingRule.id,
-                    ),
-                )
-
-                call
+                else -> proceed(request)
             }
-
-            RuleAction.THROTTLE -> {
-                val delayMs = matchingRule.throttleDelayMs ?: 0L
-                if (delayMs > 0) delay(delayMs)
-                proceed(request)
-            }
-
-            else -> proceed(request)
+        } catch (e: Exception) {
+            val startNano =
+                request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+            val durationNs = currentNanoTime() - startNano
+            deps.orchestrator.logEntry(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = requestHeaders,
+                    requestBody = requestBody,
+                    responseCode = if (e is CancellationException) -1 else 0,
+                    responseHeaders = emptyMap(),
+                    responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                    durationMs = durationNs / 1_000_000,
+                    durationNs = durationNs,
+                    source = ResponseSource.NETWORK,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+            throw e
         }
     }
 

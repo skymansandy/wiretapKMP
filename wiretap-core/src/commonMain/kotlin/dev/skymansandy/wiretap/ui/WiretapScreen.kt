@@ -163,7 +163,7 @@ fun WiretapScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text("Wiretap")
+                        Text("Wiretap Console")
                     }
                 },
                 navigationIcon = {
@@ -356,11 +356,11 @@ private fun NetworkLogItem(
     onClick: () -> Unit,
 ) {
     val statusColor = when {
-        entry.responseCode in 200..299 -> MaterialTheme.colorScheme.primary
-        entry.responseCode in 300..399 -> MaterialTheme.colorScheme.tertiary
-        entry.responseCode in 400..499 -> MaterialTheme.colorScheme.error
-        entry.responseCode >= 500 -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
+        entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green – success
+        entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue – redirect
+        entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber – client error
+        entry.responseCode >= 500 -> Color(0xFFEF5350) // Red – server error
+        else -> Color(0xFF9E9E9E) // Gray – timeout / cancelled / no response
     }
 
     val isHttps = entry.url.startsWith("https://", ignoreCase = true)
@@ -385,7 +385,11 @@ private fun NetworkLogItem(
         verticalAlignment = Alignment.Top,
     ) {
         Text(
-            text = entry.responseCode.toString(),
+            text = when {
+                entry.responseCode > 0 -> entry.responseCode.toString()
+                entry.responseCode == -1 -> "!!!"
+                else -> "ERR"
+            },
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = statusColor,
