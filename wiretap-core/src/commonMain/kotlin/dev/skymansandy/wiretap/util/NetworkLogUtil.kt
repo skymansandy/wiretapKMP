@@ -8,6 +8,13 @@ internal fun buildShareText(entry: NetworkLogEntry): String = buildString {
     appendLine("${entry.method} ${entry.responseCode}")
     appendLine(entry.url)
     appendLine("Duration: ${entry.durationMs}ms | Source: ${entry.source.name}")
+    entry.protocol?.let { appendLine("HTTP Version: $it") }
+    entry.remoteAddress?.let { appendLine("Remote Address: $it") }
+    entry.tlsProtocol?.let { appendLine("TLS Protocol: $it") }
+    entry.cipherSuite?.let { appendLine("Cipher Suite: $it") }
+    entry.certificateCn?.let { appendLine("Certificate CN: $it") }
+    entry.issuerCn?.let { appendLine("Issuer CN: $it") }
+    entry.certificateExpiry?.let { appendLine("Valid Until: $it") }
     appendLine()
     appendLine("--- Request Headers ---")
     if (entry.requestHeaders.isEmpty()) {

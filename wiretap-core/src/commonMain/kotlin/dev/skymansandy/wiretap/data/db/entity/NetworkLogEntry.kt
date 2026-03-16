@@ -16,4 +16,11 @@ data class NetworkLogEntry(
     val source: ResponseSource = ResponseSource.NETWORK,
     val timestamp: Long,
     val matchedRuleId: Long? = null,
+    val protocol: String? = null,
+    val remoteAddress: String? = null,
+    val tlsProtocol: String? = null,
+    val cipherSuite: String? = null,
+    val certificateCn: String? = null,
+    val issuerCn: String? = null,
+    val certificateExpiry: String? = null,
 )

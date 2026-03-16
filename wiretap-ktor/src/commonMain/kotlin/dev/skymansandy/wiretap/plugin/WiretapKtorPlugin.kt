@@ -175,6 +175,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             else -> ResponseSource.NETWORK
         }
 
+        val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
+
         val logEntry = NetworkLogEntry(
             url = url,
             method = method,
@@ -188,6 +190,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             source = source,
             timestamp = currentTimeMillis(),
             matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
+            protocol = protocol,
         )
 
         deps.orchestrator.logEntry(logEntry)

@@ -30,6 +30,13 @@ class NetworkDaoImpl(
             source = entry.source.name,
             timestamp = entry.timestamp,
             matched_rule_id = entry.matchedRuleId,
+            protocol = entry.protocol,
+            remote_address = entry.remoteAddress,
+            tls_protocol = entry.tlsProtocol,
+            cipher_suite = entry.cipherSuite,
+            certificate_cn = entry.certificateCn,
+            issuer_cn = entry.issuerCn,
+            certificate_expiry = entry.certificateExpiry,
         )
     }
 
@@ -72,6 +79,13 @@ class NetworkDaoImpl(
             source = ResponseSource.valueOf(source),
             timestamp = timestamp,
             matchedRuleId = matched_rule_id,
+            protocol = protocol,
+            remoteAddress = remote_address,
+            tlsProtocol = tls_protocol,
+            cipherSuite = cipher_suite,
+            certificateCn = certificate_cn,
+            issuerCn = issuer_cn,
+            certificateExpiry = certificate_expiry,
         )
     }
 }

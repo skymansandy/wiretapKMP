@@ -16,6 +16,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.security.cert.X509Certificate
 
 class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
 
@@ -116,6 +117,33 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
             else -> ResponseSource.NETWORK
         }
 
+        val protocol = response.protocol.toString()
+        val remoteAddress = try {
+            chain.connection()?.route()?.socketAddress?.let { "${it.hostName}:${it.port}" }
+        } catch (_: Exception) {
+            null
+        }
+
+        val handshake = response.handshake
+        val tlsProtocol = handshake?.tlsVersion?.javaName
+        val cipherSuite = handshake?.cipherSuite?.javaName
+        val peerCert = try {
+            handshake?.peerCertificates?.firstOrNull() as? X509Certificate
+        } catch (_: Exception) {
+            null
+        }
+        val certificateCn = peerCert?.subjectX500Principal?.name
+            ?.split(",")
+            ?.firstOrNull { it.trimStart().startsWith("CN=") }
+            ?.substringAfter("CN=")
+            ?.trim()
+        val issuerCn = peerCert?.issuerX500Principal?.name
+            ?.split(",")
+            ?.firstOrNull { it.trimStart().startsWith("CN=") }
+            ?.substringAfter("CN=")
+            ?.trim()
+        val certificateExpiry = peerCert?.notAfter?.toString()
+
         orchestrator.logEntry(
             NetworkLogEntry(
                 url = url,
@@ -129,6 +157,13 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 durationNs = durationNs,
                 source = source,
                 timestamp = currentTimeMillis(),
+                protocol = protocol,
+                remoteAddress = remoteAddress,
+                tlsProtocol = tlsProtocol,
+                cipherSuite = cipherSuite,
+                certificateCn = certificateCn,
+                issuerCn = issuerCn,
+                certificateExpiry = certificateExpiry,
             ),
         )
 
