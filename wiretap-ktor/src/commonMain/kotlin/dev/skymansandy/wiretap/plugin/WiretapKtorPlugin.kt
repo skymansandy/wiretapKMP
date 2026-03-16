@@ -69,8 +69,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
         try {
             when (matchingRule?.action) {
                 RuleAction.MOCK -> {
-                    matchingRule.throttleDelayMs.takeIf { it != null }?.let { delay ->
-                        delay(delay)
+                    matchingRule.throttleDelayMs?.let { minDelay ->
+                        val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+                        delay(if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay)
                     }
 
                     val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
@@ -119,7 +120,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                 }
 
                 RuleAction.THROTTLE -> {
-                    val delayMs = matchingRule.throttleDelayMs ?: 0L
+                    val minDelay = matchingRule.throttleDelayMs ?: 0L
+                    val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+                    val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
                     if (delayMs > 0) delay(delayMs)
                     proceed(request)
                 }

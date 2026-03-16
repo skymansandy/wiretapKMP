@@ -72,6 +72,22 @@ private enum class UrlMatchMode { EXACT, CONTAINS, REGEX }
 private enum class BodyMatchMode { EXACT, CONTAINS, REGEX }
 private enum class HeaderEntryMode { KEY_EXISTS, VALUE_EXACT, VALUE_CONTAINS, VALUE_REGEX }
 private enum class ResponseHeadersEditMode { KEY_VALUE, BULK_EDIT }
+private enum class ThrottleInputMode { MANUAL, PROFILE }
+
+private enum class ThrottleProfile(
+    val label: String,
+    val speed: String,
+    val delayMinMs: Long,
+    val delayMaxMs: Long,
+) {
+    GPRS("2G (GPRS)", "~50 kbps", 1500, 3000),
+    EDGE("2G (EDGE)", "~200 kbps", 800, 2000),
+    SLOW_3G("3G (Slow)", "~400 kbps", 500, 1500),
+    FAST_3G("3G", "~2 Mbps", 300, 800),
+    SLOW_4G("4G (Slow)", "~5 Mbps", 150, 400),
+    LTE("4G (LTE)", "~20 Mbps", 50, 200),
+    SLOW_WIFI("Slow WiFi", "~1 Mbps", 500, 1000),
+}
 
 private data class HeaderEntry(
     val key: String = "",
@@ -178,6 +194,16 @@ internal fun CreateRuleScreen(
     }
     var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KEY_VALUE) }
     var throttleDelayMs by remember { mutableStateOf(existingRule?.throttleDelayMs?.toString() ?: "") }
+    var throttleDelayMaxMs by remember { mutableStateOf(existingRule?.throttleDelayMaxMs?.toString() ?: "") }
+    var throttleInputMode by remember {
+        mutableStateOf(
+            if (existingRule?.throttleDelayMs != null &&
+                ThrottleProfile.entries.any {
+                    it.delayMinMs == existingRule.throttleDelayMs && it.delayMaxMs == existingRule.throttleDelayMaxMs
+                }
+            ) ThrottleInputMode.PROFILE else ThrottleInputMode.MANUAL
+        )
+    }
 
     // Regex tester
     var regexTesterPattern by remember { mutableStateOf("") }
@@ -298,6 +324,10 @@ internal fun CreateRuleScreen(
                         },
                         throttleDelayMs = throttleDelayMs,
                         onThrottleDelayMsChange = { throttleDelayMs = it.filter { c -> c.isDigit() } },
+                        throttleDelayMaxMs = throttleDelayMaxMs,
+                        onThrottleDelayMaxMsChange = { throttleDelayMaxMs = it.filter { c -> c.isDigit() } },
+                        throttleInputMode = throttleInputMode,
+                        onThrottleInputModeChange = { throttleInputMode = it },
                     )
                 }
             }
@@ -360,6 +390,10 @@ internal fun CreateRuleScreen(
                                 throttleDelayMs = when (action) {
                                     RuleAction.THROTTLE -> throttleDelayMs.toLongOrNull() ?: 1000L
                                     RuleAction.MOCK -> throttleDelayMs.toLongOrNull()
+                                },
+                                throttleDelayMaxMs = when (action) {
+                                    RuleAction.THROTTLE -> throttleDelayMaxMs.toLongOrNull()
+                                    RuleAction.MOCK -> throttleDelayMaxMs.toLongOrNull()
                                 },
                                 enabled = existingRule?.enabled ?: true,
                                 createdAt = existingRule?.createdAt ?: currentTimeMillis(),
@@ -571,6 +605,10 @@ private fun ResponseStep(
     onResponseHeadersModeChange: (ResponseHeadersEditMode) -> Unit,
     throttleDelayMs: String,
     onThrottleDelayMsChange: (String) -> Unit,
+    throttleDelayMaxMs: String,
+    onThrottleDelayMaxMsChange: (String) -> Unit,
+    throttleInputMode: ThrottleInputMode,
+    onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
 ) {
     Text("Action", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -588,16 +626,14 @@ private fun ResponseStep(
 
     when (action) {
         RuleAction.MOCK -> {
-            // Optional throttle delay for mock
-            OutlinedTextField(
-                value = throttleDelayMs,
-                onValueChange = onThrottleDelayMsChange,
-                label = { Text("Throttle Delay (ms)") },
-                placeholder = { Text("e.g. 2000") },
-                supportingText = { Text("Optional — adds artificial latency to this mock response") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            ThrottleDelayInput(
+                throttleDelayMs = throttleDelayMs,
+                onThrottleDelayMsChange = onThrottleDelayMsChange,
+                throttleDelayMaxMs = throttleDelayMaxMs,
+                onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
+                throttleInputMode = throttleInputMode,
+                onThrottleInputModeChange = onThrottleInputModeChange,
+                supportingText = "Optional — adds artificial latency to this mock response",
             )
 
             OutlinedTextField(
@@ -631,17 +667,117 @@ private fun ResponseStep(
             )
         }
         RuleAction.THROTTLE -> {
-            // Optional throttle delay for mock
-            OutlinedTextField(
-                value = throttleDelayMs,
-                onValueChange = onThrottleDelayMsChange,
-                label = { Text("Throttle Delay (ms)") },
-                placeholder = { Text("e.g. 2000") },
-                supportingText = { Text("Adds artificial latency to this mock response") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            ThrottleDelayInput(
+                throttleDelayMs = throttleDelayMs,
+                onThrottleDelayMsChange = onThrottleDelayMsChange,
+                throttleDelayMaxMs = throttleDelayMaxMs,
+                onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
+                throttleInputMode = throttleInputMode,
+                onThrottleInputModeChange = onThrottleInputModeChange,
+                supportingText = "Adds artificial latency before the real network request",
             )
+        }
+    }
+}
+
+// ── Throttle delay input (Manual / Profile) ──────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThrottleDelayInput(
+    throttleDelayMs: String,
+    onThrottleDelayMsChange: (String) -> Unit,
+    throttleDelayMaxMs: String,
+    onThrottleDelayMaxMsChange: (String) -> Unit,
+    throttleInputMode: ThrottleInputMode,
+    onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
+    supportingText: String,
+) {
+    Text("Throttle Delay", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = throttleInputMode == ThrottleInputMode.MANUAL,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
+            label = { Text("Manual") },
+        )
+        FilterChip(
+            selected = throttleInputMode == ThrottleInputMode.PROFILE,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.PROFILE) },
+            label = { Text("Network Profile") },
+        )
+    }
+
+    when (throttleInputMode) {
+        ThrottleInputMode.MANUAL -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = throttleDelayMs,
+                    onValueChange = onThrottleDelayMsChange,
+                    label = { Text("Min (ms)") },
+                    placeholder = { Text("e.g. 500") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                OutlinedTextField(
+                    value = throttleDelayMaxMs,
+                    onValueChange = onThrottleDelayMaxMsChange,
+                    label = { Text("Max (ms)") },
+                    placeholder = { Text("e.g. 2000") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+            }
+            Text(
+                text = supportingText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        ThrottleInputMode.PROFILE -> {
+            var expanded by remember { mutableStateOf(false) }
+            val selectedProfile = ThrottleProfile.entries.find {
+                it.delayMinMs == throttleDelayMs.toLongOrNull() && it.delayMaxMs == throttleDelayMaxMs.toLongOrNull()
+            }
+
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+                OutlinedTextField(
+                    value = selectedProfile?.let { "${it.label}  (${it.speed} · ${it.delayMinMs}–${it.delayMaxMs}ms)" } ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Network Profile") },
+                    placeholder = { Text("Select a profile") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                    singleLine = true,
+                )
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    ThrottleProfile.entries.forEach { profile ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(profile.label)
+                                    Text(
+                                        "${profile.speed} · ${profile.delayMinMs}–${profile.delayMaxMs}ms",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onThrottleDelayMsChange(profile.delayMinMs.toString())
+                                onThrottleDelayMaxMsChange(profile.delayMaxMs.toString())
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
         }
     }
 }

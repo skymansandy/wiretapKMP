@@ -16,6 +16,7 @@ data class WiretapRule(
     val mockResponseBody: String? = null,
     val mockResponseHeaders: Map<String, String>? = null,
     val throttleDelayMs: Long? = null,
+    val throttleDelayMaxMs: Long? = null,
     val enabled: Boolean = true,
     val createdAt: Long = 0,
 )

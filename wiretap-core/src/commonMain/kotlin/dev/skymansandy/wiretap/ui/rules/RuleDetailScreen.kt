@@ -181,14 +181,20 @@ internal fun RuleDetailScreen(
                     }
                 }
                 RuleAction.THROTTLE -> {
-                    DetailRow("Delay", "${rule.throttleDelayMs ?: 0} ms")
+                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
+                        "${rule.throttleDelayMs ?: 0}–${rule.throttleDelayMaxMs} ms"
+                    else "${rule.throttleDelayMs ?: 0} ms"
+                    DetailRow("Delay", delayText)
                 }
             }
 
             rule.throttleDelayMs?.let { delay ->
                 if (rule.action == RuleAction.MOCK) {
                     Spacer(Modifier.height(12.dp))
-                    DetailRow("Throttle Delay", "$delay ms")
+                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != delay)
+                        "$delay–${rule.throttleDelayMaxMs} ms"
+                    else "$delay ms"
+                    DetailRow("Throttle Delay", delayText)
                 }
             }
         }

@@ -75,7 +75,9 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
         }
 
         if (matchingRule?.action == RuleAction.THROTTLE) {
-            val delayMs = matchingRule.throttleDelayMs ?: 0L
+            val minDelay = matchingRule.throttleDelayMs ?: 0L
+            val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+            val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
             if (delayMs > 0) Thread.sleep(delayMs)
         }
 
