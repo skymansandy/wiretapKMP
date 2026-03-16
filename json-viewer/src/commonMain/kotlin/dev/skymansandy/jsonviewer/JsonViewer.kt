@@ -3,11 +3,14 @@ package dev.skymansandy.jsonviewer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,8 +20,12 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -42,6 +49,8 @@ data class JsonViewerColors(
     val gutterBackground: Color,
     val highlight: Color,
     val highlightFg: Color,
+    val gutterBorder: Color = Color(0xFF3C3C3C),
+    val foldEllipsis: Color = Color(0xFFC586C0),
 )
 
 val defaultJsonViewerColors = JsonViewerColors(
@@ -57,6 +66,8 @@ val defaultJsonViewerColors = JsonViewerColors(
     gutterBackground = Color(0xFF252526),
     highlight = Color(0xFFFFEB3B),
     highlightFg = Color(0xFF1E1E1E),
+    gutterBorder = Color(0xFF3C3C3C),
+    foldEllipsis = Color(0xFFC586C0),
 )
 
 @Composable
@@ -87,22 +98,25 @@ fun JsonViewer(
             for (line in visibleLines) {
                 val isFolded = line.foldId != null && foldState[line.foldId] == true
                 Row(Modifier.fillMaxWidth()) {
-                    // Gutter: background scoped to this Row's child, not the outer Column,
-                    // so no indentation from content ever affects its width or background.
-                    GutterCell(
-                        line = line,
-                        isFolded = isFolded,
-                        numDigits = numDigits,
-                        colors = colors,
-                        onFoldToggle = {
-                            line.foldId?.let { id -> foldState[id] = !(foldState[id] ?: false) }
-                        },
-                    )
+                    DisableSelection {
+                        GutterCell(
+                            line = line,
+                            isFolded = isFolded,
+                            numDigits = numDigits,
+                            colors = colors,
+                            onFoldToggle = {
+                                line.foldId?.let { id -> foldState[id] = !(foldState[id] ?: false) }
+                            },
+                        )
+                    }
                     ContentCell(
                         line = line,
                         isFolded = isFolded,
                         searchQuery = searchQuery,
                         colors = colors,
+                        onFoldToggle = {
+                            line.foldId?.let { id -> foldState[id] = !(foldState[id] ?: false) }
+                        },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -120,6 +134,11 @@ internal data class JsonLine(
     val foldId: Int?,
     val foldType: FoldType?,
     val parentFoldIds: List<Int>,
+    val foldChildCount: Int = 0,
+    /** Inline text of all lines inside this fold (children + closing bracket),
+     *  joined without newlines. Appended as transparent text when folded so
+     *  copy/paste captures the real JSON content. */
+    val foldedContent: String = "",
 )
 
 internal enum class FoldType { OBJECT, ARRAY }
@@ -132,6 +151,7 @@ internal sealed class JsonPart {
     data class BoolVal(override val text: String) : JsonPart()
     data class NullVal(override val text: String) : JsonPart()
     data class Punct(override val text: String) : JsonPart()
+    data class Indent(override val text: String) : JsonPart()
 }
 
 // ─── Display line builder ──────────────────────────────────────────────────────
@@ -155,6 +175,7 @@ private class JsonLineBuilder {
         depth: Int,
         parentFoldIds: List<Int>,
     ) {
+        val indent: List<JsonPart> = if (depth > 0) listOf(JsonPart.Indent("  ".repeat(depth))) else emptyList()
         val keyParts: List<JsonPart> = if (key != null) {
             listOf(JsonPart.Key("\"$key\""), JsonPart.Punct(": "))
         } else emptyList()
@@ -163,29 +184,38 @@ private class JsonLineBuilder {
         when (node) {
             is JsonNode.JObject -> {
                 if (node.fields.isEmpty()) {
-                    out += JsonLine(++lineNum, depth, keyParts + JsonPart.Punct("{}") + comma, null, null, parentFoldIds)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{}") + comma, null, null, parentFoldIds)
                 } else {
                     val myId = nextFoldId++
-                    out += JsonLine(++lineNum, depth, keyParts + JsonPart.Punct("{"), myId, FoldType.OBJECT, parentFoldIds)
+                    val headerIdx = out.size
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{"), myId, FoldType.OBJECT, parentFoldIds, foldChildCount = node.fields.size)
                     val childParents = parentFoldIds + myId
                     node.fields.forEachIndexed { i, (k, v) ->
                         addNode(v, k, i == node.fields.lastIndex, depth + 1, childParents)
                     }
-                    out += JsonLine(++lineNum, depth, listOf(JsonPart.Punct("}")) + comma, null, null, childParents)
+                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("}")) + comma, null, null, childParents)
+                    // Precompute inline text of all lines inside this fold for selection.
+                    val foldedContent = out.subList(headerIdx + 1, out.size)
+                        .joinToString(" ") { line -> line.parts.joinToString("") { it.text }.trim() }
+                    out[headerIdx] = out[headerIdx].copy(foldedContent = foldedContent)
                 }
             }
 
             is JsonNode.JArray -> {
                 if (node.elements.isEmpty()) {
-                    out += JsonLine(++lineNum, depth, keyParts + JsonPart.Punct("[]") + comma, null, null, parentFoldIds)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("[]") + comma, null, null, parentFoldIds)
                 } else {
                     val myId = nextFoldId++
-                    out += JsonLine(++lineNum, depth, keyParts + JsonPart.Punct("["), myId, FoldType.ARRAY, parentFoldIds)
+                    val headerIdx = out.size
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("["), myId, FoldType.ARRAY, parentFoldIds, foldChildCount = node.elements.size)
                     val childParents = parentFoldIds + myId
                     node.elements.forEachIndexed { i, v ->
                         addNode(v, null, i == node.elements.lastIndex, depth + 1, childParents)
                     }
-                    out += JsonLine(++lineNum, depth, listOf(JsonPart.Punct("]")) + comma, null, null, childParents)
+                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("]")) + comma, null, null, childParents)
+                    val foldedContent = out.subList(headerIdx + 1, out.size)
+                        .joinToString(" ") { line -> line.parts.joinToString("") { it.text }.trim() }
+                    out[headerIdx] = out[headerIdx].copy(foldedContent = foldedContent)
                 }
             }
 
@@ -193,17 +223,17 @@ private class JsonLineBuilder {
                 val escaped = node.value
                     .replace("\\", "\\\\").replace("\"", "\\\"")
                     .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
-                out += JsonLine(++lineNum, depth, keyParts + JsonPart.StrVal("\"$escaped\"") + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.StrVal("\"$escaped\"") + comma, null, null, parentFoldIds)
             }
 
             is JsonNode.JNumber ->
-                out += JsonLine(++lineNum, depth, keyParts + JsonPart.NumVal(node.value) + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NumVal(node.value) + comma, null, null, parentFoldIds)
 
             is JsonNode.JBoolean ->
-                out += JsonLine(++lineNum, depth, keyParts + JsonPart.BoolVal(node.value.toString()) + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.BoolVal(node.value.toString()) + comma, null, null, parentFoldIds)
 
             is JsonNode.JNull ->
-                out += JsonLine(++lineNum, depth, keyParts + JsonPart.NullVal("null") + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NullVal("null") + comma, null, null, parentFoldIds)
         }
     }
 }
@@ -212,6 +242,9 @@ private class JsonLineBuilder {
 
 // Uniform vertical padding applied to both gutter and content cells so heights always match.
 private val cellVerticalPadding = 3.dp
+
+// Fixed width for the fold glyph column so ▶/▼ all occupy the same space.
+private val foldGlyphSize = 14.dp
 
 @Composable
 private fun GutterCell(
@@ -222,12 +255,18 @@ private fun GutterCell(
     onFoldToggle: () -> Unit,
 ) {
     val foldGlyph = when {
-        line.foldId == null -> " "
+        line.foldId == null -> ""
         isFolded -> "▶"
         else -> "▼"
     }
+    val borderColor = colors.gutterBorder
     Row(
-        modifier = Modifier.background(colors.gutterBackground),
+        modifier = Modifier
+            .background(colors.gutterBackground)
+            .drawBehind {
+                val x = size.width
+                drawLine(borderColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.dp.toPx())
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -236,14 +275,24 @@ private fun GutterCell(
             color = colors.lineNumber,
             modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = cellVerticalPadding, bottom = cellVerticalPadding),
         )
-        Text(
-            text = foldGlyph,
-            style = monoStyle,
-            color = colors.foldHint,
-            modifier = (if (line.foldId != null) {
-                Modifier.pointerInput(line.foldId) { detectTapGestures { onFoldToggle() } }
-            } else Modifier).padding(end = 10.dp, top = cellVerticalPadding, bottom = cellVerticalPadding),
-        )
+        Box(
+            modifier = Modifier
+                .size(foldGlyphSize)
+                .then(
+                    if (line.foldId != null) {
+                        Modifier.pointerInput(line.foldId) { detectTapGestures { onFoldToggle() } }
+                    } else Modifier,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (foldGlyph.isNotEmpty()) {
+                Text(
+                    text = foldGlyph,
+                    style = monoStyle,
+                    color = colors.foldHint,
+                )
+            }
+        }
     }
 }
 
@@ -253,66 +302,92 @@ private fun ContentCell(
     isFolded: Boolean,
     searchQuery: String,
     colors: JsonViewerColors,
+    onFoldToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Pre-build plain text — necessary to get correct indices for addStyle calls.
-    // Using toString() on AnnotatedString.Builder is unreliable; buildString is safe.
     val lineText = buildString {
         line.parts.forEach { append(it.text) }
-        if (isFolded) append(if (line.foldType == FoldType.OBJECT) " … }" else " … ]")
     }
 
-    val styledText = buildAnnotatedString {
-        append(lineText)
+    if (isFolded && line.foldedContent.isNotEmpty()) {
+        // Folded: show "{ ... }" as visible text.
+        // Tap → expand fold. Long-press → copy full JSON to clipboard.
+        val clipboardManager = LocalClipboardManager.current
+        val fullJson = lineText + " " + line.foldedContent
+        val closingBracket = if (line.foldType == FoldType.OBJECT) "}" else "]"
 
-        // Syntax coloring — tracked cursor keeps offsets correct
-        var cursor = 0
-        line.parts.forEach { part ->
-            val color = when (part) {
-                is JsonPart.Key -> colors.key
-                is JsonPart.StrVal -> colors.string
-                is JsonPart.NumVal -> colors.number
-                is JsonPart.BoolVal -> colors.booleanColor
-                is JsonPart.NullVal -> colors.nullColor
-                is JsonPart.Punct -> colors.punctuation
+        val styledText = buildAnnotatedString {
+            var cursor = 0
+            line.parts.forEach { part ->
+                append(part.text)
+                addStyle(SpanStyle(color = partColor(part, colors)), cursor, cursor + part.text.length)
+                cursor += part.text.length
             }
-            addStyle(SpanStyle(color = color), cursor, cursor + part.text.length)
-            cursor += part.text.length
-        }
-        if (isFolded) {
-            addStyle(SpanStyle(color = colors.foldHint), cursor, lineText.length)
+            val ellipsisStart = length
+            append(" ... ")
+            addStyle(SpanStyle(color = colors.foldEllipsis), ellipsisStart, length)
+            val bracketStart = length
+            append(closingBracket)
+            addStyle(SpanStyle(color = colors.punctuation), bracketStart, length)
         }
 
-        // Search highlights applied last so they overlay syntax colors
-        if (searchQuery.isNotBlank()) {
-            val lower = lineText.lowercase()
-            val queryLower = searchQuery.lowercase()
-            var idx = lower.indexOf(queryLower)
-            while (idx >= 0) {
-                addStyle(
-                    SpanStyle(background = colors.highlight, color = colors.highlightFg),
-                    start = idx,
-                    end = idx + queryLower.length,
-                )
-                idx = lower.indexOf(queryLower, idx + queryLower.length)
+        Text(
+            text = styledText,
+            style = monoStyle,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            modifier = modifier
+                .background(colors.background)
+                .pointerInput(line.foldId) {
+                    detectTapGestures(
+                        onTap = { onFoldToggle() },
+                        onLongPress = { clipboardManager.setText(AnnotatedString(fullJson)) },
+                    )
+                }
+                .padding(start = 8.dp, end = 16.dp, top = cellVerticalPadding, bottom = cellVerticalPadding),
+        )
+    } else {
+        val styledText = buildAnnotatedString {
+            append(lineText)
+            var cursor = 0
+            line.parts.forEach { part ->
+                addStyle(SpanStyle(color = partColor(part, colors)), cursor, cursor + part.text.length)
+                cursor += part.text.length
+            }
+            if (searchQuery.isNotBlank()) {
+                val lower = lineText.lowercase()
+                val queryLower = searchQuery.lowercase()
+                var idx = lower.indexOf(queryLower)
+                while (idx >= 0) {
+                    addStyle(
+                        SpanStyle(background = colors.highlight, color = colors.highlightFg),
+                        start = idx,
+                        end = idx + queryLower.length,
+                    )
+                    idx = lower.indexOf(queryLower, idx + queryLower.length)
+                }
             }
         }
+        Text(
+            text = styledText,
+            style = monoStyle,
+            softWrap = false,
+            overflow = TextOverflow.Clip,
+            modifier = modifier
+                .background(colors.background)
+                .padding(start = 8.dp, end = 16.dp, top = cellVerticalPadding, bottom = cellVerticalPadding),
+        )
     }
+}
 
-    Text(
-        text = styledText,
-        style = monoStyle,
-        softWrap = false,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier
-            .background(colors.background)
-            .padding(
-                start = (line.depth * 16).dp + 8.dp,
-                end = 16.dp,
-                top = cellVerticalPadding,
-                bottom = cellVerticalPadding,
-            ),
-    )
+private fun partColor(part: JsonPart, colors: JsonViewerColors): Color = when (part) {
+    is JsonPart.Key -> colors.key
+    is JsonPart.StrVal -> colors.string
+    is JsonPart.NumVal -> colors.number
+    is JsonPart.BoolVal -> colors.booleanColor
+    is JsonPart.NullVal -> colors.nullColor
+    is JsonPart.Punct -> colors.punctuation
+    is JsonPart.Indent -> colors.punctuation
 }
 
 @Composable

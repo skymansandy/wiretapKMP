@@ -65,7 +65,7 @@ internal class JsonParser(private val src: String) {
     private fun parseStringValue(): String {
         eat('"')
         val sb = StringBuilder()
-        while (pos < src.length && cur() != '"') {
+        while (pos < src.length) {
             if (cur() == '\\') {
                 pos++
                 when (cur()) {
@@ -76,11 +76,24 @@ internal class JsonParser(private val src: String) {
                     'b' -> sb.append('\b')
                     'f' -> sb.append('\u000C')
                     'u' -> {
-                        sb.append(src.substring(pos + 1, pos + 5).toInt(16).toChar())
-                        pos += 4
+                        if (pos + 4 < src.length && src.substring(pos + 1, pos + 5).all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }) {
+                            sb.append(src.substring(pos + 1, pos + 5).toInt(16).toChar())
+                            pos += 4
+                        } else {
+                            sb.append('\\'); sb.append(cur())
+                        }
                     }
                     else -> { sb.append('\\'); sb.append(cur()) }
                 }
+            } else if (cur() == '"') {
+                // Lenient: only treat " as closing if followed (after whitespace)
+                // by a JSON structural character. This handles malformed JSON where
+                // string values contain unescaped quotes (e.g. embedded HTML).
+                val next = peekNextNonWs(pos + 1)
+                if (next == ',' || next == '}' || next == ']' || next == ':' || next == '\u0000') {
+                    break
+                }
+                sb.append('"')
             } else {
                 sb.append(cur())
             }
@@ -88,6 +101,13 @@ internal class JsonParser(private val src: String) {
         }
         eat('"')
         return sb.toString()
+    }
+
+    /** Peek at the first non-whitespace character at or after [from], without advancing [pos]. */
+    private fun peekNextNonWs(from: Int): Char {
+        var i = from
+        while (i < src.length && src[i].isWhitespace()) i++
+        return if (i < src.length) src[i] else '\u0000'
     }
 
     private fun parseNumber(): JsonNode.JNumber {

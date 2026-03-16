@@ -82,10 +82,10 @@ private val apiActions = listOf(
         val response = client.get("https://jsonplaceholder.typicode.com/posts/1")
         onStatus("GET /posts/1 -> ${response.status.value}")
     },
-    ApiAction("GET /users", ActionCategory.SUCCESS) { client, onStatus ->
+    ApiAction("GET large json", ActionCategory.SUCCESS) { client, onStatus ->
         onStatus("GET /users ...")
         @Suppress("MaxLineLength")
-        val url = "https://raw.githubusercontent.com/usuiat/Zoomable/refs/heads/main/samples/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json"
+        val url = "https://gist.githubusercontent.com/gcollazo/884a489a50aec7b53765405f40c6fbd1/raw/49d1568c34090587ac82e80612a9c350108b62c5/sample.json"
         val response = client.get(url)
         onStatus("GET /Contents.json -> ${response.status.value}")
     },
