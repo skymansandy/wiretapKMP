@@ -29,8 +29,8 @@ internal fun OverviewTab(entry: NetworkLogEntry) {
             rows = buildList {
                 add("URL" to entry.url)
                 add("Method" to entry.method)
-                add("Status" to entry.responseCode.toString())
-                add("Duration" to "${entry.durationMs}ms")
+                add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
+                add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
                 add("Source" to entry.source.name)
                 add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
                 add("Response Size" to formatSize(entry.responseBody?.encodeToByteArray()?.size?.toLong()))

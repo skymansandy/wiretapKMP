@@ -120,7 +120,7 @@ private val apiActions = listOf(
     ApiAction("Timeout (1s)", ActionCategory.EDGE_CASE) { client, onStatus ->
         onStatus("GET /delay/10 (1s timeout) ...")
         client.get("https://httpbin.org/delay/10") {
-            timeout { requestTimeoutMillis = 1000 }
+            timeout { requestTimeoutMillis = 6000 }
         }
         onStatus("Unexpected success")
     },

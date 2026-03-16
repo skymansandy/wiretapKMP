@@ -24,6 +24,25 @@ class WiretapOrchestratorImpl(
         onNetworkEntryLogged(entry)
     }
 
+    override fun logRequest(entry: NetworkLogEntry): Long {
+        if (!config.enabled) return -1
+        val id = networkRepository.saveAndGetId(entry)
+        if (config.loggingEnabled) {
+            networkLogger.log(entry)
+        }
+        onNetworkEntryLogged(entry)
+        return id
+    }
+
+    override fun updateEntry(entry: NetworkLogEntry) {
+        if (!config.enabled) return
+        networkRepository.update(entry)
+        if (config.loggingEnabled) {
+            networkLogger.log(entry)
+        }
+        onNetworkEntryLogged(entry)
+    }
+
     override fun getAllLogs(): Flow<List<NetworkLogEntry>> = networkRepository.getAll()
 
     override fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>> =

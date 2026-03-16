@@ -35,6 +35,7 @@ import org.koin.core.component.inject
 private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
 private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTimestamp")
 private val MatchedRuleKey = AttributeKey<WiretapRule>("WiretapMatchedRule")
+private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
 
 @OptIn(InternalAPI::class)
 val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
@@ -65,6 +66,18 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
         if (matchingRule != null) {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
+
+        // Log request immediately so it appears in the UI
+        val logEntryId = deps.orchestrator.logRequest(
+            NetworkLogEntry(
+                url = url,
+                method = method,
+                requestHeaders = requestHeaders,
+                requestBody = requestBody,
+                timestamp = currentTimeMillis(),
+            ),
+        )
+        request.attributes.put(LogEntryIdKey, logEntryId)
 
         try {
             when (matchingRule?.action) {
@@ -99,8 +112,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                     val startNano =
                         request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                     val durationNs = currentNanoTime() - startNano
-                    deps.orchestrator.logEntry(
+                    deps.orchestrator.updateEntry(
                         NetworkLogEntry(
+                            id = logEntryId,
                             url = url,
                             method = method,
                             requestHeaders = requestHeaders,
@@ -133,8 +147,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             val startNano =
                 request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
             val durationNs = currentNanoTime() - startNano
-            deps.orchestrator.logEntry(
+            deps.orchestrator.updateEntry(
                 NetworkLogEntry(
+                    id = logEntryId,
                     url = url,
                     method = method,
                     requestHeaders = requestHeaders,
@@ -154,6 +169,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
 
     onResponse { response ->
         val request = response.request
+        val logEntryId = request.attributes.getOrNull(LogEntryIdKey) ?: return@onResponse
         val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
@@ -180,23 +196,24 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
 
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
-        val logEntry = NetworkLogEntry(
-            url = url,
-            method = method,
-            requestHeaders = requestHeaders,
-            requestBody = null,
-            responseCode = response.status.value,
-            responseHeaders = responseHeaders,
-            responseBody = responseBody,
-            durationMs = durationMs,
-            durationNs = durationNs,
-            source = source,
-            timestamp = currentTimeMillis(),
-            matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
-            protocol = protocol,
+        deps.orchestrator.updateEntry(
+            NetworkLogEntry(
+                id = logEntryId,
+                url = url,
+                method = method,
+                requestHeaders = requestHeaders,
+                requestBody = null,
+                responseCode = response.status.value,
+                responseHeaders = responseHeaders,
+                responseBody = responseBody,
+                durationMs = durationMs,
+                durationNs = durationNs,
+                source = source,
+                timestamp = currentTimeMillis(),
+                matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
+                protocol = protocol,
+            ),
         )
-
-        deps.orchestrator.logEntry(logEntry)
     }
 }
 

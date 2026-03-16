@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface NetworkDao {
     fun insert(entry: NetworkLogEntry)
+    fun insertAndGetId(entry: NetworkLogEntry): Long
+    fun update(entry: NetworkLogEntry)
     fun getAll(): Flow<List<NetworkLogEntry>>
     fun getPage(query: String, limit: Long, afterId: Long?): List<NetworkLogEntry>
     fun getById(id: Long): NetworkLogEntry?

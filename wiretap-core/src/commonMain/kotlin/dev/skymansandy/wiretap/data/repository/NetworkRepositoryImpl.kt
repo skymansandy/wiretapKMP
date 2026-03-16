@@ -19,6 +19,17 @@ class NetworkRepositoryImpl(
         invalidationSignal.tryEmit(Unit)
     }
 
+    override fun saveAndGetId(entry: NetworkLogEntry): Long {
+        val id = networkDao.insertAndGetId(entry)
+        invalidationSignal.tryEmit(Unit)
+        return id
+    }
+
+    override fun update(entry: NetworkLogEntry) {
+        networkDao.update(entry)
+        invalidationSignal.tryEmit(Unit)
+    }
+
     override fun getAll(): Flow<List<NetworkLogEntry>> = networkDao.getAll()
 
     override fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>> =

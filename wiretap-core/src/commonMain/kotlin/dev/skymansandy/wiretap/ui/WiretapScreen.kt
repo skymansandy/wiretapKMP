@@ -356,6 +356,7 @@ private fun NetworkLogItem(
     onClick: () -> Unit,
 ) {
     val statusColor = when {
+        entry.isInProgress -> Color(0xFF42A5F5) // Blue – in progress
         entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green – success
         entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue – redirect
         entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber – client error
@@ -386,6 +387,7 @@ private fun NetworkLogItem(
     ) {
         Text(
             text = when {
+                entry.isInProgress -> "..."
                 entry.responseCode > 0 -> entry.responseCode.toString()
                 entry.responseCode == -1 -> "!!!"
                 else -> "ERR"

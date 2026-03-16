@@ -43,6 +43,17 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
 
         val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
 
+        // Log request immediately so it appears in the UI
+        val logEntryId = orchestrator.logRequest(
+            NetworkLogEntry(
+                url = url,
+                method = method,
+                requestHeaders = reqHeaders,
+                requestBody = requestBody,
+                timestamp = currentTimeMillis(),
+            ),
+        )
+
         if (matchingRule?.action == RuleAction.MOCK) {
             val durationNs = currentNanoTime() - startNano
             val body = (matchingRule.mockResponseBody ?: "")
@@ -56,8 +67,9 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 .apply { matchingRule.mockResponseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
 
-            orchestrator.logEntry(
+            orchestrator.updateEntry(
                 NetworkLogEntry(
+                    id = logEntryId,
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders,
@@ -86,8 +98,9 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
         } catch (e: Exception) {
             val durationNs = currentNanoTime() - startNano
             val isCancelled = e is java.io.IOException && e.message == "Canceled"
-            orchestrator.logEntry(
+            orchestrator.updateEntry(
                 NetworkLogEntry(
+                    id = logEntryId,
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders,
@@ -146,8 +159,9 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
             ?.trim()
         val certificateExpiry = peerCert?.notAfter?.toString()
 
-        orchestrator.logEntry(
+        orchestrator.updateEntry(
             NetworkLogEntry(
+                id = logEntryId,
                 url = url,
                 method = method,
                 requestHeaders = reqHeaders,

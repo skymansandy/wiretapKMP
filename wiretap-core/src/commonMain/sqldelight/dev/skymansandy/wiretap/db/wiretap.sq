@@ -43,6 +43,26 @@ insertNetworkLog:
 INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id, protocol, remote_address, tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+updateNetworkLog:
+UPDATE NetworkLogEntity SET
+    response_code = ?,
+    response_headers = ?,
+    response_body = ?,
+    duration_ms = ?,
+    source = ?,
+    matched_rule_id = ?,
+    protocol = ?,
+    remote_address = ?,
+    tls_protocol = ?,
+    cipher_suite = ?,
+    certificate_cn = ?,
+    issuer_cn = ?,
+    certificate_expiry = ?
+WHERE id = ?;
+
 getAllNetworkLogs:
 SELECT * FROM NetworkLogEntity ORDER BY timestamp DESC;
 
