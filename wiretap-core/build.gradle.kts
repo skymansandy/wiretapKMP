@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.skie)
+    alias(libs.plugins.kmmbridge)
 }
 
 kotlin {
@@ -103,4 +105,12 @@ sqldelight {
             packageName.set("dev.skymansandy.wiretap.db")
         }
     }
+}
+
+group = "dev.skymansandy"
+version = "0.1.0"
+
+kmmbridge {
+    mavenPublishArtifacts()
+    spm()
 }

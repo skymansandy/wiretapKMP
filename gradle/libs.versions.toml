@@ -25,6 +25,8 @@ sqldelight = "2.0.2"
 cashAppPaging = "3.3.0-alpha02-0.5.1"
 okhttp = "4.12.0"
 detekt = "1.23.7"
+skie = "0.10.10"
+kmmbridge = "1.2.1"
 runner = "1.5.2"
 core = "1.5.0"
 material = "1.10.0"
@@ -93,3 +95,5 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 androidLint = { id = "com.android.lint", version.ref = "agp" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+skie = { id = "co.touchlab.skie", version.ref = "skie" }
+kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmbridge" }

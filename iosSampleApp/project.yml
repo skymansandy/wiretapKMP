@@ -1,0 +1,47 @@
+name: WiretapSampleiOS
+options:
+  bundleIdPrefix: dev.skymansandy.wiretap
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  WiretapSampleiOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosSampleApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.skymansandy.wiretap.iosSample
+        PRODUCT_NAME: "Wiretap Sample"
+        INFOPLIST_FILE: iosSampleApp/Info.plist
+        SWIFT_VERSION: "5.9"
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework"
+          - "$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework"
+          - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework"
+          - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework"
+        OTHER_LDFLAGS:
+          - "-ObjC"
+    dependencies: []
+    preBuildScripts:
+      - name: "Compile Kotlin Frameworks"
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :wiretap-core:linkDebugFrameworkIosSimulatorArm64 :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64
+        basedOnDependencyAnalysis: false
+
+schemes:
+  WiretapSampleiOS:
+    build:
+      targets:
+        WiretapSampleiOS: all
+    run:
+      config: Debug
+    archive:
+      config: Release

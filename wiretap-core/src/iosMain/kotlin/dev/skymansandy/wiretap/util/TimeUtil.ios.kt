@@ -15,6 +15,7 @@ actual fun formatTime(timestampMs: Long): String {
     val formatter = NSDateFormatter()
     formatter.dateFormat = "h:mm:ss.SSS a"
     formatter.locale = NSLocale.currentLocale
-    val date = NSDate.dateWithTimeIntervalSince1970(timestampMs / 1000.0)
+    // NSDate reference date is 2001-01-01, Unix epoch is 1970-01-01; difference is 978307200 seconds
+    val date = NSDate(timeIntervalSinceReferenceDate = (timestampMs / 1000.0) - 978307200.0)
     return formatter.stringFromDate(date).lowercase()
 }

@@ -87,6 +87,12 @@ import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+private fun formatOneDecimal(value: Float): String {
+    val intPart = value.toLong()
+    val decPart = ((value - intPart) * 10).toInt().let { kotlin.math.abs(it) }
+    return "$intPart.$decPart"
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WiretapScreen(
@@ -529,8 +535,8 @@ private fun NetworkLogItemContent(
 
     val responseBytes = entry.responseBody?.encodeToByteArray()?.size ?: 0
     val formattedSize = when {
-        responseBytes >= 1_048_576 -> "${"%.1f".format(responseBytes / 1_048_576f)} MB"
-        responseBytes >= 1_024 -> "${"%.1f".format(responseBytes / 1_024f)} kB"
+        responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
+        responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
         responseBytes > 0 -> "$responseBytes B"
         else -> null
     }
