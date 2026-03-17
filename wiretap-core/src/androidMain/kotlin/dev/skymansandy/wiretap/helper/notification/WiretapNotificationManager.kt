@@ -23,7 +23,7 @@ internal object WiretapNotificationManager {
 
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
 
-    private val recentEntries = ArrayDeque<NetworkLogEntry>(MAX_ENTRIES)
+    private val recentEntries = mutableListOf<NetworkLogEntry>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -41,8 +41,13 @@ internal object WiretapNotificationManager {
 
     fun onNewEntry(context: Context, entry: NetworkLogEntry) {
         if (!hasPermission(context)) return
-        if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
-        recentEntries.addLast(entry)
+        val existingIndex = recentEntries.indexOfFirst { it.id == entry.id }
+        if (existingIndex >= 0) {
+            recentEntries[existingIndex] = entry
+        } else {
+            if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
+            recentEntries.addLast(entry)
+        }
         postNotifications(context)
     }
 
@@ -59,17 +64,27 @@ internal object WiretapNotificationManager {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun formatStatus(entry: NetworkLogEntry): String = when {
+        entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
+        entry.responseCode > 0 -> entry.responseCode.toString()
+        entry.responseCode == -1 -> "!!!"
+        else -> "ERR"
+    }
+
+    private fun formatEntry(entry: NetworkLogEntry): String =
+        "${entry.method}  ${formatStatus(entry)}  ${entry.url}"
+
     private fun postNotifications(context: Context) {
         val inboxStyle = NotificationCompat.InboxStyle()
             .setBigContentTitle("View network traffic")
         recentEntries.forEach { entry ->
-            inboxStyle.addLine("${entry.method}  ${entry.responseCode}  ${entry.url}")
+            inboxStyle.addLine(formatEntry(entry))
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_dialog_info)
             .setContentTitle("View network traffic")
-            .setContentText(recentEntries.last().let { "${it.method}  ${it.responseCode}  ${it.url}" })
+            .setContentText(formatEntry(recentEntries.last()))
             .setStyle(inboxStyle)
             .setOnlyAlertOnce(true)
             .setContentIntent(openWiretapIntent(context))

@@ -27,10 +27,11 @@ class WiretapOrchestratorImpl(
     override fun logRequest(entry: NetworkLogEntry): Long {
         if (!config.enabled) return -1
         val id = networkRepository.saveAndGetId(entry)
+        val entryWithId = entry.copy(id = id)
         if (config.loggingEnabled) {
-            networkLogger.log(entry)
+            networkLogger.log(entryWithId)
         }
-        onNetworkEntryLogged(entry)
+        onNetworkEntryLogged(entryWithId)
         return id
     }
 
