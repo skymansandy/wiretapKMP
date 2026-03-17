@@ -1,7 +1,9 @@
 package dev.skymansandy.wiretap.ui
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,11 +25,13 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Rule
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -53,9 +58,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
@@ -89,6 +98,7 @@ fun WiretapScreen(
     var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
     var showCreateRule by remember { mutableStateOf(false) }
     var editRule by remember { mutableStateOf<WiretapRule?>(null) }
+    var createRuleFromLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
 
     if (selectedLog != null) {
         NetworkLogDetailScreen(
@@ -126,11 +136,29 @@ fun WiretapScreen(
         return
     }
 
+    if (createRuleFromLog != null) {
+        CreateRuleScreen(
+            ruleRepository = ruleRepository,
+            onBack = { createRuleFromLog = null },
+            onSaved = { createRuleFromLog = null },
+            prefillFromLog = createRuleFromLog,
+            onEditConflictingRule = { rule ->
+                createRuleFromLog = null
+                editRule = rule
+            },
+        )
+        return
+    }
+
     if (showCreateRule) {
         CreateRuleScreen(
             ruleRepository = ruleRepository,
             onBack = { showCreateRule = false },
             onSaved = { showCreateRule = false },
+            onEditConflictingRule = { rule ->
+                showCreateRule = false
+                editRule = rule
+            },
         )
         return
     }
@@ -216,6 +244,11 @@ fun WiretapScreen(
                 lazyItems = lazyItems,
                 searchQuery = searchQuery,
                 onItemClick = { selectedLog = it },
+                onCreateRule = { createRuleFromLog = it },
+                onViewRule = { ruleId ->
+                    val rule = ruleRepository.getById(ruleId)
+                    if (rule != null) selectedRule = rule
+                },
                 modifier = Modifier.fillMaxSize().padding(padding),
             )
 
@@ -244,6 +277,8 @@ private fun LogList(
     lazyItems: LazyPagingItems<NetworkLogEntry>,
     searchQuery: String,
     onItemClick: (NetworkLogEntry) -> Unit,
+    onCreateRule: (NetworkLogEntry) -> Unit,
+    onViewRule: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
@@ -272,12 +307,21 @@ private fun LogList(
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
             var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
+            var revealedItemId by remember { mutableStateOf<Long?>(null) }
 
             LaunchedEffect(lazyItems.itemCount) {
                 if (lazyItems.itemCount > lastItemCount && isAtTop) {
                     scope.launch { listState.scrollToItem(0) }
                 }
                 lastItemCount = lazyItems.itemCount
+            }
+
+            // Auto-close after 3 seconds of inactivity
+            LaunchedEffect(revealedItemId) {
+                if (revealedItemId != null) {
+                    delay(3000)
+                    revealedItemId = null
+                }
             }
 
             LazyColumn(state = listState, modifier = modifier) {
@@ -287,10 +331,15 @@ private fun LogList(
                 ) { index ->
                     val entry = lazyItems[index]
                     if (entry != null) {
-                        NetworkLogItem(
+                        SwipeableNetworkLogItem(
                             entry = entry,
                             searchQuery = searchQuery,
-                            onClick = { onItemClick(entry) },
+                            isRevealed = revealedItemId == entry.id,
+                            onReveal = { revealedItemId = entry.id },
+                            onCollapse = { if (revealedItemId == entry.id) revealedItemId = null },
+                            onClick = { revealedItemId = null; onItemClick(entry) },
+                            onCreateRule = { revealedItemId = null; onCreateRule(entry) },
+                            onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
                         )
                     }
                 }
@@ -349,8 +398,117 @@ private fun SearchField(
     )
 }
 
+private val RevealWidth = 64.dp
+
 @Composable
-private fun NetworkLogItem(
+private fun SwipeableNetworkLogItem(
+    entry: NetworkLogEntry,
+    searchQuery: String,
+    isRevealed: Boolean,
+    onReveal: () -> Unit,
+    onCollapse: () -> Unit,
+    onClick: () -> Unit,
+    onCreateRule: () -> Unit,
+    onViewRule: () -> Unit,
+) {
+    val hasMatchedRule = entry.source != ResponseSource.NETWORK && entry.matchedRuleId != null
+    val revealWidthPx = with(LocalDensity.current) { RevealWidth.toPx() }
+    val offsetX = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+
+    // Sync external isRevealed → animation
+    LaunchedEffect(isRevealed) {
+        val target = if (isRevealed) -revealWidthPx else 0f
+        if (offsetX.value != target) {
+            offsetX.animateTo(target)
+        }
+    }
+
+    val bgColor = if (hasMatchedRule) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.primaryContainer
+    }
+    val contentColor = if (hasMatchedRule) {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Action revealed behind the item, pinned to end
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(bgColor)
+                .clickable { if (hasMatchedRule) onViewRule() else onCreateRule() },
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Column(
+                modifier = Modifier.width(RevealWidth),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = if (hasMatchedRule) Icons.Default.Visibility else Icons.Default.Add,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = if (hasMatchedRule) "View\nRule" else "Create\nRule",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        // Foreground content that slides
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(offsetX.value.toInt(), 0) }
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                // Snap to revealed or closed based on how far user dragged
+                                if (offsetX.value < -revealWidthPx / 2) {
+                                    offsetX.animateTo(-revealWidthPx)
+                                    onReveal()
+                                } else {
+                                    offsetX.animateTo(0f)
+                                    onCollapse()
+                                }
+                            }
+                        },
+                        onDragCancel = {
+                            scope.launch {
+                                offsetX.animateTo(0f)
+                                onCollapse()
+                            }
+                        },
+                    ) { _, dragAmount ->
+                        scope.launch {
+                            val newValue = (offsetX.value + dragAmount)
+                                .coerceIn(-revealWidthPx, 0f)
+                            offsetX.snapTo(newValue)
+                        }
+                    }
+                },
+        ) {
+            NetworkLogItemContent(
+                entry = entry,
+                searchQuery = searchQuery,
+                onClick = onClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NetworkLogItemContent(
     entry: NetworkLogEntry,
     searchQuery: String,
     onClick: () -> Unit,
@@ -377,87 +535,89 @@ private fun NetworkLogItem(
         else -> null
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = when {
-                entry.isInProgress -> "..."
-                entry.responseCode > 0 -> entry.responseCode.toString()
-                entry.responseCode == -1 -> "!!!"
-                else -> "ERR"
-            },
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = statusColor,
-            modifier = Modifier.width(44.dp),
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
             Text(
-                text = highlightText("${entry.method} $path", searchQuery),
-                style = MaterialTheme.typography.bodyMedium,
+                text = when {
+                    entry.isInProgress -> "..."
+                    entry.responseCode > 0 -> entry.responseCode.toString()
+                    entry.responseCode == -1 -> "!!!"
+                    else -> "ERR"
+                },
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
+                color = statusColor,
+                modifier = Modifier.width(44.dp),
             )
 
-            Spacer(Modifier.height(4.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = highlightText("${entry.method} $path", searchQuery),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                if (isHttps) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = Color(0xFF26C6DA),
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (isHttps) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = Color(0xFF26C6DA),
+                        )
+                    }
+                    Text(
+                        text = highlightText(host, searchQuery),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF26C6DA),
                     )
                 }
-                Text(
-                    text = highlightText(host, searchQuery),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF26C6DA),
-                )
-            }
 
-            Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = formatTime(entry.timestamp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "${entry.durationMs} ms",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (formattedSize != null) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
-                        text = formattedSize,
+                        text = formatTime(entry.timestamp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-                if (entry.source != ResponseSource.NETWORK) {
-                    SourceChip(entry.source)
+                    Text(
+                        text = "${entry.durationMs} ms",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (formattedSize != null) {
+                        Text(
+                            text = formattedSize,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (entry.source != ResponseSource.NETWORK) {
+                        SourceChip(entry.source)
+                    }
                 }
             }
         }
+        HorizontalDivider()
     }
-    HorizontalDivider()
 }
 
 @Composable

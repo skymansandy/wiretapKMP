@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
@@ -166,19 +168,30 @@ internal fun CreateRuleScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
     existingRule: WiretapRule? = null,
+    prefillFromLog: NetworkLogEntry? = null,
+    onEditConflictingRule: ((WiretapRule) -> Unit)? = null,
 ) {
     val isEditing = existingRule != null
     var step by remember { mutableStateOf(1) }
 
-    // Request state
-    var method by remember { mutableStateOf(existingRule?.method ?: "*") }
-    var urlMode by remember { mutableStateOf(existingRule?.toUrlMode()) }
-    var urlPattern by remember { mutableStateOf(existingRule?.urlMatcher?.pattern ?: "") }
+    // Request state — pre-fill from log entry or existing rule
+    var method by remember { mutableStateOf(existingRule?.method ?: prefillFromLog?.method ?: "*") }
+    var urlMode by remember {
+        mutableStateOf(existingRule?.toUrlMode() ?: if (prefillFromLog != null) UrlMatchMode.CONTAINS else null)
+    }
+    var urlPattern by remember {
+        mutableStateOf(existingRule?.urlMatcher?.pattern ?: prefillFromLog?.url ?: "")
+    }
     var headerEntries by remember {
         mutableStateOf<List<HeaderEntry>>(existingRule?.headerMatchers?.map { it.toEntry() } ?: emptyList())
     }
     var bodyMode by remember { mutableStateOf(existingRule?.toBodyMode()) }
     var bodyPattern by remember { mutableStateOf(existingRule?.bodyMatcher?.pattern ?: "") }
+
+    // Conflict state
+    var conflictingRules by remember { mutableStateOf<List<WiretapRule>>(emptyList()) }
+    var showConflictDialog by remember { mutableStateOf(false) }
+    var pendingRule by remember { mutableStateOf<WiretapRule?>(null) }
 
     // Response state
     var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.MOCK) }
@@ -231,6 +244,65 @@ internal fun CreateRuleScreen(
                 onDismiss = { showRegexTester = false },
             )
         }
+    }
+
+    if (showConflictDialog && conflictingRules.isNotEmpty()) {
+        val firstConflict = conflictingRules.first()
+        val conflictSummary = conflictingRules.joinToString("\n") { rule ->
+            buildString {
+                append(if (rule.method == "*") "Any" else rule.method)
+                rule.urlMatcher?.let { append(" ${it.pattern}") }
+                append(" → ${rule.action.name}")
+            }
+        }
+        AlertDialog(
+            onDismissRequest = {
+                showConflictDialog = false
+                conflictingRules = emptyList()
+                pendingRule = null
+            },
+            title = { Text("Rule Conflict") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = if (conflictingRules.size == 1) {
+                            "An existing rule already matches the same requests:"
+                        } else {
+                            "${conflictingRules.size} existing rules already match the same requests:"
+                        },
+                    )
+                    Text(
+                        text = conflictSummary,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+            },
+            confirmButton = {
+                if (onEditConflictingRule != null) {
+                    TextButton(onClick = {
+                        showConflictDialog = false
+                        val ruleToEdit = ruleRepository.getById(firstConflict.id)
+                        if (ruleToEdit != null) {
+                            onEditConflictingRule(ruleToEdit)
+                        }
+                        conflictingRules = emptyList()
+                        pendingRule = null
+                    }) {
+                        Text("Edit Existing Rule")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showConflictDialog = false
+                    conflictingRules = emptyList()
+                    pendingRule = null
+                }) {
+                    Text("Discard")
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -398,8 +470,15 @@ internal fun CreateRuleScreen(
                                 enabled = existingRule?.enabled ?: true,
                                 createdAt = existingRule?.createdAt ?: currentTimeMillis(),
                             )
-                            if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
-                            onSaved()
+                            val conflicts = ruleRepository.findConflictingRules(rule)
+                            if (conflicts.isNotEmpty()) {
+                                pendingRule = rule
+                                conflictingRules = conflicts
+                                showConflictDialog = true
+                            } else {
+                                if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
+                                onSaved()
+                            }
                         },
                         modifier = Modifier.weight(1f),
                     ) {

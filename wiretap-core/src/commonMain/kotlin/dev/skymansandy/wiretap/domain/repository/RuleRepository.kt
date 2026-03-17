@@ -16,6 +16,9 @@ interface RuleRepository {
         headers: Map<String, String> = emptyMap(),
         body: String? = null,
     ): WiretapRule?
+    fun findConflictingRules(
+        rule: WiretapRule,
+    ): List<WiretapRule>
     fun setEnabled(id: Long, enabled: Boolean)
     fun deleteById(id: Long)
     fun deleteAll()
