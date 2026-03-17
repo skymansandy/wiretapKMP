@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.presentation.WiretapActivity
+import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 internal object WiretapNotificationManager {
 
@@ -23,7 +23,7 @@ internal object WiretapNotificationManager {
 
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
 
-    private val recentEntries = ArrayDeque<NetworkLogEntry>(MAX_ENTRIES)
+    private val recentEntries = mutableListOf<NetworkLogEntry>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -41,8 +41,13 @@ internal object WiretapNotificationManager {
 
     fun onNewEntry(context: Context, entry: NetworkLogEntry) {
         if (!hasPermission(context)) return
-        if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
-        recentEntries.addLast(entry)
+        val existingIndex = recentEntries.indexOfFirst { it.id == entry.id }
+        if (existingIndex >= 0) {
+            recentEntries[existingIndex] = entry
+        } else {
+            if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
+            recentEntries.addLast(entry)
+        }
         postNotifications(context)
     }
 
@@ -59,17 +64,27 @@ internal object WiretapNotificationManager {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun formatStatus(entry: NetworkLogEntry): String = when {
+        entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
+        entry.responseCode > 0 -> entry.responseCode.toString()
+        entry.responseCode == -1 -> "!!!"
+        else -> "ERR"
+    }
+
+    private fun formatEntry(entry: NetworkLogEntry): String =
+        "${entry.method}  ${formatStatus(entry)}  ${entry.url}"
+
     private fun postNotifications(context: Context) {
         val inboxStyle = NotificationCompat.InboxStyle()
             .setBigContentTitle("View network traffic")
         recentEntries.forEach { entry ->
-            inboxStyle.addLine("${entry.method}  ${entry.responseCode}  ${entry.url}")
+            inboxStyle.addLine(formatEntry(entry))
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_dialog_info)
             .setContentTitle("View network traffic")
-            .setContentText(recentEntries.last().let { "${it.method}  ${it.responseCode}  ${it.url}" })
+            .setContentText(formatEntry(recentEntries.last()))
             .setStyle(inboxStyle)
             .setOnlyAlertOnce(true)
             .setContentIntent(openWiretapIntent(context))
@@ -83,7 +98,7 @@ internal object WiretapNotificationManager {
         PendingIntent.getActivity(
             context,
             0,
-            Intent(context, WiretapActivity::class.java).apply {
+            Intent(context, WiretapConsoleActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,

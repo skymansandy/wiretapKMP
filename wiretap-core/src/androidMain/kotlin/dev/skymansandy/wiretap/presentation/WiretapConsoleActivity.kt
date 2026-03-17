@@ -7,14 +7,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import dev.skymansandy.wiretap.ui.WiretapScreen
 
-class WiretapActivity : ComponentActivity() {
+class WiretapConsoleActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
-                WiretapScreen(onBack = { finish() })
+                WiretapScreen(
+                    onBack = { finish() },
+                )
             }
         }
     }

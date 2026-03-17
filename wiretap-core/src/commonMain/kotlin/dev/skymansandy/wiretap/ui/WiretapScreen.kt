@@ -1,7 +1,9 @@
 package dev.skymansandy.wiretap.ui
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,19 +12,26 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Rule
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -30,9 +39,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -42,16 +51,20 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
@@ -61,6 +74,7 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
@@ -71,19 +85,20 @@ import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
-import org.koin.compose.koinInject
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WiretapScreen(
     onBack: () -> Unit,
-    orchestrator: WiretapOrchestrator = koinInject(),
-    ruleRepository: RuleRepository = koinInject(),
+    orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
+    ruleRepository: RuleRepository = WiretapDi.ruleRepository,
 ) {
     var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
     var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
     var showCreateRule by remember { mutableStateOf(false) }
     var editRule by remember { mutableStateOf<WiretapRule?>(null) }
+    var createRuleFromLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
 
     if (selectedLog != null) {
         NetworkLogDetailScreen(
@@ -121,11 +136,29 @@ fun WiretapScreen(
         return
     }
 
+    if (createRuleFromLog != null) {
+        CreateRuleScreen(
+            ruleRepository = ruleRepository,
+            onBack = { createRuleFromLog = null },
+            onSaved = { createRuleFromLog = null },
+            prefillFromLog = createRuleFromLog,
+            onEditConflictingRule = { rule ->
+                createRuleFromLog = null
+                editRule = rule
+            },
+        )
+        return
+    }
+
     if (showCreateRule) {
         CreateRuleScreen(
             ruleRepository = ruleRepository,
             onBack = { showCreateRule = false },
             onSaved = { showCreateRule = false },
+            onEditConflictingRule = { rule ->
+                showCreateRule = false
+                editRule = rule
+            },
         )
         return
     }
@@ -158,7 +191,7 @@ fun WiretapScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text("Wiretap")
+                        Text("Wiretap Console")
                     }
                 },
                 navigationIcon = {
@@ -189,37 +222,43 @@ fun WiretapScreen(
                 },
             )
         },
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0; searchQuery = "" },
-                    text = { Text("Activity") },
+                    icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
+                    label = { Text("Activity") },
                 )
-                Tab(
+                NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1; searchQuery = "" },
-                    text = { Text("Rules") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
+                    label = { Text("Rules") },
                 )
             }
+        },
+    ) { padding ->
+        when (selectedTab) {
+            0 -> LogList(
+                lazyItems = lazyItems,
+                searchQuery = searchQuery,
+                onItemClick = { selectedLog = it },
+                onCreateRule = { createRuleFromLog = it },
+                onViewRule = { ruleId ->
+                    val rule = ruleRepository.getById(ruleId)
+                    if (rule != null) selectedRule = rule
+                },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
 
-            when (selectedTab) {
-                0 -> LogList(
-                    lazyItems = lazyItems,
-                    searchQuery = searchQuery,
-                    onItemClick = { selectedLog = it },
-                    modifier = Modifier.fillMaxSize(),
-                )
-
-                1 -> RulesListScreen(
-                    ruleRepository = ruleRepository,
-                    searchQuery = debouncedQuery,
-                    onRuleClick = { selectedRule = it },
-                    onCreateClick = { showCreateRule = true },
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+            1 -> RulesListScreen(
+                ruleRepository = ruleRepository,
+                searchQuery = debouncedQuery,
+                onRuleClick = { selectedRule = it },
+                onCreateClick = { showCreateRule = true },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
         }
     }
 }
@@ -238,6 +277,8 @@ private fun LogList(
     lazyItems: LazyPagingItems<NetworkLogEntry>,
     searchQuery: String,
     onItemClick: (NetworkLogEntry) -> Unit,
+    onCreateRule: (NetworkLogEntry) -> Unit,
+    onViewRule: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
@@ -260,17 +301,45 @@ private fun LogList(
         }
 
         else -> {
-            LazyColumn(modifier = modifier) {
+            val listState = rememberLazyListState()
+            val scope = rememberCoroutineScope()
+            val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+            }
+            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
+            var revealedItemId by remember { mutableStateOf<Long?>(null) }
+
+            LaunchedEffect(lazyItems.itemCount) {
+                if (lazyItems.itemCount > lastItemCount && isAtTop) {
+                    scope.launch { listState.scrollToItem(0) }
+                }
+                lastItemCount = lazyItems.itemCount
+            }
+
+            // Auto-close after 3 seconds of inactivity
+            LaunchedEffect(revealedItemId) {
+                if (revealedItemId != null) {
+                    delay(3000)
+                    revealedItemId = null
+                }
+            }
+
+            LazyColumn(state = listState, modifier = modifier) {
                 items(
                     count = lazyItems.itemCount,
                     key = lazyItems.itemKey { it.id },
                 ) { index ->
                     val entry = lazyItems[index]
                     if (entry != null) {
-                        NetworkLogItem(
+                        SwipeableNetworkLogItem(
                             entry = entry,
                             searchQuery = searchQuery,
-                            onClick = { onItemClick(entry) },
+                            isRevealed = revealedItemId == entry.id,
+                            onReveal = { revealedItemId = entry.id },
+                            onCollapse = { if (revealedItemId == entry.id) revealedItemId = null },
+                            onClick = { revealedItemId = null; onItemClick(entry) },
+                            onCreateRule = { revealedItemId = null; onCreateRule(entry) },
+                            onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
                         )
                     }
                 }
@@ -329,18 +398,128 @@ private fun SearchField(
     )
 }
 
+private val RevealWidth = 64.dp
+
 @Composable
-private fun NetworkLogItem(
+private fun SwipeableNetworkLogItem(
+    entry: NetworkLogEntry,
+    searchQuery: String,
+    isRevealed: Boolean,
+    onReveal: () -> Unit,
+    onCollapse: () -> Unit,
+    onClick: () -> Unit,
+    onCreateRule: () -> Unit,
+    onViewRule: () -> Unit,
+) {
+    val hasMatchedRule = entry.source != ResponseSource.NETWORK && entry.matchedRuleId != null
+    val revealWidthPx = with(LocalDensity.current) { RevealWidth.toPx() }
+    val offsetX = remember { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+
+    // Sync external isRevealed → animation
+    LaunchedEffect(isRevealed) {
+        val target = if (isRevealed) -revealWidthPx else 0f
+        if (offsetX.value != target) {
+            offsetX.animateTo(target)
+        }
+    }
+
+    val bgColor = if (hasMatchedRule) {
+        MaterialTheme.colorScheme.secondaryContainer
+    } else {
+        MaterialTheme.colorScheme.primaryContainer
+    }
+    val contentColor = if (hasMatchedRule) {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Action revealed behind the item, pinned to end
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(bgColor)
+                .clickable { if (hasMatchedRule) onViewRule() else onCreateRule() },
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Column(
+                modifier = Modifier.width(RevealWidth),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = if (hasMatchedRule) Icons.Default.Visibility else Icons.Default.Add,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = if (hasMatchedRule) "View\nRule" else "Create\nRule",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        // Foreground content that slides
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(offsetX.value.toInt(), 0) }
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                // Snap to revealed or closed based on how far user dragged
+                                if (offsetX.value < -revealWidthPx / 2) {
+                                    offsetX.animateTo(-revealWidthPx)
+                                    onReveal()
+                                } else {
+                                    offsetX.animateTo(0f)
+                                    onCollapse()
+                                }
+                            }
+                        },
+                        onDragCancel = {
+                            scope.launch {
+                                offsetX.animateTo(0f)
+                                onCollapse()
+                            }
+                        },
+                    ) { _, dragAmount ->
+                        scope.launch {
+                            val newValue = (offsetX.value + dragAmount)
+                                .coerceIn(-revealWidthPx, 0f)
+                            offsetX.snapTo(newValue)
+                        }
+                    }
+                },
+        ) {
+            NetworkLogItemContent(
+                entry = entry,
+                searchQuery = searchQuery,
+                onClick = onClick,
+            )
+        }
+    }
+}
+
+@Composable
+private fun NetworkLogItemContent(
     entry: NetworkLogEntry,
     searchQuery: String,
     onClick: () -> Unit,
 ) {
     val statusColor = when {
-        entry.responseCode in 200..299 -> MaterialTheme.colorScheme.primary
-        entry.responseCode in 300..399 -> MaterialTheme.colorScheme.tertiary
-        entry.responseCode in 400..499 -> MaterialTheme.colorScheme.error
-        entry.responseCode >= 500 -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.onSurface
+        entry.isInProgress -> Color(0xFF42A5F5) // Blue – in progress
+        entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green – success
+        entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue – redirect
+        entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber – client error
+        entry.responseCode >= 500 -> Color(0xFFEF5350) // Red – server error
+        else -> Color(0xFF9E9E9E) // Gray – timeout / cancelled / no response
     }
 
     val isHttps = entry.url.startsWith("https://", ignoreCase = true)
@@ -356,82 +535,89 @@ private fun NetworkLogItem(
         else -> null
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = entry.responseCode.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = statusColor,
-            modifier = Modifier.width(44.dp),
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
             Text(
-                text = highlightText("${entry.method} $path", searchQuery),
-                style = MaterialTheme.typography.bodyMedium,
+                text = when {
+                    entry.isInProgress -> "..."
+                    entry.responseCode > 0 -> entry.responseCode.toString()
+                    entry.responseCode == -1 -> "!!!"
+                    else -> "ERR"
+                },
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
+                color = statusColor,
+                modifier = Modifier.width(44.dp),
             )
 
-            Spacer(Modifier.height(4.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = highlightText("${entry.method} $path", searchQuery),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                if (isHttps) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = Color(0xFF26C6DA),
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (isHttps) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = Color(0xFF26C6DA),
+                        )
+                    }
+                    Text(
+                        text = highlightText(host, searchQuery),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF26C6DA),
                     )
                 }
-                Text(
-                    text = highlightText(host, searchQuery),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF26C6DA),
-                )
-            }
 
-            Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(4.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = formatTime(entry.timestamp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "${entry.durationMs} ms",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (formattedSize != null) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
-                        text = formattedSize,
+                        text = formatTime(entry.timestamp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                }
-                if (entry.source != ResponseSource.NETWORK) {
-                    SourceChip(entry.source)
+                    Text(
+                        text = "${entry.durationMs} ms",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (formattedSize != null) {
+                        Text(
+                            text = formattedSize,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (entry.source != ResponseSource.NETWORK) {
+                        SourceChip(entry.source)
+                    }
                 }
             }
         }
+        HorizontalDivider()
     }
-    HorizontalDivider()
 }
 
 @Composable

@@ -34,6 +34,7 @@ class RuleDaoImpl(
             mock_response_body = rule.mockResponseBody,
             mock_response_headers = rule.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) },
             throttle_delay_ms = rule.throttleDelayMs,
+            throttle_delay_max_ms = rule.throttleDelayMaxMs,
             enabled = if (rule.enabled) 1L else 0L,
             created_at = rule.createdAt,
         )
@@ -68,6 +69,7 @@ class RuleDaoImpl(
             mock_response_body = rule.mockResponseBody,
             mock_response_headers = rule.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) },
             throttle_delay_ms = rule.throttleDelayMs,
+            throttle_delay_max_ms = rule.throttleDelayMaxMs,
             enabled = if (rule.enabled) 1L else 0L,
             id = rule.id,
         )
@@ -122,6 +124,7 @@ class RuleDaoImpl(
             mockResponseBody = mock_response_body,
             mockResponseHeaders = mock_response_headers?.let { HeadersSerializerUtil.deserialize(it) },
             throttleDelayMs = throttle_delay_ms,
+            throttleDelayMaxMs = throttle_delay_max_ms,
             enabled = enabled == 1L,
             createdAt = created_at,
         )

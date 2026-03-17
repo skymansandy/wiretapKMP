@@ -30,6 +30,58 @@ class NetworkDaoImpl(
             source = entry.source.name,
             timestamp = entry.timestamp,
             matched_rule_id = entry.matchedRuleId,
+            protocol = entry.protocol,
+            remote_address = entry.remoteAddress,
+            tls_protocol = entry.tlsProtocol,
+            cipher_suite = entry.cipherSuite,
+            certificate_cn = entry.certificateCn,
+            issuer_cn = entry.issuerCn,
+            certificate_expiry = entry.certificateExpiry,
+        )
+    }
+
+    override fun insertAndGetId(entry: NetworkLogEntry): Long {
+        return database.transactionWithResult {
+            queries.insertNetworkLog(
+                url = entry.url,
+                method = entry.method,
+                request_headers = HeadersSerializerUtil.serialize(entry.requestHeaders),
+                request_body = entry.requestBody,
+                response_code = entry.responseCode.toLong(),
+                response_headers = HeadersSerializerUtil.serialize(entry.responseHeaders),
+                response_body = entry.responseBody,
+                duration_ms = entry.durationMs,
+                source = entry.source.name,
+                timestamp = entry.timestamp,
+                matched_rule_id = entry.matchedRuleId,
+                protocol = entry.protocol,
+                remote_address = entry.remoteAddress,
+                tls_protocol = entry.tlsProtocol,
+                cipher_suite = entry.cipherSuite,
+                certificate_cn = entry.certificateCn,
+                issuer_cn = entry.issuerCn,
+                certificate_expiry = entry.certificateExpiry,
+            )
+            queries.lastInsertRowId().executeAsOne()
+        }
+    }
+
+    override fun update(entry: NetworkLogEntry) {
+        queries.updateNetworkLog(
+            response_code = entry.responseCode.toLong(),
+            response_headers = HeadersSerializerUtil.serialize(entry.responseHeaders),
+            response_body = entry.responseBody,
+            duration_ms = entry.durationMs,
+            source = entry.source.name,
+            matched_rule_id = entry.matchedRuleId,
+            protocol = entry.protocol,
+            remote_address = entry.remoteAddress,
+            tls_protocol = entry.tlsProtocol,
+            cipher_suite = entry.cipherSuite,
+            certificate_cn = entry.certificateCn,
+            issuer_cn = entry.issuerCn,
+            certificate_expiry = entry.certificateExpiry,
+            id = entry.id,
         )
     }
 
@@ -72,6 +124,13 @@ class NetworkDaoImpl(
             source = ResponseSource.valueOf(source),
             timestamp = timestamp,
             matchedRuleId = matched_rule_id,
+            protocol = protocol,
+            remoteAddress = remote_address,
+            tlsProtocol = tls_protocol,
+            cipherSuite = cipher_suite,
+            certificateCn = certificate_cn,
+            issuerCn = issuer_cn,
+            certificateExpiry = certificate_expiry,
         )
     }
 }

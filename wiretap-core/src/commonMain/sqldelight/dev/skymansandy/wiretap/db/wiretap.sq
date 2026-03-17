@@ -10,7 +10,14 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     duration_ms INTEGER NOT NULL,
     source TEXT NOT NULL DEFAULT "NETWORK",
     timestamp INTEGER NOT NULL,
-    matched_rule_id INTEGER
+    matched_rule_id INTEGER,
+    protocol TEXT,
+    remote_address TEXT,
+    tls_protocol TEXT,
+    cipher_suite TEXT,
+    certificate_cn TEXT,
+    issuer_cn TEXT,
+    certificate_expiry TEXT
 );
 
 CREATE TABLE IF NOT EXISTS RuleEntity (
@@ -26,14 +33,35 @@ CREATE TABLE IF NOT EXISTS RuleEntity (
     mock_response_body TEXT,
     mock_response_headers TEXT,
     throttle_delay_ms INTEGER,
+    throttle_delay_max_ms INTEGER,
     enabled INTEGER NOT NULL DEFAULT 1,
     created_at INTEGER NOT NULL
 );
 
 -- NetworkLog queries
 insertNetworkLog:
-INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id, protocol, remote_address, tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+updateNetworkLog:
+UPDATE NetworkLogEntity SET
+    response_code = ?,
+    response_headers = ?,
+    response_body = ?,
+    duration_ms = ?,
+    source = ?,
+    matched_rule_id = ?,
+    protocol = ?,
+    remote_address = ?,
+    tls_protocol = ?,
+    cipher_suite = ?,
+    certificate_cn = ?,
+    issuer_cn = ?,
+    certificate_expiry = ?
+WHERE id = ?;
 
 getAllNetworkLogs:
 SELECT * FROM NetworkLogEntity ORDER BY timestamp DESC;
@@ -58,8 +86,8 @@ LIMIT :limit;
 
 -- Rule queries
 insertRule:
-INSERT INTO RuleEntity (method, url_matcher_type, url_pattern, header_matchers, body_matcher_type, body_pattern, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, enabled, created_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO RuleEntity (method, url_matcher_type, url_pattern, header_matchers, body_matcher_type, body_pattern, action, mock_response_code, mock_response_body, mock_response_headers, throttle_delay_ms, throttle_delay_max_ms, enabled, created_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllRules:
 SELECT * FROM RuleEntity ORDER BY created_at DESC;
@@ -77,7 +105,7 @@ updateRule:
 UPDATE RuleEntity SET method = ?, url_matcher_type = ?, url_pattern = ?, header_matchers = ?,
     body_matcher_type = ?, body_pattern = ?, action = ?,
     mock_response_code = ?, mock_response_body = ?, mock_response_headers = ?,
-    throttle_delay_ms = ?, enabled = ?
+    throttle_delay_ms = ?, throttle_delay_max_ms = ?, enabled = ?
 WHERE id = ?;
 
 searchRules:

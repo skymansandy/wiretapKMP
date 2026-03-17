@@ -33,6 +33,64 @@ class RuleRepositoryImpl(
         }
     }
 
+    override fun findConflictingRules(rule: WiretapRule): List<WiretapRule> {
+        return ruleDao.getEnabledRules().filter { existing ->
+            existing.id != rule.id && rulesOverlap(existing, rule)
+        }
+    }
+
+    /**
+     * Two rules overlap if a request could match both. We check if either rule's
+     * matchers are a subset/overlap of the other's on every configured axis.
+     */
+    private fun rulesOverlap(a: WiretapRule, b: WiretapRule): Boolean {
+        // Methods must be compatible
+        if (!methodsOverlap(a.method, b.method)) return false
+        // URL matchers must be compatible (if both present)
+        if (!urlMatchersOverlap(a.urlMatcher, b.urlMatcher)) return false
+        // If both rules have body matchers with the same pattern type, check overlap
+        if (!bodyMatchersOverlap(a.bodyMatcher, b.bodyMatcher)) return false
+        return true
+    }
+
+    private fun methodsOverlap(a: String, b: String): Boolean =
+        a == "*" || b == "*" || a.equals(b, ignoreCase = true)
+
+    private fun urlMatchersOverlap(a: UrlMatcher?, b: UrlMatcher?): Boolean {
+        // If either has no URL matcher, it matches all URLs → overlap possible
+        if (a == null || b == null) return true
+        // For exact/contains patterns: check if one could match the other's pattern
+        return when {
+            a is UrlMatcher.Exact && b is UrlMatcher.Exact ->
+                a.pattern.equals(b.pattern, ignoreCase = true)
+            a is UrlMatcher.Contains && b is UrlMatcher.Contains ->
+                a.pattern.contains(b.pattern, ignoreCase = true) ||
+                    b.pattern.contains(a.pattern, ignoreCase = true)
+            a is UrlMatcher.Exact && b is UrlMatcher.Contains ->
+                a.pattern.contains(b.pattern, ignoreCase = true)
+            a is UrlMatcher.Contains && b is UrlMatcher.Exact ->
+                b.pattern.contains(a.pattern, ignoreCase = true)
+            // Regex vs anything: conservatively assume overlap
+            else -> true
+        }
+    }
+
+    private fun bodyMatchersOverlap(a: BodyMatcher?, b: BodyMatcher?): Boolean {
+        if (a == null || b == null) return true
+        return when {
+            a is BodyMatcher.Exact && b is BodyMatcher.Exact ->
+                a.pattern.equals(b.pattern, ignoreCase = true)
+            a is BodyMatcher.Contains && b is BodyMatcher.Contains ->
+                a.pattern.contains(b.pattern, ignoreCase = true) ||
+                    b.pattern.contains(a.pattern, ignoreCase = true)
+            a is BodyMatcher.Exact && b is BodyMatcher.Contains ->
+                a.pattern.contains(b.pattern, ignoreCase = true)
+            a is BodyMatcher.Contains && b is BodyMatcher.Exact ->
+                b.pattern.contains(a.pattern, ignoreCase = true)
+            else -> true
+        }
+    }
+
     private fun matchesMethod(requestMethod: String, ruleMethod: String): Boolean =
         ruleMethod == "*" || ruleMethod.equals(requestMethod, ignoreCase = true)
 

@@ -20,11 +20,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
@@ -72,6 +74,22 @@ private enum class UrlMatchMode { EXACT, CONTAINS, REGEX }
 private enum class BodyMatchMode { EXACT, CONTAINS, REGEX }
 private enum class HeaderEntryMode { KEY_EXISTS, VALUE_EXACT, VALUE_CONTAINS, VALUE_REGEX }
 private enum class ResponseHeadersEditMode { KEY_VALUE, BULK_EDIT }
+private enum class ThrottleInputMode { MANUAL, PROFILE }
+
+private enum class ThrottleProfile(
+    val label: String,
+    val speed: String,
+    val delayMinMs: Long,
+    val delayMaxMs: Long,
+) {
+    GPRS("2G (GPRS)", "~50 kbps", 1500, 3000),
+    EDGE("2G (EDGE)", "~200 kbps", 800, 2000),
+    SLOW_3G("3G (Slow)", "~400 kbps", 500, 1500),
+    FAST_3G("3G", "~2 Mbps", 300, 800),
+    SLOW_4G("4G (Slow)", "~5 Mbps", 150, 400),
+    LTE("4G (LTE)", "~20 Mbps", 50, 200),
+    SLOW_WIFI("Slow WiFi", "~1 Mbps", 500, 1000),
+}
 
 private data class HeaderEntry(
     val key: String = "",
@@ -150,19 +168,30 @@ internal fun CreateRuleScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
     existingRule: WiretapRule? = null,
+    prefillFromLog: NetworkLogEntry? = null,
+    onEditConflictingRule: ((WiretapRule) -> Unit)? = null,
 ) {
     val isEditing = existingRule != null
     var step by remember { mutableStateOf(1) }
 
-    // Request state
-    var method by remember { mutableStateOf(existingRule?.method ?: "*") }
-    var urlMode by remember { mutableStateOf(existingRule?.toUrlMode()) }
-    var urlPattern by remember { mutableStateOf(existingRule?.urlMatcher?.pattern ?: "") }
+    // Request state — pre-fill from log entry or existing rule
+    var method by remember { mutableStateOf(existingRule?.method ?: prefillFromLog?.method ?: "*") }
+    var urlMode by remember {
+        mutableStateOf(existingRule?.toUrlMode() ?: if (prefillFromLog != null) UrlMatchMode.CONTAINS else null)
+    }
+    var urlPattern by remember {
+        mutableStateOf(existingRule?.urlMatcher?.pattern ?: prefillFromLog?.url ?: "")
+    }
     var headerEntries by remember {
         mutableStateOf<List<HeaderEntry>>(existingRule?.headerMatchers?.map { it.toEntry() } ?: emptyList())
     }
     var bodyMode by remember { mutableStateOf(existingRule?.toBodyMode()) }
     var bodyPattern by remember { mutableStateOf(existingRule?.bodyMatcher?.pattern ?: "") }
+
+    // Conflict state
+    var conflictingRules by remember { mutableStateOf<List<WiretapRule>>(emptyList()) }
+    var showConflictDialog by remember { mutableStateOf(false) }
+    var pendingRule by remember { mutableStateOf<WiretapRule?>(null) }
 
     // Response state
     var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.MOCK) }
@@ -170,7 +199,7 @@ internal fun CreateRuleScreen(
     var mockResponseBody by remember { mutableStateOf(existingRule?.mockResponseBody ?: "") }
     var responseHeaderEntries by remember {
         mutableStateOf<List<ResponseHeaderEntry>>(
-            existingRule?.mockResponseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList()
+            existingRule?.mockResponseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
         )
     }
     var responseHeadersBulk by remember {
@@ -178,6 +207,16 @@ internal fun CreateRuleScreen(
     }
     var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KEY_VALUE) }
     var throttleDelayMs by remember { mutableStateOf(existingRule?.throttleDelayMs?.toString() ?: "") }
+    var throttleDelayMaxMs by remember { mutableStateOf(existingRule?.throttleDelayMaxMs?.toString() ?: "") }
+    var throttleInputMode by remember {
+        mutableStateOf(
+            if (existingRule?.throttleDelayMs != null &&
+                ThrottleProfile.entries.any {
+                    it.delayMinMs == existingRule.throttleDelayMs && it.delayMaxMs == existingRule.throttleDelayMaxMs
+                }
+            ) ThrottleInputMode.PROFILE else ThrottleInputMode.MANUAL
+        )
+    }
 
     // Regex tester
     var regexTesterPattern by remember { mutableStateOf("") }
@@ -205,6 +244,65 @@ internal fun CreateRuleScreen(
                 onDismiss = { showRegexTester = false },
             )
         }
+    }
+
+    if (showConflictDialog && conflictingRules.isNotEmpty()) {
+        val firstConflict = conflictingRules.first()
+        val conflictSummary = conflictingRules.joinToString("\n") { rule ->
+            buildString {
+                append(if (rule.method == "*") "Any" else rule.method)
+                rule.urlMatcher?.let { append(" ${it.pattern}") }
+                append(" → ${rule.action.name}")
+            }
+        }
+        AlertDialog(
+            onDismissRequest = {
+                showConflictDialog = false
+                conflictingRules = emptyList()
+                pendingRule = null
+            },
+            title = { Text("Rule Conflict") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = if (conflictingRules.size == 1) {
+                            "An existing rule already matches the same requests:"
+                        } else {
+                            "${conflictingRules.size} existing rules already match the same requests:"
+                        },
+                    )
+                    Text(
+                        text = conflictSummary,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+            },
+            confirmButton = {
+                if (onEditConflictingRule != null) {
+                    TextButton(onClick = {
+                        showConflictDialog = false
+                        val ruleToEdit = ruleRepository.getById(firstConflict.id)
+                        if (ruleToEdit != null) {
+                            onEditConflictingRule(ruleToEdit)
+                        }
+                        conflictingRules = emptyList()
+                        pendingRule = null
+                    }) {
+                        Text("Edit Existing Rule")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showConflictDialog = false
+                    conflictingRules = emptyList()
+                    pendingRule = null
+                }) {
+                    Text("Discard")
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -298,6 +396,10 @@ internal fun CreateRuleScreen(
                         },
                         throttleDelayMs = throttleDelayMs,
                         onThrottleDelayMsChange = { throttleDelayMs = it.filter { c -> c.isDigit() } },
+                        throttleDelayMaxMs = throttleDelayMaxMs,
+                        onThrottleDelayMaxMsChange = { throttleDelayMaxMs = it.filter { c -> c.isDigit() } },
+                        throttleInputMode = throttleInputMode,
+                        onThrottleInputModeChange = { throttleInputMode = it },
                     )
                 }
             }
@@ -361,11 +463,22 @@ internal fun CreateRuleScreen(
                                     RuleAction.THROTTLE -> throttleDelayMs.toLongOrNull() ?: 1000L
                                     RuleAction.MOCK -> throttleDelayMs.toLongOrNull()
                                 },
+                                throttleDelayMaxMs = when (action) {
+                                    RuleAction.THROTTLE -> throttleDelayMaxMs.toLongOrNull()
+                                    RuleAction.MOCK -> throttleDelayMaxMs.toLongOrNull()
+                                },
                                 enabled = existingRule?.enabled ?: true,
                                 createdAt = existingRule?.createdAt ?: currentTimeMillis(),
                             )
-                            if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
-                            onSaved()
+                            val conflicts = ruleRepository.findConflictingRules(rule)
+                            if (conflicts.isNotEmpty()) {
+                                pendingRule = rule
+                                conflictingRules = conflicts
+                                showConflictDialog = true
+                            } else {
+                                if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
+                                onSaved()
+                            }
                         },
                         modifier = Modifier.weight(1f),
                     ) {
@@ -571,6 +684,10 @@ private fun ResponseStep(
     onResponseHeadersModeChange: (ResponseHeadersEditMode) -> Unit,
     throttleDelayMs: String,
     onThrottleDelayMsChange: (String) -> Unit,
+    throttleDelayMaxMs: String,
+    onThrottleDelayMaxMsChange: (String) -> Unit,
+    throttleInputMode: ThrottleInputMode,
+    onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
 ) {
     Text("Action", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -588,16 +705,14 @@ private fun ResponseStep(
 
     when (action) {
         RuleAction.MOCK -> {
-            // Optional throttle delay for mock
-            OutlinedTextField(
-                value = throttleDelayMs,
-                onValueChange = onThrottleDelayMsChange,
-                label = { Text("Throttle Delay (ms)") },
-                placeholder = { Text("e.g. 2000") },
-                supportingText = { Text("Optional — adds artificial latency to this mock response") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            ThrottleDelayInput(
+                throttleDelayMs = throttleDelayMs,
+                onThrottleDelayMsChange = onThrottleDelayMsChange,
+                throttleDelayMaxMs = throttleDelayMaxMs,
+                onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
+                throttleInputMode = throttleInputMode,
+                onThrottleInputModeChange = onThrottleInputModeChange,
+                supportingText = "Optional — adds artificial latency to this mock response",
             )
 
             OutlinedTextField(
@@ -631,17 +746,117 @@ private fun ResponseStep(
             )
         }
         RuleAction.THROTTLE -> {
-            // Optional throttle delay for mock
-            OutlinedTextField(
-                value = throttleDelayMs,
-                onValueChange = onThrottleDelayMsChange,
-                label = { Text("Throttle Delay (ms)") },
-                placeholder = { Text("e.g. 2000") },
-                supportingText = { Text("Adds artificial latency to this mock response") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            ThrottleDelayInput(
+                throttleDelayMs = throttleDelayMs,
+                onThrottleDelayMsChange = onThrottleDelayMsChange,
+                throttleDelayMaxMs = throttleDelayMaxMs,
+                onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
+                throttleInputMode = throttleInputMode,
+                onThrottleInputModeChange = onThrottleInputModeChange,
+                supportingText = "Adds artificial latency before the real network request",
             )
+        }
+    }
+}
+
+// ── Throttle delay input (Manual / Profile) ──────────────────────────────────
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThrottleDelayInput(
+    throttleDelayMs: String,
+    onThrottleDelayMsChange: (String) -> Unit,
+    throttleDelayMaxMs: String,
+    onThrottleDelayMaxMsChange: (String) -> Unit,
+    throttleInputMode: ThrottleInputMode,
+    onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
+    supportingText: String,
+) {
+    Text("Throttle Delay", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilterChip(
+            selected = throttleInputMode == ThrottleInputMode.MANUAL,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
+            label = { Text("Manual") },
+        )
+        FilterChip(
+            selected = throttleInputMode == ThrottleInputMode.PROFILE,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.PROFILE) },
+            label = { Text("Network Profile") },
+        )
+    }
+
+    when (throttleInputMode) {
+        ThrottleInputMode.MANUAL -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = throttleDelayMs,
+                    onValueChange = onThrottleDelayMsChange,
+                    label = { Text("Min (ms)") },
+                    placeholder = { Text("e.g. 500") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                OutlinedTextField(
+                    value = throttleDelayMaxMs,
+                    onValueChange = onThrottleDelayMaxMsChange,
+                    label = { Text("Max (ms)") },
+                    placeholder = { Text("e.g. 2000") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+            }
+            Text(
+                text = supportingText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        ThrottleInputMode.PROFILE -> {
+            var expanded by remember { mutableStateOf(false) }
+            val selectedProfile = ThrottleProfile.entries.find {
+                it.delayMinMs == throttleDelayMs.toLongOrNull() && it.delayMaxMs == throttleDelayMaxMs.toLongOrNull()
+            }
+
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+                OutlinedTextField(
+                    value = selectedProfile?.let { "${it.label}  (${it.speed} · ${it.delayMinMs}–${it.delayMaxMs}ms)" } ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Network Profile") },
+                    placeholder = { Text("Select a profile") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                    singleLine = true,
+                )
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    ThrottleProfile.entries.forEach { profile ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                ) {
+                                    Text(profile.label)
+                                    Text(
+                                        "${profile.speed} · ${profile.delayMinMs}–${profile.delayMaxMs}ms",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onThrottleDelayMsChange(profile.delayMinMs.toString())
+                                onThrottleDelayMaxMsChange(profile.delayMaxMs.toString())
+                                expanded = false
+                            },
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -673,9 +888,9 @@ private fun ResponseHeadersSection(
             onClick = {
                 onModeChange(
                     if (mode == ResponseHeadersEditMode.KEY_VALUE) ResponseHeadersEditMode.BULK_EDIT
-                    else ResponseHeadersEditMode.KEY_VALUE
+                    else ResponseHeadersEditMode.KEY_VALUE,
                 )
-            }
+            },
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KEY_VALUE) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,

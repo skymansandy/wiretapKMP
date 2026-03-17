@@ -117,7 +117,7 @@ internal fun RuleDetailScreen(
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
                 Text("URL", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary)
+                    color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(urlMatcherLabel(matcher), matcher.pattern)
             }
@@ -128,7 +128,7 @@ internal fun RuleDetailScreen(
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
                 Text("Headers", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary)
+                    color = MaterialTheme.colorScheme.primary,)
                 rule.headerMatchers.forEach { matcher ->
                     Spacer(Modifier.height(8.dp))
                     HeaderMatcherDetail(matcher)
@@ -141,7 +141,7 @@ internal fun RuleDetailScreen(
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
                 Text("Body", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary)
+                    color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(bodyMatcherLabel(matcher), matcher.pattern)
             }
@@ -153,7 +153,7 @@ internal fun RuleDetailScreen(
             // Action
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Action", style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,)
                 Spacer(Modifier.width(8.dp))
                 ActionBadge(rule.action)
             }
@@ -167,7 +167,7 @@ internal fun RuleDetailScreen(
                     if (!rule.mockResponseBody.isNullOrBlank()) {
                         Spacer(Modifier.height(12.dp))
                         Text("Response Body", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
                         CodeBlock(text = rule.mockResponseBody, modifier = Modifier.padding(vertical = 4.dp))
                     }
@@ -175,20 +175,26 @@ internal fun RuleDetailScreen(
                     if (!rule.mockResponseHeaders.isNullOrEmpty()) {
                         Spacer(Modifier.height(12.dp))
                         Text("Response Headers", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
                         HeadersList(headers = rule.mockResponseHeaders, emptyText = "No headers")
                     }
                 }
                 RuleAction.THROTTLE -> {
-                    DetailRow("Delay", "${rule.throttleDelayMs ?: 0} ms")
+                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
+                        "${rule.throttleDelayMs ?: 0}–${rule.throttleDelayMaxMs} ms"
+                    else "${rule.throttleDelayMs ?: 0} ms"
+                    DetailRow("Delay", delayText)
                 }
             }
 
             rule.throttleDelayMs?.let { delay ->
                 if (rule.action == RuleAction.MOCK) {
                     Spacer(Modifier.height(12.dp))
-                    DetailRow("Throttle Delay", "$delay ms")
+                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != delay)
+                        "$delay–${rule.throttleDelayMaxMs} ms"
+                    else "$delay ms"
+                    DetailRow("Throttle Delay", delayText)
                 }
             }
         }
@@ -213,7 +219,7 @@ private fun HeaderMatcherDetail(matcher: HeaderMatcher) {
 private fun DetailRow(label: String, value: String) {
     Column {
         Text(label, style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,)
         Spacer(Modifier.height(2.dp))
         Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }

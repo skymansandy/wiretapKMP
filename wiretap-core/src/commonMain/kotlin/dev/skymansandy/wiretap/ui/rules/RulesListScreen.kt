@@ -137,8 +137,11 @@ private fun RuleItem(
             }
             if (rule.action == RuleAction.THROTTLE && rule.throttleDelayMs != null) {
                 Spacer(Modifier.height(2.dp))
+                val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
+                    "Delay: ${rule.throttleDelayMs}–${rule.throttleDelayMaxMs} ms"
+                else "Delay: ${rule.throttleDelayMs} ms"
                 Text(
-                    text = "Delay: ${rule.throttleDelayMs} ms",
+                    text = delayText,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

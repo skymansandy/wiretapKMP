@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface WiretapOrchestrator {
     fun logEntry(entry: NetworkLogEntry)
+    fun logRequest(entry: NetworkLogEntry): Long
+    fun updateEntry(entry: NetworkLogEntry)
     fun getAllLogs(): Flow<List<NetworkLogEntry>>
     fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>>
     fun getLogById(id: Long): NetworkLogEntry?

@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.okhttp
 
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
@@ -12,10 +13,14 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.security.cert.X509Certificate
 
 class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
+
+    override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
     private val ruleRepository: RuleRepository by inject()
@@ -38,6 +43,17 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
 
         val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
 
+        // Log request immediately so it appears in the UI
+        val logEntryId = orchestrator.logRequest(
+            NetworkLogEntry(
+                url = url,
+                method = method,
+                requestHeaders = reqHeaders,
+                requestBody = requestBody,
+                timestamp = currentTimeMillis(),
+            ),
+        )
+
         if (matchingRule?.action == RuleAction.MOCK) {
             val durationNs = currentNanoTime() - startNano
             val body = (matchingRule.mockResponseBody ?: "")
@@ -51,8 +67,9 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 .apply { matchingRule.mockResponseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
 
-            orchestrator.logEntry(
+            orchestrator.updateEntry(
                 NetworkLogEntry(
+                    id = logEntryId,
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders,
@@ -70,11 +87,36 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
         }
 
         if (matchingRule?.action == RuleAction.THROTTLE) {
-            val delayMs = matchingRule.throttleDelayMs ?: 0L
+            val minDelay = matchingRule.throttleDelayMs ?: 0L
+            val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+            val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
             if (delayMs > 0) Thread.sleep(delayMs)
         }
 
-        val response = chain.proceed(request)
+        val response = try {
+            chain.proceed(request)
+        } catch (e: Exception) {
+            val durationNs = currentNanoTime() - startNano
+            val isCancelled = e is java.io.IOException && e.message == "Canceled"
+            orchestrator.updateEntry(
+                NetworkLogEntry(
+                    id = logEntryId,
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders,
+                    requestBody = requestBody,
+                    responseCode = if (isCancelled) -1 else 0,
+                    responseHeaders = emptyMap(),
+                    responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                    durationMs = durationNs / 1_000_000,
+                    durationNs = durationNs,
+                    source = ResponseSource.NETWORK,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+            throw e
+        }
+
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 
@@ -90,8 +132,36 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
             else -> ResponseSource.NETWORK
         }
 
-        orchestrator.logEntry(
+        val protocol = response.protocol.toString()
+        val remoteAddress = try {
+            chain.connection()?.route()?.socketAddress?.let { "${it.hostName}:${it.port}" }
+        } catch (_: Exception) {
+            null
+        }
+
+        val handshake = response.handshake
+        val tlsProtocol = handshake?.tlsVersion?.javaName
+        val cipherSuite = handshake?.cipherSuite?.javaName
+        val peerCert = try {
+            handshake?.peerCertificates?.firstOrNull() as? X509Certificate
+        } catch (_: Exception) {
+            null
+        }
+        val certificateCn = peerCert?.subjectX500Principal?.name
+            ?.split(",")
+            ?.firstOrNull { it.trimStart().startsWith("CN=") }
+            ?.substringAfter("CN=")
+            ?.trim()
+        val issuerCn = peerCert?.issuerX500Principal?.name
+            ?.split(",")
+            ?.firstOrNull { it.trimStart().startsWith("CN=") }
+            ?.substringAfter("CN=")
+            ?.trim()
+        val certificateExpiry = peerCert?.notAfter?.toString()
+
+        orchestrator.updateEntry(
             NetworkLogEntry(
+                id = logEntryId,
                 url = url,
                 method = method,
                 requestHeaders = reqHeaders,
@@ -103,6 +173,13 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 durationNs = durationNs,
                 source = source,
                 timestamp = currentTimeMillis(),
+                protocol = protocol,
+                remoteAddress = remoteAddress,
+                tlsProtocol = tlsProtocol,
+                cipherSuite = cipherSuite,
+                certificateCn = certificateCn,
+                issuerCn = issuerCn,
+                certificateExpiry = certificateExpiry,
             ),
         )
 
