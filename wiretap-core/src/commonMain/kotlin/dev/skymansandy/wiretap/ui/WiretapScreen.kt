@@ -105,9 +105,19 @@ fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
     ruleRepository: RuleRepository = WiretapDi.ruleRepository,
+    initialSocketId: Long? = null,
+    onInitialSocketConsumed: () -> Unit = {},
 ) {
     var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
     var selectedSocketId by remember { mutableStateOf<Long?>(null) }
+
+    // Handle deep-link to socket detail
+    LaunchedEffect(initialSocketId) {
+        if (initialSocketId != null) {
+            selectedSocketId = initialSocketId
+            onInitialSocketConsumed()
+        }
+    }
     var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
     var showCreateRule by remember { mutableStateOf(false) }
     var editRule by remember { mutableStateOf<WiretapRule?>(null) }

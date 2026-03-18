@@ -8,6 +8,8 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class SocketRepositoryImpl(
     private val socketDao: SocketDao,
@@ -38,6 +40,11 @@ class SocketRepositoryImpl(
     }
 
     override fun getById(id: Long): SocketLogEntry? = socketDao.getById(id)
+
+    override fun getByIdFlow(id: Long): Flow<SocketLogEntry?> =
+        invalidationSignal
+            .onStart { emit(Unit) }
+            .map { socketDao.getById(id) }
 
     override fun getMessages(socketId: Long): Flow<List<SocketMessage>> = socketDao.getMessages(socketId)
 

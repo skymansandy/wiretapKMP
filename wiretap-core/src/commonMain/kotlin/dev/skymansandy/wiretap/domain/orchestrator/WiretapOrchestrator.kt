@@ -20,6 +20,7 @@ interface WiretapOrchestrator {
     fun updateSocketConnection(entry: SocketLogEntry)
     fun logSocketMessage(message: SocketMessage)
     fun getSocketById(id: Long): SocketLogEntry?
+    fun getSocketByIdFlow(id: Long): Flow<SocketLogEntry?>
     fun getSocketMessages(socketId: Long): Flow<List<SocketMessage>>
     fun getAllSocketLogs(): Flow<List<SocketLogEntry>>
     fun getPagedSocketLogs(query: String): Flow<PagingData<SocketLogEntry>>
