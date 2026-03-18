@@ -37,6 +37,7 @@ kotlin {
             baseName = "WiretapKit"
             isStatic = true
             linkerOpts("-lsqlite3")
+            export(projects.wiretapShake)
         }
     }
 
@@ -92,6 +93,7 @@ kotlin {
         iosMain {
             dependencies {
                 implementation(libs.sqldelight.native.driver)
+                api(projects.wiretapShake)
             }
         }
 
@@ -116,4 +118,3 @@ kmmbridge {
     mavenPublishArtifacts()
     spm()
 }
-
