@@ -39,6 +39,11 @@ class NetworkRepositoryImpl(
 
     override fun getById(id: Long): NetworkLogEntry? = networkDao.getById(id)
 
+    override fun deleteById(id: Long) {
+        networkDao.deleteById(id)
+        invalidationSignal.tryEmit(Unit)
+    }
+
     override fun clearAll() {
         networkDao.deleteAll()
         invalidationSignal.tryEmit(Unit)

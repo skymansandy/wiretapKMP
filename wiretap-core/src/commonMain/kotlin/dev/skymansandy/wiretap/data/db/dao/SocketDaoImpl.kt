@@ -106,6 +106,11 @@ class SocketDaoImpl(
         queries.deleteAllSocketLogs()
     }
 
+    override fun deleteClosed() {
+        queries.deleteClosedSocketMessages()
+        queries.deleteClosedSocketLogs()
+    }
+
     private fun SocketLogEntity.toDomain(): SocketLogEntry {
         return SocketLogEntry(
             id = id,

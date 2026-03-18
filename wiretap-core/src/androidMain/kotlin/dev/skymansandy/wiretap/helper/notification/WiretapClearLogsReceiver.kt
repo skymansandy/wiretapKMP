@@ -18,7 +18,6 @@ internal class WiretapClearLogsReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == WiretapNotificationManager.ACTION_CLEAR_LOGS) {
             orchestrator.clearLogs()
-            orchestrator.clearSocketLogs()
         }
     }
 }

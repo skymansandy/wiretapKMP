@@ -15,4 +15,5 @@ interface SocketDao {
     fun getAll(): Flow<List<SocketLogEntry>>
     fun getPage(query: String, limit: Long, afterId: Long?): List<SocketLogEntry>
     fun deleteAll()
+    fun deleteClosed()
 }

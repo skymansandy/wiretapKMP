@@ -11,5 +11,6 @@ interface NetworkRepository {
     fun getAll(): Flow<List<NetworkLogEntry>>
     fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>>
     fun getById(id: Long): NetworkLogEntry?
+    fun deleteById(id: Long)
     fun clearAll()
 }
