@@ -156,16 +156,6 @@ struct ContentView: View {
             }
 
             Spacer()
-
-            // Open Wiretap Console button
-            Button {
-                WiretapLauncher_iosKt.startWiretap()
-            } label: {
-                Text("Open Wiretap Console")
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-            .buttonStyle(.borderedProminent)
         }
         .padding()
     }

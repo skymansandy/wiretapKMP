@@ -17,11 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.helper.notification.startWiretap
+import dev.skymansandy.wiretap.helper.notification.enableLaunchTool
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
 import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 import io.ktor.client.HttpClient
@@ -131,6 +131,7 @@ private val apiActions = listOf(
 
 @Composable
 fun App() {
+    LaunchedEffect(Unit) { enableLaunchTool() }
     WiretapTheme {
         val client = remember {
             HttpClient {
@@ -241,14 +242,6 @@ fun App() {
                             )
                         }
                     }
-                }
-
-                // Open Wiretap Console button
-                FilledTonalButton(
-                    onClick = { startWiretap() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Open Wiretap Console")
                 }
             }
         }
