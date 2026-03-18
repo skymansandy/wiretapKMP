@@ -9,11 +9,17 @@ import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.ui.network.KeyValueTable
 
+private fun formatOneDecimal(value: Float): String {
+    val intPart = value.toLong()
+    val decPart = ((value - intPart) * 10).toInt().let { kotlin.math.abs(it) }
+    return "$intPart.$decPart"
+}
+
 private fun formatSize(bytes: Long?): String {
     if (bytes == null || bytes == 0L) return "0 B"
     return when {
-        bytes >= 1_048_576 -> "${"%.1f".format(bytes / 1_048_576f)} MB"
-        bytes >= 1_024 -> "${"%.1f".format(bytes / 1_024f)} kB"
+        bytes >= 1_048_576 -> "${formatOneDecimal(bytes / 1_048_576f)} MB"
+        bytes >= 1_024 -> "${formatOneDecimal(bytes / 1_024f)} kB"
         else -> "$bytes B"
     }
 }

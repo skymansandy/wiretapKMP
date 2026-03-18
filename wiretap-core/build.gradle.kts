@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.sqldelight)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
@@ -34,6 +35,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "WiretapKit"
             isStatic = true
+            linkerOpts("-lsqlite3")
+            export(projects.wiretapShake)
         }
     }
 
@@ -74,6 +77,7 @@ kotlin {
                 implementation(libs.androidx.startup.runtime)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.core.ktx)
+                implementation(libs.androidx.lifecycle.process)
             }
         }
 
@@ -88,6 +92,7 @@ kotlin {
         iosMain {
             dependencies {
                 implementation(libs.sqldelight.native.driver)
+                api(projects.wiretapShake)
             }
         }
 
@@ -104,3 +109,6 @@ sqldelight {
         }
     }
 }
+
+group = "dev.skymansandy"
+version = "0.1.0"

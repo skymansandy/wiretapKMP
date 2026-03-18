@@ -1,0 +1,48 @@
+name: WiretapSwiftSample
+options:
+  bundleIdPrefix: dev.skymansandy.wiretap
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: ""
+
+packages:
+  WiretapURLSession:
+    path: ..
+
+targets:
+  WiretapSwiftSample:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosSampleApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.skymansandy.wiretap.iosSample
+        PRODUCT_NAME: "Wiretap Sample"
+        INFOPLIST_FILE: iosSampleApp/Info.plist
+        SWIFT_VERSION: "5.9"
+        OTHER_LDFLAGS:
+          - "-ObjC"
+          - "-lsqlite3"
+    dependencies:
+      - package: WiretapURLSession
+    preBuildScripts:
+      - name: "Compile Kotlin Frameworks"
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :wiretap-urlsession:spmDevBuild -PspmBuildTargets=ios_simulator_arm64
+        basedOnDependencyAnalysis: false
+
+schemes:
+  WiretapSwiftSample:
+    build:
+      targets:
+        WiretapSwiftSample: all
+    run:
+      config: Debug
+    archive:
+      config: Release
