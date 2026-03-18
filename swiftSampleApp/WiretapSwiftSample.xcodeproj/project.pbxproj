@@ -117,7 +117,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :wiretap-core:linkDebugFrameworkIosSimulatorArm64 :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64\n";
+			shellScript = "cd \"$SRCROOT/..\"\n./gradlew :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -197,8 +197,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework",
 					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework",
 				);
@@ -289,8 +287,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
-					"$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework",
 					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework",
 				);

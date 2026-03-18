@@ -1,11 +1,12 @@
 import SwiftUI
-import WiretapKit
+import WiretapURLSession
 
 @main
 struct WiretapSampleApp: App {
-//    init() {
-//        WiretapLauncher_iosKt.enableLaunchTool()
-//    }
+    
+    init() {
+        WiretapLauncher_iosKt.enableLaunchTool()
+    }
 
     var body: some Scene {
         WindowGroup {

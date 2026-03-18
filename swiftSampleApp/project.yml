@@ -22,8 +22,6 @@ targets:
         INFOPLIST_FILE: iosSampleApp/Info.plist
         SWIFT_VERSION: "5.9"
         FRAMEWORK_SEARCH_PATHS:
-          - "$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework"
-          - "$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework"
           - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework"
           - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework"
         OTHER_LDFLAGS:
@@ -34,7 +32,7 @@ targets:
       - name: "Compile Kotlin Frameworks"
         script: |
           cd "$SRCROOT/.."
-          ./gradlew :wiretap-core:linkDebugFrameworkIosSimulatorArm64 :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64
+          ./gradlew :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64
         basedOnDependencyAnalysis: false
 
 schemes:
