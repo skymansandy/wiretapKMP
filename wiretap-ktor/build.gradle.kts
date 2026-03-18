@@ -33,6 +33,7 @@ kotlin {
             dependencies {
                 api(projects.wiretapCore)
                 api(libs.ktor.client.core)
+                implementation(libs.ktor.client.websockets)
             }
         }
 

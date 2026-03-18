@@ -27,6 +27,12 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
+
+        // Skip WebSocket upgrade requests — handled by WiretapOkHttpWebSocketListener
+        if (request.header("Upgrade").equals("websocket", ignoreCase = true)) {
+            return chain.proceed(request)
+        }
+
         val url = request.url.toString()
         val method = request.method
         val startNano = currentNanoTime()

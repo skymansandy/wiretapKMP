@@ -17,6 +17,8 @@
             android:name="dev.skymansandy.wiretap.presentation.WiretapConsoleActivity"
             android:exported="false"
             android:label="Wiretap"
+            android:taskAffinity="dev.skymansandy.wiretap.console"
+            android:launchMode="singleTask"
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
 
         <receiver

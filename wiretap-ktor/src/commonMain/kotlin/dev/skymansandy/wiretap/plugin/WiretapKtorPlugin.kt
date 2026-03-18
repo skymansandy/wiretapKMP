@@ -48,6 +48,11 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
     }
 
     on(Send) { request ->
+        // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
+        val upgradeHeader = request.headers.getAll("Upgrade")
+        val isWebSocketUpgrade = upgradeHeader?.any { it.equals("websocket", ignoreCase = true) } == true
+        if (isWebSocketUpgrade) return@on proceed(request)
+
         val url = request.url.buildString()
         val method = request.method.value
         val requestHeaders = request.headers.entries()
@@ -170,6 +175,12 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
     onResponse { response ->
         val request = response.request
         val logEntryId = request.attributes.getOrNull(LogEntryIdKey) ?: return@onResponse
+
+        // WebSocket upgrade (101) — remove any HTTP log entry; socket plugin handles it
+        if (response.status.value == 101) {
+            deps.orchestrator.deleteLog(logEntryId)
+            return@onResponse
+        }
         val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
