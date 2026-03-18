@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.skie)
+    alias(libs.plugins.kmmbridge)
 }
 
 kotlin {
@@ -23,4 +23,12 @@ kotlin {
             }
         }
     }
+}
+
+group = "dev.skymansandy"
+version = "0.1.0"
+
+kmmbridge {
+    mavenPublishArtifacts()
+    spm()
 }

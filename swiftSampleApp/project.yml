@@ -9,6 +9,10 @@ settings:
   base:
     DEVELOPMENT_TEAM: ""
 
+packages:
+  WiretapURLSession:
+    path: ..
+
 targets:
   WiretapSwiftSample:
     type: application
@@ -21,18 +25,16 @@ targets:
         PRODUCT_NAME: "Wiretap Sample"
         INFOPLIST_FILE: iosSampleApp/Info.plist
         SWIFT_VERSION: "5.9"
-        FRAMEWORK_SEARCH_PATHS:
-          - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework"
-          - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework"
         OTHER_LDFLAGS:
           - "-ObjC"
           - "-lsqlite3"
-    dependencies: []
+    dependencies:
+      - package: WiretapURLSession
     preBuildScripts:
       - name: "Compile Kotlin Frameworks"
         script: |
           cd "$SRCROOT/.."
-          ./gradlew :wiretap-urlsession:linkDebugFrameworkIosSimulatorArm64
+          ./gradlew :wiretap-urlsession:spmDevBuild -PspmBuildTargets=ios_simulator_arm64
         basedOnDependencyAnalysis: false
 
 schemes:

@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.skie)
-    alias(libs.plugins.kmmbridge)
 }
 
 kotlin {
@@ -113,8 +112,3 @@ sqldelight {
 
 group = "dev.skymansandy"
 version = "0.1.0"
-
-kmmbridge {
-    mavenPublishArtifacts()
-    spm()
-}
