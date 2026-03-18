@@ -182,9 +182,6 @@ SELECT * FROM SocketLogEntity ORDER BY timestamp DESC;
 deleteAllSocketLogs:
 DELETE FROM SocketLogEntity;
 
-deleteClosedSocketLogs:
-DELETE FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED');
-
 getSocketLogsPage:
 SELECT * FROM SocketLogEntity
 WHERE (url LIKE '%' || :query || '%'
@@ -204,9 +201,6 @@ VALUES (?, ?, ?, ?, ?, ?);
 
 getSocketMessagesBySocketId:
 SELECT * FROM SocketMessageEntity WHERE socket_id = ? ORDER BY timestamp ASC;
-
-deleteClosedSocketMessages:
-DELETE FROM SocketMessageEntity WHERE socket_id IN (SELECT id FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED'));
 
 deleteAllSocketMessages:
 DELETE FROM SocketMessageEntity;

@@ -54,14 +54,8 @@ fun SocketDetailScreen(
     orchestrator: WiretapOrchestrator,
     onBack: () -> Unit,
 ) {
-    val initialEntry = remember(socketId) { orchestrator.getSocketById(socketId) }
-    if (initialEntry == null) {
-        onBack()
-        return
-    }
-
-    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId).collectAsState(initialEntry)
-    val liveEntry = liveEntryOrNull ?: run {
+    val socketEntry = remember(socketId) { orchestrator.getSocketById(socketId) }
+    if (socketEntry == null) {
         onBack()
         return
     }
@@ -81,6 +75,12 @@ fun SocketDetailScreen(
             }
         }
         prevMessageCount = messages.size
+    }
+
+    // Re-fetch connection for live status updates
+    var liveEntry by remember { mutableStateOf(socketEntry) }
+    LaunchedEffect(messages.size) {
+        orchestrator.getSocketById(socketId)?.let { liveEntry = it }
     }
 
     val urlDisplay = liveEntry.url.substringAfter("://").let {

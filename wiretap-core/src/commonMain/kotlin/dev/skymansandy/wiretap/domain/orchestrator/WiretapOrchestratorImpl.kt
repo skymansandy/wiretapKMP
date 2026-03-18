@@ -12,7 +12,6 @@ import dev.skymansandy.wiretap.helper.notification.onNetworkEntryLogged
 import dev.skymansandy.wiretap.helper.notification.onNetworkLogsCleared
 import dev.skymansandy.wiretap.helper.notification.onSocketConnectionLogged
 import dev.skymansandy.wiretap.helper.notification.onSocketLogsCleared
-import dev.skymansandy.wiretap.helper.notification.onSocketMessageLogged
 import kotlinx.coroutines.flow.Flow
 
 class WiretapOrchestratorImpl(
@@ -61,10 +60,6 @@ class WiretapOrchestratorImpl(
 
     override fun getLogById(id: Long): NetworkLogEntry? {
         return networkRepository.getById(id)
-    }
-
-    override fun deleteLog(id: Long) {
-        networkRepository.deleteById(id)
     }
 
     override fun clearLogs() {
@@ -118,14 +113,9 @@ class WiretapOrchestratorImpl(
         if (config.loggingEnabled) {
             networkLogger.logSocketMessage(message)
         }
-        socketRepository.getById(message.socketId)?.let { entry ->
-            onSocketMessageLogged(entry, message)
-        }
     }
 
     override fun getSocketById(id: Long): SocketLogEntry? = socketRepository.getById(id)
-
-    override fun getSocketByIdFlow(id: Long): Flow<SocketLogEntry?> = socketRepository.getByIdFlow(id)
 
     override fun getSocketMessages(socketId: Long): Flow<List<SocketMessage>> =
         socketRepository.getMessages(socketId)

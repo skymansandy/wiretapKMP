@@ -11,10 +11,8 @@ interface SocketRepository {
     fun updateConnection(entry: SocketLogEntry)
     fun logMessage(message: SocketMessage)
     fun getById(id: Long): SocketLogEntry?
-    fun getByIdFlow(id: Long): Flow<SocketLogEntry?>
     fun getMessages(socketId: Long): Flow<List<SocketMessage>>
     fun getAll(): Flow<List<SocketLogEntry>>
     fun getPagedConnections(query: String): Flow<PagingData<SocketLogEntry>>
     fun clearAll()
-    fun clearClosed()
 }

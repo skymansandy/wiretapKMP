@@ -19,9 +19,6 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -111,9 +108,6 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
 
 /**
  * Wraps a [DefaultClientWebSocketSession] to log all sent and received messages.
- *
- * Automatically detects session completion (timeout, server close, error) and
- * updates the socket status accordingly — no manual `markClosed()`/`markFailed()` needed.
  */
 class WiretapWebSocketSession internal constructor(
     val delegate: DefaultClientWebSocketSession,
@@ -121,49 +115,6 @@ class WiretapWebSocketSession internal constructor(
     private val orchestrator: WiretapOrchestrator,
 ) {
     val incoming get() = delegate.incoming
-
-    @Volatile
-    private var statusUpdated = false
-
-    init {
-        installAutoClose()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun installAutoClose() {
-        delegate.coroutineContext[Job]?.invokeOnCompletion { cause ->
-            if (statusUpdated) return@invokeOnCompletion
-            statusUpdated = true
-            val url = delegate.call.request.url.toString()
-                .replaceFirst("http://", "ws://")
-                .replaceFirst("https://", "wss://")
-            if (cause != null && cause !is CancellationException) {
-                orchestrator.updateSocketConnection(
-                    SocketLogEntry(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.FAILED,
-                        failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            } else {
-                val closeReason = try { delegate.closeReason.getCompleted() } catch (_: Exception) { null }
-                orchestrator.updateSocketConnection(
-                    SocketLogEntry(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.CLOSED,
-                        closeCode = closeReason?.code?.toInt(),
-                        closeReason = closeReason?.message ?: if (cause is CancellationException) "Cancelled" else null,
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            }
-        }
-    }
 
     suspend fun send(frame: Frame) {
         when (frame) {
@@ -231,7 +182,6 @@ class WiretapWebSocketSession internal constructor(
     }
 
     suspend fun close() {
-        statusUpdated = true
         val url = delegate.call.request.url.toString()
             .replaceFirst("http://", "ws://")
             .replaceFirst("https://", "wss://")
@@ -251,7 +201,6 @@ class WiretapWebSocketSession internal constructor(
     }
 
     fun markFailed(error: String) {
-        statusUpdated = true
         val url = delegate.call.request.url.toString()
             .replaceFirst("http://", "ws://")
             .replaceFirst("https://", "wss://")
@@ -268,7 +217,6 @@ class WiretapWebSocketSession internal constructor(
     }
 
     fun markClosed(code: Short? = null, reason: String? = null) {
-        statusUpdated = true
         val url = delegate.call.request.url.toString()
             .replaceFirst("http://", "ws://")
             .replaceFirst("https://", "wss://")
