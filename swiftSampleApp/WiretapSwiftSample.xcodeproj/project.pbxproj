@@ -7,40 +7,40 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C5DE7C509BEE7FF5ED9E4748 /* WiretapSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9424C8407F2681A8D42E77CD /* WiretapSampleApp.swift */; };
-		F7DB01EB583859479ACCBB55 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80878EB61CEE771624498E10 /* ContentView.swift */; };
+		3DA36F7B204E7E6681C7CB10 /* WiretapSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */; };
+		B65CC724EF1964DCD1B6E11E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		80878EB61CEE771624498E10 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		9424C8407F2681A8D42E77CD /* WiretapSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiretapSampleApp.swift; sourceTree = "<group>"; };
-		CA7842572C070F1F021A3BD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F5128CDB24A79EE47C454D02 /* Wiretap Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wiretap Sample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2ED7DB91F66CAC604613F22C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WiretapSwiftSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiretapSampleApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		4BF6D8566152225B450FF1B9 = {
+		2F62A9A798462A9AF98CA90F = {
 			isa = PBXGroup;
 			children = (
-				BC0B96EBBFBF68B8E8E50388 /* iosSampleApp */,
-				C032CE142E68F726A6577AB8 /* Products */,
+				C1740782434E0816ADE6A2E4 /* iosSampleApp */,
+				C380C1C68734F4BB9827B83C /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		BC0B96EBBFBF68B8E8E50388 /* iosSampleApp */ = {
+		C1740782434E0816ADE6A2E4 /* iosSampleApp */ = {
 			isa = PBXGroup;
 			children = (
-				80878EB61CEE771624498E10 /* ContentView.swift */,
-				CA7842572C070F1F021A3BD3 /* Info.plist */,
-				9424C8407F2681A8D42E77CD /* WiretapSampleApp.swift */,
+				5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */,
+				2ED7DB91F66CAC604613F22C /* Info.plist */,
+				F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */,
 			);
 			path = iosSampleApp;
 			sourceTree = "<group>";
 		};
-		C032CE142E68F726A6577AB8 /* Products */ = {
+		C380C1C68734F4BB9827B83C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F5128CDB24A79EE47C454D02 /* Wiretap Sample.app */,
+				D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,59 +48,59 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3B08918C3722383DDD265AE3 /* WiretapSampleiOS */ = {
+		DB620C48CF4EF02A9FE7106D /* WiretapSwiftSample */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = EDF4E0082189264613E174D2 /* Build configuration list for PBXNativeTarget "WiretapSampleiOS" */;
+			buildConfigurationList = 0197530C4456AA6291106FE8 /* Build configuration list for PBXNativeTarget "WiretapSwiftSample" */;
 			buildPhases = (
-				FBD6EC8236AC6F7D9D0610F2 /* Compile Kotlin Frameworks */,
-				E7AE54D89AB3E1B88AD316C9 /* Sources */,
+				5B2370038982B1EC1C22FA4C /* Compile Kotlin Frameworks */,
+				A1CAC5F1940C77930B2DCC53 /* Sources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = WiretapSampleiOS;
+			name = WiretapSwiftSample;
 			packageProductDependencies = (
 			);
-			productName = WiretapSampleiOS;
-			productReference = F5128CDB24A79EE47C454D02 /* Wiretap Sample.app */;
+			productName = WiretapSwiftSample;
+			productReference = D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		8BD01A674B4C29131A3D7E25 /* Project object */ = {
+		ECAFC5C7DE69A454B8CDC6FE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
-					3B08918C3722383DDD265AE3 = {
+					DB620C48CF4EF02A9FE7106D = {
 						DevelopmentTeam = "";
 					};
 				};
 			};
-			buildConfigurationList = E775B761E78AAABA819422CA /* Build configuration list for PBXProject "WiretapSampleiOS" */;
+			buildConfigurationList = FBF51CFEC6FF578898D7199D /* Build configuration list for PBXProject "WiretapSwiftSample" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
 			);
-			mainGroup = 4BF6D8566152225B450FF1B9;
+			mainGroup = 2F62A9A798462A9AF98CA90F;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = C032CE142E68F726A6577AB8 /* Products */;
+			productRefGroup = C380C1C68734F4BB9827B83C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3B08918C3722383DDD265AE3 /* WiretapSampleiOS */,
+				DB620C48CF4EF02A9FE7106D /* WiretapSwiftSample */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		FBD6EC8236AC6F7D9D0610F2 /* Compile Kotlin Frameworks */ = {
+		5B2370038982B1EC1C22FA4C /* Compile Kotlin Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -122,47 +122,19 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		E7AE54D89AB3E1B88AD316C9 /* Sources */ = {
+		A1CAC5F1940C77930B2DCC53 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7DB01EB583859479ACCBB55 /* ContentView.swift in Sources */,
-				C5DE7C509BEE7FF5ED9E4748 /* WiretapSampleApp.swift in Sources */,
+				B65CC724EF1964DCD1B6E11E /* ContentView.swift in Sources */,
+				3DA36F7B204E7E6681C7CB10 /* WiretapSampleApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		35C6DD8F89159C60E0AC954E /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework",
-					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework",
-				);
-				INFOPLIST_FILE = iosSampleApp/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-lsqlite3",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = dev.skymansandy.wiretap.iosSample;
-				PRODUCT_NAME = "Wiretap Sample";
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.9;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		51BB3FF83EE48EBE773E6F37 /* Release */ = {
+		0C35D7F7D5ABA4E7FDE94426 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -219,7 +191,7 @@
 			};
 			name = Release;
 		};
-		59B9D8534B5422AA060A3782 /* Release */ = {
+		42AF0CAEEB2A6126BA1DFFEB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -245,9 +217,9 @@
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
-			name = Release;
+			name = Debug;
 		};
-		90EDEDBBA07028FCF3E9ED28 /* Debug */ = {
+		B11A3AED3CF739B42FCEAEF5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -311,28 +283,56 @@
 			};
 			name = Debug;
 		};
+		CB8CB9F2CE5524DC4EC6250D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/../wiretap-core/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../wiretap-core/build/bin/iosArm64/releaseFramework",
+					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework",
+				);
+				INFOPLIST_FILE = iosSampleApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-lsqlite3",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = dev.skymansandy.wiretap.iosSample;
+				PRODUCT_NAME = "Wiretap Sample";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E775B761E78AAABA819422CA /* Build configuration list for PBXProject "WiretapSampleiOS" */ = {
+		0197530C4456AA6291106FE8 /* Build configuration list for PBXNativeTarget "WiretapSwiftSample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				90EDEDBBA07028FCF3E9ED28 /* Debug */,
-				51BB3FF83EE48EBE773E6F37 /* Release */,
+				42AF0CAEEB2A6126BA1DFFEB /* Debug */,
+				CB8CB9F2CE5524DC4EC6250D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		EDF4E0082189264613E174D2 /* Build configuration list for PBXNativeTarget "WiretapSampleiOS" */ = {
+		FBF51CFEC6FF578898D7199D /* Build configuration list for PBXProject "WiretapSwiftSample" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				35C6DD8F89159C60E0AC954E /* Debug */,
-				59B9D8534B5422AA060A3782 /* Release */,
+				B11A3AED3CF739B42FCEAEF5 /* Debug */,
+				0C35D7F7D5ABA4E7FDE94426 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 8BD01A674B4C29131A3D7E25 /* Project object */;
+	rootObject = ECAFC5C7DE69A454B8CDC6FE /* Project object */;
 }

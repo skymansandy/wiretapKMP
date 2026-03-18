@@ -7,10 +7,10 @@
             buildForRunning = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1A1FEF02E3915CA34E00C642"
                BuildableName = "Wiretap Sample.app"
                BlueprintName = "iosApp"
-               ReferencedContainer = "container:iosApp.xcodeproj">
+               ReferencedContainer = "container:iosApp.xcodeproj"
+               BlueprintIdentifier = "1A1FEF02E3915CA34E00C642">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -22,10 +22,10 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "1A1FEF02E3915CA34E00C642"
             BuildableName = "Wiretap Sample.app"
             BlueprintName = "iosApp"
-            ReferencedContainer = "container:iosApp.xcodeproj">
+            ReferencedContainer = "container:iosApp.xcodeproj"
+            BlueprintIdentifier = "1A1FEF02E3915CA34E00C642">
          </BuildableReference>
       </BuildableProductRunnable>
       <LocationScenarioReference

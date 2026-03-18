@@ -36,6 +36,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "WiretapKit"
             isStatic = true
+            linkerOpts("-lsqlite3")
         }
     }
 

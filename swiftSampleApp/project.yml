@@ -1,4 +1,4 @@
-name: WiretapSampleiOS
+name: WiretapSwiftSample
 options:
   bundleIdPrefix: dev.skymansandy.wiretap
   deploymentTarget:
@@ -10,7 +10,7 @@ settings:
     DEVELOPMENT_TEAM: ""
 
 targets:
-  WiretapSampleiOS:
+  WiretapSwiftSample:
     type: application
     platform: iOS
     sources:
@@ -28,6 +28,7 @@ targets:
           - "$(SRCROOT)/../wiretap-urlsession/build/bin/iosArm64/releaseFramework"
         OTHER_LDFLAGS:
           - "-ObjC"
+          - "-lsqlite3"
     dependencies: []
     preBuildScripts:
       - name: "Compile Kotlin Frameworks"
@@ -37,10 +38,10 @@ targets:
         basedOnDependencyAnalysis: false
 
 schemes:
-  WiretapSampleiOS:
+  WiretapSwiftSample:
     build:
       targets:
-        WiretapSampleiOS: all
+        WiretapSwiftSample: all
     run:
       config: Debug
     archive:
