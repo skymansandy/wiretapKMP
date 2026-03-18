@@ -44,6 +44,11 @@ class NetworkRepositoryImpl(
         invalidationSignal.tryEmit(Unit)
     }
 
+    override fun deleteOlderThan(timestamp: Long) {
+        networkDao.deleteOlderThan(timestamp)
+        invalidationSignal.tryEmit(Unit)
+    }
+
     override fun clearAll() {
         networkDao.deleteAll()
         invalidationSignal.tryEmit(Unit)

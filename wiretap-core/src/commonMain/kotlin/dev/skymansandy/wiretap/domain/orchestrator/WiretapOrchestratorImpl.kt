@@ -2,6 +2,8 @@ package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.config.applySanitization
+import dev.skymansandy.wiretap.config.matches
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
@@ -13,6 +15,7 @@ import dev.skymansandy.wiretap.helper.notification.onNetworkLogsCleared
 import dev.skymansandy.wiretap.helper.notification.onSocketConnectionLogged
 import dev.skymansandy.wiretap.helper.notification.onSocketLogsCleared
 import dev.skymansandy.wiretap.helper.notification.onSocketMessageLogged
+import dev.skymansandy.wiretap.util.currentTimeMillis
 import kotlinx.coroutines.flow.Flow
 
 class WiretapOrchestratorImpl(
@@ -27,17 +30,23 @@ class WiretapOrchestratorImpl(
 
     override fun logEntry(entry: NetworkLogEntry) {
         if (!config.enabled) return
-        networkRepository.save(entry)
+        if (!config.requestFilters.matches(entry.url, entry.method)) return
+        val sanitized = entry.applySanitization(config.headerSanitizationRules)
+        purgeExpiredLogs()
+        networkRepository.save(sanitized)
         if (config.loggingEnabled) {
-            networkLogger.log(entry)
+            networkLogger.log(sanitized)
         }
-        onNetworkEntryLogged(entry)
+        onNetworkEntryLogged(sanitized)
     }
 
     override fun logRequest(entry: NetworkLogEntry): Long {
         if (!config.enabled) return -1
-        val id = networkRepository.saveAndGetId(entry)
-        val entryWithId = entry.copy(id = id)
+        if (!config.requestFilters.matches(entry.url, entry.method)) return -1
+        val sanitized = entry.applySanitization(config.headerSanitizationRules)
+        purgeExpiredLogs()
+        val id = networkRepository.saveAndGetId(sanitized)
+        val entryWithId = sanitized.copy(id = id)
         if (config.loggingEnabled) {
             networkLogger.log(entryWithId)
         }
@@ -47,11 +56,12 @@ class WiretapOrchestratorImpl(
 
     override fun updateEntry(entry: NetworkLogEntry) {
         if (!config.enabled) return
-        networkRepository.update(entry)
+        val sanitized = entry.applySanitization(config.headerSanitizationRules)
+        networkRepository.update(sanitized)
         if (config.loggingEnabled) {
-            networkLogger.log(entry)
+            networkLogger.log(sanitized)
         }
-        onNetworkEntryLogged(entry)
+        onNetworkEntryLogged(sanitized)
     }
 
     override fun getAllLogs(): Flow<List<NetworkLogEntry>> = networkRepository.getAll()
@@ -138,5 +148,11 @@ class WiretapOrchestratorImpl(
     override fun clearSocketLogs() {
         socketRepository.clearAll()
         onSocketLogsCleared()
+    }
+
+    private fun purgeExpiredLogs() {
+        val retention = config.logRetentionDuration ?: return
+        val cutoff = currentTimeMillis() - retention.inWholeMilliseconds
+        networkRepository.deleteOlderThan(cutoff)
     }
 }

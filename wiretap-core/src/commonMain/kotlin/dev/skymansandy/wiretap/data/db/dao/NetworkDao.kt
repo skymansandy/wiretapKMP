@@ -12,4 +12,5 @@ interface NetworkDao {
     fun getById(id: Long): NetworkLogEntry?
     fun deleteAll()
     fun deleteById(id: Long)
+    fun deleteOlderThan(timestamp: Long)
 }
