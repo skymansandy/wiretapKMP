@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -72,10 +73,13 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
+import dev.skymansandy.wiretap.data.db.entity.ActivityEntry
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
@@ -83,8 +87,10 @@ import dev.skymansandy.wiretap.ui.network.highlightText
 import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
+import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 private fun formatOneDecimal(value: Float): String {
@@ -101,10 +107,20 @@ fun WiretapScreen(
     ruleRepository: RuleRepository = WiretapDi.ruleRepository,
 ) {
     var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
+    var selectedSocketId by remember { mutableStateOf<Long?>(null) }
     var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
     var showCreateRule by remember { mutableStateOf(false) }
     var editRule by remember { mutableStateOf<WiretapRule?>(null) }
     var createRuleFromLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
+
+    if (selectedSocketId != null) {
+        SocketDetailScreen(
+            socketId = selectedSocketId!!,
+            orchestrator = orchestrator,
+            onBack = { selectedSocketId = null },
+        )
+        return
+    }
 
     if (selectedLog != null) {
         NetworkLogDetailScreen(
@@ -186,6 +202,14 @@ fun WiretapScreen(
 
     val lazyItems = rememberPagedLogs(orchestrator, debouncedQuery)
 
+    // Collect socket logs for merging into activity list
+    val socketLogs by remember {
+        orchestrator.getAllSocketLogs().map { logs ->
+            if (debouncedQuery.isEmpty()) logs
+            else logs.filter { it.url.contains(debouncedQuery, ignoreCase = true) || it.status.name.contains(debouncedQuery, ignoreCase = true) }
+        }
+    }.collectAsState(emptyList())
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -221,7 +245,10 @@ fun WiretapScreen(
                         }
                     }
                     if (selectedTab == 0) {
-                        IconButton(onClick = { orchestrator.clearLogs() }) {
+                        IconButton(onClick = {
+                            orchestrator.clearLogs()
+                            orchestrator.clearSocketLogs()
+                        }) {
                             Icon(Icons.Default.DeleteSweep, contentDescription = "Clear logs")
                         }
                     }
@@ -246,10 +273,12 @@ fun WiretapScreen(
         },
     ) { padding ->
         when (selectedTab) {
-            0 -> LogList(
+            0 -> ActivityList(
                 lazyItems = lazyItems,
+                socketLogs = socketLogs,
                 searchQuery = searchQuery,
-                onItemClick = { selectedLog = it },
+                onHttpClick = { selectedLog = it },
+                onSocketClick = { selectedSocketId = it.id },
                 onCreateRule = { createRuleFromLog = it },
                 onViewRule = { ruleId ->
                     val rule = ruleRepository.getById(ruleId)
@@ -279,10 +308,12 @@ private fun rememberPagedLogs(
 }
 
 @Composable
-private fun LogList(
+private fun ActivityList(
     lazyItems: LazyPagingItems<NetworkLogEntry>,
+    socketLogs: List<SocketLogEntry>,
     searchQuery: String,
-    onItemClick: (NetworkLogEntry) -> Unit,
+    onHttpClick: (NetworkLogEntry) -> Unit,
+    onSocketClick: (SocketLogEntry) -> Unit,
     onCreateRule: (NetworkLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -294,7 +325,7 @@ private fun LogList(
             }
         }
 
-        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
+        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 && socketLogs.isEmpty() -> {
             Box(modifier, contentAlignment = Alignment.Center) {
                 Text("No network logs yet", style = MaterialTheme.typography.bodyLarge)
             }
@@ -307,22 +338,31 @@ private fun LogList(
         }
 
         else -> {
+            // Merge HTTP paged items and socket logs by timestamp (newest first)
+            // Socket logs are collected as full list; HTTP items come from paging
+            val mergedItems = remember(lazyItems.itemCount, socketLogs) {
+                val httpItems = (0 until lazyItems.itemCount).mapNotNull { index ->
+                    lazyItems.peek(index)?.let { ActivityEntry.Http(it) }
+                }
+                val socketItems = socketLogs.map { ActivityEntry.Socket(it) }
+                (httpItems + socketItems).sortedByDescending { it.timestamp }
+            }
+
             val listState = rememberLazyListState()
             val scope = rememberCoroutineScope()
             val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
-            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
-            var revealedItemId by remember { mutableStateOf<Long?>(null) }
+            var lastItemCount by remember { mutableIntStateOf(mergedItems.size) }
+            var revealedItemId by remember { mutableStateOf<String?>(null) }
 
-            LaunchedEffect(lazyItems.itemCount) {
-                if (lazyItems.itemCount > lastItemCount && isAtTop) {
+            LaunchedEffect(mergedItems.size) {
+                if (mergedItems.size > lastItemCount && isAtTop) {
                     scope.launch { listState.scrollToItem(0) }
                 }
-                lastItemCount = lazyItems.itemCount
+                lastItemCount = mergedItems.size
             }
 
-            // Auto-close after 3 seconds of inactivity
             LaunchedEffect(revealedItemId) {
                 if (revealedItemId != null) {
                     delay(3000)
@@ -332,21 +372,36 @@ private fun LogList(
 
             LazyColumn(state = listState, modifier = modifier) {
                 items(
-                    count = lazyItems.itemCount,
-                    key = lazyItems.itemKey { it.id },
+                    count = mergedItems.size,
+                    key = { index ->
+                        when (val item = mergedItems[index]) {
+                            is ActivityEntry.Http -> "http_${item.entry.id}"
+                            is ActivityEntry.Socket -> "ws_${item.entry.id}"
+                        }
+                    },
                 ) { index ->
-                    val entry = lazyItems[index]
-                    if (entry != null) {
-                        SwipeableNetworkLogItem(
-                            entry = entry,
-                            searchQuery = searchQuery,
-                            isRevealed = revealedItemId == entry.id,
-                            onReveal = { revealedItemId = entry.id },
-                            onCollapse = { if (revealedItemId == entry.id) revealedItemId = null },
-                            onClick = { revealedItemId = null; onItemClick(entry) },
-                            onCreateRule = { revealedItemId = null; onCreateRule(entry) },
-                            onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
-                        )
+                    when (val item = mergedItems[index]) {
+                        is ActivityEntry.Http -> {
+                            val entry = item.entry
+                            val itemKey = "http_${entry.id}"
+                            SwipeableNetworkLogItem(
+                                entry = entry,
+                                searchQuery = searchQuery,
+                                isRevealed = revealedItemId == itemKey,
+                                onReveal = { revealedItemId = itemKey },
+                                onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
+                                onClick = { revealedItemId = null; onHttpClick(entry) },
+                                onCreateRule = { revealedItemId = null; onCreateRule(entry) },
+                                onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
+                            )
+                        }
+                        is ActivityEntry.Socket -> {
+                            SocketLogItemContent(
+                                entry = item.entry,
+                                searchQuery = searchQuery,
+                                onClick = { onSocketClick(item.entry) },
+                            )
+                        }
                     }
                 }
                 if (lazyItems.loadState.append is LoadStateLoading) {
@@ -360,6 +415,117 @@ private fun LogList(
             }
         }
     }
+}
+
+@Composable
+private fun SocketLogItemContent(
+    entry: SocketLogEntry,
+    searchQuery: String,
+    onClick: () -> Unit,
+) {
+    val statusColor = when (entry.status) {
+        SocketStatus.CONNECTING -> Color(0xFF42A5F5) // Blue
+        SocketStatus.OPEN -> Color(0xFF4CAF50) // Green
+        SocketStatus.CLOSING -> Color(0xFFFFA726) // Amber
+        SocketStatus.CLOSED -> Color(0xFF9E9E9E) // Gray
+        SocketStatus.FAILED -> Color(0xFFEF5350) // Red
+    }
+
+    val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
+    val withoutScheme = entry.url.substringAfter("://")
+    val host = withoutScheme.substringBefore("/").substringBefore("?")
+    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
+
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Text(
+                text = "WS",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = statusColor,
+                modifier = Modifier.width(44.dp),
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = highlightText(path, searchQuery),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (isSecure) {
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = Color(0xFF26C6DA),
+                        )
+                    }
+                    Text(
+                        text = highlightText(host, searchQuery),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF26C6DA),
+                    )
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = formatTime(entry.timestamp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (entry.messageCount > 0) {
+                        Text(
+                            text = "${entry.messageCount} msgs",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    SocketStatusChip(entry.status)
+                }
+            }
+        }
+        HorizontalDivider()
+    }
+}
+
+@Composable
+private fun SocketStatusChip(status: SocketStatus) {
+    val (bgColor, label) = when (status) {
+        SocketStatus.CONNECTING -> Color(0xFF42A5F5) to "Connecting"
+        SocketStatus.OPEN -> Color(0xFF4CAF50) to "Open"
+        SocketStatus.CLOSING -> Color(0xFFFFA726) to "Closing"
+        SocketStatus.CLOSED -> Color(0xFF9E9E9E) to "Closed"
+        SocketStatus.FAILED -> Color(0xFFEF5350) to "Failed"
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = Color.White,
+        modifier = Modifier
+            .background(bgColor, RoundedCornerShape(4.dp))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+    )
 }
 
 @Composable
@@ -392,7 +558,7 @@ private fun SearchField(
                 Box {
                     if (query.isEmpty()) {
                         Text(
-                            "Search…",
+                            "Search\u2026",
                             style = MaterialTheme.typography.bodyLarge,
                             color = LocalContentColor.current.copy(alpha = 0.4f),
                         )
@@ -422,7 +588,7 @@ private fun SwipeableNetworkLogItem(
     val offsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
 
-    // Sync external isRevealed → animation
+    // Sync external isRevealed -> animation
     LaunchedEffect(isRevealed) {
         val target = if (isRevealed) -revealWidthPx else 0f
         if (offsetX.value != target) {
@@ -520,12 +686,12 @@ private fun NetworkLogItemContent(
     onClick: () -> Unit,
 ) {
     val statusColor = when {
-        entry.isInProgress -> Color(0xFF42A5F5) // Blue – in progress
-        entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green – success
-        entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue – redirect
-        entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber – client error
-        entry.responseCode >= 500 -> Color(0xFFEF5350) // Red – server error
-        else -> Color(0xFF9E9E9E) // Gray – timeout / cancelled / no response
+        entry.isInProgress -> Color(0xFF42A5F5) // Blue - in progress
+        entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green - success
+        entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue - redirect
+        entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber - client error
+        entry.responseCode >= 500 -> Color(0xFFEF5350) // Red - server error
+        else -> Color(0xFF9E9E9E) // Gray - timeout / cancelled / no response
     }
 
     val isHttps = entry.url.startsWith("https://", ignoreCase = true)

@@ -1,0 +1,135 @@
+package dev.skymansandy.wiretap.okhttp
+
+import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.SocketContentType
+import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.util.currentTimeMillis
+import okhttp3.Response
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okio.ByteString
+import org.koin.core.Koin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+/**
+ * Wraps a consumer's WebSocketListener to log all WebSocket events via Wiretap.
+ *
+ * Usage:
+ * ```kotlin
+ * val listener = WiretapOkHttpWebSocketListener(myListener)
+ * client.newWebSocket(request, listener)
+ * ```
+ */
+class WiretapOkHttpWebSocketListener(
+    private val delegate: WebSocketListener,
+) : WebSocketListener(), KoinComponent {
+
+    override fun getKoin(): Koin = WiretapDi.getKoin()
+
+    private val orchestrator: WiretapOrchestrator by inject()
+    private var socketId: Long = -1
+
+    override fun onOpen(webSocket: WebSocket, response: Response) {
+        val url = webSocket.request().url.toString()
+        val reqHeaders = webSocket.request().headers.toMap()
+
+        socketId = orchestrator.openSocketConnection(
+            SocketLogEntry(
+                url = url,
+                requestHeaders = reqHeaders,
+                status = SocketStatus.OPEN,
+                timestamp = currentTimeMillis(),
+                protocol = response.protocol.toString(),
+            ),
+        )
+
+        val wiretapSocket = WiretapWebSocket(webSocket, socketId, orchestrator)
+        delegate.onOpen(wiretapSocket, response)
+    }
+
+    override fun onMessage(webSocket: WebSocket, text: String) {
+        if (socketId >= 0) {
+            orchestrator.logSocketMessage(
+                SocketMessage(
+                    socketId = socketId,
+                    direction = SocketMessageDirection.RECEIVED,
+                    contentType = SocketContentType.TEXT,
+                    content = text,
+                    byteCount = text.encodeToByteArray().size.toLong(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
+        delegate.onMessage(webSocket, text)
+    }
+
+    override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+        if (socketId >= 0) {
+            orchestrator.logSocketMessage(
+                SocketMessage(
+                    socketId = socketId,
+                    direction = SocketMessageDirection.RECEIVED,
+                    contentType = SocketContentType.BINARY,
+                    content = "[Binary: ${bytes.size} bytes]",
+                    byteCount = bytes.size.toLong(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
+        delegate.onMessage(webSocket, bytes)
+    }
+
+    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+        if (socketId >= 0) {
+            orchestrator.updateSocketConnection(
+                SocketLogEntry(
+                    id = socketId,
+                    url = webSocket.request().url.toString(),
+                    status = SocketStatus.CLOSING,
+                    closeCode = code,
+                    closeReason = reason,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
+        delegate.onClosing(webSocket, code, reason)
+    }
+
+    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+        if (socketId >= 0) {
+            orchestrator.updateSocketConnection(
+                SocketLogEntry(
+                    id = socketId,
+                    url = webSocket.request().url.toString(),
+                    status = SocketStatus.CLOSED,
+                    closeCode = code,
+                    closeReason = reason,
+                    closedAt = currentTimeMillis(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
+        delegate.onClosed(webSocket, code, reason)
+    }
+
+    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+        if (socketId >= 0) {
+            orchestrator.updateSocketConnection(
+                SocketLogEntry(
+                    id = socketId,
+                    url = webSocket.request().url.toString(),
+                    status = SocketStatus.FAILED,
+                    failureMessage = t.message ?: t::class.simpleName ?: "Unknown error",
+                    closedAt = currentTimeMillis(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
+        delegate.onFailure(webSocket, t, response)
+    }
+}

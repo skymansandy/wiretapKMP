@@ -13,6 +13,7 @@ val wiretapModule = module {
         WiretapOrchestratorImpl(
             config = get(),
             networkRepository = get(),
+            socketRepository = get(),
             networkLogger = get(),
         )
     }

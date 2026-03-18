@@ -1,0 +1,240 @@
+package dev.skymansandy.wiretap.plugin
+
+import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.SocketContentType
+import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.util.currentTimeMillis
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.webSocketSession
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.Frame
+import io.ktor.websocket.close
+import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
+import org.koin.core.Koin
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+
+/**
+ * Ktor client plugin that intercepts WebSocket sessions to log
+ * connections and messages via Wiretap.
+ *
+ * Usage:
+ * ```kotlin
+ * HttpClient {
+ *     install(WebSockets)
+ *     install(WiretapKtorPlugin)
+ *     install(WiretapKtorWebSocketPlugin)
+ * }
+ * ```
+ *
+ * Note: This plugin hooks into 101 Switching Protocols responses.
+ * For full outgoing message interception, use [WiretapWebSocketSession]
+ * to wrap your session.
+ */
+val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
+
+    val deps = WsPluginDeps()
+
+    onResponse { response ->
+        // Only intercept WebSocket upgrades (status 101)
+        if (response.status.value != 101) return@onResponse
+
+        val url = response.call.request.url.toString()
+            .replaceFirst("http://", "ws://")
+            .replaceFirst("https://", "wss://")
+        val requestHeaders = response.call.request.headers.entries()
+            .associate { (key, values) -> key to values.joinToString(", ") }
+
+        val socketId = deps.orchestrator.openSocketConnection(
+            SocketLogEntry(
+                url = url,
+                requestHeaders = requestHeaders,
+                status = SocketStatus.OPEN,
+                timestamp = currentTimeMillis(),
+                protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" },
+            ),
+        )
+
+        // Store socket ID for later use
+        response.call.request.attributes.put(WiretapSocketIdKey, socketId)
+    }
+}
+
+internal val WiretapSocketIdKey = io.ktor.util.AttributeKey<Long>("WiretapSocketId")
+
+/**
+ * Extension to wrap a Ktor [DefaultClientWebSocketSession] for Wiretap logging.
+ *
+ * This intercepts both incoming and outgoing frames. Use it like:
+ * ```kotlin
+ * client.webSocket("wss://example.com/ws") {
+ *     val session = this.wiretapWrap()
+ *     session.send(Frame.Text("hello"))
+ *     for (frame in session.incoming) { ... }
+ * }
+ * ```
+ */
+suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession {
+    val deps = WsPluginDeps()
+    val socketId = call.request.attributes.getOrNull(WiretapSocketIdKey)
+    val actualSocketId = if (socketId != null && socketId >= 0) {
+        socketId
+    } else {
+        val url = call.request.url.toString()
+            .replaceFirst("http://", "ws://")
+            .replaceFirst("https://", "wss://")
+        val requestHeaders = call.request.headers.entries()
+            .associate { (key, values) -> key to values.joinToString(", ") }
+        deps.orchestrator.openSocketConnection(
+            SocketLogEntry(
+                url = url,
+                requestHeaders = requestHeaders,
+                status = SocketStatus.OPEN,
+                timestamp = currentTimeMillis(),
+            ),
+        )
+    }
+    return WiretapWebSocketSession(this, actualSocketId, deps.orchestrator)
+}
+
+/**
+ * Wraps a [DefaultClientWebSocketSession] to log all sent and received messages.
+ */
+class WiretapWebSocketSession internal constructor(
+    val delegate: DefaultClientWebSocketSession,
+    private val socketId: Long,
+    private val orchestrator: WiretapOrchestrator,
+) {
+    val incoming get() = delegate.incoming
+
+    suspend fun send(frame: Frame) {
+        when (frame) {
+            is Frame.Text -> {
+                val text = frame.readText()
+                orchestrator.logSocketMessage(
+                    SocketMessage(
+                        socketId = socketId,
+                        direction = SocketMessageDirection.SENT,
+                        contentType = SocketContentType.TEXT,
+                        content = text,
+                        byteCount = text.encodeToByteArray().size.toLong(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+            is Frame.Binary -> {
+                val bytes = frame.readBytes()
+                orchestrator.logSocketMessage(
+                    SocketMessage(
+                        socketId = socketId,
+                        direction = SocketMessageDirection.SENT,
+                        contentType = SocketContentType.BINARY,
+                        content = "[Binary: ${bytes.size} bytes]",
+                        byteCount = bytes.size.toLong(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+            else -> { /* pass through */ }
+        }
+        delegate.send(frame)
+    }
+
+    fun logReceivedFrame(frame: Frame) {
+        when (frame) {
+            is Frame.Text -> {
+                val text = frame.readText()
+                orchestrator.logSocketMessage(
+                    SocketMessage(
+                        socketId = socketId,
+                        direction = SocketMessageDirection.RECEIVED,
+                        contentType = SocketContentType.TEXT,
+                        content = text,
+                        byteCount = text.encodeToByteArray().size.toLong(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+            is Frame.Binary -> {
+                val bytes = frame.readBytes()
+                orchestrator.logSocketMessage(
+                    SocketMessage(
+                        socketId = socketId,
+                        direction = SocketMessageDirection.RECEIVED,
+                        contentType = SocketContentType.BINARY,
+                        content = "[Binary: ${bytes.size} bytes]",
+                        byteCount = bytes.size.toLong(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+            else -> { /* ignore Ping/Pong/Close frames for logging */ }
+        }
+    }
+
+    suspend fun close() {
+        val url = delegate.call.request.url.toString()
+            .replaceFirst("http://", "ws://")
+            .replaceFirst("https://", "wss://")
+        val closeReason = try { delegate.closeReason.await() } catch (_: Exception) { null }
+        orchestrator.updateSocketConnection(
+            SocketLogEntry(
+                id = socketId,
+                url = url,
+                status = SocketStatus.CLOSED,
+                closeCode = closeReason?.code?.toInt(),
+                closeReason = closeReason?.message,
+                closedAt = currentTimeMillis(),
+                timestamp = currentTimeMillis(),
+            ),
+        )
+        delegate.close()
+    }
+
+    fun markFailed(error: String) {
+        val url = delegate.call.request.url.toString()
+            .replaceFirst("http://", "ws://")
+            .replaceFirst("https://", "wss://")
+        orchestrator.updateSocketConnection(
+            SocketLogEntry(
+                id = socketId,
+                url = url,
+                status = SocketStatus.FAILED,
+                failureMessage = error,
+                closedAt = currentTimeMillis(),
+                timestamp = currentTimeMillis(),
+            ),
+        )
+    }
+
+    fun markClosed(code: Short? = null, reason: String? = null) {
+        val url = delegate.call.request.url.toString()
+            .replaceFirst("http://", "ws://")
+            .replaceFirst("https://", "wss://")
+        orchestrator.updateSocketConnection(
+            SocketLogEntry(
+                id = socketId,
+                url = url,
+                status = SocketStatus.CLOSED,
+                closeCode = code?.toInt(),
+                closeReason = reason,
+                closedAt = currentTimeMillis(),
+                timestamp = currentTimeMillis(),
+            ),
+        )
+    }
+}
+
+private class WsPluginDeps : KoinComponent {
+    override fun getKoin(): Koin = WiretapDi.getKoin()
+    val orchestrator: WiretapOrchestrator by inject()
+}

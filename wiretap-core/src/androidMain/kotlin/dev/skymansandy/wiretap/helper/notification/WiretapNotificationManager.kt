@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 internal object WiretapNotificationManager {
@@ -23,7 +24,12 @@ internal object WiretapNotificationManager {
 
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
 
-    private val recentEntries = mutableListOf<NetworkLogEntry>()
+    private sealed interface RecentEntry {
+        data class Http(val entry: NetworkLogEntry) : RecentEntry
+        data class Socket(val entry: SocketLogEntry) : RecentEntry
+    }
+
+    private val recentEntries = mutableListOf<RecentEntry>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -41,12 +47,28 @@ internal object WiretapNotificationManager {
 
     fun onNewEntry(context: Context, entry: NetworkLogEntry) {
         if (!hasPermission(context)) return
-        val existingIndex = recentEntries.indexOfFirst { it.id == entry.id }
+        val existingIndex = recentEntries.indexOfFirst {
+            it is RecentEntry.Http && it.entry.id == entry.id
+        }
         if (existingIndex >= 0) {
-            recentEntries[existingIndex] = entry
+            recentEntries[existingIndex] = RecentEntry.Http(entry)
         } else {
             if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
-            recentEntries.addLast(entry)
+            recentEntries.addLast(RecentEntry.Http(entry))
+        }
+        postNotifications(context)
+    }
+
+    fun onNewSocketEntry(context: Context, entry: SocketLogEntry) {
+        if (!hasPermission(context)) return
+        val existingIndex = recentEntries.indexOfFirst {
+            it is RecentEntry.Socket && it.entry.id == entry.id
+        }
+        if (existingIndex >= 0) {
+            recentEntries[existingIndex] = RecentEntry.Socket(entry)
+        } else {
+            if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
+            recentEntries.addLast(RecentEntry.Socket(entry))
         }
         postNotifications(context)
     }
@@ -64,17 +86,26 @@ internal object WiretapNotificationManager {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun formatStatus(entry: NetworkLogEntry): String = when {
-        entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
-        entry.responseCode > 0 -> entry.responseCode.toString()
-        entry.responseCode == -1 -> "!!!"
-        else -> "ERR"
+    private fun formatEntry(recent: RecentEntry): String = when (recent) {
+        is RecentEntry.Http -> {
+            val entry = recent.entry
+            val status = when {
+                entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
+                entry.responseCode > 0 -> entry.responseCode.toString()
+                entry.responseCode == -1 -> "!!!"
+                else -> "ERR"
+            }
+            "${entry.method}  $status  ${entry.url}"
+        }
+        is RecentEntry.Socket -> {
+            val entry = recent.entry
+            "WS  ${entry.status.name}  ${entry.url}  (${entry.messageCount} msgs)"
+        }
     }
 
-    private fun formatEntry(entry: NetworkLogEntry): String =
-        "${entry.method}  ${formatStatus(entry)}  ${entry.url}"
-
     private fun postNotifications(context: Context) {
+        if (recentEntries.isEmpty()) return
+
         val inboxStyle = NotificationCompat.InboxStyle()
             .setBigContentTitle("View network traffic")
         recentEntries.forEach { entry ->
