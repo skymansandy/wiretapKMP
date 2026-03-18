@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -73,7 +74,6 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
-import dev.skymansandy.wiretap.data.db.entity.ActivityEntry
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
@@ -212,7 +212,7 @@ fun WiretapScreen(
 
     val lazyItems = rememberPagedLogs(orchestrator, debouncedQuery)
 
-    // Collect socket logs for merging into activity list
+    // Collect socket logs for WebSocket tab
     val socketLogs by remember {
         orchestrator.getAllSocketLogs().map { logs ->
             if (debouncedQuery.isEmpty()) logs
@@ -255,11 +255,13 @@ fun WiretapScreen(
                         }
                     }
                     if (selectedTab == 0) {
-                        IconButton(onClick = {
-                            orchestrator.clearLogs()
-                            orchestrator.clearSocketLogs()
-                        }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear logs")
+                        IconButton(onClick = { orchestrator.clearLogs() }) {
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
+                        }
+                    }
+                    if (selectedTab == 1 && socketLogs.isNotEmpty()) {
+                        IconButton(onClick = { orchestrator.clearSocketLogs() }) {
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
                         }
                     }
                 },
@@ -271,11 +273,17 @@ fun WiretapScreen(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0; searchQuery = "" },
                     icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
-                    label = { Text("Activity") },
+                    label = { Text("HTTP") },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1; searchQuery = "" },
+                    icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
+                    label = { Text("WebSocket") },
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2; searchQuery = "" },
                     icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
                     label = { Text("Rules") },
                 )
@@ -283,12 +291,10 @@ fun WiretapScreen(
         },
     ) { padding ->
         when (selectedTab) {
-            0 -> ActivityList(
+            0 -> HttpLogList(
                 lazyItems = lazyItems,
-                socketLogs = socketLogs,
                 searchQuery = searchQuery,
                 onHttpClick = { selectedLog = it },
-                onSocketClick = { selectedSocketId = it.id },
                 onCreateRule = { createRuleFromLog = it },
                 onViewRule = { ruleId ->
                     val rule = ruleRepository.getById(ruleId)
@@ -297,7 +303,14 @@ fun WiretapScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
             )
 
-            1 -> RulesListScreen(
+            1 -> SocketLogList(
+                socketLogs = socketLogs,
+                searchQuery = searchQuery,
+                onSocketClick = { selectedSocketId = it.id },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            )
+
+            2 -> RulesListScreen(
                 ruleRepository = ruleRepository,
                 searchQuery = debouncedQuery,
                 onRuleClick = { selectedRule = it },
@@ -318,12 +331,10 @@ private fun rememberPagedLogs(
 }
 
 @Composable
-private fun ActivityList(
+private fun HttpLogList(
     lazyItems: LazyPagingItems<NetworkLogEntry>,
-    socketLogs: List<SocketLogEntry>,
     searchQuery: String,
     onHttpClick: (NetworkLogEntry) -> Unit,
-    onSocketClick: (SocketLogEntry) -> Unit,
     onCreateRule: (NetworkLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -335,9 +346,9 @@ private fun ActivityList(
             }
         }
 
-        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 && socketLogs.isEmpty() -> {
+        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
             Box(modifier, contentAlignment = Alignment.Center) {
-                Text("No network logs yet", style = MaterialTheme.typography.bodyLarge)
+                Text("No HTTP logs yet", style = MaterialTheme.typography.bodyLarge)
             }
         }
 
@@ -348,29 +359,19 @@ private fun ActivityList(
         }
 
         else -> {
-            // Merge HTTP paged items and socket logs by timestamp (newest first)
-            // Socket logs are collected as full list; HTTP items come from paging
-            val mergedItems = remember(lazyItems.itemCount, socketLogs) {
-                val httpItems = (0 until lazyItems.itemCount).mapNotNull { index ->
-                    lazyItems.peek(index)?.let { ActivityEntry.Http(it) }
-                }
-                val socketItems = socketLogs.map { ActivityEntry.Socket(it) }
-                (httpItems + socketItems).sortedByDescending { it.timestamp }
-            }
-
             val listState = rememberLazyListState()
             val scope = rememberCoroutineScope()
             val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
-            var lastItemCount by remember { mutableIntStateOf(mergedItems.size) }
+            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
             var revealedItemId by remember { mutableStateOf<String?>(null) }
 
-            LaunchedEffect(mergedItems.size) {
-                if (mergedItems.size > lastItemCount && isAtTop) {
+            LaunchedEffect(lazyItems.itemCount) {
+                if (lazyItems.itemCount > lastItemCount && isAtTop) {
                     scope.launch { listState.scrollToItem(0) }
                 }
-                lastItemCount = mergedItems.size
+                lastItemCount = lazyItems.itemCount
             }
 
             LaunchedEffect(revealedItemId) {
@@ -382,37 +383,21 @@ private fun ActivityList(
 
             LazyColumn(state = listState, modifier = modifier) {
                 items(
-                    count = mergedItems.size,
-                    key = { index ->
-                        when (val item = mergedItems[index]) {
-                            is ActivityEntry.Http -> "http_${item.entry.id}"
-                            is ActivityEntry.Socket -> "ws_${item.entry.id}"
-                        }
-                    },
+                    count = lazyItems.itemCount,
+                    key = lazyItems.itemKey { it.id },
                 ) { index ->
-                    when (val item = mergedItems[index]) {
-                        is ActivityEntry.Http -> {
-                            val entry = item.entry
-                            val itemKey = "http_${entry.id}"
-                            SwipeableNetworkLogItem(
-                                entry = entry,
-                                searchQuery = searchQuery,
-                                isRevealed = revealedItemId == itemKey,
-                                onReveal = { revealedItemId = itemKey },
-                                onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
-                                onClick = { revealedItemId = null; onHttpClick(entry) },
-                                onCreateRule = { revealedItemId = null; onCreateRule(entry) },
-                                onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
-                            )
-                        }
-                        is ActivityEntry.Socket -> {
-                            SocketLogItemContent(
-                                entry = item.entry,
-                                searchQuery = searchQuery,
-                                onClick = { onSocketClick(item.entry) },
-                            )
-                        }
-                    }
+                    val entry = lazyItems[index] ?: return@items
+                    val itemKey = "http_${entry.id}"
+                    SwipeableNetworkLogItem(
+                        entry = entry,
+                        searchQuery = searchQuery,
+                        isRevealed = revealedItemId == itemKey,
+                        onReveal = { revealedItemId = itemKey },
+                        onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
+                        onClick = { revealedItemId = null; onHttpClick(entry) },
+                        onCreateRule = { revealedItemId = null; onCreateRule(entry) },
+                        onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
+                    )
                 }
                 if (lazyItems.loadState.append is LoadStateLoading) {
                     item {
@@ -422,6 +407,47 @@ private fun ActivityList(
                         ) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SocketLogList(
+    socketLogs: List<SocketLogEntry>,
+    searchQuery: String,
+    onSocketClick: (SocketLogEntry) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (socketLogs.isEmpty()) {
+        Box(modifier, contentAlignment = Alignment.Center) {
+            Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)
+        }
+    } else {
+        val listState = rememberLazyListState()
+        val scope = rememberCoroutineScope()
+        val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
+
+        LaunchedEffect(socketLogs.size) {
+            if (socketLogs.size > lastItemCount && isAtTop) {
+                scope.launch { listState.scrollToItem(0) }
+            }
+            lastItemCount = socketLogs.size
+        }
+
+        LazyColumn(state = listState, modifier = modifier) {
+            items(
+                count = socketLogs.size,
+                key = { index -> socketLogs[index].id },
+            ) { index ->
+                SocketLogItemContent(
+                    entry = socketLogs[index],
+                    searchQuery = searchQuery,
+                    onClick = { onSocketClick(socketLogs[index]) },
+                )
             }
         }
     }

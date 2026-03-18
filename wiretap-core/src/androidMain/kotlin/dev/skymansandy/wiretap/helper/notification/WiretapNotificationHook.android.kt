@@ -10,7 +10,7 @@ internal actual fun onNetworkEntryLogged(entry: NetworkLogEntry) {
 }
 
 internal actual fun onNetworkLogsCleared() {
-    WiretapNotificationManager.clearAll(WiretapContextProvider.context)
+    WiretapNotificationManager.clearHttpNotifications(WiretapContextProvider.context)
 }
 
 internal actual fun onSocketConnectionLogged(entry: SocketLogEntry) {
@@ -22,5 +22,5 @@ internal actual fun onSocketMessageLogged(entry: SocketLogEntry, message: Socket
 }
 
 internal actual fun onSocketLogsCleared() {
-    WiretapNotificationManager.clearAll(WiretapContextProvider.context)
+    WiretapNotificationManager.clearSocketNotifications(WiretapContextProvider.context)
 }

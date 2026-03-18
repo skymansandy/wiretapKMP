@@ -91,15 +91,26 @@ internal object WiretapNotificationManager {
         postSummaryIfNeeded(context)
     }
 
-    fun clearAll(context: Context) {
+    fun clearHttpNotifications(context: Context) {
         recentHttpEntries.clear()
+        val manager = NotificationManagerCompat.from(context)
+        manager.cancel(HTTP_NOTIFICATION_ID)
+        // Update or cancel summary
+        if (activeSocketNotificationIds.isEmpty()) {
+            manager.cancel(SUMMARY_NOTIFICATION_ID)
+        }
+    }
+
+    fun clearSocketNotifications(context: Context) {
         socketMessages.clear()
         socketEntries.clear()
         val manager = NotificationManagerCompat.from(context)
-        manager.cancel(SUMMARY_NOTIFICATION_ID)
-        manager.cancel(HTTP_NOTIFICATION_ID)
         activeSocketNotificationIds.forEach { manager.cancel(it) }
         activeSocketNotificationIds.clear()
+        // Update or cancel summary
+        if (recentHttpEntries.isEmpty()) {
+            manager.cancel(SUMMARY_NOTIFICATION_ID)
+        }
     }
 
     private fun hasPermission(context: Context): Boolean {

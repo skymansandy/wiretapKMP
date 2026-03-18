@@ -63,6 +63,10 @@ class WiretapOrchestratorImpl(
         return networkRepository.getById(id)
     }
 
+    override fun deleteLog(id: Long) {
+        networkRepository.deleteById(id)
+    }
+
     override fun clearLogs() {
         networkRepository.clearAll()
         onNetworkLogsCleared()

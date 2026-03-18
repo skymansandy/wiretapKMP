@@ -59,4 +59,9 @@ class SocketRepositoryImpl(
         socketDao.deleteAll()
         invalidationSignal.tryEmit(Unit)
     }
+
+    override fun clearClosed() {
+        socketDao.deleteClosed()
+        invalidationSignal.tryEmit(Unit)
+    }
 }

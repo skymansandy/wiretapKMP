@@ -13,6 +13,7 @@ interface WiretapOrchestrator {
     fun getAllLogs(): Flow<List<NetworkLogEntry>>
     fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>>
     fun getLogById(id: Long): NetworkLogEntry?
+    fun deleteLog(id: Long)
     fun clearLogs()
 
     // Socket

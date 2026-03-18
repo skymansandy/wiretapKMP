@@ -16,4 +16,5 @@ interface SocketRepository {
     fun getAll(): Flow<List<SocketLogEntry>>
     fun getPagedConnections(query: String): Flow<PagingData<SocketLogEntry>>
     fun clearAll()
+    fun clearClosed()
 }
