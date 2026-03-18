@@ -14,22 +14,33 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketContentType
+import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 internal object WiretapNotificationManager {
 
     private const val CHANNEL_ID = "wiretap_network_traffic"
-    private const val NOTIFICATION_ID = 9000
+    private const val GROUP_KEY = "wiretap_traffic"
+    private const val SUMMARY_NOTIFICATION_ID = 9000
+    private const val HTTP_NOTIFICATION_ID = 9001
+    private const val SOCKET_NOTIFICATION_ID_BASE = 10000
     private const val MAX_ENTRIES = 6
+    private const val MAX_SOCKET_MESSAGES = 6
 
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
+    internal const val EXTRA_SOCKET_ID = "wiretap_socket_id"
 
-    private sealed interface RecentEntry {
-        data class Http(val entry: NetworkLogEntry) : RecentEntry
-        data class Socket(val entry: SocketLogEntry) : RecentEntry
-    }
+    private val recentHttpEntries = mutableListOf<NetworkLogEntry>()
 
-    private val recentEntries = mutableListOf<RecentEntry>()
+    // Per-socket recent messages: socketId -> list of formatted message strings
+    private val socketMessages = mutableMapOf<Long, MutableList<String>>()
+    // Socket entries for status tracking
+    private val socketEntries = mutableMapOf<Long, SocketLogEntry>()
+    // Track active socket notification IDs for cleanup
+    private val activeSocketNotificationIds = mutableSetOf<Int>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -47,35 +58,48 @@ internal object WiretapNotificationManager {
 
     fun onNewEntry(context: Context, entry: NetworkLogEntry) {
         if (!hasPermission(context)) return
-        val existingIndex = recentEntries.indexOfFirst {
-            it is RecentEntry.Http && it.entry.id == entry.id
-        }
+        val existingIndex = recentHttpEntries.indexOfFirst { it.id == entry.id }
         if (existingIndex >= 0) {
-            recentEntries[existingIndex] = RecentEntry.Http(entry)
+            recentHttpEntries[existingIndex] = entry
         } else {
-            if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
-            recentEntries.addLast(RecentEntry.Http(entry))
+            if (recentHttpEntries.size >= MAX_ENTRIES) recentHttpEntries.removeFirst()
+            recentHttpEntries.addLast(entry)
         }
-        postNotifications(context)
+        postHttpNotification(context)
+        postSummaryIfNeeded(context)
     }
 
     fun onNewSocketEntry(context: Context, entry: SocketLogEntry) {
         if (!hasPermission(context)) return
-        val existingIndex = recentEntries.indexOfFirst {
-            it is RecentEntry.Socket && it.entry.id == entry.id
+        socketEntries[entry.id] = entry
+
+        // Update socket message notification with latest status (ongoing/closed)
+        val messages = socketMessages[entry.id]
+        if (messages != null) {
+            postSocketMessageNotification(context, entry, messages)
         }
-        if (existingIndex >= 0) {
-            recentEntries[existingIndex] = RecentEntry.Socket(entry)
-        } else {
-            if (recentEntries.size >= MAX_ENTRIES) recentEntries.removeFirst()
-            recentEntries.addLast(RecentEntry.Socket(entry))
-        }
-        postNotifications(context)
+        postSummaryIfNeeded(context)
+    }
+
+    fun onNewSocketMessage(context: Context, entry: SocketLogEntry, message: SocketMessage) {
+        if (!hasPermission(context)) return
+        socketEntries[entry.id] = entry
+        val messages = socketMessages.getOrPut(entry.id) { mutableListOf() }
+        if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeFirst()
+        messages.addLast(formatSocketMessage(message))
+        postSocketMessageNotification(context, entry, messages)
+        postSummaryIfNeeded(context)
     }
 
     fun clearAll(context: Context) {
-        recentEntries.clear()
-        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+        recentHttpEntries.clear()
+        socketMessages.clear()
+        socketEntries.clear()
+        val manager = NotificationManagerCompat.from(context)
+        manager.cancel(SUMMARY_NOTIFICATION_ID)
+        manager.cancel(HTTP_NOTIFICATION_ID)
+        activeSocketNotificationIds.forEach { manager.cancel(it) }
+        activeSocketNotificationIds.clear()
     }
 
     private fun hasPermission(context: Context): Boolean {
@@ -86,43 +110,117 @@ internal object WiretapNotificationManager {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun formatEntry(recent: RecentEntry): String = when (recent) {
-        is RecentEntry.Http -> {
-            val entry = recent.entry
-            val status = when {
-                entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
-                entry.responseCode > 0 -> entry.responseCode.toString()
-                entry.responseCode == -1 -> "!!!"
-                else -> "ERR"
-            }
-            "${entry.method}  $status  ${entry.url}"
+    private fun formatHttpEntry(entry: NetworkLogEntry): String {
+        val status = when {
+            entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
+            entry.responseCode > 0 -> entry.responseCode.toString()
+            entry.responseCode == -1 -> "!!!"
+            else -> "ERR"
         }
-        is RecentEntry.Socket -> {
-            val entry = recent.entry
-            "WS  ${entry.status.name}  ${entry.url}  (${entry.messageCount} msgs)"
-        }
+        return "${entry.method}  $status  ${entry.url}"
     }
 
-    private fun postNotifications(context: Context) {
-        if (recentEntries.isEmpty()) return
-
-        val inboxStyle = NotificationCompat.InboxStyle()
-            .setBigContentTitle("View network traffic")
-        recentEntries.forEach { entry ->
-            inboxStyle.addLine(formatEntry(entry))
+    private fun formatSocketMessage(message: SocketMessage): String {
+        val direction = if (message.direction == SocketMessageDirection.SENT) "\u2191" else "\u2193"
+        val content = if (message.contentType == SocketContentType.BINARY) {
+            "[Binary: ${message.byteCount} B]"
+        } else {
+            message.content.take(100)
         }
+        return "$direction $content"
+    }
 
+    private fun socketUrlDisplay(url: String): String {
+        val afterScheme = url.substringAfter("://")
+        val host = afterScheme.substringBefore("/").substringBefore("?")
+        val path = afterScheme.removePrefix(host).ifEmpty { "/" }
+        return "$host$path"
+    }
+
+    private fun socketNotificationId(socketId: Long): Int =
+        SOCKET_NOTIFICATION_ID_BASE + (socketId % 1000).toInt()
+
+    /**
+     * Posts the group summary. Only needed when there are multiple child notifications
+     * (HTTP + at least one socket). Without children, the HTTP notification shows standalone.
+     */
+    private fun postSummaryIfNeeded(context: Context) {
+        if (activeSocketNotificationIds.isEmpty() || recentHttpEntries.isEmpty()) return
+
+        val total = recentHttpEntries.size + socketEntries.size
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_dialog_info)
-            .setContentTitle("View network traffic")
-            .setContentText(formatEntry(recentEntries.last()))
-            .setStyle(inboxStyle)
+            .setContentTitle("Wiretap")
+            .setContentText("$total active connections")
             .setOnlyAlertOnce(true)
+            .setGroup(GROUP_KEY)
+            .setGroupSummary(true)
             .setContentIntent(openWiretapIntent(context))
             .addAction(0, "Clear logs", clearLogsIntent(context))
             .build()
 
-        NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
+        NotificationManagerCompat.from(context).notify(SUMMARY_NOTIFICATION_ID, notification)
+    }
+
+    /**
+     * Single notification for all HTTP traffic, shown as InboxStyle with recent entries.
+     * When socket notifications exist, this becomes a child in the group.
+     */
+    private fun postHttpNotification(context: Context) {
+        if (recentHttpEntries.isEmpty()) return
+
+        val inboxStyle = NotificationCompat.InboxStyle()
+            .setBigContentTitle("View network traffic")
+        recentHttpEntries.forEach { entry ->
+            inboxStyle.addLine(formatHttpEntry(entry))
+        }
+
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_dialog_info)
+            .setContentTitle("View network traffic")
+            .setContentText(formatHttpEntry(recentHttpEntries.last()))
+            .setStyle(inboxStyle)
+            .setOnlyAlertOnce(true)
+            .setGroup(GROUP_KEY)
+            .setContentIntent(openWiretapIntent(context))
+            .addAction(0, "Clear logs", clearLogsIntent(context))
+
+        NotificationManagerCompat.from(context).notify(HTTP_NOTIFICATION_ID, builder.build())
+    }
+
+    private fun postSocketMessageNotification(
+        context: Context,
+        entry: SocketLogEntry,
+        messages: List<String>,
+    ) {
+        val notificationId = socketNotificationId(entry.id)
+        activeSocketNotificationIds.add(notificationId)
+
+        val urlDisplay = socketUrlDisplay(entry.url)
+        val statusLabel = entry.status.name
+        val title = "WS $urlDisplay [$statusLabel]"
+
+        val isActive = entry.status == SocketStatus.OPEN || entry.status == SocketStatus.CONNECTING
+
+        val inboxStyle = NotificationCompat.InboxStyle()
+            .setBigContentTitle(title)
+        messages.forEach { inboxStyle.addLine(it) }
+        if (entry.messageCount > messages.size) {
+            inboxStyle.setSummaryText("${entry.messageCount} messages total")
+        }
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_dialog_info)
+            .setContentTitle(title)
+            .setContentText(messages.lastOrNull() ?: "No messages")
+            .setStyle(inboxStyle)
+            .setOnlyAlertOnce(true)
+            .setOngoing(isActive)
+            .setGroup(GROUP_KEY)
+            .setContentIntent(openSocketDetailIntent(context, entry.id))
+            .build()
+
+        NotificationManagerCompat.from(context).notify(notificationId, notification)
     }
 
     private fun openWiretapIntent(context: Context): PendingIntent =
@@ -131,6 +229,17 @@ internal object WiretapNotificationManager {
             0,
             Intent(context, WiretapConsoleActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            },
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+    private fun openSocketDetailIntent(context: Context, socketId: Long): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            socketId.toInt(),
+            Intent(context, WiretapConsoleActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(EXTRA_SOCKET_ID, socketId)
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
