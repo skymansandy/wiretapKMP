@@ -1,8 +1,11 @@
 package dev.skymansandy.wiretap.okhttp
 
+import dev.skymansandy.wiretap.config.WiretapConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class WiretapOkHttpInterceptor : Interceptor {
+class WiretapOkHttpInterceptor(
+    configure: WiretapConfig.() -> Unit = {},
+) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(chain.request())
 }

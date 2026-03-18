@@ -1,5 +1,8 @@
 package dev.skymansandy.wiretap.plugin
 
+import dev.skymansandy.wiretap.config.LogRetention
+import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.config.applyHeaderAction
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
@@ -38,9 +41,11 @@ private val MatchedRuleKey = AttributeKey<WiretapRule>("WiretapMatchedRule")
 private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
 
 @OptIn(InternalAPI::class)
-val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
+val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
+    val config = pluginConfig
     val deps = WiretapDeps()
+    var sessionInitialized = false
 
     onRequest { request, _ ->
         request.attributes.put(RequestTimestampKey, currentTimeMillis())
@@ -48,6 +53,16 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
     }
 
     on(Send) { request ->
+        if (!config.enabled) return@on proceed(request)
+
+        // AppSession: clear all previous logs once per plugin installation
+        if (!sessionInitialized) {
+            sessionInitialized = true
+            if (config.logRetention == LogRetention.AppSession) {
+                deps.orchestrator.clearLogs()
+            }
+        }
+
         // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
         val upgradeHeader = request.headers.getAll("Upgrade")
         val isWebSocketUpgrade = upgradeHeader?.any { it.equals("websocket", ignoreCase = true) } == true
@@ -72,17 +87,30 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
 
-        // Log request immediately so it appears in the UI
-        val logEntryId = deps.orchestrator.logRequest(
-            NetworkLogEntry(
-                url = url,
-                method = method,
-                requestHeaders = requestHeaders,
-                requestBody = requestBody,
-                timestamp = currentTimeMillis(),
-            ),
-        )
-        request.attributes.put(LogEntryIdKey, logEntryId)
+        // Days retention: prune old entries before each new capture
+        val retention = config.logRetention
+        if (retention is LogRetention.Days) {
+            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
+            deps.orchestrator.purgeLogsOlderThan(cutoff)
+        }
+
+        // Log request immediately so it appears in the UI (gated by shouldLog)
+        val logEntryId = if (config.shouldLog(url, method)) {
+            deps.orchestrator.logRequest(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = requestBody,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        } else {
+            -1L
+        }
+        if (logEntryId >= 0) {
+            request.attributes.put(LogEntryIdKey, logEntryId)
+        }
 
         try {
             when (matchingRule?.action) {
@@ -107,33 +135,33 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                             headers = mockHeaders,
                             version = HttpProtocolVersion.HTTP_1_1,
                             body = ByteReadChannel(responseBody),
-                            // Standalone Job so the channel's lifecycle is not tied to the
-                            // on(Send) block's coroutine context, preventing "parent job is
-                            // completed" when Ktor processes the mock response afterward.
                             callContext = coroutineContext + Job(),
                         ),
                     )
 
-                    val startNano =
-                        request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
-                    val durationNs = currentNanoTime() - startNano
-                    deps.orchestrator.updateEntry(
-                        NetworkLogEntry(
-                            id = logEntryId,
-                            url = url,
-                            method = method,
-                            requestHeaders = requestHeaders,
-                            requestBody = requestBody,
-                            responseCode = statusCode.value,
-                            responseHeaders = matchingRule.mockResponseHeaders ?: emptyMap(),
-                            responseBody = matchingRule.mockResponseBody,
-                            durationMs = durationNs / 1_000_000,
-                            durationNs = durationNs,
-                            source = ResponseSource.MOCK,
-                            timestamp = currentTimeMillis(),
-                            matchedRuleId = matchingRule.id,
-                        ),
-                    )
+                    if (logEntryId >= 0) {
+                        val startNano =
+                            request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+                        val durationNs = currentNanoTime() - startNano
+                        val mockRespHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
+                        deps.orchestrator.updateEntry(
+                            NetworkLogEntry(
+                                id = logEntryId,
+                                url = url,
+                                method = method,
+                                requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                                requestBody = requestBody,
+                                responseCode = statusCode.value,
+                                responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
+                                responseBody = matchingRule.mockResponseBody,
+                                durationMs = durationNs / 1_000_000,
+                                durationNs = durationNs,
+                                source = ResponseSource.MOCK,
+                                timestamp = currentTimeMillis(),
+                                matchedRuleId = matchingRule.id,
+                            ),
+                        )
+                    }
 
                     call
                 }
@@ -149,25 +177,27 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                 else -> proceed(request)
             }
         } catch (e: Exception) {
-            val startNano =
-                request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
-            val durationNs = currentNanoTime() - startNano
-            deps.orchestrator.updateEntry(
-                NetworkLogEntry(
-                    id = logEntryId,
-                    url = url,
-                    method = method,
-                    requestHeaders = requestHeaders,
-                    requestBody = requestBody,
-                    responseCode = if (e is CancellationException) -1 else 0,
-                    responseHeaders = emptyMap(),
-                    responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                    durationMs = durationNs / 1_000_000,
-                    durationNs = durationNs,
-                    source = ResponseSource.NETWORK,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
+            if (logEntryId >= 0) {
+                val startNano =
+                    request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+                val durationNs = currentNanoTime() - startNano
+                deps.orchestrator.updateEntry(
+                    NetworkLogEntry(
+                        id = logEntryId,
+                        url = url,
+                        method = method,
+                        requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody,
+                        responseCode = if (e is CancellationException) -1 else 0,
+                        responseHeaders = emptyMap(),
+                        responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                        durationMs = durationNs / 1_000_000,
+                        durationNs = durationNs,
+                        source = ResponseSource.NETWORK,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
             throw e
         }
     }
@@ -212,10 +242,10 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin") {
                 id = logEntryId,
                 url = url,
                 method = method,
-                requestHeaders = requestHeaders,
+                requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
                 requestBody = null,
                 responseCode = response.status.value,
-                responseHeaders = responseHeaders,
+                responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
                 responseBody = responseBody,
                 durationMs = durationMs,
                 durationNs = durationNs,

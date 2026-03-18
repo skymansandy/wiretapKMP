@@ -1,34 +1,55 @@
 package dev.skymansandy.wiretap.config
 
-import kotlin.time.Duration
+/**
+ * Configuration for Wiretap network inspection plugins.
+ *
+ * Each plugin (Ktor, OkHttp, NSURLSession) accepts this config at installation/construction time.
+ * All properties are mutable so the class can be used directly as a Ktor DSL config block.
+ *
+ * Example — Ktor DSL:
+ * ```kotlin
+ * install(WiretapKtorPlugin) {
+ *     shouldLog = { url, _ -> url.contains("/api/") }
+ *     headerAction = { key ->
+ *         when {
+ *             key.equals("Authorization", ignoreCase = true) -> HeaderAction.Mask()
+ *             key.equals("Cookie", ignoreCase = true) -> HeaderAction.Skip
+ *             else -> HeaderAction.Keep
+ *         }
+ *     }
+ *     logRetention = LogRetention.Days(7)
+ * }
+ * ```
+ *
+ * Example — OkHttp / NSURLSession builder:
+ * ```kotlin
+ * WiretapOkHttpInterceptor {
+ *     enabled = false
+ * }
+ * ```
+ */
+class WiretapConfig {
 
-data class WiretapConfig(
-    val enabled: Boolean = true,
-    val loggingEnabled: Boolean = true,
+    /** Master switch. When `false`, the plugin passes requests through without any logging. */
+    var enabled: Boolean = true
 
     /**
-     * Composable request filters. Only requests matching ALL filters are captured.
-     * An empty list (default) captures everything.
-     *
-     * @see RequestFilter
+     * Return `true` to capture the request, `false` to skip it entirely.
+     * Evaluated before any DB write. Defaults to capturing everything.
      */
-    val requestFilters: List<RequestFilter> = emptyList(),
+    var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
 
     /**
-     * Header sanitization rules applied to stored/displayed log data.
-     * Original request/response objects are never mutated.
-     *
-     * @see HeaderSanitizationRule
+     * Called for every header key in both request and response before logging.
+     * Return the desired [HeaderAction] for that key. Defaults to [HeaderAction.Keep].
+     * The original request/response objects are never mutated.
      */
-    val headerSanitizationRules: List<HeaderSanitizationRule> = emptyList(),
+    var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }
 
     /**
-     * How long to retain log entries. Entries older than this duration are deleted
-     * automatically on each new request capture. `null` (default) means no expiry.
-     *
-     * Cleanup uses a timestamp index — no full table scans.
-     *
-     * Example: `logRetentionDuration = 24.hours`
+     * How long log entries are retained. Defaults to [LogRetention.Forever].
+     * [LogRetention.AppSession] clears all existing logs when the plugin first initializes.
+     * [LogRetention.Days] prunes entries older than N days on each new capture.
      */
-    val logRetentionDuration: Duration? = null,
-)
+    var logRetention: LogRetention = LogRetention.Forever
+}

@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.urlsession
 
+import dev.skymansandy.wiretap.config.WiretapConfig
 import platform.Foundation.NSData
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
@@ -16,6 +17,7 @@ import platform.Foundation.dataTaskWithRequest
  */
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
+    configure: WiretapConfig.() -> Unit = {},
 ) {
 
     companion object {

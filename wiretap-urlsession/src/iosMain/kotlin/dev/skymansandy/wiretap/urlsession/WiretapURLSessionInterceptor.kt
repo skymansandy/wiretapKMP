@@ -1,5 +1,8 @@
 package dev.skymansandy.wiretap.urlsession
 
+import dev.skymansandy.wiretap.config.LogRetention
+import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.config.applyHeaderAction
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
@@ -16,50 +19,57 @@ import kotlinx.cinterop.usePinned
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import platform.Foundation.HTTPBody
+import platform.Foundation.HTTPMethod
 import platform.Foundation.NSData
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSString
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.Foundation.NSURLResponse
 import platform.Foundation.NSURLSession
 import platform.Foundation.NSURLSessionDataTask
-import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.HTTPBody
-import platform.Foundation.HTTPMethod
 import platform.Foundation.allHTTPHeaderFields
 import platform.Foundation.create
 import platform.Foundation.dataTaskWithRequest
-import platform.Foundation.dataUsingEncoding
 import platform.darwin.DISPATCH_TIME_NOW
 import platform.darwin.dispatch_after
 import platform.darwin.dispatch_get_global_queue
 import platform.darwin.dispatch_time
+import kotlin.concurrent.Volatile
 
 /**
  * URLSession interceptor for Wiretap network inspection on iOS.
  *
+ * Configuration is applied via a builder lambda:
+ * ```swift
+ * // Swift (via SKIE)
+ * let interceptor = WiretapURLSessionInterceptor(session: .shared) {
+ *     $0.shouldLog = { url, method in url.contains("/api/") }
+ *     $0.logRetention = LogRetention.Days(days: 7)
+ * }
+ * ```
+ *
  * Provides two APIs:
  * - [intercept]: Fire-and-forget execution with full mock/throttle rule support.
  * - [dataTask]: Returns an NSURLSessionDataTask with logging (no mock/throttle).
- *
- * Usage from Swift (with SKIE):
- * ```swift
- * let interceptor = WiretapURLSessionInterceptor(session: .shared)
- * interceptor.intercept(request: myRequest) { data, response, error in
- *     // Handle response — automatically logged by Wiretap
- * }
- * ```
  */
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
+    configure: WiretapConfig.() -> Unit = {},
 ) : KoinComponent {
+
+    private val config = WiretapConfig().apply(configure)
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
     private val ruleRepository: RuleRepository by inject()
+
+    @Volatile
+    private var sessionInitialized = false
 
     companion object {
         val shared by lazy { WiretapURLSessionInterceptor() }
@@ -75,6 +85,15 @@ class WiretapURLSessionInterceptor(
         request: NSURLRequest,
         completionHandler: (NSData?, NSHTTPURLResponse?, NSError?) -> Unit,
     ) {
+        if (!config.enabled) {
+            session.dataTaskWithRequest(request) { data, response, error ->
+                completionHandler(data, response as? NSHTTPURLResponse, error)
+            }.resume()
+            return
+        }
+
+        initSessionIfNeeded()
+
         val url = request.URL?.absoluteString ?: ""
         val method = request.HTTPMethod ?: "GET"
         val startNano = currentNanoTime()
@@ -84,15 +103,24 @@ class WiretapURLSessionInterceptor(
 
         val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
 
-        val logEntryId = orchestrator.logRequest(
-            NetworkLogEntry(
-                url = url,
-                method = method,
-                requestHeaders = reqHeaders,
-                requestBody = requestBody,
-                timestamp = currentTimeMillis(),
-            ),
-        )
+        if (config.logRetention is LogRetention.Days) {
+            val cutoff = currentTimeMillis() - config.logRetention.days * 24L * 60 * 60 * 1000
+            orchestrator.purgeLogsOlderThan(cutoff)
+        }
+
+        val logEntryId = if (config.shouldLog(url, method)) {
+            orchestrator.logRequest(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = requestBody,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        } else {
+            -1L
+        }
 
         if (matchingRule?.action == RuleAction.MOCK) {
             handleMockResponse(
@@ -107,10 +135,12 @@ class WiretapURLSessionInterceptor(
                 val durationNs = currentNanoTime() - startNano
                 val httpResponse = response as? NSHTTPURLResponse
 
-                logResponse(
-                    logEntryId, url, method, reqHeaders, requestBody,
-                    httpResponse, data, error, durationNs, matchingRule,
-                )
+                if (logEntryId >= 0) {
+                    logResponse(
+                        logEntryId, url, method, reqHeaders, requestBody,
+                        httpResponse, data, error, durationNs, matchingRule,
+                    )
+                }
 
                 completionHandler(data, httpResponse, error)
             }.resume()
@@ -143,6 +173,12 @@ class WiretapURLSessionInterceptor(
         request: NSURLRequest,
         completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
     ): NSURLSessionDataTask {
+        if (!config.enabled) {
+            return session.dataTaskWithRequest(request, completionHandler)
+        }
+
+        initSessionIfNeeded()
+
         val url = request.URL?.absoluteString ?: ""
         val method = request.HTTPMethod ?: "GET"
         val startNano = currentNanoTime()
@@ -150,24 +186,30 @@ class WiretapURLSessionInterceptor(
         val reqHeaders = extractRequestHeaders(request)
         val requestBody = request.HTTPBody?.toKotlinString()
 
-        val logEntryId = orchestrator.logRequest(
-            NetworkLogEntry(
-                url = url,
-                method = method,
-                requestHeaders = reqHeaders,
-                requestBody = requestBody,
-                timestamp = currentTimeMillis(),
-            ),
-        )
+        val logEntryId = if (config.shouldLog(url, method)) {
+            orchestrator.logRequest(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = requestBody,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        } else {
+            -1L
+        }
 
         return session.dataTaskWithRequest(request) { data, response, error ->
             val durationNs = currentNanoTime() - startNano
             val httpResponse = response as? NSHTTPURLResponse
 
-            logResponse(
-                logEntryId, url, method, reqHeaders, requestBody,
-                httpResponse, data, error, durationNs, null,
-            )
+            if (logEntryId >= 0) {
+                logResponse(
+                    logEntryId, url, method, reqHeaders, requestBody,
+                    httpResponse, data, error, durationNs, null,
+                )
+            }
 
             completionHandler(data, response, error)
         }
@@ -183,6 +225,15 @@ class WiretapURLSessionInterceptor(
         val nsUrl = NSURL.URLWithString(url)!!
         val request = NSURLRequest.requestWithURL(nsUrl)
         return dataTask(request, completionHandler)
+    }
+
+    private fun initSessionIfNeeded() {
+        if (!sessionInitialized) {
+            sessionInitialized = true
+            if (config.logRetention == LogRetention.AppSession) {
+                orchestrator.clearLogs()
+            }
+        }
     }
 
     @OptIn(BetaInteropApi::class)
@@ -201,28 +252,29 @@ class WiretapURLSessionInterceptor(
         val mockHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
         val mockBody = matchingRule.mockResponseBody
 
-        orchestrator.updateEntry(
-            NetworkLogEntry(
-                id = logEntryId,
-                url = url,
-                method = method,
-                requestHeaders = reqHeaders,
-                requestBody = requestBody,
-                responseCode = mockCode,
-                responseHeaders = mockHeaders,
-                responseBody = mockBody,
-                durationMs = durationNs / 1_000_000,
-                durationNs = durationNs,
-                source = ResponseSource.MOCK,
-                timestamp = currentTimeMillis(),
-                matchedRuleId = matchingRule.id,
-            ),
-        )
-
-        val mockData = mockBody?.let {
-            it.encodeToByteArray().toNSData()
+        if (logEntryId >= 0) {
+            orchestrator.updateEntry(
+                NetworkLogEntry(
+                    id = logEntryId,
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = requestBody,
+                    responseCode = mockCode,
+                    responseHeaders = mockHeaders.applyHeaderAction(config.headerAction),
+                    responseBody = mockBody,
+                    durationMs = durationNs / 1_000_000,
+                    durationNs = durationNs,
+                    source = ResponseSource.MOCK,
+                    timestamp = currentTimeMillis(),
+                    matchedRuleId = matchingRule.id,
+                ),
+            )
         }
+
+        val mockData = mockBody?.let { it.encodeToByteArray().toNSData() }
         val nsUrl = NSURL.URLWithString(url)!!
+
         @Suppress("UNCHECKED_CAST")
         val mockResponse = NSHTTPURLResponse(
             nsUrl,
@@ -265,10 +317,10 @@ class WiretapURLSessionInterceptor(
                 id = logEntryId,
                 url = url,
                 method = method,
-                requestHeaders = reqHeaders,
+                requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
                 requestBody = requestBody,
                 responseCode = responseCode,
-                responseHeaders = responseHeaders,
+                responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
                 responseBody = responseBody,
                 durationMs = durationNs / 1_000_000,
                 durationNs = durationNs,

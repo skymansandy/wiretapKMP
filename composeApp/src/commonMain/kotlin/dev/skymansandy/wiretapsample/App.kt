@@ -53,6 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.config.HeaderAction
+import dev.skymansandy.wiretap.config.LogRetention
 import dev.skymansandy.wiretap.helper.notification.enableLaunchTool
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
 import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
@@ -171,9 +173,13 @@ fun App() {
         val client = remember {
             HttpClient {
                 install(WebSockets)
-                install(WiretapKtorPlugin)
                 install(WiretapKtorWebSocketPlugin)
                 install(HttpTimeout)
+                install(WiretapKtorPlugin) {
+//                    logRetention = LogRetention.AppSession
+//                    shouldLog = { url, _ -> url.contains("/get") }
+//                    headerAction = { if(it == "server") HeaderAction.Mask("xxx") else HeaderAction.Keep }
+                }
             }
         }
         var selectedTab by remember { mutableIntStateOf(0) }

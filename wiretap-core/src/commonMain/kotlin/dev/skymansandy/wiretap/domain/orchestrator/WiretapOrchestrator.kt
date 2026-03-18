@@ -15,6 +15,7 @@ interface WiretapOrchestrator {
     fun getLogById(id: Long): NetworkLogEntry?
     fun deleteLog(id: Long)
     fun clearLogs()
+    fun purgeLogsOlderThan(cutoffMs: Long)
 
     // Socket
     fun openSocketConnection(entry: SocketLogEntry): Long

@@ -11,7 +11,6 @@ val wiretapModule = module {
 
     single<WiretapOrchestrator> {
         WiretapOrchestratorImpl(
-            config = get(),
             networkRepository = get(),
             socketRepository = get(),
             networkLogger = get(),
