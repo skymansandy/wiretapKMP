@@ -1,8 +1,10 @@
 package dev.skymansandy.wiretap.engine
 
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.WiretapResponse
 import io.ktor.client.request.*
+import kotlinx.coroutines.delay
 
 interface ThrottleEngine {
     suspend fun execute(
@@ -10,4 +12,22 @@ interface ThrottleEngine {
         rule: WiretapRule,
         proceed: suspend () -> WiretapResponse,
     ): WiretapResponse
+}
+
+class ThrottleEngineImpl : ThrottleEngine {
+
+    override suspend fun execute(
+        request: HttpRequestBuilder,
+        rule: WiretapRule,
+        proceed: suspend () -> WiretapResponse,
+    ): WiretapResponse {
+        val minDelay = rule.throttleDelayMs ?: 0L
+        val maxDelay = rule.throttleDelayMaxMs ?: minDelay
+        val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
+        if (delayMs > 0) {
+            delay(delayMs)
+        }
+        val response = proceed()
+        return response.copy(source = ResponseSource.THROTTLE)
+    }
 }

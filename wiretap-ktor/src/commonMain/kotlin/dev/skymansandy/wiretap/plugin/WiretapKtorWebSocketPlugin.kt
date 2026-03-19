@@ -52,9 +52,7 @@ val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
         // Only intercept WebSocket upgrades (status 101)
         if (response.status.value != 101) return@onResponse
 
-        val url = response.call.request.url.toString()
-            .replaceFirst("http://", "ws://")
-            .replaceFirst("https://", "wss://")
+        val url = response.call.request.url.toString().toWebSocketUrl()
         val requestHeaders = response.call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
 
@@ -93,9 +91,7 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
     val actualSocketId = if (socketId != null && socketId >= 0) {
         socketId
     } else {
-        val url = call.request.url.toString()
-            .replaceFirst("http://", "ws://")
-            .replaceFirst("https://", "wss://")
+        val url = call.request.url.toString().toWebSocketUrl()
         val requestHeaders = call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
         deps.orchestrator.openSocketConnection(
@@ -135,9 +131,7 @@ class WiretapWebSocketSession internal constructor(
         delegate.coroutineContext[Job]?.invokeOnCompletion { cause ->
             if (statusUpdated) return@invokeOnCompletion
             statusUpdated = true
-            val url = delegate.call.request.url.toString()
-                .replaceFirst("http://", "ws://")
-                .replaceFirst("https://", "wss://")
+            val url = delegate.call.request.url.toString().toWebSocketUrl()
             if (cause != null && cause !is CancellationException) {
                 orchestrator.updateSocketConnection(
                     SocketLogEntry(
@@ -286,6 +280,10 @@ class WiretapWebSocketSession internal constructor(
         )
     }
 }
+
+private fun String.toWebSocketUrl(): String =
+    replaceFirst("http://", "ws://")
+        .replaceFirst("https://", "wss://")
 
 private class WsPluginDeps : KoinComponent {
     override fun getKoin(): Koin = WiretapDi.getKoin()
