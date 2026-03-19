@@ -25,6 +25,7 @@ import kotlinx.coroutines.Job
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.concurrent.Volatile
 
 /**
  * Ktor client plugin that intercepts WebSocket sessions to log

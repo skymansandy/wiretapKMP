@@ -37,7 +37,19 @@ struct ApiAction: Identifiable {
 struct ContentView: View {
     @State private var statusLog = "Ready. Tap a button to make a request."
 
-    private let interceptor = WiretapURLSessionInterceptor.companion.shared
+    private let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+        config.enabled = true
+        config.logRetention = LogRetention.Days(days: 7)
+        config.headerAction = { key in
+            if key.caseInsensitiveCompare("Authorization") == .orderedSame {
+                return HeaderAction.Mask(mask: "***")
+            }
+            return HeaderAction.Keep.shared
+        }
+        config.shouldLog = { url, method in
+            return KotlinBoolean(value: true)
+        }
+    }
 
     private var apiActions: [ApiAction] {
         [
@@ -200,7 +212,7 @@ struct ContentView: View {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 6
         let session = URLSession(configuration: config)
-        let timeoutInterceptor = WiretapURLSessionInterceptor(session: session)
+        let timeoutInterceptor = WiretapURLSessionInterceptor(session: session) { _ in }
 
         let request = NSMutableURLRequest(url: url as URL)
         request.httpMethod = "GET"

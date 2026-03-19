@@ -110,6 +110,10 @@ class NetworkDaoImpl(
         queries.deleteNetworkLogById(id)
     }
 
+    override fun deleteOlderThan(timestamp: Long) {
+        queries.deleteNetworkLogsOlderThan(timestamp)
+    }
+
     private fun NetworkLogEntity.toDomain(): NetworkLogEntry {
         return NetworkLogEntry(
             id = id,

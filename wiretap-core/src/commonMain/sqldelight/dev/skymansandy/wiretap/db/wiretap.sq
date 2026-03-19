@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     certificate_expiry TEXT
 );
 
+CREATE INDEX IF NOT EXISTS idx_network_log_timestamp ON NetworkLogEntity (timestamp);
+
 CREATE TABLE IF NOT EXISTS RuleEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     method TEXT NOT NULL DEFAULT "*",
@@ -74,6 +76,9 @@ DELETE FROM NetworkLogEntity;
 
 deleteNetworkLogById:
 DELETE FROM NetworkLogEntity WHERE id = ?;
+
+deleteNetworkLogsOlderThan:
+DELETE FROM NetworkLogEntity WHERE timestamp < ?;
 
 getNetworkLogsPage:
 SELECT * FROM NetworkLogEntity

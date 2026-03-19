@@ -1,7 +1,6 @@
 package dev.skymansandy.wiretap.di
 
 import app.cash.sqldelight.db.SqlDriver
-import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.data.db.dao.NetworkDao
 import dev.skymansandy.wiretap.data.db.dao.NetworkDaoImpl
 import dev.skymansandy.wiretap.data.db.dao.RuleDao
@@ -19,10 +18,6 @@ import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import org.koin.dsl.module
 
 val wiretapDataModule = module {
-
-    single<WiretapConfig> {
-        WiretapConfig()
-    }
 
     single<SqlDriver> {
         DriverFactory().createDriver()

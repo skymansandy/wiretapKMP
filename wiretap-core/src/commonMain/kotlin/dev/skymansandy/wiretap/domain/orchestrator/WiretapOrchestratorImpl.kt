@@ -1,7 +1,6 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
@@ -16,7 +15,6 @@ import dev.skymansandy.wiretap.helper.notification.onSocketMessageLogged
 import kotlinx.coroutines.flow.Flow
 
 class WiretapOrchestratorImpl(
-    private val config: WiretapConfig,
     private val networkRepository: NetworkRepository,
     private val socketRepository: SocketRepository,
     private val networkLogger: NetworkLogger,
@@ -26,31 +24,22 @@ class WiretapOrchestratorImpl(
     private val activeConnections = mutableMapOf<Long, SocketLogEntry>()
 
     override fun logEntry(entry: NetworkLogEntry) {
-        if (!config.enabled) return
         networkRepository.save(entry)
-        if (config.loggingEnabled) {
-            networkLogger.log(entry)
-        }
+        networkLogger.log(entry)
         onNetworkEntryLogged(entry)
     }
 
     override fun logRequest(entry: NetworkLogEntry): Long {
-        if (!config.enabled) return -1
         val id = networkRepository.saveAndGetId(entry)
         val entryWithId = entry.copy(id = id)
-        if (config.loggingEnabled) {
-            networkLogger.log(entryWithId)
-        }
+        networkLogger.log(entryWithId)
         onNetworkEntryLogged(entryWithId)
         return id
     }
 
     override fun updateEntry(entry: NetworkLogEntry) {
-        if (!config.enabled) return
         networkRepository.update(entry)
-        if (config.loggingEnabled) {
-            networkLogger.log(entry)
-        }
+        networkLogger.log(entry)
         onNetworkEntryLogged(entry)
     }
 
@@ -59,9 +48,7 @@ class WiretapOrchestratorImpl(
     override fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>> =
         networkRepository.getPagedLogs(query)
 
-    override fun getLogById(id: Long): NetworkLogEntry? {
-        return networkRepository.getById(id)
-    }
+    override fun getLogById(id: Long): NetworkLogEntry? = networkRepository.getById(id)
 
     override fun deleteLog(id: Long) {
         networkRepository.deleteById(id)
@@ -72,37 +59,33 @@ class WiretapOrchestratorImpl(
         onNetworkLogsCleared()
     }
 
+    override fun purgeLogsOlderThan(cutoffMs: Long) {
+        networkRepository.deleteOlderThan(cutoffMs)
+    }
+
     // Socket
 
     override fun openSocketConnection(entry: SocketLogEntry): Long {
-        if (!config.enabled) return -1
         val id = socketRepository.openConnection(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
-        if (config.loggingEnabled) {
-            networkLogger.logSocket(entryWithId)
-        }
+        networkLogger.logSocket(entryWithId)
         onSocketConnectionLogged(entryWithId)
         return id
     }
 
     override fun updateSocketConnection(entry: SocketLogEntry) {
-        if (!config.enabled) return
         socketRepository.updateConnection(entry)
         when (entry.status) {
             dev.skymansandy.wiretap.domain.model.SocketStatus.CLOSED,
             dev.skymansandy.wiretap.domain.model.SocketStatus.FAILED -> activeConnections.remove(entry.id)
             else -> activeConnections[entry.id] = entry
         }
-        if (config.loggingEnabled) {
-            networkLogger.logSocket(entry)
-        }
+        networkLogger.logSocket(entry)
         onSocketConnectionLogged(entry)
     }
 
     override fun logSocketMessage(message: SocketMessage) {
-        if (!config.enabled) return
-
         // If the socket entry was cleared but the connection is still active, re-create it
         val existingEntry = socketRepository.getById(message.socketId)
         if (existingEntry == null) {
@@ -115,9 +98,7 @@ class WiretapOrchestratorImpl(
         }
 
         socketRepository.logMessage(message)
-        if (config.loggingEnabled) {
-            networkLogger.logSocketMessage(message)
-        }
+        networkLogger.logSocketMessage(message)
         socketRepository.getById(message.socketId)?.let { entry ->
             onSocketMessageLogged(entry, message)
         }

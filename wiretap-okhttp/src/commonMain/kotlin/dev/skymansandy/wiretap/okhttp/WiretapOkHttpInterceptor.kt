@@ -1,5 +1,8 @@
 package dev.skymansandy.wiretap.okhttp
 
+import dev.skymansandy.wiretap.config.LogRetention
+import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.config.applyHeaderAction
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
@@ -18,14 +21,51 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.security.cert.X509Certificate
 
-class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
+/**
+ * OkHttp interceptor for Wiretap network inspection.
+ *
+ * Configuration is applied via a builder lambda:
+ * ```kotlin
+ * OkHttpClient.Builder()
+ *     .addInterceptor(WiretapOkHttpInterceptor {
+ *         shouldLog = { url, _ -> url.contains("/api/") }
+ *         headerAction = { key ->
+ *             if (key.equals("Authorization", ignoreCase = true)) HeaderAction.Mask()
+ *             else HeaderAction.Keep
+ *         }
+ *         logRetention = LogRetention.Days(7)
+ *     })
+ *     .build()
+ * ```
+ */
+class WiretapOkHttpInterceptor(
+    configure: WiretapConfig.() -> Unit = {},
+) : Interceptor, KoinComponent {
+
+    private val config = WiretapConfig().apply(configure)
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
     private val ruleRepository: RuleRepository by inject()
 
+    @Volatile private var sessionInitialized = false
+
     override fun intercept(chain: Interceptor.Chain): Response {
+        if (!config.enabled) return chain.proceed(chain.request())
+
+        // AppSession: clear all previous logs once at first interception
+        if (!sessionInitialized) {
+            synchronized(this) {
+                if (!sessionInitialized) {
+                    sessionInitialized = true
+                    if (config.logRetention == LogRetention.AppSession) {
+                        orchestrator.clearLogs()
+                    }
+                }
+            }
+        }
+
         val request = chain.request()
 
         // Skip WebSocket upgrade requests — handled by WiretapOkHttpWebSocketListener
@@ -49,16 +89,27 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
 
         val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
 
-        // Log request immediately so it appears in the UI
-        val logEntryId = orchestrator.logRequest(
-            NetworkLogEntry(
-                url = url,
-                method = method,
-                requestHeaders = reqHeaders,
-                requestBody = requestBody,
-                timestamp = currentTimeMillis(),
-            ),
-        )
+        // Days retention: prune old entries before each new capture
+        val retention = config.logRetention
+        if (retention is LogRetention.Days) {
+            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
+            orchestrator.purgeLogsOlderThan(cutoff)
+        }
+
+        // Log request immediately so it appears in the UI (gated by shouldLog)
+        val logEntryId = if (config.shouldLog(url, method)) {
+            orchestrator.logRequest(
+                NetworkLogEntry(
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = requestBody,
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        } else {
+            -1L
+        }
 
         if (matchingRule?.action == RuleAction.MOCK) {
             val durationNs = currentNanoTime() - startNano
@@ -73,22 +124,25 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
                 .apply { matchingRule.mockResponseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
 
-            orchestrator.updateEntry(
-                NetworkLogEntry(
-                    id = logEntryId,
-                    url = url,
-                    method = method,
-                    requestHeaders = reqHeaders,
-                    requestBody = requestBody,
-                    responseCode = mockResponse.code,
-                    responseHeaders = mockResponse.headers.toMap(),
-                    responseBody = matchingRule.mockResponseBody,
-                    durationMs = durationNs / 1_000_000,
-                    durationNs = durationNs,
-                    source = ResponseSource.MOCK,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
+            if (logEntryId >= 0) {
+                val mockRespHeaders = mockResponse.headers.toMap()
+                orchestrator.updateEntry(
+                    NetworkLogEntry(
+                        id = logEntryId,
+                        url = url,
+                        method = method,
+                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody,
+                        responseCode = mockResponse.code,
+                        responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
+                        responseBody = matchingRule.mockResponseBody,
+                        durationMs = durationNs / 1_000_000,
+                        durationNs = durationNs,
+                        source = ResponseSource.MOCK,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
             return mockResponse
         }
 
@@ -102,24 +156,26 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
         val response = try {
             chain.proceed(request)
         } catch (e: Exception) {
-            val durationNs = currentNanoTime() - startNano
-            val isCancelled = e is java.io.IOException && e.message == "Canceled"
-            orchestrator.updateEntry(
-                NetworkLogEntry(
-                    id = logEntryId,
-                    url = url,
-                    method = method,
-                    requestHeaders = reqHeaders,
-                    requestBody = requestBody,
-                    responseCode = if (isCancelled) -1 else 0,
-                    responseHeaders = emptyMap(),
-                    responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                    durationMs = durationNs / 1_000_000,
-                    durationNs = durationNs,
-                    source = ResponseSource.NETWORK,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
+            if (logEntryId >= 0) {
+                val durationNs = currentNanoTime() - startNano
+                val isCancelled = e is java.io.IOException && e.message == "Canceled"
+                orchestrator.updateEntry(
+                    NetworkLogEntry(
+                        id = logEntryId,
+                        url = url,
+                        method = method,
+                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody,
+                        responseCode = if (isCancelled) -1 else 0,
+                        responseHeaders = emptyMap(),
+                        responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                        durationMs = (currentNanoTime() - startNano) / 1_000_000,
+                        durationNs = currentNanoTime() - startNano,
+                        source = ResponseSource.NETWORK,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
             throw e
         }
 
@@ -165,29 +221,31 @@ class WiretapOkHttpInterceptor : Interceptor, KoinComponent {
             ?.trim()
         val certificateExpiry = peerCert?.notAfter?.toString()
 
-        orchestrator.updateEntry(
-            NetworkLogEntry(
-                id = logEntryId,
-                url = url,
-                method = method,
-                requestHeaders = reqHeaders,
-                requestBody = null,
-                responseCode = response.code,
-                responseHeaders = responseHeaders,
-                responseBody = responseBody,
-                durationMs = durationMs,
-                durationNs = durationNs,
-                source = source,
-                timestamp = currentTimeMillis(),
-                protocol = protocol,
-                remoteAddress = remoteAddress,
-                tlsProtocol = tlsProtocol,
-                cipherSuite = cipherSuite,
-                certificateCn = certificateCn,
-                issuerCn = issuerCn,
-                certificateExpiry = certificateExpiry,
-            ),
-        )
+        if (logEntryId >= 0) {
+            orchestrator.updateEntry(
+                NetworkLogEntry(
+                    id = logEntryId,
+                    url = url,
+                    method = method,
+                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = null,
+                    responseCode = response.code,
+                    responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
+                    responseBody = responseBody,
+                    durationMs = durationMs,
+                    durationNs = durationNs,
+                    source = source,
+                    timestamp = currentTimeMillis(),
+                    protocol = protocol,
+                    remoteAddress = remoteAddress,
+                    tlsProtocol = tlsProtocol,
+                    cipherSuite = cipherSuite,
+                    certificateCn = certificateCn,
+                    issuerCn = issuerCn,
+                    certificateExpiry = certificateExpiry,
+                ),
+            )
+        }
 
         return response
     }
