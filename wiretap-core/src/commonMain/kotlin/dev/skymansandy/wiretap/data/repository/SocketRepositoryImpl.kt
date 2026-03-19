@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
-class SocketRepositoryImpl(
+internal class SocketRepositoryImpl(
     private val socketDao: SocketDao,
 ) : SocketRepository {
 

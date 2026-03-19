@@ -7,7 +7,7 @@ import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
-actual class DriverFactory {
+internal actual class DriverFactory {
     actual fun createDriver(): SqlDriver {
         val schema = WiretapDatabase.Companion.Schema
         return try {

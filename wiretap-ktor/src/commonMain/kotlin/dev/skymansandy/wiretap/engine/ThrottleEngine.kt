@@ -6,7 +6,7 @@ import dev.skymansandy.wiretap.domain.model.WiretapResponse
 import io.ktor.client.request.*
 import kotlinx.coroutines.delay
 
-interface ThrottleEngine {
+internal interface ThrottleEngine {
     suspend fun execute(
         request: HttpRequestBuilder,
         rule: WiretapRule,
@@ -14,7 +14,7 @@ interface ThrottleEngine {
     ): WiretapResponse
 }
 
-class ThrottleEngineImpl : ThrottleEngine {
+internal class ThrottleEngineImpl : ThrottleEngine {
 
     override suspend fun execute(
         request: HttpRequestBuilder,

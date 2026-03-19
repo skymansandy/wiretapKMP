@@ -5,11 +5,11 @@ import dev.skymansandy.wiretap.domain.model.WiretapResponse
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import io.ktor.client.request.*
 
-interface RuleEngine {
+internal interface RuleEngine {
     suspend fun evaluate(request: HttpRequestBuilder, proceed: suspend () -> WiretapResponse): WiretapResponse
 }
 
-class RuleEngineImpl(
+internal class RuleEngineImpl(
     private val ruleRepository: RuleRepository,
     private val mockEngine: MockEngine,
     private val throttleEngine: ThrottleEngine,

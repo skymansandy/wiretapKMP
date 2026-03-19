@@ -5,11 +5,11 @@ import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.WiretapResponse
 import io.ktor.client.request.*
 
-interface MockEngine {
+internal interface MockEngine {
     suspend fun execute(request: HttpRequestBuilder, rule: WiretapRule): WiretapResponse
 }
 
-class MockEngineImpl : MockEngine {
+internal class MockEngineImpl : MockEngine {
 
     override suspend fun execute(request: HttpRequestBuilder, rule: WiretapRule): WiretapResponse {
         return WiretapResponse(
