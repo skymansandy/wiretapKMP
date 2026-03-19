@@ -283,9 +283,10 @@ internal fun ContentCell(
             addStyle(SpanStyle(color = colors.punctuation), bracketStart, length)
 
             if (searchQuery.isNotBlank()) {
+                val queryLower = searchQuery.lowercase()
+                // Highlight visible line text matches (e.g. key name)
                 val displayText = toAnnotatedString().text
                 val lower = displayText.lowercase()
-                val queryLower = searchQuery.lowercase()
                 var idx = lower.indexOf(queryLower)
                 while (idx >= 0) {
                     addStyle(
@@ -294,6 +295,15 @@ internal fun ContentCell(
                         end = idx + queryLower.length,
                     )
                     idx = lower.indexOf(queryLower, idx + queryLower.length)
+                }
+                // If the search matches anything inside the collapsed content,
+                // highlight the entire " ... <bracket>" region to signal hidden matches.
+                if (line.foldedContent.lowercase().contains(queryLower)) {
+                    addStyle(
+                        SpanStyle(background = colors.highlight, color = colors.highlightFg),
+                        start = ellipsisStart,
+                        end = length,
+                    )
                 }
             }
         }
