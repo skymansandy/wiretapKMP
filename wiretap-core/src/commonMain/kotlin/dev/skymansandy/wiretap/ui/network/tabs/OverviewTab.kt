@@ -10,7 +10,9 @@ import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.ui.components.KeyValueTable
 import dev.skymansandy.wiretap.util.formatSize
 import dev.skymansandy.wiretap.resources.*
+import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun OverviewTab(entry: NetworkLogEntry) {
@@ -52,6 +54,29 @@ internal fun OverviewTab(entry: NetworkLogEntry) {
                 entry.issuerCn?.let { add(labelIssuerCn to it) }
                 entry.certificateExpiry?.let { add(labelValidUntil to it) }
             },
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun OverviewTabPreview() {
+    MaterialTheme {
+        OverviewTab(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users/123",
+                method = "GET",
+                responseCode = 200,
+                durationMs = 142,
+                timestamp = 1710850000000,
+                requestBody = """{"query":"test"}""",
+                responseBody = """{"name":"John","age":30}""",
+                protocol = "HTTP/2",
+                remoteAddress = "93.184.216.34:443",
+                tlsProtocol = "TLSv1.3",
+                cipherSuite = "TLS_AES_256_GCM_SHA384",
+            ),
         )
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SearchField(
@@ -66,4 +67,28 @@ internal fun SearchField(
             }
         },
     )
+}
+
+@Preview
+@Composable
+private fun SearchFieldEmptyPreview() {
+    MaterialTheme {
+        SearchField(
+            query = "",
+            onQueryChange = {},
+            focusRequester = FocusRequester(),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SearchFieldWithQueryPreview() {
+    MaterialTheme {
+        SearchField(
+            query = "api/users",
+            onQueryChange = {},
+            focusRequester = FocusRequester(),
+        )
+    }
 }

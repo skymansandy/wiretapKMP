@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretapsample.model.WsLogEntry
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
@@ -71,5 +72,29 @@ internal fun WsMessageItem(entry: WsLogEntry) {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun WsMessageItemSentPreview() {
+    MaterialTheme {
+        WsMessageItem(entry = WsLogEntry(direction = "SENT", text = """{"type":"subscribe","channel":"updates"}"""))
+    }
+}
+
+@Preview
+@Composable
+private fun WsMessageItemRecvPreview() {
+    MaterialTheme {
+        WsMessageItem(entry = WsLogEntry(direction = "RECV", text = """{"type":"message","data":{"id":1,"status":"ok"}}"""))
+    }
+}
+
+@Preview
+@Composable
+private fun WsMessageItemSysPreview() {
+    MaterialTheme {
+        WsMessageItem(entry = WsLogEntry(direction = "SYS", text = "Connected to wss://echo.websocket.org"))
     }
 }

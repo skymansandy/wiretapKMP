@@ -25,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
 import dev.skymansandy.wiretap.ui.rules.model.ThrottleProfile
 import dev.skymansandy.wiretap.resources.*
+import androidx.compose.foundation.layout.Column
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,6 +135,42 @@ internal fun ThrottleDelayInput(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ThrottleDelayInputManualPreview() {
+    MaterialTheme {
+        Column {
+            ThrottleDelayInput(
+                throttleDelayMs = "500",
+                onThrottleDelayMsChange = {},
+                throttleDelayMaxMs = "2000",
+                onThrottleDelayMaxMsChange = {},
+                throttleInputMode = ThrottleInputMode.MANUAL,
+                onThrottleInputModeChange = {},
+                supportingText = "Adds artificial latency to the response",
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ThrottleDelayInputProfilePreview() {
+    MaterialTheme {
+        Column {
+            ThrottleDelayInput(
+                throttleDelayMs = "150",
+                onThrottleDelayMsChange = {},
+                throttleDelayMaxMs = "450",
+                onThrottleDelayMaxMsChange = {},
+                throttleInputMode = ThrottleInputMode.PROFILE,
+                onThrottleInputModeChange = {},
+                supportingText = "Simulates network conditions",
+            )
         }
     }
 }

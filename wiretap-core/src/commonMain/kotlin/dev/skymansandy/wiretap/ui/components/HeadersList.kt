@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -48,5 +49,47 @@ internal fun HeadersList(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun HeadersListPreview() {
+    MaterialTheme {
+        HeadersList(
+            headers = mapOf(
+                "Content-Type" to "application/json",
+                "Authorization" to "Bearer eyJhbGciOi...",
+                "Accept" to "*/*",
+                "Cache-Control" to "no-cache",
+            ),
+            emptyText = "No headers",
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HeadersListEmptyPreview() {
+    MaterialTheme {
+        HeadersList(
+            headers = emptyMap(),
+            emptyText = "No headers",
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HeadersListWithSearchPreview() {
+    MaterialTheme {
+        HeadersList(
+            headers = mapOf(
+                "Content-Type" to "application/json",
+                "Authorization" to "Bearer token",
+            ),
+            emptyText = "No headers",
+            searchQuery = "json",
+        )
     }
 }

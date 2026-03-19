@@ -42,6 +42,7 @@ import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.components.highlightText
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun RulesListScreen(
@@ -211,4 +212,61 @@ private fun bodyBadgeLabel(matcher: BodyMatcher) = when (matcher) {
     is BodyMatcher.Exact -> "BODY"
     is BodyMatcher.Contains -> "BODY~"
     is BodyMatcher.Regex -> "BODY*"
+}
+
+@Preview
+@Composable
+private fun RuleItemMockPreview() {
+    MaterialTheme {
+        RuleItem(
+            rule = WiretapRule(
+                id = 1,
+                method = "GET",
+                urlMatcher = UrlMatcher.Contains("/api/users"),
+                action = RuleAction.MOCK,
+                mockResponseCode = 200,
+                enabled = true,
+            ),
+            searchQuery = "",
+            onClick = {},
+            onToggle = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleItemThrottlePreview() {
+    MaterialTheme {
+        RuleItem(
+            rule = WiretapRule(
+                id = 2,
+                method = "*",
+                urlMatcher = UrlMatcher.Regex("/api/v\\d+/.*"),
+                action = RuleAction.THROTTLE,
+                throttleDelayMs = 1000,
+                throttleDelayMaxMs = 3000,
+                enabled = false,
+            ),
+            searchQuery = "",
+            onClick = {},
+            onToggle = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ActionBadgeMockPreview() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.MOCK)
+    }
+}
+
+@Preview
+@Composable
+private fun ActionBadgeThrottlePreview() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.THROTTLE)
+    }
 }

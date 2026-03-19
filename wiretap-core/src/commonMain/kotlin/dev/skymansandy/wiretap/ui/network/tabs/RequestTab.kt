@@ -18,7 +18,9 @@ import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.ui.components.SectionTitle
 import dev.skymansandy.wiretap.util.looksLikeJson
 import dev.skymansandy.wiretap.resources.*
+import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
@@ -49,5 +51,43 @@ internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
                 searchQuery = searchQuery,
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun RequestTabPreview() {
+    MaterialTheme {
+        RequestTab(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users",
+                method = "POST",
+                requestHeaders = mapOf(
+                    "Content-Type" to "application/json",
+                    "Authorization" to "Bearer eyJhbGciOi...",
+                    "Accept" to "application/json",
+                ),
+                requestBody = """{"name":"John","email":"john@example.com"}""",
+                responseCode = 201,
+                timestamp = 1710850000000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RequestTabEmptyPreview() {
+    MaterialTheme {
+        RequestTab(
+            entry = NetworkLogEntry(
+                id = 2,
+                url = "https://api.example.com/users/123",
+                method = "GET",
+                responseCode = 200,
+                timestamp = 1710850000000,
+            ),
+        )
     }
 }

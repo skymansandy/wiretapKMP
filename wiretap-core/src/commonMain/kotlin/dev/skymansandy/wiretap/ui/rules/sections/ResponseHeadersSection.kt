@@ -23,6 +23,7 @@ import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun ResponseHeadersSection(
@@ -122,5 +123,42 @@ private fun ResponseHeaderEntryRow(
                 tint = MaterialTheme.colorScheme.error,
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ResponseHeadersSectionKeyValuePreview() {
+    MaterialTheme {
+        ResponseHeadersSection(
+            entries = listOf(
+                ResponseHeaderEntry(key = "Content-Type", value = "application/json"),
+                ResponseHeaderEntry(key = "Cache-Control", value = "no-cache"),
+            ),
+            onAdd = {},
+            onUpdate = { _, _ -> },
+            onRemove = {},
+            bulk = "",
+            onBulkChange = {},
+            mode = ResponseHeadersEditMode.KEY_VALUE,
+            onModeChange = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ResponseHeadersSectionBulkPreview() {
+    MaterialTheme {
+        ResponseHeadersSection(
+            entries = emptyList(),
+            onAdd = {},
+            onUpdate = { _, _ -> },
+            onRemove = {},
+            bulk = "Content-Type: application/json\nCache-Control: no-cache",
+            onBulkChange = {},
+            mode = ResponseHeadersEditMode.BULK_EDIT,
+            onModeChange = {},
+        )
     }
 }

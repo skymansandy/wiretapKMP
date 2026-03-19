@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun CodeBlock(
@@ -34,5 +35,26 @@ internal fun CodeBlock(
                     .padding(12.dp),
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun CodeBlockPreview() {
+    MaterialTheme {
+        CodeBlock(
+            text = """{"name": "John", "age": 30, "city": "New York"}""",
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CodeBlockWithSearchPreview() {
+    MaterialTheme {
+        CodeBlock(
+            text = """{"name": "John", "age": 30, "city": "New York"}""",
+            searchQuery = "John",
+        )
     }
 }

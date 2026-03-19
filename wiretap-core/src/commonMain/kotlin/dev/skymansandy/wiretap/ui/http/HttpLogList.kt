@@ -60,6 +60,7 @@ import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun HttpLogList(
@@ -399,4 +400,102 @@ private fun SourceChip(source: ResponseSource) {
             .background(bgColor, RoundedCornerShape(4.dp))
             .padding(horizontal = 5.dp, vertical = 1.dp),
     )
+}
+
+@Preview
+@Composable
+private fun NetworkLogItemSuccessPreview() {
+    MaterialTheme {
+        NetworkLogItemContent(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users/123?include=profile",
+                method = "GET",
+                responseCode = 200,
+                durationMs = 142,
+                timestamp = 1710850000000,
+                responseBody = """{"name":"John"}""",
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogItemErrorPreview() {
+    MaterialTheme {
+        NetworkLogItemContent(
+            entry = NetworkLogEntry(
+                id = 2,
+                url = "https://api.example.com/auth/login",
+                method = "POST",
+                responseCode = 401,
+                durationMs = 89,
+                timestamp = 1710850000000,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogItemInProgressPreview() {
+    MaterialTheme {
+        NetworkLogItemContent(
+            entry = NetworkLogEntry(
+                id = 3,
+                url = "https://api.example.com/data/sync",
+                method = "POST",
+                responseCode = NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS,
+                timestamp = 1710850000000,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogItemMockedPreview() {
+    MaterialTheme {
+        NetworkLogItemContent(
+            entry = NetworkLogEntry(
+                id = 4,
+                url = "https://api.example.com/users",
+                method = "GET",
+                responseCode = 200,
+                durationMs = 5,
+                timestamp = 1710850000000,
+                source = ResponseSource.MOCK,
+                matchedRuleId = 1,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogItemServerErrorPreview() {
+    MaterialTheme {
+        NetworkLogItemContent(
+            entry = NetworkLogEntry(
+                id = 5,
+                url = "http://api.example.com/internal/health",
+                method = "GET",
+                responseCode = 500,
+                durationMs = 2034,
+                timestamp = 1710850000000,
+                responseBody = """{"error":"Internal Server Error"}""",
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
 }

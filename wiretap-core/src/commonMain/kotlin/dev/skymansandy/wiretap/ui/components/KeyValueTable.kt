@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun KeyValueTable(rows: List<Pair<String, String>>) {
@@ -42,5 +43,21 @@ internal fun KeyValueTable(rows: List<Pair<String, String>>) {
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun KeyValueTablePreview() {
+    MaterialTheme {
+        KeyValueTable(
+            rows = listOf(
+                "URL" to "https://api.example.com/users/123",
+                "Method" to "GET",
+                "Status" to "200",
+                "Duration" to "142ms",
+                "Size" to "2.4 kB",
+            ),
+        )
     }
 }

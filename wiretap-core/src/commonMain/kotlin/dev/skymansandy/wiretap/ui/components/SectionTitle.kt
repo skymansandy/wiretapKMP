@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SectionTitle(text: String, action: (@Composable () -> Unit)? = null) {
@@ -26,5 +27,24 @@ internal fun SectionTitle(text: String, action: (@Composable () -> Unit)? = null
             modifier = Modifier.weight(1f),
         )
         action?.invoke()
+    }
+}
+
+@Preview
+@Composable
+private fun SectionTitlePreview() {
+    MaterialTheme {
+        SectionTitle(text = "Request Headers")
+    }
+}
+
+@Preview
+@Composable
+private fun SectionTitleWithActionPreview() {
+    MaterialTheme {
+        SectionTitle(
+            text = "Response Body",
+            action = { Text("Copy", style = MaterialTheme.typography.labelSmall) },
+        )
     }
 }

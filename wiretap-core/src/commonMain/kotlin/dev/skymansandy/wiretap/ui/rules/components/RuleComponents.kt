@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.ui.rules.model.testRegex
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SectionLabel(title: String) {
@@ -211,5 +212,66 @@ internal fun MethodSelector(method: String, onMethodChange: (String) -> Unit) {
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SectionLabelPreview() {
+    MaterialTheme {
+        SectionLabel(title = "Request Matching")
+    }
+}
+
+@Preview
+@Composable
+private fun StepIndicatorStep1Preview() {
+    MaterialTheme {
+        StepIndicator(
+            currentStep = 1,
+            labels = listOf("Request", "Response", "Review"),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun StepIndicatorStep2Preview() {
+    MaterialTheme {
+        StepIndicator(
+            currentStep = 2,
+            labels = listOf("Request", "Response", "Review"),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun StepIndicatorStep3Preview() {
+    MaterialTheme {
+        StepIndicator(
+            currentStep = 3,
+            labels = listOf("Request", "Response", "Review"),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RegexTesterSheetPreview() {
+    MaterialTheme {
+        RegexTesterSheet(
+            pattern = "/api/v\\d+/users/.*",
+            testInputLabel = "Test URL",
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MethodSelectorPreview() {
+    MaterialTheme {
+        MethodSelector(method = "GET", onMethodChange = {})
     }
 }

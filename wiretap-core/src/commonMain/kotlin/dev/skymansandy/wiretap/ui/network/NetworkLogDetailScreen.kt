@@ -51,6 +51,7 @@ import dev.skymansandy.wiretap.util.shareNetworkLog
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,6 +237,78 @@ private fun RuleMatchBanner(
                 color = contentColor,
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogDetailScreenPreview() {
+    MaterialTheme {
+        NetworkLogDetailScreen(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users/123",
+                method = "GET",
+                requestHeaders = mapOf(
+                    "Authorization" to "Bearer token",
+                    "Accept" to "application/json",
+                ),
+                responseCode = 200,
+                responseHeaders = mapOf(
+                    "Content-Type" to "application/json",
+                ),
+                responseBody = """{"id":123,"name":"John","email":"john@example.com"}""",
+                durationMs = 142,
+                timestamp = 1710850000000,
+            ),
+            onBack = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun NetworkLogDetailScreenMockedPreview() {
+    MaterialTheme {
+        NetworkLogDetailScreen(
+            entry = NetworkLogEntry(
+                id = 2,
+                url = "https://api.example.com/users",
+                method = "POST",
+                responseCode = 201,
+                durationMs = 3,
+                timestamp = 1710850000000,
+                source = ResponseSource.MOCK,
+                matchedRuleId = 1,
+                responseBody = """{"id":456,"name":"Mock User"}""",
+            ),
+            onBack = {},
+            onViewRule = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleMatchBannerMockPreview() {
+    MaterialTheme {
+        RuleMatchBanner(
+            source = ResponseSource.MOCK,
+            matchedRuleId = 1,
+            onViewRule = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleMatchBannerThrottlePreview() {
+    MaterialTheme {
+        RuleMatchBanner(
+            source = ResponseSource.THROTTLE,
+            matchedRuleId = 2,
+            onViewRule = {},
+        )
     }
 }
 

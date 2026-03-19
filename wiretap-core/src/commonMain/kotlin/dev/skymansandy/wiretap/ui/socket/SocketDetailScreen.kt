@@ -49,6 +49,7 @@ import dev.skymansandy.wiretap.util.formatBytes
 import dev.skymansandy.wiretap.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -318,3 +319,118 @@ private fun StatusChip(status: SocketStatus) {
     )
 }
 
+@Preview
+@Composable
+private fun ConnectionInfoHeaderPreview() {
+    MaterialTheme {
+        ConnectionInfoHeader(
+            entry = SocketLogEntry(
+                id = 1,
+                url = "wss://echo.websocket.org/chat",
+                status = SocketStatus.OPEN,
+                timestamp = 1710850000000,
+                requestHeaders = mapOf(
+                    "Sec-WebSocket-Key" to "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version" to "13",
+                ),
+                protocol = "chat",
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ConnectionInfoHeaderClosedPreview() {
+    MaterialTheme {
+        ConnectionInfoHeader(
+            entry = SocketLogEntry(
+                id = 2,
+                url = "wss://api.example.com/stream",
+                status = SocketStatus.CLOSED,
+                timestamp = 1710850000000,
+                closedAt = 1710850120000,
+                closeCode = 1000,
+                closeReason = "Normal closure",
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleSentPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 1,
+                socketId = 1,
+                direction = SocketMessageDirection.SENT,
+                contentType = SocketContentType.TEXT,
+                content = """{"type":"ping","id":42}""",
+                byteCount = 23,
+                timestamp = 1710850000000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleReceivedPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 2,
+                socketId = 1,
+                direction = SocketMessageDirection.RECEIVED,
+                contentType = SocketContentType.TEXT,
+                content = """{"type":"pong","id":42,"data":{"status":"ok"}}""",
+                byteCount = 46,
+                timestamp = 1710850001000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleBinaryPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 3,
+                socketId = 1,
+                direction = SocketMessageDirection.RECEIVED,
+                contentType = SocketContentType.BINARY,
+                content = "",
+                byteCount = 1024,
+                timestamp = 1710850002000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HistoryClearedBannerPreview() {
+    MaterialTheme {
+        HistoryClearedBanner()
+    }
+}
+
+@Preview
+@Composable
+private fun StatusChipOpenPreview() {
+    MaterialTheme {
+        StatusChip(SocketStatus.OPEN)
+    }
+}
+
+@Preview
+@Composable
+private fun StatusChipFailedPreview() {
+    MaterialTheme {
+        StatusChip(SocketStatus.FAILED)
+    }
+}

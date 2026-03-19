@@ -41,6 +41,7 @@ import dev.skymansandy.wiretap.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SocketLogList(
@@ -199,4 +200,78 @@ private fun SocketStatusChip(status: SocketStatus) {
             .background(bgColor, RoundedCornerShape(4.dp))
             .padding(horizontal = 5.dp, vertical = 1.dp),
     )
+}
+
+@Preview
+@Composable
+private fun SocketLogItemOpenPreview() {
+    MaterialTheme {
+        SocketLogItemContent(
+            entry = SocketLogEntry(
+                id = 1,
+                url = "wss://echo.websocket.org/chat",
+                status = SocketStatus.OPEN,
+                messageCount = 12,
+                timestamp = 1710850000000,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SocketLogItemClosedPreview() {
+    MaterialTheme {
+        SocketLogItemContent(
+            entry = SocketLogEntry(
+                id = 2,
+                url = "ws://localhost:8080/ws",
+                status = SocketStatus.CLOSED,
+                messageCount = 5,
+                timestamp = 1710850000000,
+                closedAt = 1710850060000,
+                closeCode = 1000,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SocketLogItemFailedPreview() {
+    MaterialTheme {
+        SocketLogItemContent(
+            entry = SocketLogEntry(
+                id = 3,
+                url = "wss://api.example.com/stream",
+                status = SocketStatus.FAILED,
+                messageCount = 0,
+                timestamp = 1710850000000,
+                failureMessage = "Connection refused",
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun SocketLogItemConnectingPreview() {
+    MaterialTheme {
+        SocketLogItemContent(
+            entry = SocketLogEntry(
+                id = 4,
+                url = "wss://api.example.com/realtime",
+                status = SocketStatus.CONNECTING,
+                timestamp = 1710850000000,
+            ),
+            searchQuery = "",
+            onClick = {},
+        )
+    }
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
@@ -49,5 +50,25 @@ internal fun StatusWindow(statusLog: String) {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun StatusWindowPreview() {
+    MaterialTheme {
+        StatusWindow(
+            statusLog = "GET https://api.example.com/users → 200 (142ms)\n" +
+                "POST https://api.example.com/auth → 401 (89ms)\n" +
+                "GET https://api.example.com/data → 500 (2034ms)",
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun StatusWindowEmptyPreview() {
+    MaterialTheme {
+        StatusWindow(statusLog = "")
     }
 }
