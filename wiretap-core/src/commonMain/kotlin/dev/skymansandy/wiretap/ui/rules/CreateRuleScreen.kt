@@ -63,103 +63,31 @@ import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.ui.rules.model.BodyMatchMode
+import dev.skymansandy.wiretap.ui.rules.model.HeaderEntry
+import dev.skymansandy.wiretap.ui.rules.model.HeaderEntryMode
+import dev.skymansandy.wiretap.ui.rules.model.RegexTestResult
+import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
+import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
+import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
+import dev.skymansandy.wiretap.ui.rules.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.rules.model.UrlMatchMode
+import dev.skymansandy.wiretap.ui.rules.model.bodyPlaceholder
+import dev.skymansandy.wiretap.ui.rules.model.hasValue
+import dev.skymansandy.wiretap.ui.rules.model.headerValuePlaceholder
+import dev.skymansandy.wiretap.ui.rules.model.isRegex
+import dev.skymansandy.wiretap.ui.rules.model.label
+import dev.skymansandy.wiretap.ui.rules.model.testRegex
+import dev.skymansandy.wiretap.ui.rules.model.toBodyMode
+import dev.skymansandy.wiretap.ui.rules.model.toDomain
+import dev.skymansandy.wiretap.ui.rules.model.toEntry
+import dev.skymansandy.wiretap.ui.rules.model.toUrlMode
+import dev.skymansandy.wiretap.ui.rules.model.urlPlaceholder
 import dev.skymansandy.wiretap.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.util.currentTimeMillis
-
-// ── UI-layer enums (not persisted) ───────────────────────────────────────────
-
-private enum class UrlMatchMode { EXACT, CONTAINS, REGEX }
-private enum class BodyMatchMode { EXACT, CONTAINS, REGEX }
-private enum class HeaderEntryMode { KEY_EXISTS, VALUE_EXACT, VALUE_CONTAINS, VALUE_REGEX }
-private enum class ResponseHeadersEditMode { KEY_VALUE, BULK_EDIT }
-private enum class ThrottleInputMode { NONE, MANUAL, PROFILE }
-
-private enum class ThrottleProfile(
-    val label: String,
-    val speed: String,
-    val delayMinMs: Long,
-    val delayMaxMs: Long,
-) {
-    GPRS("2G (GPRS)", "~50 kbps", 1500, 3000),
-    EDGE("2G (EDGE)", "~200 kbps", 800, 2000),
-    SLOW_3G("3G (Slow)", "~400 kbps", 500, 1500),
-    FAST_3G("3G", "~2 Mbps", 300, 800),
-    SLOW_4G("4G (Slow)", "~5 Mbps", 150, 400),
-    LTE("4G (LTE)", "~20 Mbps", 50, 200),
-    SLOW_WIFI("Slow WiFi", "~1 Mbps", 500, 1000),
-}
-
-private data class HeaderEntry(
-    val key: String = "",
-    val value: String = "",
-    val mode: HeaderEntryMode = HeaderEntryMode.KEY_EXISTS,
-)
-
-private data class ResponseHeaderEntry(
-    val key: String = "",
-    val value: String = "",
-)
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-private fun UrlMatchMode.label() = when (this) {
-    UrlMatchMode.EXACT -> "Exact"
-    UrlMatchMode.CONTAINS -> "Contains"
-    UrlMatchMode.REGEX -> "Regex"
-}
-
-private fun BodyMatchMode.label() = when (this) {
-    BodyMatchMode.EXACT -> "Exact"
-    BodyMatchMode.CONTAINS -> "Contains"
-    BodyMatchMode.REGEX -> "Regex"
-}
-
-private fun HeaderEntryMode.label() = when (this) {
-    HeaderEntryMode.KEY_EXISTS -> "Key Exists"
-    HeaderEntryMode.VALUE_EXACT -> "Exact"
-    HeaderEntryMode.VALUE_CONTAINS -> "Contains"
-    HeaderEntryMode.VALUE_REGEX -> "Regex"
-}
-
-private fun UrlMatchMode.isRegex() = this == UrlMatchMode.REGEX
-private fun BodyMatchMode.isRegex() = this == BodyMatchMode.REGEX
-private fun HeaderEntryMode.isRegex() = this == HeaderEntryMode.VALUE_REGEX
-private fun HeaderEntryMode.hasValue() = this != HeaderEntryMode.KEY_EXISTS
-
-private fun WiretapRule.toUrlMode() = when (urlMatcher) {
-    is UrlMatcher.Exact -> UrlMatchMode.EXACT
-    is UrlMatcher.Contains -> UrlMatchMode.CONTAINS
-    is UrlMatcher.Regex -> UrlMatchMode.REGEX
-    null -> null
-}
-
-private fun WiretapRule.toBodyMode() = when (bodyMatcher) {
-    is BodyMatcher.Exact -> BodyMatchMode.EXACT
-    is BodyMatcher.Contains -> BodyMatchMode.CONTAINS
-    is BodyMatcher.Regex -> BodyMatchMode.REGEX
-    null -> null
-}
-
-private fun HeaderMatcher.toEntry() = when (this) {
-    is HeaderMatcher.KeyExists -> HeaderEntry(key = key, mode = HeaderEntryMode.KEY_EXISTS)
-    is HeaderMatcher.ValueExact -> HeaderEntry(key = key, value = value, mode = HeaderEntryMode.VALUE_EXACT)
-    is HeaderMatcher.ValueContains -> HeaderEntry(key = key, value = value, mode = HeaderEntryMode.VALUE_CONTAINS)
-    is HeaderMatcher.ValueRegex -> HeaderEntry(key = key, value = pattern, mode = HeaderEntryMode.VALUE_REGEX)
-}
-
-private fun HeaderEntry.toDomain(): HeaderMatcher? {
-    if (key.isBlank()) return null
-    return when (mode) {
-        HeaderEntryMode.KEY_EXISTS -> HeaderMatcher.KeyExists(key.trim())
-        HeaderEntryMode.VALUE_EXACT -> HeaderMatcher.ValueExact(key.trim(), value.trim())
-        HeaderEntryMode.VALUE_CONTAINS -> HeaderMatcher.ValueContains(key.trim(), value.trim())
-        HeaderEntryMode.VALUE_REGEX -> HeaderMatcher.ValueRegex(key.trim(), value.trim())
-    }
-}
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -343,7 +271,10 @@ internal fun CreateRuleScreen(
                         method = method,
                         onMethodChange = { method = it },
                         urlMode = urlMode,
-                        onUrlModeChange = { urlMode = it; if (it == null) urlPattern = "" },
+                        onUrlModeChange = {
+                            urlMode = it
+                            if (it == null) urlPattern = ""
+                        },
                         urlPattern = urlPattern,
                         onUrlPatternChange = { urlPattern = it },
                         headerEntries = headerEntries,
@@ -355,7 +286,10 @@ internal fun CreateRuleScreen(
                             headerEntries = headerEntries.filterIndexed { i, _ -> i != idx }
                         },
                         bodyMode = bodyMode,
-                        onBodyModeChange = { bodyMode = it; if (it == null) bodyPattern = "" },
+                        onBodyModeChange = {
+                            bodyMode = it
+                            if (it == null) bodyPattern = ""
+                        },
                         bodyPattern = bodyPattern,
                         onBodyPatternChange = { bodyPattern = it },
                         onOpenRegexTester = { pattern, label ->
@@ -1141,40 +1075,14 @@ private fun MethodSelector(method: String, onMethodChange: (String) -> Unit) {
             methods.forEach { m ->
                 DropdownMenuItem(
                     text = { Text(if (m == "*") "Any" else m) },
-                    onClick = { onMethodChange(m); expanded = false },
+                    onClick = {
+                        onMethodChange(m)
+                        expanded = false
+                    },
                 )
             }
         }
     }
 }
 
-// ── Pure helpers ──────────────────────────────────────────────────────────────
 
-private data class RegexTestResult(val matches: Boolean, val error: String?)
-
-private fun testRegex(pattern: String, input: String): RegexTestResult {
-    return try {
-        RegexTestResult(matches = pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(input), error = null)
-    } catch (e: Exception) {
-        RegexTestResult(matches = false, error = "Invalid regex: ${e.message}")
-    }
-}
-
-private fun urlPlaceholder(mode: UrlMatchMode) = when (mode) {
-    UrlMatchMode.EXACT -> "https://api.example.com/users/123"
-    UrlMatchMode.CONTAINS -> "/users/"
-    UrlMatchMode.REGEX -> "api\\.example\\.com/users/\\d+"
-}
-
-private fun bodyPlaceholder(mode: BodyMatchMode) = when (mode) {
-    BodyMatchMode.EXACT -> "{\"status\": \"error\"}"
-    BodyMatchMode.CONTAINS -> "\"error\""
-    BodyMatchMode.REGEX -> "\"id\":\\s*\\d+"
-}
-
-private fun headerValuePlaceholder(mode: HeaderEntryMode) = when (mode) {
-    HeaderEntryMode.VALUE_EXACT -> "Bearer token123"
-    HeaderEntryMode.VALUE_CONTAINS -> "Bearer"
-    HeaderEntryMode.VALUE_REGEX -> "Bearer\\s+\\S+"
-    else -> ""
-}

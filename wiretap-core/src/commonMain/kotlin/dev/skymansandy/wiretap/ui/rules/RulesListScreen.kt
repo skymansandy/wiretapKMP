@@ -39,7 +39,7 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.ui.network.highlightText
+import dev.skymansandy.wiretap.ui.components.highlightText
 
 @Composable
 internal fun RulesListScreen(

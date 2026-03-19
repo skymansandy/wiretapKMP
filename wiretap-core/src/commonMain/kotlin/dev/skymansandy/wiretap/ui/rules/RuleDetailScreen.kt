@@ -42,9 +42,9 @@ import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
-import dev.skymansandy.wiretap.ui.network.CodeBlock
-import dev.skymansandy.wiretap.ui.network.HeadersList
-import dev.skymansandy.wiretap.ui.network.looksLikeJson
+import dev.skymansandy.wiretap.ui.components.CodeBlock
+import dev.skymansandy.wiretap.ui.components.HeadersList
+import dev.skymansandy.wiretap.util.looksLikeJson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +64,10 @@ internal fun RuleDetailScreen(
             title = { Text("Delete Rule") },
             text = { Text("Are you sure you want to delete this rule?") },
             confirmButton = {
-                TextButton(onClick = { ruleRepository.deleteById(rule.id); onDeleted() }) {
+                TextButton(onClick = {
+                    ruleRepository.deleteById(rule.id)
+                    onDeleted()
+                }) {
                     Text("Delete")
                 }
             },
@@ -106,7 +109,10 @@ internal fun RuleDetailScreen(
                 Text("Enabled", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
-                    onCheckedChange = { enabled = it; ruleRepository.setEnabled(rule.id, it) },
+                    onCheckedChange = {
+                        enabled = it
+                        ruleRepository.setEnabled(rule.id, it)
+                    },
                 )
             }
 

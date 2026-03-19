@@ -45,6 +45,7 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.util.formatBytes
 import dev.skymansandy.wiretap.util.formatTime
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,8 +309,3 @@ private fun StatusChip(status: SocketStatus) {
     )
 }
 
-private fun formatBytes(bytes: Long): String = when {
-    bytes >= 1_048_576 -> "${bytes / 1_048_576} MB"
-    bytes >= 1_024 -> "${bytes / 1_024} kB"
-    else -> "$bytes B"
-}

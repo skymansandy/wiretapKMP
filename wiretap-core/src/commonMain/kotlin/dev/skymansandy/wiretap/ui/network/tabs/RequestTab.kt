@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.ui.network.CodeBlock
-import dev.skymansandy.wiretap.ui.network.CopyBodyButton
-import dev.skymansandy.wiretap.ui.network.CopyHeadersButton
-import dev.skymansandy.wiretap.ui.network.HeadersList
-import dev.skymansandy.wiretap.ui.network.SectionTitle
-import dev.skymansandy.wiretap.ui.network.looksLikeJson
+import dev.skymansandy.wiretap.ui.components.CodeBlock
+import dev.skymansandy.wiretap.ui.components.CopyBodyButton
+import dev.skymansandy.wiretap.ui.components.CopyHeadersButton
+import dev.skymansandy.wiretap.ui.components.HeadersList
+import dev.skymansandy.wiretap.ui.components.SectionTitle
+import dev.skymansandy.wiretap.util.looksLikeJson
 
 @Composable
 internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {

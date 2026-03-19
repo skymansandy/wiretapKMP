@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Rule
@@ -38,7 +35,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -58,12 +54,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -82,22 +76,18 @@ import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.ui.components.SearchField
+import dev.skymansandy.wiretap.ui.components.highlightText
 import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
-import dev.skymansandy.wiretap.ui.network.highlightText
 import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
+import dev.skymansandy.wiretap.util.formatOneDecimal
 import dev.skymansandy.wiretap.util.formatTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-
-private fun formatOneDecimal(value: Float): String {
-    val intPart = value.toLong()
-    val decPart = ((value - intPart) * 10).toInt().let { kotlin.math.abs(it) }
-    return "$intPart.$decPart"
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,7 +143,10 @@ fun WiretapScreen(
             ruleRepository = ruleRepository,
             onBack = { selectedRule = null },
             onDeleted = { selectedRule = null },
-            onEditClick = { editRule = selectedRule; selectedRule = null },
+            onEditClick = {
+                editRule = selectedRule
+                selectedRule = null
+            },
         )
         return
     }
@@ -205,8 +198,11 @@ fun WiretapScreen(
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) value = "" else {
-            delay(450); value = searchQuery
+        if (searchQuery.isEmpty()) {
+            value = ""
+        } else {
+            delay(450)
+            value = searchQuery
         }
     }
 
@@ -239,14 +235,19 @@ fun WiretapScreen(
                         if (isSearchActive) {
                             isSearchActive = false
                             searchQuery = ""
-                        } else onBack()
+                        } else {
+                            onBack()
+                        }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     if (isSearchActive) {
-                        IconButton(onClick = { isSearchActive = false; searchQuery = "" }) {
+                        IconButton(onClick = {
+                            isSearchActive = false
+                            searchQuery = ""
+                        }) {
                             Icon(Icons.Default.Close, contentDescription = "Close search")
                         }
                     } else {
@@ -271,19 +272,28 @@ fun WiretapScreen(
             NavigationBar {
                 NavigationBarItem(
                     selected = selectedTab == 0,
-                    onClick = { selectedTab = 0; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 0
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
                     label = { Text("HTTP") },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
-                    onClick = { selectedTab = 1; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 1
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
                     label = { Text("WebSocket") },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
-                    onClick = { selectedTab = 2; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 2
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
                     label = { Text("Rules") },
                 )
@@ -394,9 +404,18 @@ private fun HttpLogList(
                         isRevealed = revealedItemId == itemKey,
                         onReveal = { revealedItemId = itemKey },
                         onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
-                        onClick = { revealedItemId = null; onHttpClick(entry) },
-                        onCreateRule = { revealedItemId = null; onCreateRule(entry) },
-                        onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
+                        onClick = {
+                            revealedItemId = null
+                            onHttpClick(entry)
+                        },
+                        onCreateRule = {
+                            revealedItemId = null
+                            onCreateRule(entry)
+                        },
+                        onViewRule = {
+                            revealedItemId = null
+                            entry.matchedRuleId?.let(onViewRule)
+                        },
                     )
                 }
                 if (lazyItems.loadState.append is LoadStateLoading) {
@@ -561,48 +580,6 @@ private fun SocketStatusChip(status: SocketStatus) {
         modifier = Modifier
             .background(bgColor, RoundedCornerShape(4.dp))
             .padding(horizontal = 5.dp, vertical = 1.dp),
-    )
-}
-
-@Composable
-private fun SearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    focusRequester: FocusRequester,
-) {
-    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = LocalContentColor.current.copy(alpha = 0.6f),
-                )
-                Spacer(Modifier.width(8.dp))
-                Box {
-                    if (query.isEmpty()) {
-                        Text(
-                            "Search\u2026",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = LocalContentColor.current.copy(alpha = 0.4f),
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        },
     )
 }
 
