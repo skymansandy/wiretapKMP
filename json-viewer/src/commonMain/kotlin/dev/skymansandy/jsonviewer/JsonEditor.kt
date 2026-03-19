@@ -2,8 +2,10 @@ package dev.skymansandy.jsonviewer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -12,16 +14,22 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.DisableSelection
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +42,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -58,13 +67,104 @@ fun JsonEditor(
     }
 
     Column(modifier = modifier) {
-        EditorToolbar(state = state, colors = colors)
-        ErrorBanner(error = state.error, colors = colors)
-        CodeEditor(state = state, searchQuery = searchQuery, colors = colors)
+        if (state.isEditing) {
+            EditorToolbar(state = state, colors = colors)
+            ErrorBanner(error = state.error, colors = colors)
+            CodeEditor(state = state, searchQuery = searchQuery, colors = colors)
+        } else {
+            ViewerContent(state = state, searchQuery = searchQuery, colors = colors)
+        }
     }
 }
 
-// ─── Toolbar ──────────────────────────────────────────────────────────────────────
+// ─── Viewer (with folding) ────────────────────────────────────────────────────────
+
+@Composable
+private fun ViewerContent(
+    state: JsonEditorState,
+    searchQuery: String,
+    colors: JsonViewerColors,
+) {
+    val allLines = state.allLines
+    val foldState = state.foldState
+
+    if (allLines.isEmpty()) {
+        // Invalid or empty JSON — show raw text
+        PlainText(text = state.rawJson, searchQuery = searchQuery, colors = colors)
+        return
+    }
+
+    val visibleLines by remember(allLines) {
+        derivedStateOf {
+            allLines.filter { line -> line.parentFoldIds.none { foldState[it] == true } }
+        }
+    }
+    val numDigits = remember(allLines) { allLines.size.toString().length }
+
+    SelectionContainer(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth()) {
+            for (line in visibleLines) {
+                val isFolded = line.foldId != null && foldState[line.foldId] == true
+                Row(Modifier.fillMaxWidth()) {
+                    DisableSelection {
+                        GutterCell(
+                            line = line,
+                            isFolded = isFolded,
+                            numDigits = numDigits,
+                            colors = colors,
+                            onFoldToggle = {
+                                line.foldId?.let { id -> foldState[id] = !(foldState[id] ?: false) }
+                            },
+                        )
+                    }
+                    ContentCell(
+                        line = line,
+                        isFolded = isFolded,
+                        searchQuery = searchQuery,
+                        colors = colors,
+                        onFoldToggle = {
+                            line.foldId?.let { id -> foldState[id] = !(foldState[id] ?: false) }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlainText(text: String, searchQuery: String, colors: JsonViewerColors) {
+    val annotated = buildAnnotatedString {
+        append(text)
+        addStyle(SpanStyle(color = colors.punctuation), 0, text.length)
+        if (searchQuery.isNotBlank()) {
+            val lowerText = text.lowercase()
+            val lowerQuery = searchQuery.lowercase()
+            var idx = lowerText.indexOf(lowerQuery)
+            while (idx >= 0) {
+                addStyle(SpanStyle(background = colors.highlight, color = colors.highlightFg), idx, idx + lowerQuery.length)
+                idx = lowerText.indexOf(lowerQuery, idx + lowerQuery.length)
+            }
+        }
+    }
+    SelectionContainer(
+        Modifier
+            .fillMaxWidth()
+            .background(colors.background),
+    ) {
+        Text(
+            text = annotated,
+            style = monoStyle,
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(12.dp),
+        )
+    }
+}
+
+// ─── Toolbar (edit mode only) ─────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,19 +179,26 @@ private fun EditorToolbar(
             .fillMaxWidth()
             .background(colors.gutterBackground)
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ToolbarButton(
-            label = if (state.isCompact) "Beautify" else "Compact",
+        // Group 1: Collapse / Expand
+        ToolbarIconButton(symbol = "\u229F", tooltip = "Collapse All", colors = colors) { state.collapseAll() }
+        ToolbarIconButton(symbol = "\u229E", tooltip = "Expand All", colors = colors) { state.expandAll() }
+
+        ToolbarDivider(colors)
+
+        // Group 2: Format
+        ToolbarIconButton(
+            symbol = if (state.isCompact) "{ }" else "{·}",
+            tooltip = if (state.isCompact) "Beautify" else "Compact",
             colors = colors,
-            onClick = { state.format(compact = !state.isCompact) },
-        )
-        ToolbarButton(
-            label = "Sort Keys",
-            colors = colors,
-            onClick = { showSortSheet = true },
-        )
+        ) { state.format(compact = !state.isCompact) }
+
+        ToolbarDivider(colors)
+
+        // Group 3: Sort
+        ToolbarIconButton(symbol = "\u2195", tooltip = "Sort Keys", colors = colors) { showSortSheet = true }
     }
 
     if (showSortSheet) {
@@ -114,23 +221,15 @@ private fun EditorToolbar(
                     color = colors.key,
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
-                SortOption(
-                    label = "Sort Ascending (A \u2192 Z)",
-                    colors = colors,
-                    onClick = {
-                        state.sortKeys(ascending = true)
-                        scope.launch { sheetState.hide() }.invokeOnCompletion { showSortSheet = false }
-                    },
-                )
+                SortOption(label = "Sort Ascending (A \u2192 Z)", colors = colors) {
+                    state.sortKeys(ascending = true)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showSortSheet = false }
+                }
                 HorizontalDivider(color = colors.gutterBorder, thickness = 0.5.dp)
-                SortOption(
-                    label = "Sort Descending (Z \u2192 A)",
-                    colors = colors,
-                    onClick = {
-                        state.sortKeys(ascending = false)
-                        scope.launch { sheetState.hide() }.invokeOnCompletion { showSortSheet = false }
-                    },
-                )
+                SortOption(label = "Sort Descending (Z \u2192 A)", colors = colors) {
+                    state.sortKeys(ascending = false)
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { showSortSheet = false }
+                }
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -138,17 +237,38 @@ private fun EditorToolbar(
 }
 
 @Composable
-private fun ToolbarButton(label: String, colors: JsonViewerColors, onClick: () -> Unit) {
-    Text(
-        text = label,
-        style = monoStyle.copy(fontSize = 11.sp),
-        color = colors.key,
+private fun ToolbarIconButton(
+    symbol: String,
+    tooltip: String,
+    colors: JsonViewerColors,
+    onClick: () -> Unit,
+) {
+    Box(
         modifier = Modifier
+            .size(32.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(colors.background)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = symbol,
+            style = monoStyle.copy(fontSize = 14.sp),
+            color = colors.key,
+        )
+    }
+}
+
+@Composable
+private fun ToolbarDivider(colors: JsonViewerColors) {
+    Spacer(Modifier.width(4.dp))
+    Box(
+        Modifier
+            .width(1.dp)
+            .height(24.dp)
+            .background(colors.gutterBorder)
     )
+    Spacer(Modifier.width(4.dp))
 }
 
 @Composable
@@ -192,7 +312,7 @@ private fun ErrorBanner(error: JsonError?, colors: JsonViewerColors) {
     }
 }
 
-// ─── Code Editor ──────────────────────────────────────────────────────────────────
+// ─── Code Editor (plain text) ─────────────────────────────────────────────────────
 
 @Composable
 private fun CodeEditor(
@@ -200,20 +320,15 @@ private fun CodeEditor(
     searchQuery: String,
     colors: JsonViewerColors,
 ) {
-    // Keep a TextFieldValue that we sync with state.rawJson when it changes externally
-    // (e.g. format/sort toolbar actions).
     var textFieldValue by remember { mutableStateOf(TextFieldValue(state.rawJson)) }
-    // Track the last rawJson we synced FROM state, to detect external changes.
     var lastSyncedRaw by remember { mutableStateOf(state.rawJson) }
 
     if (state.rawJson != lastSyncedRaw) {
-        // External change (format/sort) — update the text field, preserving cursor at end.
         textFieldValue = TextFieldValue(state.rawJson)
         lastSyncedRaw = state.rawJson
     }
 
     val horizontalScrollState = rememberScrollState()
-
     val lineCount = remember(textFieldValue.text) { textFieldValue.text.count { it == '\n' } + 1 }
     val numDigits = remember(lineCount) { lineCount.toString().length }
 
@@ -223,7 +338,6 @@ private fun CodeEditor(
             .height(IntrinsicSize.Min)
             .background(colors.background)
     ) {
-        // ── Line number gutter ──
         val borderColor = colors.gutterBorder
         Column(
             modifier = Modifier
@@ -245,7 +359,6 @@ private fun CodeEditor(
             }
         }
 
-        // ── Text editor ──
         val highlighted: AnnotatedString = remember(textFieldValue.text, searchQuery, colors) {
             highlightJson(textFieldValue.text, searchQuery, colors)
         }
@@ -275,11 +388,8 @@ private fun highlightJson(
     colors: JsonViewerColors,
 ): AnnotatedString = buildAnnotatedString {
     append(text)
-
-    // Default color
     addStyle(SpanStyle(color = colors.punctuation), 0, text.length)
 
-    // Tokenize and apply colors
     val tokens = tokenizeJson(text)
     for (token in tokens) {
         val color = when (token.type) {
@@ -293,7 +403,6 @@ private fun highlightJson(
         addStyle(SpanStyle(color = color), token.start, token.end)
     }
 
-    // Search highlighting
     if (searchQuery.isNotBlank()) {
         val lowerText = text.lowercase()
         val lowerQuery = searchQuery.lowercase()
@@ -311,10 +420,6 @@ private enum class TokenType { KEY, STRING, NUMBER, BOOLEAN, NULL, PUNCTUATION }
 
 private data class Token(val type: TokenType, val start: Int, val end: Int)
 
-/**
- * Fast lexical tokenizer for JSON syntax highlighting.
- * Distinguishes keys from string values by context (string followed by ':' is a key).
- */
 private fun tokenizeJson(text: String): List<Token> {
     val tokens = mutableListOf<Token>()
     var pos = 0
@@ -324,17 +429,15 @@ private fun tokenizeJson(text: String): List<Token> {
         val c = text[pos]
         when {
             c == '"' -> {
-                // Parse string
                 val start = pos
-                pos++ // skip opening quote
+                pos++
                 while (pos < len) {
                     when (text[pos]) {
-                        '\\' -> pos += 2 // skip escaped char
+                        '\\' -> pos += 2
                         '"' -> { pos++; break }
                         else -> pos++
                     }
                 }
-                // Determine if this is a key or value: peek ahead for ':'
                 val isKey = isFollowedByColon(text, pos, len)
                 tokens += Token(if (isKey) TokenType.KEY else TokenType.STRING, start, pos)
             }
@@ -354,28 +457,23 @@ private fun tokenizeJson(text: String): List<Token> {
                 tokens += Token(TokenType.NUMBER, start, pos)
             }
             text.startsWith("true", pos) && (pos + 4 >= len || !text[pos + 4].isLetterOrDigit()) -> {
-                tokens += Token(TokenType.BOOLEAN, pos, pos + 4)
-                pos += 4
+                tokens += Token(TokenType.BOOLEAN, pos, pos + 4); pos += 4
             }
             text.startsWith("false", pos) && (pos + 5 >= len || !text[pos + 5].isLetterOrDigit()) -> {
-                tokens += Token(TokenType.BOOLEAN, pos, pos + 5)
-                pos += 5
+                tokens += Token(TokenType.BOOLEAN, pos, pos + 5); pos += 5
             }
             text.startsWith("null", pos) && (pos + 4 >= len || !text[pos + 4].isLetterOrDigit()) -> {
-                tokens += Token(TokenType.NULL, pos, pos + 4)
-                pos += 4
+                tokens += Token(TokenType.NULL, pos, pos + 4); pos += 4
             }
             c == '{' || c == '}' || c == '[' || c == ']' || c == ':' || c == ',' -> {
-                tokens += Token(TokenType.PUNCTUATION, pos, pos + 1)
-                pos++
+                tokens += Token(TokenType.PUNCTUATION, pos, pos + 1); pos++
             }
-            else -> pos++ // whitespace or other
+            else -> pos++
         }
     }
     return tokens
 }
 
-/** Check if position is followed (after whitespace) by a colon — indicating the preceding string was a key. */
 private fun isFollowedByColon(text: String, from: Int, len: Int): Boolean {
     var i = from
     while (i < len && text[i].isWhitespace()) i++
