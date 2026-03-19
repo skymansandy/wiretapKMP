@@ -47,7 +47,7 @@ import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.util.formatBytes
 import dev.skymansandy.wiretap.util.formatTime
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

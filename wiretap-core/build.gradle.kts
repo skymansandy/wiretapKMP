@@ -103,6 +103,11 @@ kotlin {
     }
 }
 
+compose.resources {
+    packageOfResClass = "dev.skymansandy.wiretap.resources"
+    generateResClass = always
+}
+
 sqldelight {
     databases {
         create("WiretapDatabase") {

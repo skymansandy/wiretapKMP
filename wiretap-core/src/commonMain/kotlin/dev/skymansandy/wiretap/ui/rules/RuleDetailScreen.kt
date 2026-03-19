@@ -45,7 +45,7 @@ import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.ui.components.CodeBlock
 import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.util.looksLikeJson
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

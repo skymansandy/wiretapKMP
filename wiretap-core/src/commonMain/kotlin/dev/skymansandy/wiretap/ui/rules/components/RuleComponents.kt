@@ -40,7 +40,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.ui.rules.model.testRegex
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

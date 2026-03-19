@@ -22,7 +22,7 @@ import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)

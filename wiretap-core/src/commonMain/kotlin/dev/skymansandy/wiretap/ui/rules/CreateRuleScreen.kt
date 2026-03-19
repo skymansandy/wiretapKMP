@@ -56,7 +56,7 @@ import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
 import dev.skymansandy.wiretap.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.util.currentTimeMillis
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

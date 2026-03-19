@@ -13,6 +13,8 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,7 +61,7 @@ internal class WebSocketViewModel(
         isConnecting.value = true
         messageLog.clear()
         messageLog.add(WsLogEntry("SYS", "Connecting to ${wsUrl.value} ..."))
-        connectionJob = viewModelScope.launch(exceptionHandler) {
+        connectionJob = viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 client.webSocket(wsUrl.value) {
                     val wrapped = this.wiretapWrap()
@@ -93,7 +95,7 @@ internal class WebSocketViewModel(
     }
 
     private fun disconnect() {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 session?.markClosed(1000, "User disconnected")
                 session?.delegate?.close()
@@ -110,7 +112,7 @@ internal class WebSocketViewModel(
     fun sendMessage(text: String) {
         if (text.isBlank() || !isConnected.value) return
         val currentSession = session
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 currentSession?.send(Frame.Text(text))
                 messageLog.add(WsLogEntry("SENT", text))

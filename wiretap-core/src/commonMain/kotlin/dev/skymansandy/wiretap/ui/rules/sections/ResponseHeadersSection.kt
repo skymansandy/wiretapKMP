@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

@@ -17,7 +17,7 @@ import dev.skymansandy.wiretap.ui.components.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.ui.components.SectionTitle
 import dev.skymansandy.wiretap.util.looksLikeJson
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

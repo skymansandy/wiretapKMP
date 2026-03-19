@@ -48,7 +48,7 @@ import dev.skymansandy.wiretap.ui.network.tabs.ResponseTab
 import dev.skymansandy.wiretap.util.buildCurlCommand
 import dev.skymansandy.wiretap.util.buildShareText
 import dev.skymansandy.wiretap.util.shareNetworkLog
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 

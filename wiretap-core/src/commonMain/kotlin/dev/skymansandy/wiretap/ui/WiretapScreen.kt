@@ -45,7 +45,7 @@ import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource

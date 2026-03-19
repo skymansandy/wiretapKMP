@@ -26,9 +26,9 @@ import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
-import wiretapkmp.composeapp.generated.resources.Res
-import wiretapkmp.composeapp.generated.resources.tab_http
-import wiretapkmp.composeapp.generated.resources.tab_websocket
+import dev.skymansandy.wiretapsample.resources.Res
+import dev.skymansandy.wiretapsample.resources.tab_http
+import dev.skymansandy.wiretapsample.resources.tab_websocket
 
 @Composable
 fun App() {

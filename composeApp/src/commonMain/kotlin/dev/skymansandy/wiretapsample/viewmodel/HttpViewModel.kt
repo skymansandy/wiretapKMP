@@ -8,6 +8,8 @@ import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +25,7 @@ internal class HttpViewModel(
     private val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
     fun executeAction(action: ApiAction) {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 action.action(client) { statusLog.value = it }
             } catch (e: Exception) {
@@ -33,7 +35,7 @@ internal class HttpViewModel(
     }
 
     fun executeCancelDemo() {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             statusLog.value = "Starting request for cancellation..."
             val job = launch {
                 try {

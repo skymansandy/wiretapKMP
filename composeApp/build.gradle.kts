@@ -88,6 +88,11 @@ sqldelight {
     }
 }
 
+compose.resources {
+    packageOfResClass = "dev.skymansandy.wiretapsample.resources"
+    generateResClass = always
+}
+
 compose.desktop {
     application {
         mainClass = "dev.skymansandy.wiretapsample.MainKt"

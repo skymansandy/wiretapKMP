@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.ui.components.KeyValueTable
 import dev.skymansandy.wiretap.util.formatSize
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

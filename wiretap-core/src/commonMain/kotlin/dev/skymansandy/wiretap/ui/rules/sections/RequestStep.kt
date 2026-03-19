@@ -35,7 +35,7 @@ import dev.skymansandy.wiretap.ui.rules.model.headerValuePlaceholder
 import dev.skymansandy.wiretap.ui.rules.model.isRegex
 import dev.skymansandy.wiretap.ui.rules.model.label
 import dev.skymansandy.wiretap.ui.rules.model.urlPlaceholder
-import dev.skymansandy.wiretap_core.generated.resources.*
+import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)

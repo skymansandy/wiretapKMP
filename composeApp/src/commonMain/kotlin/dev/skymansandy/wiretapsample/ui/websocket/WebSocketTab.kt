@@ -39,7 +39,7 @@ import dev.skymansandy.wiretapsample.model.ColorSuccess
 import dev.skymansandy.wiretapsample.model.wsServers
 import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
 import org.jetbrains.compose.resources.stringResource
-import wiretapkmp.composeapp.generated.resources.*
+import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
 internal fun WebSocketTab(

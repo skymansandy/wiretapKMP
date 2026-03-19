@@ -18,7 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import wiretapkmp.composeapp.generated.resources.*
+import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
 internal fun StatusWindow(statusLog: String) {

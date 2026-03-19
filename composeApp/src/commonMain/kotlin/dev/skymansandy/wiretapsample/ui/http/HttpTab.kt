@@ -24,7 +24,7 @@ import dev.skymansandy.wiretapsample.model.actionColor
 import dev.skymansandy.wiretapsample.model.httpActions
 import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
 import org.jetbrains.compose.resources.stringResource
-import wiretapkmp.composeapp.generated.resources.*
+import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
 internal fun HttpTab(viewModel: HttpViewModel, modifier: Modifier = Modifier) {
