@@ -125,6 +125,15 @@ fun JsonViewer(
     }
 }
 
+// ─── Path model ───────────────────────────────────────────────────────────────
+
+sealed class PathSegment {
+    data class Key(val name: String) : PathSegment()
+    data class Index(val idx: Int) : PathSegment()
+}
+
+typealias JsonPath = List<PathSegment>
+
 // ─── Internal line model ───────────────────────────────────────────────────────
 
 internal data class JsonLine(
@@ -139,6 +148,10 @@ internal data class JsonLine(
      *  joined without newlines. Appended as transparent text when folded so
      *  copy/paste captures the real JSON content. */
     val foldedContent: String = "",
+    /** Path from root to the node this line represents. Empty for closing brackets. */
+    val path: JsonPath = emptyList(),
+    /** Whether this line is a closing bracket (not a value node). */
+    val isClosingBracket: Boolean = false,
 )
 
 internal enum class FoldType { OBJECT, ARRAY }
@@ -164,7 +177,7 @@ private class JsonLineBuilder {
     private var nextFoldId = 0
 
     fun build(root: JsonNode): List<JsonLine> {
-        addNode(root, key = null, isLast = true, depth = 0, parentFoldIds = emptyList())
+        addNode(root, key = null, isLast = true, depth = 0, parentFoldIds = emptyList(), path = emptyList())
         return out
     }
 
@@ -174,6 +187,7 @@ private class JsonLineBuilder {
         isLast: Boolean,
         depth: Int,
         parentFoldIds: List<Int>,
+        path: JsonPath,
     ) {
         val indent: List<JsonPart> = if (depth > 0) listOf(JsonPart.Indent("  ".repeat(depth))) else emptyList()
         val keyParts: List<JsonPart> = if (key != null) {
@@ -184,17 +198,16 @@ private class JsonLineBuilder {
         when (node) {
             is JsonNode.JObject -> {
                 if (node.fields.isEmpty()) {
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{}") + comma, null, null, parentFoldIds)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{}") + comma, null, null, parentFoldIds, path = path)
                 } else {
                     val myId = nextFoldId++
                     val headerIdx = out.size
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{"), myId, FoldType.OBJECT, parentFoldIds, foldChildCount = node.fields.size)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{"), myId, FoldType.OBJECT, parentFoldIds, foldChildCount = node.fields.size, path = path)
                     val childParents = parentFoldIds + myId
                     node.fields.forEachIndexed { i, (k, v) ->
-                        addNode(v, k, i == node.fields.lastIndex, depth + 1, childParents)
+                        addNode(v, k, i == node.fields.lastIndex, depth + 1, childParents, path = path + PathSegment.Key(k))
                     }
-                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("}")) + comma, null, null, childParents)
-                    // Precompute inline text of all lines inside this fold for selection.
+                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("}")) + comma, null, null, childParents, isClosingBracket = true, path = path)
                     val foldedContent = out.subList(headerIdx + 1, out.size)
                         .joinToString(" ") { line -> line.parts.joinToString("") { it.text }.trim() }
                     out[headerIdx] = out[headerIdx].copy(foldedContent = foldedContent)
@@ -203,16 +216,16 @@ private class JsonLineBuilder {
 
             is JsonNode.JArray -> {
                 if (node.elements.isEmpty()) {
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("[]") + comma, null, null, parentFoldIds)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("[]") + comma, null, null, parentFoldIds, path = path)
                 } else {
                     val myId = nextFoldId++
                     val headerIdx = out.size
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("["), myId, FoldType.ARRAY, parentFoldIds, foldChildCount = node.elements.size)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("["), myId, FoldType.ARRAY, parentFoldIds, foldChildCount = node.elements.size, path = path)
                     val childParents = parentFoldIds + myId
                     node.elements.forEachIndexed { i, v ->
-                        addNode(v, null, i == node.elements.lastIndex, depth + 1, childParents)
+                        addNode(v, null, i == node.elements.lastIndex, depth + 1, childParents, path = path + PathSegment.Index(i))
                     }
-                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("]")) + comma, null, null, childParents)
+                    out += JsonLine(++lineNum, depth, indent + listOf(JsonPart.Punct("]")) + comma, null, null, childParents, isClosingBracket = true, path = path)
                     val foldedContent = out.subList(headerIdx + 1, out.size)
                         .joinToString(" ") { line -> line.parts.joinToString("") { it.text }.trim() }
                     out[headerIdx] = out[headerIdx].copy(foldedContent = foldedContent)
@@ -223,17 +236,17 @@ private class JsonLineBuilder {
                 val escaped = node.value
                     .replace("\\", "\\\\").replace("\"", "\\\"")
                     .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
-                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.StrVal("\"$escaped\"") + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.StrVal("\"$escaped\"") + comma, null, null, parentFoldIds, path = path)
             }
 
             is JsonNode.JNumber ->
-                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NumVal(node.value) + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NumVal(node.value) + comma, null, null, parentFoldIds, path = path)
 
             is JsonNode.JBoolean ->
-                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.BoolVal(node.value.toString()) + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.BoolVal(node.value.toString()) + comma, null, null, parentFoldIds, path = path)
 
             is JsonNode.JNull ->
-                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NullVal("null") + comma, null, null, parentFoldIds)
+                out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.NullVal("null") + comma, null, null, parentFoldIds, path = path)
         }
     }
 }
@@ -241,13 +254,13 @@ private class JsonLineBuilder {
 // ─── Cell rendering ────────────────────────────────────────────────────────────
 
 // Uniform vertical padding applied to both gutter and content cells so heights always match.
-private val cellVerticalPadding = 3.dp
+internal val cellVerticalPadding = 3.dp
 
 // Fixed width for the fold glyph column so ▶/▼ all occupy the same space.
-private val foldGlyphSize = 14.dp
+internal val foldGlyphSize = 14.dp
 
 @Composable
-private fun GutterCell(
+internal fun GutterCell(
     line: JsonLine,
     isFolded: Boolean,
     numDigits: Int,
@@ -297,7 +310,7 @@ private fun GutterCell(
 }
 
 @Composable
-private fun ContentCell(
+internal fun ContentCell(
     line: JsonLine,
     isFolded: Boolean,
     searchQuery: String,
@@ -380,7 +393,7 @@ private fun ContentCell(
     }
 }
 
-private fun partColor(part: JsonPart, colors: JsonViewerColors): Color = when (part) {
+internal fun partColor(part: JsonPart, colors: JsonViewerColors): Color = when (part) {
     is JsonPart.Key -> colors.key
     is JsonPart.StrVal -> colors.string
     is JsonPart.NumVal -> colors.number
@@ -428,4 +441,4 @@ private fun PlainTextFallback(
 
 // Explicit lineHeight locks all cells to the same height regardless of glyph metrics
 // (e.g. unicode ▶/▼ vs ASCII characters have different font ascent/descent values).
-private val monoStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 18.sp)
+internal val monoStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 18.sp)

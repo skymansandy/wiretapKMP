@@ -1,6 +1,6 @@
 package dev.skymansandy.jsonviewer
 
-internal sealed class JsonNode {
+sealed class JsonNode {
     data class JObject(val fields: List<Pair<String, JsonNode>>) : JsonNode()
     data class JArray(val elements: List<JsonNode>) : JsonNode()
     data class JString(val value: String) : JsonNode()

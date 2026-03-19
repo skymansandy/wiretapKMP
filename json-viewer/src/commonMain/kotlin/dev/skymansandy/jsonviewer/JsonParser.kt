@@ -1,6 +1,6 @@
 package dev.skymansandy.jsonviewer
 
-internal fun parseJson(input: String): JsonNode? = try {
+fun parseJson(input: String): JsonNode? = try {
     val parser = JsonParser(input.trim())
     val node = parser.parseValue()
     parser.skipWs()
@@ -9,10 +9,23 @@ internal fun parseJson(input: String): JsonNode? = try {
     null
 }
 
+data class JsonError(val message: String, val position: Int? = null)
+
+internal fun parseJsonResult(input: String): Pair<JsonNode?, JsonError?> = try {
+    val parser = JsonParser(input.trim())
+    val node = parser.parseValue()
+    parser.skipWs()
+    if (parser.exhausted()) node to null
+    else null to JsonError("Unexpected content after JSON at position ${parser.currentPos()}", parser.currentPos())
+} catch (e: Exception) {
+    null to JsonError(e.message ?: "Invalid JSON")
+}
+
 internal class JsonParser(private val src: String) {
     private var pos = 0
 
     fun exhausted() = pos >= src.length
+    fun currentPos() = pos
 
     fun skipWs() {
         while (pos < src.length && src[pos].isWhitespace()) pos++
