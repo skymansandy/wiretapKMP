@@ -78,6 +78,7 @@ sqldelight {
     databases {
         create("WiretapDb") {
             packageName.set("dev.skymansandy.wiretapsample.db")
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
         }
     }
 }

@@ -103,8 +103,9 @@ class WiretapURLSessionInterceptor(
 
         val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
 
-        if (config.logRetention is LogRetention.Days) {
-            val cutoff = currentTimeMillis() - config.logRetention.days * 24L * 60 * 60 * 1000
+        val retention = config.logRetention
+        if (retention is LogRetention.Days) {
+            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
             orchestrator.purgeLogsOlderThan(cutoff)
         }
 
