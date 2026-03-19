@@ -40,8 +40,11 @@ import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.jsonviewer.JsonEditor
+import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.ui.network.CodeBlock
 import dev.skymansandy.wiretap.ui.network.HeadersList
+import dev.skymansandy.wiretap.ui.network.looksLikeJson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,7 +172,15 @@ internal fun RuleDetailScreen(
                         Text("Response Body", style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
-                        CodeBlock(text = rule.mockResponseBody, modifier = Modifier.padding(vertical = 4.dp))
+                        if (looksLikeJson(rule.mockResponseBody)) {
+                            val editorState = rememberJsonEditorState(initialJson = rule.mockResponseBody)
+                            JsonEditor(
+                                state = editorState,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        } else {
+                            CodeBlock(text = rule.mockResponseBody, modifier = Modifier.padding(vertical = 4.dp))
+                        }
                     }
 
                     if (!rule.mockResponseHeaders.isNullOrEmpty()) {

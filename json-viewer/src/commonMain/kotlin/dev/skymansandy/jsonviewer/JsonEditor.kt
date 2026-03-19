@@ -2,7 +2,6 @@ package dev.skymansandy.jsonviewer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,15 +17,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatIndentIncrease
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.FormatAlignJustify
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,12 +41,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -77,7 +79,7 @@ fun JsonEditor(
     }
 }
 
-// ─── Viewer (with folding) ────────────────────────────────────────────────────────
+// ─── Viewer (read-only with folding) ──────────────────────────────────────────────
 
 @Composable
 private fun ViewerContent(
@@ -89,7 +91,6 @@ private fun ViewerContent(
     val foldState = state.foldState
 
     if (allLines.isEmpty()) {
-        // Invalid or empty JSON — show raw text
         PlainText(text = state.rawJson, searchQuery = searchQuery, colors = colors)
         return
     }
@@ -149,9 +150,7 @@ private fun PlainText(text: String, searchQuery: String, colors: JsonViewerColor
         }
     }
     SelectionContainer(
-        Modifier
-            .fillMaxWidth()
-            .background(colors.background),
+        Modifier.fillMaxWidth().background(colors.background),
     ) {
         Text(
             text = annotated,
@@ -160,6 +159,77 @@ private fun PlainText(text: String, searchQuery: String, colors: JsonViewerColor
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState())
                 .padding(12.dp),
+        )
+    }
+}
+
+// ─── Code Editor (plain text, edit mode) ──────────────────────────────────────────
+
+@Composable
+private fun CodeEditor(
+    state: JsonEditorState,
+    searchQuery: String,
+    colors: JsonViewerColors,
+) {
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(state.rawJson)) }
+    var lastSyncedRaw by remember { mutableStateOf(state.rawJson) }
+
+    if (state.rawJson != lastSyncedRaw) {
+        textFieldValue = TextFieldValue(state.rawJson)
+        lastSyncedRaw = state.rawJson
+    }
+
+    val horizontalScrollState = rememberScrollState()
+    val lineCount = remember(textFieldValue.text) { textFieldValue.text.count { it == '\n' } + 1 }
+    val numDigits = remember(lineCount) { lineCount.toString().length }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 200.dp)
+            .height(IntrinsicSize.Min)
+            .background(colors.background)
+    ) {
+        // Line number gutter
+        val borderColor = colors.gutterBorder
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .background(colors.gutterBackground)
+                .drawBehind {
+                    val x = size.width
+                    drawLine(borderColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.dp.toPx())
+                }
+                .padding(start = 12.dp, end = 8.dp),
+        ) {
+            for (i in 1..lineCount) {
+                Text(
+                    text = i.toString().padStart(numDigits),
+                    style = monoStyle,
+                    color = colors.lineNumber,
+                    softWrap = false,
+                )
+            }
+        }
+
+        // Text editor with syntax highlighting
+        val highlighted: AnnotatedString = remember(textFieldValue.text, searchQuery, colors) {
+            highlightJson(textFieldValue.text, searchQuery, colors)
+        }
+
+        BasicTextField(
+            value = textFieldValue.copy(annotatedString = highlighted),
+            onValueChange = { newValue ->
+                textFieldValue = newValue
+                lastSyncedRaw = newValue.text
+                state.updateRawJson(newValue.text)
+            },
+            textStyle = monoStyle,
+            cursorBrush = SolidColor(colors.key),
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(horizontalScrollState)
+                .padding(start = 8.dp, end = 16.dp),
         )
     }
 }
@@ -178,27 +248,30 @@ private fun EditorToolbar(
         modifier = Modifier
             .fillMaxWidth()
             .background(colors.gutterBackground)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Group 1: Collapse / Expand
-        ToolbarIconButton(symbol = "\u229F", tooltip = "Collapse All", colors = colors) { state.collapseAll() }
-        ToolbarIconButton(symbol = "\u229E", tooltip = "Expand All", colors = colors) { state.expandAll() }
+        // Format: Beautify / Compact toggle
+        IconButton(onClick = { state.format(compact = !state.isCompact) }, modifier = Modifier.size(36.dp)) {
+            Icon(
+                imageVector = if (state.isCompact) Icons.AutoMirrored.Filled.FormatIndentIncrease else Icons.Default.FormatAlignJustify,
+                contentDescription = if (state.isCompact) "Beautify" else "Compact",
+                tint = colors.key,
+                modifier = Modifier.size(18.dp),
+            )
+        }
 
         ToolbarDivider(colors)
 
-        // Group 2: Format
-        ToolbarIconButton(
-            symbol = if (state.isCompact) "{ }" else "{·}",
-            tooltip = if (state.isCompact) "Beautify" else "Compact",
-            colors = colors,
-        ) { state.format(compact = !state.isCompact) }
-
-        ToolbarDivider(colors)
-
-        // Group 3: Sort
-        ToolbarIconButton(symbol = "\u2195", tooltip = "Sort Keys", colors = colors) { showSortSheet = true }
+        // Sort
+        IconButton(onClick = { showSortSheet = true }, modifier = Modifier.size(36.dp)) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Sort,
+                contentDescription = "Sort keys",
+                tint = colors.key,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 
     if (showSortSheet) {
@@ -233,29 +306,6 @@ private fun EditorToolbar(
                 Spacer(Modifier.height(24.dp))
             }
         }
-    }
-}
-
-@Composable
-private fun ToolbarIconButton(
-    symbol: String,
-    tooltip: String,
-    colors: JsonViewerColors,
-    onClick: () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .size(32.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.background)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = symbol,
-            style = monoStyle.copy(fontSize = 14.sp),
-            color = colors.key,
-        )
     }
 }
 
@@ -308,74 +358,6 @@ private fun ErrorBanner(error: JsonError?, colors: JsonViewerColors) {
             color = Color(0xFFFF6B6B),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-// ─── Code Editor (plain text) ─────────────────────────────────────────────────────
-
-@Composable
-private fun CodeEditor(
-    state: JsonEditorState,
-    searchQuery: String,
-    colors: JsonViewerColors,
-) {
-    var textFieldValue by remember { mutableStateOf(TextFieldValue(state.rawJson)) }
-    var lastSyncedRaw by remember { mutableStateOf(state.rawJson) }
-
-    if (state.rawJson != lastSyncedRaw) {
-        textFieldValue = TextFieldValue(state.rawJson)
-        lastSyncedRaw = state.rawJson
-    }
-
-    val horizontalScrollState = rememberScrollState()
-    val lineCount = remember(textFieldValue.text) { textFieldValue.text.count { it == '\n' } + 1 }
-    val numDigits = remember(lineCount) { lineCount.toString().length }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .background(colors.background)
-    ) {
-        val borderColor = colors.gutterBorder
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .background(colors.gutterBackground)
-                .drawBehind {
-                    val x = size.width
-                    drawLine(borderColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.dp.toPx())
-                }
-                .padding(start = 12.dp, end = 8.dp),
-        ) {
-            for (i in 1..lineCount) {
-                Text(
-                    text = i.toString().padStart(numDigits),
-                    style = monoStyle,
-                    color = colors.lineNumber,
-                    softWrap = false,
-                )
-            }
-        }
-
-        val highlighted: AnnotatedString = remember(textFieldValue.text, searchQuery, colors) {
-            highlightJson(textFieldValue.text, searchQuery, colors)
-        }
-
-        BasicTextField(
-            value = textFieldValue.copy(annotatedString = highlighted),
-            onValueChange = { newValue ->
-                textFieldValue = newValue
-                lastSyncedRaw = newValue.text
-                state.updateRawJson(newValue.text)
-            },
-            textStyle = monoStyle,
-            cursorBrush = SolidColor(colors.key),
-            modifier = Modifier
-                .weight(1f)
-                .horizontalScroll(horizontalScrollState)
-                .padding(start = 8.dp, end = 16.dp),
         )
     }
 }

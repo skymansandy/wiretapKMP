@@ -34,7 +34,7 @@ internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
         val body = entry.responseBody
         SectionTitle("Body", action = if (body != null) ({ CopyBodyButton(body) }) else null)
         if (body != null && looksLikeJson(body)) {
-            val editorState = rememberJsonEditorState(initialJson = body, isEditing = true)
+            val editorState = rememberJsonEditorState(initialJson = body)
             JsonEditor(
                 state = editorState,
                 searchQuery = searchQuery,

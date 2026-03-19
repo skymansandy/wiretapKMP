@@ -1,14 +1,5 @@
 package dev.skymansandy.jsonviewer
 
-fun parseJson(input: String): JsonNode? = try {
-    val parser = JsonParser(input.trim())
-    val node = parser.parseValue()
-    parser.skipWs()
-    if (parser.exhausted()) node else null
-} catch (_: Exception) {
-    null
-}
-
 data class JsonError(val message: String, val position: Int? = null)
 
 internal fun parseJsonResult(input: String): Pair<JsonNode?, JsonError?> = try {

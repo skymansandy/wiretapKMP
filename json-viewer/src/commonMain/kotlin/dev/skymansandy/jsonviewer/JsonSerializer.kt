@@ -6,6 +6,83 @@ internal fun JsonNode.toJsonString(indent: Int = 2, compact: Boolean = false): S
     return sb.toString()
 }
 
+internal fun encodePath(path: JsonPath): String =
+    path.joinToString("/") {
+        when (it) {
+            is PathSegment.Key -> "k:${it.name}"
+            is PathSegment.Index -> "i:${it.idx}"
+        }
+    }
+
+/** Serialize JSON with certain subtrees rendered compact (folded). */
+internal fun JsonNode.toJsonStringWithFolds(
+    foldedPaths: Set<String>,
+    indent: Int = 2,
+): String {
+    val sb = StringBuilder()
+    writeFoldedNode(sb, this, foldedPaths, currentPath = emptyList(), currentIndent = 0, step = indent)
+    return sb.toString()
+}
+
+private fun writeFoldedNode(
+    sb: StringBuilder,
+    node: JsonNode,
+    foldedPaths: Set<String>,
+    currentPath: JsonPath,
+    currentIndent: Int,
+    step: Int,
+) {
+    val pathKey = encodePath(currentPath)
+    // If this path is folded, serialize the whole subtree compact
+    if (pathKey in foldedPaths) {
+        writeNode(sb, node, currentIndent = 0, step = 0, compact = true)
+        return
+    }
+
+    val childIndent = currentIndent + step
+    val indentStr = " ".repeat(childIndent)
+    val closingIndentStr = " ".repeat(currentIndent)
+
+    when (node) {
+        is JsonNode.JObject -> {
+            if (node.fields.isEmpty()) {
+                sb.append("{}")
+            } else {
+                sb.append("{\n")
+                node.fields.forEachIndexed { i, (key, value) ->
+                    val childPath = currentPath + PathSegment.Key(key)
+                    sb.append(indentStr)
+                    sb.append('"').append(escapeJsonString(key)).append('"')
+                    sb.append(": ")
+                    writeFoldedNode(sb, value, foldedPaths, childPath, childIndent, step)
+                    if (i < node.fields.lastIndex) sb.append(",")
+                    sb.append("\n")
+                }
+                sb.append(closingIndentStr).append("}")
+            }
+        }
+        is JsonNode.JArray -> {
+            if (node.elements.isEmpty()) {
+                sb.append("[]")
+            } else {
+                sb.append("[\n")
+                node.elements.forEachIndexed { i, element ->
+                    val childPath = currentPath + PathSegment.Index(i)
+                    sb.append(indentStr)
+                    writeFoldedNode(sb, element, foldedPaths, childPath, childIndent, step)
+                    if (i < node.elements.lastIndex) sb.append(",")
+                    sb.append("\n")
+                }
+                sb.append(closingIndentStr).append("]")
+            }
+        }
+        is JsonNode.JString -> sb.append('"').append(escapeJsonString(node.value)).append('"')
+        is JsonNode.JNumber -> sb.append(node.value)
+        is JsonNode.JBoolean -> sb.append(node.value)
+        is JsonNode.JNull -> sb.append("null")
+    }
+}
+
 internal fun JsonNode.sortKeys(ascending: Boolean = true, recursive: Boolean = true): JsonNode = when (this) {
     is JsonNode.JObject -> {
         val sorted = if (ascending) fields.sortedBy { it.first } else fields.sortedByDescending { it.first }

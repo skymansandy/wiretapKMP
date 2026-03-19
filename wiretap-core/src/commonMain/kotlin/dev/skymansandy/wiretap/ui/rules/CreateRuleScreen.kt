@@ -58,6 +58,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.jsonviewer.JsonEditor
+import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
@@ -74,7 +76,7 @@ private enum class UrlMatchMode { EXACT, CONTAINS, REGEX }
 private enum class BodyMatchMode { EXACT, CONTAINS, REGEX }
 private enum class HeaderEntryMode { KEY_EXISTS, VALUE_EXACT, VALUE_CONTAINS, VALUE_REGEX }
 private enum class ResponseHeadersEditMode { KEY_VALUE, BULK_EDIT }
-private enum class ThrottleInputMode { MANUAL, PROFILE }
+private enum class ThrottleInputMode { NONE, MANUAL, PROFILE }
 
 private enum class ThrottleProfile(
     val label: String,
@@ -210,11 +212,13 @@ internal fun CreateRuleScreen(
     var throttleDelayMaxMs by remember { mutableStateOf(existingRule?.throttleDelayMaxMs?.toString() ?: "") }
     var throttleInputMode by remember {
         mutableStateOf(
-            if (existingRule?.throttleDelayMs != null &&
+            when {
+                existingRule?.throttleDelayMs == null || (existingRule.throttleDelayMs == 0L && existingRule.throttleDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.NONE
                 ThrottleProfile.entries.any {
                     it.delayMinMs == existingRule.throttleDelayMs && it.delayMaxMs == existingRule.throttleDelayMaxMs
-                }
-            ) ThrottleInputMode.PROFILE else ThrottleInputMode.MANUAL
+                } -> ThrottleInputMode.PROFILE
+                else -> ThrottleInputMode.MANUAL
+            }
         )
     }
 
@@ -723,14 +727,14 @@ private fun ResponseStep(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            OutlinedTextField(
-                value = mockResponseBody,
-                onValueChange = onMockResponseBodyChange,
-                label = { Text("Response Body") },
-                placeholder = { Text("{\"key\": \"value\"}") },
+            Text("Response Body", style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,)
+            Spacer(Modifier.height(4.dp))
+            val editorState = rememberJsonEditorState(initialJson = mockResponseBody.ifBlank { "{}" }, isEditing = true)
+            JsonEditor(
+                state = editorState,
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 4,
-                maxLines = 10,
+                onJsonChange = { json, _, _ -> onMockResponseBodyChange(json) },
             )
 
             // Response headers with Key/Value ↔ Bulk Edit toggle
@@ -776,6 +780,15 @@ private fun ThrottleDelayInput(
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
+            selected = throttleInputMode == ThrottleInputMode.NONE,
+            onClick = {
+                onThrottleInputModeChange(ThrottleInputMode.NONE)
+                onThrottleDelayMsChange("0")
+                onThrottleDelayMaxMsChange("0")
+            },
+            label = { Text("None") },
+        )
+        FilterChip(
             selected = throttleInputMode == ThrottleInputMode.MANUAL,
             onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
             label = { Text("Manual") },
@@ -788,6 +801,7 @@ private fun ThrottleDelayInput(
     }
 
     when (throttleInputMode) {
+        ThrottleInputMode.NONE -> {}
         ThrottleInputMode.MANUAL -> {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(

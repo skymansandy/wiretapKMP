@@ -8,7 +8,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.jsonviewer.JsonViewer
+import dev.skymansandy.jsonviewer.JsonEditor
+import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.ui.network.CodeBlock
 import dev.skymansandy.wiretap.ui.network.CopyBodyButton
@@ -33,8 +34,9 @@ internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
         val body = entry.requestBody
         SectionTitle("Body", action = if (body != null) ({ CopyBodyButton(body) }) else null)
         if (body != null && looksLikeJson(body)) {
-            JsonViewer(
-                json = body,
+            val editorState = rememberJsonEditorState(initialJson = body)
+            JsonEditor(
+                state = editorState,
                 searchQuery = searchQuery,
                 modifier = Modifier.padding(8.dp),
             )
