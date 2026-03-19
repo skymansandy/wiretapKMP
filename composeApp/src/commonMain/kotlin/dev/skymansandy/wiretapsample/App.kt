@@ -14,62 +14,53 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.helper.notification.enableLaunchTool
-import org.jetbrains.compose.resources.stringResource
-import wiretapkmp.composeapp.generated.resources.*
-import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
-import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
+import dev.skymansandy.wiretapsample.di.sampleAppModule
 import dev.skymansandy.wiretapsample.ui.http.HttpTab
 import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 import dev.skymansandy.wiretapsample.ui.websocket.WebSocketTab
+import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
 import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.websocket.WebSockets
-import kotlinx.coroutines.CoroutineExceptionHandler
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.KoinApplication
+import org.koin.compose.viewmodel.koinViewModel
+import wiretapkmp.composeapp.generated.resources.Res
+import wiretapkmp.composeapp.generated.resources.tab_http
+import wiretapkmp.composeapp.generated.resources.tab_websocket
 
 @Composable
 fun App() {
-    LaunchedEffect(Unit) { enableLaunchTool() }
-    WiretapTheme {
-        val client = remember {
-            HttpClient {
-                install(WebSockets)
-                install(WiretapKtorWebSocketPlugin)
-                install(HttpTimeout)
-                install(WiretapKtorPlugin)
-            }
-        }
-        val scope = rememberCoroutineScope {
-            CoroutineExceptionHandler { _, _ -> }
-        }
-        val webSocketViewModel = remember { WebSocketViewModel(client, scope) }
-        var selectedTab by remember { mutableIntStateOf(0) }
+    KoinApplication(application = { modules(sampleAppModule) }) {
+        LaunchedEffect(Unit) { enableLaunchTool() }
+        WiretapTheme {
+            val httpViewModel = koinViewModel<HttpViewModel>()
+            val webSocketViewModel = koinViewModel<WebSocketViewModel>()
+            var selectedTab by remember { mutableIntStateOf(0) }
 
-        Scaffold(
-            bottomBar = {
-                NavigationBar {
-                    NavigationBarItem(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        icon = { Icon(Icons.Default.Http, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_http)) },
-                    )
-                    NavigationBarItem(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(Icons.Default.Stream, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_websocket)) },
-                    )
+            Scaffold(
+                bottomBar = {
+                    NavigationBar {
+                        NavigationBarItem(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            icon = { Icon(Icons.Default.Http, contentDescription = null) },
+                            label = { Text(stringResource(Res.string.tab_http)) },
+                        )
+                        NavigationBarItem(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            icon = { Icon(Icons.Default.Stream, contentDescription = null) },
+                            label = { Text(stringResource(Res.string.tab_websocket)) },
+                        )
+                    }
+                },
+            ) { padding ->
+                when (selectedTab) {
+                    0 -> HttpTab(viewModel = httpViewModel, modifier = Modifier.padding(padding))
+                    1 -> WebSocketTab(viewModel = webSocketViewModel, modifier = Modifier.padding(padding))
                 }
-            },
-        ) { padding ->
-            when (selectedTab) {
-                0 -> HttpTab(client = client, modifier = Modifier.padding(padding))
-                1 -> WebSocketTab(viewModel = webSocketViewModel, modifier = Modifier.padding(padding))
             }
         }
     }

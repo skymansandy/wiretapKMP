@@ -1,6 +1,8 @@
 package dev.skymansandy.wiretapsample.viewmodel
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.plugin.WiretapWebSocketSession
 import dev.skymansandy.wiretap.plugin.wiretapWrap
 import dev.skymansandy.wiretapsample.model.WsLogEntry
@@ -10,7 +12,7 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,51 +20,52 @@ import kotlinx.coroutines.launch
 
 internal class WebSocketViewModel(
     private val client: HttpClient,
-    private val scope: CoroutineScope,
-) {
-    private val _isConnected = MutableStateFlow(false)
-    val isConnected: StateFlow<Boolean> = _isConnected
+) : ViewModel() {
 
-    private val _isConnecting = MutableStateFlow(false)
-    val isConnecting: StateFlow<Boolean> = _isConnecting
+    val isConnected: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
-    private val _selectedServerIndex = MutableStateFlow(0)
-    val selectedServerIndex: StateFlow<Int> = _selectedServerIndex
+    val isConnecting: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
-    private val _wsUrl = MutableStateFlow(wsServers[0].first)
-    val wsUrl: StateFlow<String> = _wsUrl
+    val selectedServerIndex: StateFlow<Int>
+        field = MutableStateFlow(0)
+
+    val wsUrl: StateFlow<String>
+        field = MutableStateFlow(wsServers[0].first)
 
     val messageLog = mutableStateListOf<WsLogEntry>()
 
     private var session: WiretapWebSocketSession? = null
     private var connectionJob: Job? = null
+    private val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
     fun selectServer(index: Int) {
-        if (!_isConnected.value && !_isConnecting.value) {
-            _selectedServerIndex.value = index
-            _wsUrl.value = wsServers[index].first
+        if (!isConnected.value && !isConnecting.value) {
+            selectedServerIndex.value = index
+            wsUrl.value = wsServers[index].first
         }
     }
 
     fun toggleConnection() {
-        if (_isConnected.value) {
+        if (isConnected.value) {
             disconnect()
-        } else if (!_isConnecting.value) {
+        } else if (!isConnecting.value) {
             connect()
         }
     }
 
     private fun connect() {
-        _isConnecting.value = true
+        isConnecting.value = true
         messageLog.clear()
-        messageLog.add(WsLogEntry("SYS", "Connecting to ${_wsUrl.value} ..."))
-        connectionJob = scope.launch {
+        messageLog.add(WsLogEntry("SYS", "Connecting to ${wsUrl.value} ..."))
+        connectionJob = viewModelScope.launch(exceptionHandler) {
             try {
-                client.webSocket(_wsUrl.value) {
+                client.webSocket(wsUrl.value) {
                     val wrapped = this.wiretapWrap()
                     session = wrapped
-                    _isConnected.value = true
-                    _isConnecting.value = false
+                    isConnected.value = true
+                    isConnecting.value = false
                     messageLog.add(WsLogEntry("SYS", "Connected!"))
 
                     try {
@@ -76,13 +79,13 @@ internal class WebSocketViewModel(
                     } catch (_: Exception) {
                         // Connection closed
                     }
-                    _isConnected.value = false
+                    isConnected.value = false
                     session = null
                     messageLog.add(WsLogEntry("SYS", "Connection closed"))
                 }
             } catch (e: Exception) {
-                _isConnecting.value = false
-                _isConnected.value = false
+                isConnecting.value = false
+                isConnected.value = false
                 session = null
                 messageLog.add(WsLogEntry("SYS", "Error: ${e.message}"))
             }
@@ -90,7 +93,7 @@ internal class WebSocketViewModel(
     }
 
     private fun disconnect() {
-        scope.launch {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 session?.markClosed(1000, "User disconnected")
                 session?.delegate?.close()
@@ -99,15 +102,15 @@ internal class WebSocketViewModel(
             }
             connectionJob?.cancel()
             session = null
-            _isConnected.value = false
+            isConnected.value = false
             messageLog.add(WsLogEntry("SYS", "Disconnected"))
         }
     }
 
     fun sendMessage(text: String) {
-        if (text.isBlank() || !_isConnected.value) return
+        if (text.isBlank() || !isConnected.value) return
         val currentSession = session
-        scope.launch {
+        viewModelScope.launch(exceptionHandler) {
             try {
                 currentSession?.send(Frame.Text(text))
                 messageLog.add(WsLogEntry("SENT", text))

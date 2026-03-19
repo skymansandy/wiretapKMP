@@ -10,6 +10,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
+    }
+
     android {
         namespace = "dev.skymansandy.wiretapsample"
         compileSdk { version = release(36) }
@@ -50,6 +54,7 @@ kotlin {
             implementation(libs.sqldelight.coroutines)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.websockets)
             implementation(libs.kotlinx.coroutines.core)

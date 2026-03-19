@@ -14,36 +14,23 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretapsample.model.actionColor
 import dev.skymansandy.wiretapsample.model.httpActions
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.timeout
-import io.ktor.client.request.get
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
 import org.jetbrains.compose.resources.stringResource
 import wiretapkmp.composeapp.generated.resources.*
 
 @Composable
-internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
-    val scope = rememberCoroutineScope {
-        CoroutineExceptionHandler { _, _ -> }
-    }
+internal fun HttpTab(viewModel: HttpViewModel, modifier: Modifier = Modifier) {
+
+    val statusLog by viewModel.statusLog.collectAsState()
     val readyText = stringResource(Res.string.status_ready)
-    val cancelStartText = stringResource(Res.string.starting_cancel)
-    val cancelledText = stringResource(Res.string.request_cancelled)
-    var statusLog by remember { mutableStateOf(readyText) }
 
     Column(
         modifier = modifier
@@ -57,7 +44,7 @@ internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Bold,
         )
 
-        StatusWindow(statusLog)
+        StatusWindow(statusLog = statusLog.ifEmpty { readyText })
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -70,30 +57,10 @@ internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
                 val color = actionColor.getValue(action.category)
                 Button(
                     onClick = {
-                        scope.launch {
-                            if (action.label == "Cancel") {
-                                statusLog = cancelStartText
-                                val job = launch {
-                                    try {
-                                        client.get("https://httpbin.org/delay/10") {
-                                            timeout { requestTimeoutMillis = 30_000 }
-                                        }
-                                    } catch (e: CancellationException) {
-                                        throw e
-                                    } catch (_: Exception) {
-                                        // ignored
-                                    }
-                                }
-                                delay(500)
-                                job.cancel()
-                                statusLog = cancelledText
-                            } else {
-                                try {
-                                    action.action(client) { statusLog = it }
-                                } catch (e: Exception) {
-                                    statusLog = "Error: ${e.message}"
-                                }
-                            }
+                        if (action.label == "Cancel") {
+                            viewModel.executeCancelDemo()
+                        } else {
+                            viewModel.executeAction(action)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
