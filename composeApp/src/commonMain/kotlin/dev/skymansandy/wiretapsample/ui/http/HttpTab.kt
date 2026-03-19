@@ -32,13 +32,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import wiretapkmp.composeapp.generated.resources.*
 
 @Composable
 internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope {
         CoroutineExceptionHandler { _, _ -> }
     }
-    var statusLog by remember { mutableStateOf("Ready. Tap a button to make a request.") }
+    val readyText = stringResource(Res.string.status_ready)
+    val cancelStartText = stringResource(Res.string.starting_cancel)
+    val cancelledText = stringResource(Res.string.request_cancelled)
+    var statusLog by remember { mutableStateOf(readyText) }
 
     Column(
         modifier = modifier
@@ -47,7 +52,7 @@ internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = "HTTP Requests",
+            text = stringResource(Res.string.http_requests),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -67,7 +72,7 @@ internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
                     onClick = {
                         scope.launch {
                             if (action.label == "Cancel") {
-                                statusLog = "Starting request, cancelling in 500ms..."
+                                statusLog = cancelStartText
                                 val job = launch {
                                     try {
                                         client.get("https://httpbin.org/delay/10") {
@@ -81,7 +86,7 @@ internal fun HttpTab(client: HttpClient, modifier: Modifier = Modifier) {
                                 }
                                 delay(500)
                                 job.cancel()
-                                statusLog = "Request cancelled"
+                                statusLog = cancelledText
                             } else {
                                 try {
                                     action.action(client) { statusLog = it }

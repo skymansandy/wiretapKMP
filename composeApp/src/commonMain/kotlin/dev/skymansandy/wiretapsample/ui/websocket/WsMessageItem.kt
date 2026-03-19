@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretapsample.model.WsLogEntry
+import org.jetbrains.compose.resources.stringResource
+import wiretapkmp.composeapp.generated.resources.*
 
 @Composable
 internal fun WsMessageItem(entry: WsLogEntry) {
@@ -57,7 +59,7 @@ internal fun WsMessageItem(entry: WsLogEntry) {
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
-                    text = if (entry.direction == "SENT") "\u2191 " else "\u2193 ",
+                    text = if (entry.direction == "SENT") stringResource(Res.string.sent_indicator) else stringResource(Res.string.received_indicator),
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )

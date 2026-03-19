@@ -17,6 +17,8 @@ import dev.skymansandy.wiretap.ui.components.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.ui.components.SectionTitle
 import dev.skymansandy.wiretap.util.looksLikeJson
+import dev.skymansandy.wiretap_core.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
@@ -25,14 +27,14 @@ internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionTitle("Headers", action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(entry.responseHeaders) }) else null)
+        SectionTitle(stringResource(Res.string.headers), action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(entry.responseHeaders) }) else null)
         HeadersList(
             headers = entry.responseHeaders,
-            emptyText = "No headers",
+            emptyText = stringResource(Res.string.no_headers),
             searchQuery = searchQuery,
         )
         val body = entry.responseBody
-        SectionTitle("Body", action = if (body != null) ({ CopyBodyButton(body) }) else null)
+        SectionTitle(stringResource(Res.string.body), action = if (body != null) ({ CopyBodyButton(body) }) else null)
         if (body != null && looksLikeJson(body)) {
             val editorState = rememberJsonEditorState(initialJson = body)
             JsonEditor(
@@ -42,7 +44,7 @@ internal fun ResponseTab(entry: NetworkLogEntry, searchQuery: String = "") {
             )
         } else {
             CodeBlock(
-                text = body ?: "No body",
+                text = body ?: stringResource(Res.string.no_body),
                 modifier = Modifier.padding(16.dp),
                 searchQuery = searchQuery,
             )

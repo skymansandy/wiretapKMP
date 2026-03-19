@@ -77,6 +77,8 @@ import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.components.SearchField
+import dev.skymansandy.wiretap_core.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import dev.skymansandy.wiretap.ui.components.highlightText
 import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
 import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
@@ -227,7 +229,7 @@ fun WiretapScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text("Wiretap Console")
+                        Text(stringResource(Res.string.wiretap_console))
                     }
                 },
                 navigationIcon = {
@@ -239,7 +241,7 @@ fun WiretapScreen(
                             onBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -248,21 +250,21 @@ fun WiretapScreen(
                             isSearchActive = false
                             searchQuery = ""
                         }) {
-                            Icon(Icons.Default.Close, contentDescription = "Close search")
+                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
                         }
                     } else {
                         IconButton(onClick = { isSearchActive = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
+                            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
                         }
                     }
                     if (selectedTab == 0) {
                         IconButton(onClick = { orchestrator.clearLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
+                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_http_logs))
                         }
                     }
                     if (selectedTab == 1 && socketLogs.isNotEmpty()) {
                         IconButton(onClick = { orchestrator.clearSocketLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
+                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_websocket_logs))
                         }
                     }
                 },
@@ -277,7 +279,7 @@ fun WiretapScreen(
                         searchQuery = ""
                     },
                     icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
-                    label = { Text("HTTP") },
+                    label = { Text(stringResource(Res.string.tab_http)) },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
@@ -286,7 +288,7 @@ fun WiretapScreen(
                         searchQuery = ""
                     },
                     icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                    label = { Text("WebSocket") },
+                    label = { Text(stringResource(Res.string.tab_websocket)) },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
@@ -295,7 +297,7 @@ fun WiretapScreen(
                         searchQuery = ""
                     },
                     icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
-                    label = { Text("Rules") },
+                    label = { Text(stringResource(Res.string.tab_rules)) },
                 )
             }
         },
@@ -358,13 +360,13 @@ private fun HttpLogList(
 
         lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
             Box(modifier, contentAlignment = Alignment.Center) {
-                Text("No HTTP logs yet", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(Res.string.no_http_logs), style = MaterialTheme.typography.bodyLarge)
             }
         }
 
         lazyItems.loadState.refresh is LoadStateError -> {
             Box(modifier, contentAlignment = Alignment.Center) {
-                Text("Failed to load logs", style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(Res.string.failed_to_load_logs), style = MaterialTheme.typography.bodyLarge)
             }
         }
 
@@ -440,7 +442,7 @@ private fun SocketLogList(
 ) {
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
-            Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(Res.string.no_websocket_connections), style = MaterialTheme.typography.bodyLarge)
         }
     } else {
         val listState = rememberLazyListState()
@@ -501,7 +503,7 @@ private fun SocketLogItemContent(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = "WS",
+                text = stringResource(Res.string.ws_prefix),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = statusColor,
@@ -551,7 +553,7 @@ private fun SocketLogItemContent(
                     )
                     if (entry.messageCount > 0) {
                         Text(
-                            text = "${entry.messageCount} msgs",
+                            text = stringResource(Res.string.msgs_count, entry.messageCount),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -566,12 +568,19 @@ private fun SocketLogItemContent(
 
 @Composable
 private fun SocketStatusChip(status: SocketStatus) {
-    val (bgColor, label) = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) to "Connecting"
-        SocketStatus.OPEN -> Color(0xFF4CAF50) to "Open"
-        SocketStatus.CLOSING -> Color(0xFFFFA726) to "Closing"
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) to "Closed"
-        SocketStatus.FAILED -> Color(0xFFEF5350) to "Failed"
+    val bgColor = when (status) {
+        SocketStatus.CONNECTING -> Color(0xFF42A5F5)
+        SocketStatus.OPEN -> Color(0xFF4CAF50)
+        SocketStatus.CLOSING -> Color(0xFFFFA726)
+        SocketStatus.CLOSED -> Color(0xFF9E9E9E)
+        SocketStatus.FAILED -> Color(0xFFEF5350)
+    }
+    val label = when (status) {
+        SocketStatus.CONNECTING -> stringResource(Res.string.status_connecting)
+        SocketStatus.OPEN -> stringResource(Res.string.status_open)
+        SocketStatus.CLOSING -> stringResource(Res.string.status_closing)
+        SocketStatus.CLOSED -> stringResource(Res.string.status_closed)
+        SocketStatus.FAILED -> stringResource(Res.string.status_failed)
     }
     Text(
         text = label,
@@ -641,7 +650,7 @@ private fun SwipeableNetworkLogItem(
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
-                    text = if (hasMatchedRule) "View\nRule" else "Create\nRule",
+                    text = if (hasMatchedRule) stringResource(Res.string.view_rule_swipe) else stringResource(Res.string.create_rule_swipe),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
@@ -807,17 +816,19 @@ private fun NetworkLogItemContent(
 
 @Composable
 private fun SourceChip(source: ResponseSource) {
-    val (bgColor, textColor, label) = when (source) {
-        ResponseSource.MOCK -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            "Mock",
-        )
-        ResponseSource.THROTTLE -> Triple(
-            MaterialTheme.colorScheme.tertiaryContainer,
-            MaterialTheme.colorScheme.onTertiaryContainer,
-            "Throttle",
-        )
+    val bgColor = when (source) {
+        ResponseSource.MOCK -> MaterialTheme.colorScheme.secondaryContainer
+        ResponseSource.THROTTLE -> MaterialTheme.colorScheme.tertiaryContainer
+        ResponseSource.NETWORK -> return
+    }
+    val textColor = when (source) {
+        ResponseSource.MOCK -> MaterialTheme.colorScheme.onSecondaryContainer
+        ResponseSource.THROTTLE -> MaterialTheme.colorScheme.onTertiaryContainer
+        ResponseSource.NETWORK -> return
+    }
+    val label = when (source) {
+        ResponseSource.MOCK -> stringResource(Res.string.source_mock)
+        ResponseSource.THROTTLE -> stringResource(Res.string.source_throttle)
         ResponseSource.NETWORK -> return
     }
     Text(

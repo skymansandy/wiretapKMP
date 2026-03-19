@@ -17,6 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import wiretapkmp.composeapp.generated.resources.*
 
 @Composable
 internal fun StatusWindow(statusLog: String) {
@@ -35,7 +37,7 @@ internal fun StatusWindow(statusLog: String) {
                 .padding(12.dp),
         ) {
             Text(
-                text = "Status",
+                text = stringResource(Res.string.status_label),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

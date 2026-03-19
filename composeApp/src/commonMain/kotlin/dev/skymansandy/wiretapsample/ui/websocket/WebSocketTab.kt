@@ -38,6 +38,8 @@ import dev.skymansandy.wiretapsample.model.ColorServerError
 import dev.skymansandy.wiretapsample.model.ColorSuccess
 import dev.skymansandy.wiretapsample.model.wsServers
 import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
+import org.jetbrains.compose.resources.stringResource
+import wiretapkmp.composeapp.generated.resources.*
 
 @Composable
 internal fun WebSocketTab(
@@ -63,7 +65,7 @@ internal fun WebSocketTab(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
-            text = "WebSocket",
+            text = stringResource(Res.string.websocket_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
         )
@@ -96,9 +98,9 @@ internal fun WebSocketTab(
             ) {
                 Text(
                     text = when {
-                        isConnecting -> "Connecting..."
-                        isConnected -> "Disconnect"
-                        else -> "Connect"
+                        isConnecting -> stringResource(Res.string.connecting)
+                        isConnected -> stringResource(Res.string.disconnect)
+                        else -> stringResource(Res.string.connect)
                     },
                     fontWeight = FontWeight.Bold,
                 )
@@ -106,7 +108,7 @@ internal fun WebSocketTab(
 
             if (isConnected) {
                 Text(
-                    text = "Connected",
+                    text = stringResource(Res.string.connected),
                     style = MaterialTheme.typography.labelMedium,
                     color = ColorSuccess,
                     fontWeight = FontWeight.Bold,
@@ -138,7 +140,7 @@ internal fun WebSocketTab(
                 value = messageText,
                 onValueChange = { messageText = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Type a message...") },
+                placeholder = { Text(stringResource(Res.string.type_message)) },
                 singleLine = true,
                 enabled = isConnected,
             )
@@ -154,7 +156,7 @@ internal fun WebSocketTab(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send",
+                    contentDescription = stringResource(Res.string.send),
                     tint = if (isConnected && messageText.isNotBlank())
                         MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),

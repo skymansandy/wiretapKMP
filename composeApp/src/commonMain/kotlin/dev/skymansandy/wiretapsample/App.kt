@@ -18,6 +18,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.helper.notification.enableLaunchTool
+import org.jetbrains.compose.resources.stringResource
+import wiretapkmp.composeapp.generated.resources.*
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
 import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
 import dev.skymansandy.wiretapsample.ui.http.HttpTab
@@ -54,13 +56,13 @@ fun App() {
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
                         icon = { Icon(Icons.Default.Http, contentDescription = null) },
-                        label = { Text("HTTP") },
+                        label = { Text(stringResource(Res.string.tab_http)) },
                     )
                     NavigationBarItem(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
                         icon = { Icon(Icons.Default.Stream, contentDescription = null) },
-                        label = { Text("WebSocket") },
+                        label = { Text(stringResource(Res.string.tab_websocket)) },
                     )
                 }
             },

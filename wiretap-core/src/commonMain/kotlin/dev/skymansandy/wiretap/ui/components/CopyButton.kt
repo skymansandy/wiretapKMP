@@ -13,17 +13,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.util.copyToClipboard
+import dev.skymansandy.wiretap_core.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun CopyBodyButton(body: String) {
     TextButton(onClick = { copyToClipboard(body) }) {
         Icon(
             imageVector = Icons.Filled.ContentCopy,
-            contentDescription = "Copy body",
+            contentDescription = stringResource(Res.string.copy_body),
             modifier = Modifier.size(14.dp),
         )
         Spacer(Modifier.width(4.dp))
-        Text("Copy", style = MaterialTheme.typography.labelSmall)
+        Text(stringResource(Res.string.copy), style = MaterialTheme.typography.labelSmall)
     }
 }
 
@@ -38,10 +40,10 @@ internal fun CopyHeadersButton(headers: Map<String, String>) {
     ) {
         Icon(
             imageVector = Icons.Filled.ContentCopy,
-            contentDescription = "Copy headers",
+            contentDescription = stringResource(Res.string.copy_headers),
             modifier = Modifier.size(14.dp),
         )
         Spacer(Modifier.width(4.dp))
-        Text("Copy", style = MaterialTheme.typography.labelSmall)
+        Text(stringResource(Res.string.copy), style = MaterialTheme.typography.labelSmall)
     }
 }

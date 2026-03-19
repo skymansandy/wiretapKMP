@@ -45,6 +45,8 @@ import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.ui.components.CodeBlock
 import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.util.looksLikeJson
+import dev.skymansandy.wiretap_core.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,18 +63,18 @@ internal fun RuleDetailScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete Rule") },
-            text = { Text("Are you sure you want to delete this rule?") },
+            title = { Text(stringResource(Res.string.delete_rule)) },
+            text = { Text(stringResource(Res.string.delete_rule_confirm)) },
             confirmButton = {
                 TextButton(onClick = {
                     ruleRepository.deleteById(rule.id)
                     onDeleted()
                 }) {
-                    Text("Delete")
+                    Text(stringResource(Res.string.delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(Res.string.cancel)) }
             },
         )
     }
@@ -80,18 +82,18 @@ internal fun RuleDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rule Details") },
+                title = { Text(stringResource(Res.string.rule_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
                     IconButton(onClick = onEditClick) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit rule")
+                        Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.edit_rule_cd))
                     }
                     IconButton(onClick = { showDeleteConfirm = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete rule")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_rule_cd))
                     }
                 },
             )
@@ -106,7 +108,7 @@ internal fun RuleDetailScreen(
         ) {
             // Enabled toggle
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("Enabled", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(stringResource(Res.string.enabled), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
                     onCheckedChange = {
@@ -118,14 +120,14 @@ internal fun RuleDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            DetailRow("Method", if (rule.method == "*") "Any" else rule.method)
+            DetailRow("Method", if (rule.method == "*") stringResource(Res.string.any_method) else rule.method)
 
             // URL matcher
             rule.urlMatcher?.let { matcher ->
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text("URL", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text(stringResource(Res.string.label_url), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(urlMatcherLabel(matcher), matcher.pattern)
@@ -136,7 +138,7 @@ internal fun RuleDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text("Headers", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text(stringResource(Res.string.headers), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 rule.headerMatchers.forEach { matcher ->
                     Spacer(Modifier.height(8.dp))
@@ -149,7 +151,7 @@ internal fun RuleDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text("Body", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text(stringResource(Res.string.body), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(bodyMatcherLabel(matcher), matcher.pattern)
@@ -161,7 +163,7 @@ internal fun RuleDetailScreen(
 
             // Action
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Action", style = MaterialTheme.typography.labelMedium,
+                Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,)
                 Spacer(Modifier.width(8.dp))
                 ActionBadge(rule.action)
@@ -171,11 +173,11 @@ internal fun RuleDetailScreen(
 
             when (rule.action) {
                 RuleAction.MOCK -> {
-                    DetailRow("Response Code", (rule.mockResponseCode ?: 200).toString())
+                    DetailRow(stringResource(Res.string.response_code_label), (rule.mockResponseCode ?: 200).toString())
 
                     if (!rule.mockResponseBody.isNullOrBlank()) {
                         Spacer(Modifier.height(12.dp))
-                        Text("Response Body", style = MaterialTheme.typography.labelMedium,
+                        Text(stringResource(Res.string.response_body), style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
                         if (looksLikeJson(rule.mockResponseBody)) {
@@ -191,17 +193,17 @@ internal fun RuleDetailScreen(
 
                     if (!rule.mockResponseHeaders.isNullOrEmpty()) {
                         Spacer(Modifier.height(12.dp))
-                        Text("Response Headers", style = MaterialTheme.typography.labelMedium,
+                        Text(stringResource(Res.string.response_headers), style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
-                        HeadersList(headers = rule.mockResponseHeaders, emptyText = "No headers")
+                        HeadersList(headers = rule.mockResponseHeaders, emptyText = stringResource(Res.string.no_headers))
                     }
                 }
                 RuleAction.THROTTLE -> {
                     val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
                         "${rule.throttleDelayMs ?: 0}–${rule.throttleDelayMaxMs} ms"
                     else "${rule.throttleDelayMs ?: 0} ms"
-                    DetailRow("Delay", delayText)
+                    DetailRow(stringResource(Res.string.label_delay), delayText)
                 }
             }
 
@@ -211,7 +213,7 @@ internal fun RuleDetailScreen(
                     val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != delay)
                         "$delay–${rule.throttleDelayMaxMs} ms"
                     else "$delay ms"
-                    DetailRow("Throttle Delay", delayText)
+                    DetailRow(stringResource(Res.string.throttle_delay), delayText)
                 }
             }
         }

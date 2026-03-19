@@ -88,6 +88,8 @@ import dev.skymansandy.wiretap.ui.rules.model.toUrlMode
 import dev.skymansandy.wiretap.ui.rules.model.urlPlaceholder
 import dev.skymansandy.wiretap.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.util.currentTimeMillis
+import dev.skymansandy.wiretap_core.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
@@ -180,9 +182,10 @@ internal fun CreateRuleScreen(
 
     if (showConflictDialog && conflictingRules.isNotEmpty()) {
         val firstConflict = conflictingRules.first()
+        val anyMethodLabel = stringResource(Res.string.any_method)
         val conflictSummary = conflictingRules.joinToString("\n") { rule ->
             buildString {
-                append(if (rule.method == "*") "Any" else rule.method)
+                append(if (rule.method == "*") anyMethodLabel else rule.method)
                 rule.urlMatcher?.let { append(" ${it.pattern}") }
                 append(" → ${rule.action.name}")
             }
@@ -193,14 +196,14 @@ internal fun CreateRuleScreen(
                 conflictingRules = emptyList()
                 pendingRule = null
             },
-            title = { Text("Rule Conflict") },
+            title = { Text(stringResource(Res.string.rule_conflict)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         text = if (conflictingRules.size == 1) {
-                            "An existing rule already matches the same requests:"
+                            stringResource(Res.string.conflict_single)
                         } else {
-                            "${conflictingRules.size} existing rules already match the same requests:"
+                            stringResource(Res.string.conflict_multiple, conflictingRules.size)
                         },
                     )
                     Text(
@@ -221,7 +224,7 @@ internal fun CreateRuleScreen(
                         conflictingRules = emptyList()
                         pendingRule = null
                     }) {
-                        Text("Edit Existing Rule")
+                        Text(stringResource(Res.string.edit_existing_rule))
                     }
                 }
             },
@@ -231,7 +234,7 @@ internal fun CreateRuleScreen(
                     conflictingRules = emptyList()
                     pendingRule = null
                 }) {
-                    Text("Discard")
+                    Text(stringResource(Res.string.discard))
                 }
             },
         )
@@ -240,10 +243,10 @@ internal fun CreateRuleScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit Rule" else "Create Rule") },
+                title = { Text(stringResource(if (isEditing) Res.string.edit_rule_title else Res.string.create_rule_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
             )
@@ -253,7 +256,7 @@ internal fun CreateRuleScreen(
 
             StepIndicator(
                 currentStep = step,
-                labels = listOf("Request", "Response"),
+                labels = listOf(stringResource(Res.string.step_request), stringResource(Res.string.step_response)),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
 
@@ -352,7 +355,7 @@ internal fun CreateRuleScreen(
             ) {
                 if (step > 1) {
                     OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) {
-                        Text("Back")
+                        Text(stringResource(Res.string.back))
                     }
                 }
                 if (step < 2) {
@@ -361,7 +364,7 @@ internal fun CreateRuleScreen(
                         enabled = canProceed,
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text("Next: Response")
+                        Text(stringResource(Res.string.next_response))
                     }
                 } else {
                     Button(
@@ -420,7 +423,7 @@ internal fun CreateRuleScreen(
                         },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text("Save Rule")
+                        Text(stringResource(Res.string.save_rule))
                     }
                 }
             }
@@ -458,7 +461,7 @@ private fun RequestStep(
         FilterChip(
             selected = urlMode == null,
             onClick = { onUrlModeChange(null) },
-            label = { Text("None") },
+            label = { Text(stringResource(Res.string.none)) },
         )
         UrlMatchMode.entries.forEach { mode ->
             FilterChip(
@@ -472,7 +475,7 @@ private fun RequestStep(
         OutlinedTextField(
             value = urlPattern,
             onValueChange = onUrlPatternChange,
-            label = { Text("URL ${urlMode.label()}") },
+            label = { Text(stringResource(Res.string.url_label_format, urlMode.label())) },
             placeholder = { Text(urlPlaceholder(urlMode)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -496,7 +499,7 @@ private fun RequestStep(
         onClick = onHeaderAdd,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text("+ Add Header Condition")
+        Text(stringResource(Res.string.add_header_condition))
     }
 
     // ── Body ──────────────────────────────────────────────────────────────────
@@ -505,7 +508,7 @@ private fun RequestStep(
         FilterChip(
             selected = bodyMode == null,
             onClick = { onBodyModeChange(null) },
-            label = { Text("None") },
+            label = { Text(stringResource(Res.string.none)) },
         )
         BodyMatchMode.entries.forEach { mode ->
             FilterChip(
@@ -519,7 +522,7 @@ private fun RequestStep(
         OutlinedTextField(
             value = bodyPattern,
             onValueChange = onBodyPatternChange,
-            label = { Text("Body ${bodyMode.label()}") },
+            label = { Text("${stringResource(Res.string.body)} ${bodyMode.label()}") },
             placeholder = { Text(bodyPlaceholder(bodyMode)) },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
@@ -552,8 +555,8 @@ private fun HeaderMatcherItem(
                 OutlinedTextField(
                     value = entry.key,
                     onValueChange = { onUpdate(entry.copy(key = it)) },
-                    label = { Text("Key") },
-                    placeholder = { Text("Authorization") },
+                    label = { Text(stringResource(Res.string.label_key)) },
+                    placeholder = { Text(stringResource(Res.string.placeholder_authorization)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
@@ -561,7 +564,7 @@ private fun HeaderMatcherItem(
                     OutlinedTextField(
                         value = entry.value,
                         onValueChange = { onUpdate(entry.copy(value = it)) },
-                        label = { Text(if (entry.mode.isRegex()) "Value Regex" else "Value") },
+                        label = { Text(stringResource(if (entry.mode.isRegex()) Res.string.label_value_regex else Res.string.label_value)) },
                         placeholder = { Text(headerValuePlaceholder(entry.mode)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -592,7 +595,7 @@ private fun HeaderMatcherItem(
                 IconButton(onClick = onRemove) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Remove",
+                        contentDescription = stringResource(Res.string.remove),
                         tint = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -627,17 +630,17 @@ private fun ResponseStep(
     throttleInputMode: ThrottleInputMode,
     onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
 ) {
-    Text("Action", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
             selected = action == RuleAction.MOCK,
             onClick = { onActionChange(RuleAction.MOCK) },
-            label = { Text("Mock") },
+            label = { Text(stringResource(Res.string.mock)) },
         )
         FilterChip(
             selected = action == RuleAction.THROTTLE,
             onClick = { onActionChange(RuleAction.THROTTLE) },
-            label = { Text("Throttle") },
+            label = { Text(stringResource(Res.string.throttle)) },
         )
     }
 
@@ -650,18 +653,18 @@ private fun ResponseStep(
                 onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
                 throttleInputMode = throttleInputMode,
                 onThrottleInputModeChange = onThrottleInputModeChange,
-                supportingText = "Optional — adds artificial latency to this mock response",
+                supportingText = stringResource(Res.string.mock_latency_hint),
             )
 
             OutlinedTextField(
                 value = mockResponseCode,
                 onValueChange = onMockResponseCodeChange,
-                label = { Text("Response Code") },
+                label = { Text(stringResource(Res.string.response_code_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            Text("Response Body", style = MaterialTheme.typography.labelMedium,
+            Text(stringResource(Res.string.response_body), style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,)
             Spacer(Modifier.height(4.dp))
             val editorState = rememberJsonEditorState(initialJson = mockResponseBody.ifBlank { "{}" }, isEditing = true)
@@ -691,7 +694,7 @@ private fun ResponseStep(
                 onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
                 throttleInputMode = throttleInputMode,
                 onThrottleInputModeChange = onThrottleInputModeChange,
-                supportingText = "Adds artificial latency before the real network request",
+                supportingText = stringResource(Res.string.throttle_latency_hint),
             )
         }
     }
@@ -710,7 +713,7 @@ private fun ThrottleDelayInput(
     onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
     supportingText: String,
 ) {
-    Text("Throttle Delay", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    Text(stringResource(Res.string.throttle_delay), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
@@ -720,17 +723,17 @@ private fun ThrottleDelayInput(
                 onThrottleDelayMsChange("0")
                 onThrottleDelayMaxMsChange("0")
             },
-            label = { Text("None") },
+            label = { Text(stringResource(Res.string.none)) },
         )
         FilterChip(
             selected = throttleInputMode == ThrottleInputMode.MANUAL,
             onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
-            label = { Text("Manual") },
+            label = { Text(stringResource(Res.string.manual)) },
         )
         FilterChip(
             selected = throttleInputMode == ThrottleInputMode.PROFILE,
             onClick = { onThrottleInputModeChange(ThrottleInputMode.PROFILE) },
-            label = { Text("Network Profile") },
+            label = { Text(stringResource(Res.string.network_profile)) },
         )
     }
 
@@ -741,8 +744,8 @@ private fun ThrottleDelayInput(
                 OutlinedTextField(
                     value = throttleDelayMs,
                     onValueChange = onThrottleDelayMsChange,
-                    label = { Text("Min (ms)") },
-                    placeholder = { Text("e.g. 500") },
+                    label = { Text(stringResource(Res.string.min_ms)) },
+                    placeholder = { Text(stringResource(Res.string.placeholder_500)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -750,8 +753,8 @@ private fun ThrottleDelayInput(
                 OutlinedTextField(
                     value = throttleDelayMaxMs,
                     onValueChange = onThrottleDelayMaxMsChange,
-                    label = { Text("Max (ms)") },
-                    placeholder = { Text("e.g. 2000") },
+                    label = { Text(stringResource(Res.string.max_ms)) },
+                    placeholder = { Text(stringResource(Res.string.placeholder_2000)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -774,8 +777,8 @@ private fun ThrottleDelayInput(
                     value = selectedProfile?.let { "${it.label}  (${it.speed} · ${it.delayMinMs}–${it.delayMaxMs}ms)" } ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Network Profile") },
-                    placeholder = { Text("Select a profile") },
+                    label = { Text(stringResource(Res.string.network_profile)) },
+                    placeholder = { Text(stringResource(Res.string.select_profile)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     singleLine = true,
@@ -827,7 +830,7 @@ private fun ResponseHeadersSection(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "Response Headers",
+            text = stringResource(Res.string.response_headers),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -842,7 +845,7 @@ private fun ResponseHeadersSection(
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KEY_VALUE) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = if (mode == ResponseHeadersEditMode.KEY_VALUE) "Switch to bulk edit" else "Switch to key/value",
+                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KEY_VALUE) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
@@ -858,15 +861,15 @@ private fun ResponseHeadersSection(
                 )
             }
             TextButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
-                Text("+ Add Header")
+                Text(stringResource(Res.string.add_header))
             }
         }
         ResponseHeadersEditMode.BULK_EDIT -> {
             OutlinedTextField(
                 value = bulk,
                 onValueChange = onBulkChange,
-                label = { Text("Headers") },
-                placeholder = { Text("Content-Type: application/json\nCache-Control: no-cache") },
+                label = { Text(stringResource(Res.string.headers_bulk_label)) },
+                placeholder = { Text(stringResource(Res.string.placeholder_headers_bulk)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 8,
@@ -889,23 +892,23 @@ private fun ResponseHeaderEntryRow(
         OutlinedTextField(
             value = entry.key,
             onValueChange = { onUpdate(entry.copy(key = it)) },
-            label = { Text("Key") },
-            placeholder = { Text("Content-Type") },
+            label = { Text(stringResource(Res.string.label_key)) },
+            placeholder = { Text(stringResource(Res.string.placeholder_content_type)) },
             modifier = Modifier.weight(1f),
             singleLine = true,
         )
         OutlinedTextField(
             value = entry.value,
             onValueChange = { onUpdate(entry.copy(value = it)) },
-            label = { Text("Value") },
-            placeholder = { Text("application/json") },
+            label = { Text(stringResource(Res.string.label_value)) },
+            placeholder = { Text(stringResource(Res.string.placeholder_application_json)) },
             modifier = Modifier.weight(1f),
             singleLine = true,
         )
         IconButton(onClick = onRemove) {
             Icon(
                 Icons.Default.Close,
-                contentDescription = "Remove",
+                contentDescription = stringResource(Res.string.remove),
                 tint = MaterialTheme.colorScheme.error,
             )
         }
@@ -931,7 +934,7 @@ private fun SectionLabel(title: String) {
 @Composable
 private fun RegexTesterIcon(onClick: () -> Unit) {
     IconButton(onClick = onClick) {
-        Icon(Icons.Default.PlayArrow, contentDescription = "Test regex", tint = MaterialTheme.colorScheme.primary)
+        Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.test_regex), tint = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -994,13 +997,13 @@ private fun RegexTesterSheet(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Regex Tester",
+                stringResource(Res.string.regex_tester),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
+                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close))
             }
         }
 
@@ -1036,7 +1039,7 @@ private fun RegexTesterSheet(
                 )
                 Column {
                     Text(
-                        text = if (result.matches) "Match found" else "No match",
+                        text = if (result.matches) stringResource(Res.string.match_found) else stringResource(Res.string.no_match),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (result.matches) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
@@ -1064,17 +1067,17 @@ private fun MethodSelector(method: String, onMethodChange: (String) -> Unit) {
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            value = if (method == "*") "Any" else method,
+            value = if (method == "*") stringResource(Res.string.any_method) else method,
             onValueChange = {},
             readOnly = true,
-            label = { Text("HTTP Method") },
+            label = { Text(stringResource(Res.string.http_method)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             methods.forEach { m ->
                 DropdownMenuItem(
-                    text = { Text(if (m == "*") "Any" else m) },
+                    text = { Text(if (m == "*") stringResource(Res.string.any_method) else m) },
                     onClick = {
                         onMethodChange(m)
                         expanded = false

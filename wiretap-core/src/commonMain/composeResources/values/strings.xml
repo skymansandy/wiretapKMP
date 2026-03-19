@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- WiretapScreen -->
+    <string name="wiretap_console">Wiretap Console</string>
+    <string name="back">Back</string>
+    <string name="close_search">Close search</string>
+    <string name="search">Search</string>
+    <string name="clear_http_logs">Clear HTTP logs</string>
+    <string name="clear_websocket_logs">Clear WebSocket logs</string>
+    <string name="tab_http">HTTP</string>
+    <string name="tab_websocket">WebSocket</string>
+    <string name="tab_rules">Rules</string>
+    <string name="no_http_logs">No HTTP logs yet</string>
+    <string name="failed_to_load_logs">Failed to load logs</string>
+    <string name="no_websocket_connections">No WebSocket connections yet</string>
+    <string name="ws_prefix">WS</string>
+    <string name="msgs_count">%1$d msgs</string>
+    <string name="status_connecting">Connecting</string>
+    <string name="status_open">Open</string>
+    <string name="status_closing">Closing</string>
+    <string name="status_closed">Closed</string>
+    <string name="status_failed">Failed</string>
+    <string name="view_rule_swipe">View\nRule</string>
+    <string name="create_rule_swipe">Create\nRule</string>
+    <string name="source_mock">Mock</string>
+    <string name="source_throttle">Throttle</string>
+    <string name="search_placeholder">Search\u2026</string>
+    <string name="copy">Copy</string>
+    <string name="copy_body">Copy body</string>
+    <string name="copy_headers">Copy headers</string>
+
+    <!-- NetworkLogDetailScreen -->
+    <string name="tab_overview">Overview</string>
+    <string name="tab_request">Request</string>
+    <string name="tab_response">Response</string>
+    <string name="share">Share</string>
+    <string name="share_as_text">Share as text</string>
+    <string name="share_as_curl">Share as cURL</string>
+    <string name="mocked_by_rule">Mocked by rule</string>
+    <string name="throttled_by_rule">Throttled by rule</string>
+    <string name="view_rule_arrow">View Rule →</string>
+
+    <!-- OverviewTab -->
+    <string name="label_url">URL</string>
+    <string name="label_method">Method</string>
+    <string name="label_status">Status</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_source">Source</string>
+    <string name="label_request_size">Request Size</string>
+    <string name="label_response_size">Response Size</string>
+    <string name="label_http_version">HTTP Version</string>
+    <string name="label_remote_address">Remote Address</string>
+    <string name="label_tls_protocol">TLS Protocol</string>
+    <string name="label_cipher_suite">Cipher Suite</string>
+    <string name="label_certificate_cn">Certificate CN</string>
+    <string name="label_issuer_cn">Issuer CN</string>
+    <string name="label_valid_until">Valid Until</string>
+
+    <!-- RequestTab / ResponseTab -->
+    <string name="headers">Headers</string>
+    <string name="no_headers">No headers</string>
+    <string name="body">Body</string>
+    <string name="no_body">No body</string>
+
+    <!-- RuleDetailScreen -->
+    <string name="delete_rule">Delete Rule</string>
+    <string name="delete_rule_confirm">Are you sure you want to delete this rule?</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="rule_details">Rule Details</string>
+    <string name="edit_rule_cd">Edit rule</string>
+    <string name="delete_rule_cd">Delete rule</string>
+    <string name="enabled">Enabled</string>
+    <string name="any_method">Any</string>
+    <string name="label_action">Action</string>
+    <string name="response_body">Response Body</string>
+    <string name="response_headers">Response Headers</string>
+    <string name="label_delay">Delay</string>
+    <string name="throttle_delay">Throttle Delay</string>
+
+    <!-- RulesListScreen -->
+    <string name="no_rules_yet">No rules yet</string>
+    <string name="no_rules_match">No rules match \"%1$s\"</string>
+    <string name="create_rule_cd">Create rule</string>
+    <string name="hdr">HDR</string>
+    <string name="hdr_count">HDR×%1$d</string>
+    <string name="response_code_display">Response: %1$d</string>
+    <string name="delay_range">Delay: %1$s–%2$s ms</string>
+    <string name="delay_fixed">Delay: %1$s ms</string>
+
+    <!-- CreateRuleScreen -->
+    <string name="rule_conflict">Rule Conflict</string>
+    <string name="conflict_single">An existing rule already matches the same requests:</string>
+    <string name="conflict_multiple">%1$d existing rules already match the same requests:</string>
+    <string name="edit_existing_rule">Edit Existing Rule</string>
+    <string name="discard">Discard</string>
+    <string name="edit_rule_title">Edit Rule</string>
+    <string name="create_rule_title">Create Rule</string>
+    <string name="step_request">Request</string>
+    <string name="step_response">Response</string>
+    <string name="next_response">Next: Response</string>
+    <string name="save_rule">Save Rule</string>
+    <string name="none">None</string>
+    <string name="url_label_format">URL %1$s</string>
+    <string name="add_header_condition">+ Add Header Condition</string>
+    <string name="label_key">Key</string>
+    <string name="placeholder_authorization">Authorization</string>
+    <string name="mock">Mock</string>
+    <string name="throttle">Throttle</string>
+    <string name="response_code_label">Response Code</string>
+    <string name="manual">Manual</string>
+    <string name="network_profile">Network Profile</string>
+    <string name="min_ms">Min (ms)</string>
+    <string name="placeholder_500">e.g. 500</string>
+    <string name="max_ms">Max (ms)</string>
+    <string name="placeholder_2000">e.g. 2000</string>
+    <string name="select_profile">Select a profile</string>
+    <string name="switch_to_bulk_edit">Switch to bulk edit</string>
+    <string name="switch_to_key_value">Switch to key/value</string>
+    <string name="add_header">+ Add Header</string>
+    <string name="headers_bulk_label">Headers</string>
+    <string name="placeholder_headers_bulk">Content-Type: application/json\nCache-Control: no-cache</string>
+    <string name="placeholder_content_type">Content-Type</string>
+    <string name="label_value">Value</string>
+    <string name="label_value_regex">Value Regex</string>
+    <string name="placeholder_application_json">application/json</string>
+    <string name="test_regex">Test regex</string>
+    <string name="regex_tester">Regex Tester</string>
+    <string name="close">Close</string>
+    <string name="match_found">Match found</string>
+    <string name="no_match">No match</string>
+    <string name="http_method">HTTP Method</string>
+    <string name="remove">Remove</string>
+    <string name="mock_latency_hint">Optional — adds artificial latency to this mock response</string>
+    <string name="throttle_latency_hint">Adds artificial latency before the real network request</string>
+
+    <!-- SocketDetailScreen -->
+    <string name="ws_title">WS %1$s</string>
+    <string name="request_headers">Request Headers</string>
+    <string name="history_cleared">History was cleared — only showing new messages</string>
+    <string name="binary_message">[Binary: %1$s]</string>
+</resources>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!-- App -->
+    <string name="tab_http">HTTP</string>
+    <string name="tab_websocket">WebSocket</string>
+
+    <!-- HttpTab -->
+    <string name="http_requests">HTTP Requests</string>
+    <string name="status_ready">Ready. Tap a button to make a request.</string>
+    <string name="starting_cancel">Starting request, cancelling in 500ms...</string>
+    <string name="request_cancelled">Request cancelled</string>
+    <string name="error_message">Error: %1$s</string>
+
+    <!-- StatusWindow -->
+    <string name="status_label">Status</string>
+
+    <!-- WebSocketTab -->
+    <string name="websocket_title">WebSocket</string>
+    <string name="connecting">Connecting...</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="connect">Connect</string>
+    <string name="connected">Connected</string>
+    <string name="type_message">Type a message...</string>
+    <string name="send">Send</string>
+
+    <!-- WsMessageItem -->
+    <string name="sent_indicator">↑ </string>
+    <string name="received_indicator">↓ </string>
+</resources>

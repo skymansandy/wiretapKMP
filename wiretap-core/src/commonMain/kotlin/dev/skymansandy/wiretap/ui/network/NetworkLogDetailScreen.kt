@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
@@ -47,7 +48,9 @@ import dev.skymansandy.wiretap.ui.network.tabs.ResponseTab
 import dev.skymansandy.wiretap.util.buildCurlCommand
 import dev.skymansandy.wiretap.util.buildShareText
 import dev.skymansandy.wiretap.util.shareNetworkLog
+import dev.skymansandy.wiretap_core.generated.resources.*
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +63,7 @@ fun NetworkLogDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-    val tabs = listOf("Overview", "Request", "Response")
+    val tabs = listOf(stringResource(Res.string.tab_overview), stringResource(Res.string.tab_request), stringResource(Res.string.tab_response))
     val supportsSearch = selectedTab != 0
 
     LaunchedEffect(selectedTab) {
@@ -110,7 +113,7 @@ fun NetworkLogDetailScreen(
                             onBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -120,24 +123,24 @@ fun NetworkLogDetailScreen(
                             isSearchActive = false
                             searchQuery = ""
                         }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close search")
+                                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
                             }
                         } else {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
+                                Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
                             }
                         }
                     }
                     Box {
                         IconButton(onClick = { showShareMenu = true }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
+                            Icon(Icons.Default.Share, contentDescription = stringResource(Res.string.share))
                         }
                         DropdownMenu(
                             expanded = showShareMenu,
                             onDismissRequest = { showShareMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Share as text") },
+                                text = { Text(stringResource(Res.string.share_as_text)) },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -147,7 +150,7 @@ fun NetworkLogDetailScreen(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Share as cURL") },
+                                text = { Text(stringResource(Res.string.share_as_curl)) },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -192,17 +195,20 @@ private fun RuleMatchBanner(
     matchedRuleId: Long?,
     onViewRule: ((ruleId: Long) -> Unit)?,
 ) {
-    val (bgColor, contentColor, label) = when (source) {
-        ResponseSource.MOCK -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            "Mocked by rule",
-        )
-        ResponseSource.THROTTLE -> Triple(
-            MaterialTheme.colorScheme.tertiaryContainer,
-            MaterialTheme.colorScheme.onTertiaryContainer,
-            "Throttled by rule",
-        )
+    val bgColor: Color
+    val contentColor: Color
+    val label: String
+    when (source) {
+        ResponseSource.MOCK -> {
+            bgColor = MaterialTheme.colorScheme.secondaryContainer
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            label = stringResource(Res.string.mocked_by_rule)
+        }
+        ResponseSource.THROTTLE -> {
+            bgColor = MaterialTheme.colorScheme.tertiaryContainer
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            label = stringResource(Res.string.throttled_by_rule)
+        }
         ResponseSource.NETWORK -> return
     }
     val clickable = matchedRuleId != null && onViewRule != null
@@ -225,7 +231,7 @@ private fun RuleMatchBanner(
         )
         if (clickable) {
             Text(
-                text = "View Rule →",
+                text = stringResource(Res.string.view_rule_arrow),
                 style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
             )
