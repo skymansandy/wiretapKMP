@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.skymansandy.wiretap.okhttp.WiretapOkHttpWebSocketListener
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.WsSampleActions
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import dev.skymansandy.wiretap.okhttp.WiretapOkHttpWebSocketListener
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
