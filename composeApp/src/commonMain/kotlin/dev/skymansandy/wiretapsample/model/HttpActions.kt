@@ -59,7 +59,7 @@ internal val httpActions = listOf(
         val response = client.get("https://httpbin.org/status/500")
         onStatus("GET /status/500 -> ${response.status.value}")
     },
-    ApiAction("Timeout (1s)", ActionCategory.Timeout) { client, onStatus ->
+    ApiAction("Timeout (3s)", ActionCategory.Timeout) { client, onStatus ->
         onStatus("GET /delay/10 (3s timeout) ...")
         client.get("https://httpbin.org/delay/10") {
             timeout { requestTimeoutMillis = 3.seconds.inWholeMilliseconds }

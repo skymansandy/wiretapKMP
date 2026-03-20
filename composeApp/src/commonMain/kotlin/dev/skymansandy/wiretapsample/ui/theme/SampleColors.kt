@@ -1,6 +1,7 @@
-package dev.skymansandy.wiretapsample.model
+package dev.skymansandy.wiretapsample.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import dev.skymansandy.wiretapsample.model.ActionCategory
 
 internal val ColorSuccess = Color(0xFF4CAF50)
 internal val ColorRedirect = Color(0xFF42A5F5)
@@ -8,6 +9,7 @@ internal val ColorClientError = Color(0xFFFFA726)
 internal val ColorServerError = Color(0xFFEF5350)
 internal val ColorTimeout = Color(0xFF9E9E9E)
 internal val ColorCancel = Color(0xFF9E9E9E)
+internal val ColorWsSent = Color(0xFF7E57C2)
 
 internal val actionColor = mapOf(
     ActionCategory.Success to ColorSuccess,

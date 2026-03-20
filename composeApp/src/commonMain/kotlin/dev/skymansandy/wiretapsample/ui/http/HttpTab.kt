@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretapsample.model.actionColor
+import dev.skymansandy.wiretapsample.ui.theme.actionColor
 import dev.skymansandy.wiretapsample.model.httpActions
 import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
 import org.jetbrains.compose.resources.stringResource

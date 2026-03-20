@@ -35,8 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretapsample.model.ColorServerError
-import dev.skymansandy.wiretapsample.model.ColorSuccess
+import dev.skymansandy.wiretapsample.ui.theme.ColorServerError
+import dev.skymansandy.wiretapsample.ui.theme.ColorSuccess
 import dev.skymansandy.wiretapsample.model.wsServers
 import dev.skymansandy.wiretapsample.resources.Res
 import dev.skymansandy.wiretapsample.resources.connect

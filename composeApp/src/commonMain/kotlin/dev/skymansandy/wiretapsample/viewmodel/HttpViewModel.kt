@@ -29,9 +29,4 @@ internal class HttpViewModel(
             }
         }
     }
-
-
-    fun setStatusLog(status: String) {
-        statusLog.value = status
-    }
 }

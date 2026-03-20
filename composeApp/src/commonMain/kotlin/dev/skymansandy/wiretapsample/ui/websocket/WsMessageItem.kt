@@ -21,6 +21,7 @@ import dev.skymansandy.wiretapsample.model.WsLogEntry.WsMsgType
 import dev.skymansandy.wiretapsample.resources.Res
 import dev.skymansandy.wiretapsample.resources.received_indicator
 import dev.skymansandy.wiretapsample.resources.sent_indicator
+import dev.skymansandy.wiretapsample.ui.theme.ColorWsSent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -28,15 +29,17 @@ internal fun WsMessageItem(entry: WsLogEntry) {
 
     val (bgColor, textColor, alignment) = when (entry.type) {
         WsMsgType.Sent -> Triple(
-            Color(0xFF7E57C2).copy(alpha = 0.15f),
-            Color(0xFF7E57C2),
+            ColorWsSent.copy(alpha = 0.15f),
+            ColorWsSent,
             Alignment.CenterEnd,
         )
+
         WsMsgType.Recv -> Triple(
             MaterialTheme.colorScheme.surface,
             MaterialTheme.colorScheme.onSurface,
             Alignment.CenterStart,
         )
+
         WsMsgType.Sys -> Triple(
             Color.Transparent,
             MaterialTheme.colorScheme.onSurfaceVariant,
@@ -46,11 +49,11 @@ internal fun WsMessageItem(entry: WsLogEntry) {
 
     if (entry.type == WsMsgType.Sys) {
         Text(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
             text = entry.text,
             style = MaterialTheme.typography.labelSmall,
             color = textColor,
             fontFamily = FontFamily.Monospace,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
         )
     } else {
         Box(
@@ -64,10 +67,13 @@ internal fun WsMessageItem(entry: WsLogEntry) {
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
-                    text = if (entry.type == WsMsgType.Sent) stringResource(Res.string.sent_indicator) else stringResource(Res.string.received_indicator),
+                    text = if (entry.type == WsMsgType.Sent) stringResource(Res.string.sent_indicator) else stringResource(
+                        Res.string.received_indicator
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )
+
                 Text(
                     text = entry.text,
                     style = MaterialTheme.typography.bodySmall,
@@ -83,7 +89,17 @@ internal fun WsMessageItem(entry: WsLogEntry) {
 @Composable
 private fun WsMessageItemSentPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Sent, text = """{"type":"subscribe","channel":"updates"}"""))
+        WsMessageItem(
+            entry = WsLogEntry(
+                type = WsMsgType.Sent,
+                text = """
+                    {
+                        "type":"subscribe",
+                        "channel":"updates"
+                    }
+                """.trimIndent(),
+            ),
+        )
     }
 }
 
@@ -91,7 +107,20 @@ private fun WsMessageItemSentPreview() {
 @Composable
 private fun WsMessageItemRecvPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Recv, text = """{"type":"message","data":{"id":1,"status":"ok"}}"""))
+        WsMessageItem(
+            entry = WsLogEntry(
+                type = WsMsgType.Recv,
+                text = """
+                    {
+                        "type":"message",
+                        "data": {
+                            "id":1,
+                            "status":"ok"
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
     }
 }
 
@@ -99,6 +128,11 @@ private fun WsMessageItemRecvPreview() {
 @Composable
 private fun WsMessageItemSysPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Sys, text = "Connected to wss://echo.websocket.org"))
+        WsMessageItem(
+            entry = WsLogEntry(
+                type = WsMsgType.Sys,
+                text = "Connected to wss://echo.websocket.org",
+            )
+        )
     }
 }
