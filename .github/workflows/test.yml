@@ -1,4 +1,4 @@
-name: Detekt and Test
+name: Main
 
 on:
   pull_request:
