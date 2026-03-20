@@ -49,9 +49,9 @@ dependencyResolutionManagement {
             url = uri("https://maven.pkg.github.com/skymansandy/wiretapKMP")
             credentials {
                 username = providers.gradleProperty("gpr.user").orNull
-                    ?: System.getenv("GITHUB_USERNAME")
+                    ?: System.getenv("GH_USERNAME")
                 password = providers.gradleProperty("gpr.key").orNull
-                    ?: System.getenv("GITHUB_TOKEN")
+                    ?: System.getenv("GH_TOKEN")
             }
         }
     }
@@ -65,7 +65,6 @@ dependencyResolutionManagement {
 ```kotlin
 dependencies {
     // Debug
-    debugImplementation("dev.skymansandy:wiretap-core:1.0.0-alpha1")
     debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-alpha1")
     // Release (no-op)
     releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-alpha1")
@@ -77,7 +76,6 @@ dependencies {
 ```kotlin
 dependencies {
     // Debug
-    debugImplementation("dev.skymansandy:wiretap-core:1.0.0-alpha1")
     debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-alpha1")
     // Release (no-op)
     releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-alpha1")
