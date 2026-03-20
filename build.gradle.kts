@@ -19,7 +19,6 @@ plugins {
 
 dependencies {
     listOf(
-        "json-cmp",
         "wiretap-core",
         "wiretap-ktor",
         "wiretap-ktor-noop",
@@ -32,7 +31,6 @@ dependencies {
 }
 
 val publishableModules = setOf(
-    "json-cmp",
     "wiretap-core",
     "wiretap-ktor",
     "wiretap-ktor-noop",

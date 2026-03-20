@@ -44,7 +44,6 @@ jobs:
       - name: Run JVM tests
         run: >
           ./gradlew
-          :json-cmp:jvmTest
           :wiretap-core:jvmTest
           :wiretap-ktor:jvmTest
           :wiretap-ktor-noop:jvmTest

@@ -33,7 +33,6 @@ jobs:
       - name: Run tests with coverage
         run: >
           ./gradlew
-          :json-cmp:jvmTest
           :wiretap-core:jvmTest
           :wiretap-ktor:jvmTest
           :wiretap-ktor-noop:jvmTest

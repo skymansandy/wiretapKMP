@@ -25,6 +25,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
     }
 }
 
@@ -34,8 +35,6 @@ plugins {
 
 include(":androidApp")
 include(":composeApp")
-
-include(":json-cmp")
 include(":wiretap-core")
 include(":wiretap-ktor")
 include(":wiretap-ktor-noop")

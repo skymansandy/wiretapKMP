@@ -54,7 +54,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                api(projects.jsonCmp)
+                api("dev.skymansandy:json-cmp:1.0.0-alpha1")
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)

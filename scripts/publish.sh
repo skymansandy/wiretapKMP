@@ -6,7 +6,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # All publishable modules in dependency order
 ALL_MODULES=(
-    "json-cmp"
     "wiretap-core"
     "wiretap-ktor"
     "wiretap-ktor-noop"
