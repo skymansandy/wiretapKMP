@@ -116,17 +116,18 @@ class WiretapOkHttpInterceptor(
             -1L
         }
 
-        if (matchingRule?.action == RuleAction.Mock) {
+        if (matchingRule?.action is RuleAction.Mock) {
+            val mock = matchingRule.action as RuleAction.Mock
             val durationNs = currentNanoTime() - startNano
-            val body = (matchingRule.mockResponseBody ?: "")
+            val body = (mock.responseBody ?: "")
                 .toResponseBody("application/json; charset=utf-8".toMediaType())
             val mockResponse = Response.Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
-                .code(matchingRule.mockResponseCode ?: 200)
+                .code(mock.responseCode)
                 .message("Mock")
                 .body(body)
-                .apply { matchingRule.mockResponseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
+                .apply { mock.responseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
 
             if (logEntryId >= 0) {
@@ -140,7 +141,7 @@ class WiretapOkHttpInterceptor(
                         requestBody = requestBody,
                         responseCode = mockResponse.code,
                         responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                        responseBody = matchingRule.mockResponseBody,
+                        responseBody = mock.responseBody,
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
                         source = ResponseSource.Mock,
@@ -151,9 +152,10 @@ class WiretapOkHttpInterceptor(
             return@runBlocking mockResponse
         }
 
-        if (matchingRule?.action == RuleAction.Throttle) {
-            val minDelay = matchingRule.throttleDelayMs ?: 0L
-            val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+        if (matchingRule?.action is RuleAction.Throttle) {
+            val throttle = matchingRule.action as RuleAction.Throttle
+            val minDelay = throttle.delayMs
+            val maxDelay = throttle.delayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
             if (delayMs > 0) Thread.sleep(delayMs)
         }
@@ -195,7 +197,7 @@ class WiretapOkHttpInterceptor(
         }
 
         val source = when (matchingRule?.action) {
-            RuleAction.Throttle -> ResponseSource.Throttle
+            is RuleAction.Throttle -> ResponseSource.Throttle
             else -> ResponseSource.Network
         }
 

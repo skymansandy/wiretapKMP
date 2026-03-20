@@ -198,49 +198,47 @@ internal fun RuleDetailScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            when (rule.action) {
-                RuleAction.Mock -> {
-                    DetailRow(stringResource(Res.string.response_code_label), (rule.mockResponseCode ?: 200).toString())
+            when (val action = rule.action) {
+                is RuleAction.Mock -> {
+                    DetailRow(stringResource(Res.string.response_code_label), action.responseCode.toString())
 
-                    if (!rule.mockResponseBody.isNullOrBlank()) {
+                    if (!action.responseBody.isNullOrBlank()) {
                         Spacer(Modifier.height(12.dp))
                         Text(stringResource(Res.string.response_body), style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
-                        if (looksLikeJson(rule.mockResponseBody)) {
-                            val editorState = rememberJsonEditorState(initialJson = rule.mockResponseBody)
+                        if (looksLikeJson(action.responseBody)) {
+                            val editorState = rememberJsonEditorState(initialJson = action.responseBody)
                             JsonEditor(
                                 state = editorState,
                                 modifier = Modifier.padding(vertical = 4.dp),
                             )
                         } else {
-                            CodeBlock(text = rule.mockResponseBody, modifier = Modifier.padding(vertical = 4.dp))
+                            CodeBlock(text = action.responseBody, modifier = Modifier.padding(vertical = 4.dp))
                         }
                     }
 
-                    if (!rule.mockResponseHeaders.isNullOrEmpty()) {
+                    if (!action.responseHeaders.isNullOrEmpty()) {
                         Spacer(Modifier.height(12.dp))
                         Text(stringResource(Res.string.response_headers), style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
-                        HeadersList(headers = rule.mockResponseHeaders, emptyText = stringResource(Res.string.no_headers))
+                        HeadersList(headers = action.responseHeaders, emptyText = stringResource(Res.string.no_headers))
+                    }
+
+                    action.throttleDelayMs?.let { delay ->
+                        Spacer(Modifier.height(12.dp))
+                        val delayText = if (action.throttleDelayMaxMs != null && action.throttleDelayMaxMs != delay)
+                            "$delay–${action.throttleDelayMaxMs} ms"
+                        else "$delay ms"
+                        DetailRow(stringResource(Res.string.throttle_delay), delayText)
                     }
                 }
-                RuleAction.Throttle -> {
-                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
-                        "${rule.throttleDelayMs ?: 0}–${rule.throttleDelayMaxMs} ms"
-                    else "${rule.throttleDelayMs ?: 0} ms"
+                is RuleAction.Throttle -> {
+                    val delayText = if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
+                        "${action.delayMs}–${action.delayMaxMs} ms"
+                    else "${action.delayMs} ms"
                     DetailRow(stringResource(Res.string.label_delay), delayText)
-                }
-            }
-
-            rule.throttleDelayMs?.let { delay ->
-                if (rule.action == RuleAction.Mock) {
-                    Spacer(Modifier.height(12.dp))
-                    val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != delay)
-                        "$delay–${rule.throttleDelayMaxMs} ms"
-                    else "$delay ms"
-                    DetailRow(stringResource(Res.string.throttle_delay), delayText)
                 }
             }
         }

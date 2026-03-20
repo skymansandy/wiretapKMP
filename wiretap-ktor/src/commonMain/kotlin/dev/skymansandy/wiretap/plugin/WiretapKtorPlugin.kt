@@ -113,19 +113,19 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
 
         try {
-            when (matchingRule?.action) {
-                RuleAction.Mock -> {
-                    matchingRule.throttleDelayMs?.let { minDelay ->
-                        val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+            when (val action = matchingRule?.action) {
+                is RuleAction.Mock -> {
+                    action.throttleDelayMs?.let { minDelay ->
+                        val maxDelay = action.throttleDelayMaxMs ?: minDelay
                         delay(if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay)
                     }
 
-                    val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
+                    val statusCode = HttpStatusCode.fromValue(action.responseCode)
                     val mockHeaders = Headers.build {
-                        matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
+                        action.responseHeaders?.forEach { (k, v) -> append(k, v) }
                     }
                     val responseBody =
-                        matchingRule.mockResponseBody?.encodeToByteArray() ?: ByteArray(0)
+                        action.responseBody?.encodeToByteArray() ?: ByteArray(0)
                     val call = HttpClientCall(
                         client = client,
                         requestData = request.build(),
@@ -143,7 +143,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                         val startNano =
                             request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                         val durationNs = currentNanoTime() - startNano
-                        val mockRespHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
+                        val mockRespHeaders = action.responseHeaders ?: emptyMap()
                         deps.orchestrator.updateEntry(
                             HttpLogEntry(
                                 id = logEntryId,
@@ -153,7 +153,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                                 requestBody = requestBody,
                                 responseCode = statusCode.value,
                                 responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                                responseBody = matchingRule.mockResponseBody,
+                                responseBody = action.responseBody,
                                 durationMs = durationNs / 1_000_000,
                                 durationNs = durationNs,
                                 source = ResponseSource.Mock,
@@ -166,9 +166,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     call
                 }
 
-                RuleAction.Throttle -> {
-                    val minDelay = matchingRule.throttleDelayMs ?: 0L
-                    val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+                is RuleAction.Throttle -> {
+                    val minDelay = action.delayMs
+                    val maxDelay = action.delayMaxMs ?: minDelay
                     val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
                     if (delayMs > 0) delay(delayMs)
                     proceed(request)
@@ -230,8 +230,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
 
         val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
-            RuleAction.Mock -> ResponseSource.Mock
-            RuleAction.Throttle -> ResponseSource.Throttle
+            is RuleAction.Mock -> ResponseSource.Mock
+            is RuleAction.Throttle -> ResponseSource.Throttle
             else -> ResponseSource.Network
         }
 

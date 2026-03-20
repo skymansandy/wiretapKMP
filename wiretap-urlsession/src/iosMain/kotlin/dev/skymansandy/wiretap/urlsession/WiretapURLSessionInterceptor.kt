@@ -126,7 +126,7 @@ class WiretapURLSessionInterceptor(
             -1L
         }
 
-        if (matchingRule?.action == RuleAction.Mock) {
+        if (matchingRule?.action is RuleAction.Mock) {
             handleMockResponse(
                 logEntryId, url, method, reqHeaders, requestBody,
                 matchingRule, startNano, completionHandler,
@@ -152,9 +152,10 @@ class WiretapURLSessionInterceptor(
             }.resume()
         }
 
-        if (matchingRule?.action == RuleAction.Throttle) {
-            val minDelay = matchingRule.throttleDelayMs ?: 0L
-            val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+        if (matchingRule?.action is RuleAction.Throttle) {
+            val throttle = matchingRule.action as RuleAction.Throttle
+            val minDelay = throttle.delayMs
+            val maxDelay = throttle.delayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
             if (delayMs > 0) {
                 val delayNs = delayMs * 1_000_000
@@ -260,9 +261,10 @@ class WiretapURLSessionInterceptor(
     ) {
 
         val durationNs = currentNanoTime() - startNano
-        val mockCode = matchingRule.mockResponseCode ?: 200
-        val mockHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
-        val mockBody = matchingRule.mockResponseBody
+        val mock = matchingRule.action as RuleAction.Mock
+        val mockCode = mock.responseCode
+        val mockHeaders = mock.responseHeaders ?: emptyMap()
+        val mockBody = mock.responseBody
 
         if (logEntryId >= 0) {
             orchestrator.updateEntry(
@@ -321,7 +323,7 @@ class WiretapURLSessionInterceptor(
         }
 
         val source = when (matchingRule?.action) {
-            RuleAction.Throttle -> ResponseSource.Throttle
+            is RuleAction.Throttle -> ResponseSource.Throttle
             else -> ResponseSource.Network
         }
 

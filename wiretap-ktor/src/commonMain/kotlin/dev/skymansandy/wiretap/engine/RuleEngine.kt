@@ -26,8 +26,8 @@ internal class RuleEngineImpl(
             ?: return proceed()
 
         return when (matchingRule.action) {
-            RuleAction.Mock -> mockEngine.execute(request, matchingRule)
-            RuleAction.Throttle -> throttleEngine.execute(request, matchingRule, proceed)
+            is RuleAction.Mock -> mockEngine.execute(request, matchingRule)
+            is RuleAction.Throttle -> throttleEngine.execute(request, matchingRule, proceed)
         }
     }
 }

@@ -2,10 +2,9 @@ package dev.skymansandy.wiretap.data.db.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.db.HttpLogEntity
 import dev.skymansandy.wiretap.db.WiretapDatabase
-import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -132,29 +131,5 @@ internal class NetworkDaoImpl(
         withContext(Dispatchers.IO) {
             queries.deleteNetworkLogsOlderThan(timestamp)
         }
-    }
-
-    private fun HttpLogEntity.toDomain(): HttpLogEntry {
-        return HttpLogEntry(
-            id = id,
-            url = url,
-            method = method,
-            requestHeaders = HeadersSerializerUtil.deserialize(request_headers),
-            requestBody = request_body,
-            responseCode = response_code.toInt(),
-            responseHeaders = HeadersSerializerUtil.deserialize(response_headers),
-            responseBody = response_body,
-            durationMs = duration_ms,
-            source = ResponseSource.valueOf(source),
-            timestamp = timestamp,
-            matchedRuleId = matched_rule_id,
-            protocol = protocol,
-            remoteAddress = remote_address,
-            tlsProtocol = tls_protocol,
-            cipherSuite = cipher_suite,
-            certificateCn = certificate_cn,
-            issuerCn = issuer_cn,
-            certificateExpiry = certificate_expiry,
-        )
     }
 }

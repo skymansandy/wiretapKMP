@@ -4,9 +4,17 @@ sealed interface UrlMatcher {
 
     val pattern: String
 
-    data class Exact(override val pattern: String) : UrlMatcher
+    val type: MatcherType
 
-    data class Contains(override val pattern: String) : UrlMatcher
+    data class Exact(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Exact
+    }
 
-    data class Regex(override val pattern: String) : UrlMatcher
+    data class Contains(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Contains
+    }
+
+    data class Regex(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Regex
+    }
 }

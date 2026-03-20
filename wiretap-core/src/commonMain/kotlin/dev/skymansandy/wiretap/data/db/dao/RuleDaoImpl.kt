@@ -2,12 +2,10 @@ package dev.skymansandy.wiretap.data.db.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.db.RuleEntity
 import dev.skymansandy.wiretap.db.WiretapDatabase
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.HeaderMatcherSerializer
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import kotlinx.coroutines.Dispatchers
@@ -27,18 +25,25 @@ internal class RuleDaoImpl(
         withContext(Dispatchers.IO) {
             queries.insertRule(
                 method = rule.method,
-                url_matcher_type = rule.urlMatcher?.typeString(),
+                url_matcher_type = rule.urlMatcher?.type?.name,
                 url_pattern = rule.urlMatcher?.pattern,
                 header_matchers = rule.headerMatchers.takeIf { it.isNotEmpty() }
                     ?.let { HeaderMatcherSerializer.serialize(it) },
-                body_matcher_type = rule.bodyMatcher?.typeString(),
+                body_matcher_type = rule.bodyMatcher?.type?.name,
                 body_pattern = rule.bodyMatcher?.pattern,
                 action = rule.action.name,
-                mock_response_code = rule.mockResponseCode?.toLong(),
-                mock_response_body = rule.mockResponseBody,
-                mock_response_headers = rule.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) },
-                throttle_delay_ms = rule.throttleDelayMs,
-                throttle_delay_max_ms = rule.throttleDelayMaxMs,
+                mock_response_code = (rule.action as? RuleAction.Mock)?.responseCode?.toLong(),
+                mock_response_body = (rule.action as? RuleAction.Mock)?.responseBody,
+                mock_response_headers = (rule.action as? RuleAction.Mock)?.responseHeaders
+                    ?.let { HeadersSerializerUtil.serialize(it) },
+                throttle_delay_ms = when (val action = rule.action) {
+                    is RuleAction.Mock -> action.throttleDelayMs
+                    is RuleAction.Throttle -> action.delayMs
+                },
+                throttle_delay_max_ms = when (val action = rule.action) {
+                    is RuleAction.Mock -> action.throttleDelayMaxMs
+                    is RuleAction.Throttle -> action.delayMaxMs
+                },
                 enabled = if (rule.enabled) 1L else 0L,
                 created_at = rule.createdAt,
             )
@@ -65,18 +70,25 @@ internal class RuleDaoImpl(
         withContext(Dispatchers.IO) {
             queries.updateRule(
                 method = rule.method,
-                url_matcher_type = rule.urlMatcher?.typeString(),
+                url_matcher_type = rule.urlMatcher?.type?.name,
                 url_pattern = rule.urlMatcher?.pattern,
                 header_matchers = rule.headerMatchers.takeIf { it.isNotEmpty() }
                     ?.let { HeaderMatcherSerializer.serialize(it) },
-                body_matcher_type = rule.bodyMatcher?.typeString(),
+                body_matcher_type = rule.bodyMatcher?.type?.name,
                 body_pattern = rule.bodyMatcher?.pattern,
                 action = rule.action.name,
-                mock_response_code = rule.mockResponseCode?.toLong(),
-                mock_response_body = rule.mockResponseBody,
-                mock_response_headers = rule.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) },
-                throttle_delay_ms = rule.throttleDelayMs,
-                throttle_delay_max_ms = rule.throttleDelayMaxMs,
+                mock_response_code = (rule.action as? RuleAction.Mock)?.responseCode?.toLong(),
+                mock_response_body = (rule.action as? RuleAction.Mock)?.responseBody,
+                mock_response_headers = (rule.action as? RuleAction.Mock)?.responseHeaders
+                    ?.let { HeadersSerializerUtil.serialize(it) },
+                throttle_delay_ms = when (val action = rule.action) {
+                    is RuleAction.Mock -> action.throttleDelayMs
+                    is RuleAction.Throttle -> action.delayMs
+                },
+                throttle_delay_max_ms = when (val action = rule.action) {
+                    is RuleAction.Mock -> action.throttleDelayMaxMs
+                    is RuleAction.Throttle -> action.delayMaxMs
+                },
                 enabled = if (rule.enabled) 1L else 0L,
                 id = rule.id,
             )
@@ -110,53 +122,5 @@ internal class RuleDaoImpl(
         withContext(Dispatchers.IO) {
             queries.deleteAllRules()
         }
-    }
-
-    private fun RuleEntity.toDomain(): WiretapRule {
-        return WiretapRule(
-            id = id,
-            method = method,
-            urlMatcher = url_matcher_type?.let { type ->
-                url_pattern?.let { pattern ->
-                    when (type) {
-                        "EXACT" -> UrlMatcher.Exact(pattern)
-                        "CONTAINS" -> UrlMatcher.Contains(pattern)
-                        "REGEX" -> UrlMatcher.Regex(pattern)
-                        else -> null
-                    }
-                }
-            },
-            headerMatchers = header_matchers?.let { HeaderMatcherSerializer.deserialize(it) } ?: emptyList(),
-            bodyMatcher = body_matcher_type?.let { type ->
-                body_pattern?.let { pattern ->
-                    when (type) {
-                        "EXACT" -> BodyMatcher.Exact(pattern)
-                        "CONTAINS" -> BodyMatcher.Contains(pattern)
-                        "REGEX" -> BodyMatcher.Regex(pattern)
-                        else -> null
-                    }
-                }
-            },
-            action = RuleAction.valueOf(action),
-            mockResponseCode = mock_response_code?.toInt(),
-            mockResponseBody = mock_response_body,
-            mockResponseHeaders = mock_response_headers?.let { HeadersSerializerUtil.deserialize(it) },
-            throttleDelayMs = throttle_delay_ms,
-            throttleDelayMaxMs = throttle_delay_max_ms,
-            enabled = enabled == 1L,
-            createdAt = created_at,
-        )
-    }
-
-    private fun UrlMatcher.typeString() = when (this) {
-        is UrlMatcher.Exact -> "EXACT"
-        is UrlMatcher.Contains -> "CONTAINS"
-        is UrlMatcher.Regex -> "REGEX"
-    }
-
-    private fun BodyMatcher.typeString() = when (this) {
-        is BodyMatcher.Exact -> "EXACT"
-        is BodyMatcher.Contains -> "CONTAINS"
-        is BodyMatcher.Regex -> "REGEX"
     }
 }

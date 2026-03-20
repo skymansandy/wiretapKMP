@@ -109,26 +109,38 @@ internal fun CreateRuleScreen(
     var pendingRule by remember { mutableStateOf<WiretapRule?>(null) }
 
     // Response state
-    var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.Mock) }
-    var mockResponseCode by remember { mutableStateOf(existingRule?.mockResponseCode?.toString() ?: "200") }
-    var mockResponseBody by remember { mutableStateOf(existingRule?.mockResponseBody ?: "") }
+    val existingMock = existingRule?.action as? RuleAction.Mock
+    val existingThrottle = existingRule?.action as? RuleAction.Throttle
+    var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.Mock()) }
+    var mockResponseCode by remember { mutableStateOf(existingMock?.responseCode?.toString() ?: "200") }
+    var mockResponseBody by remember { mutableStateOf(existingMock?.responseBody ?: "") }
     var responseHeaderEntries by remember {
         mutableStateOf<List<ResponseHeaderEntry>>(
-            existingRule?.mockResponseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
+            existingMock?.responseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
         )
     }
     var responseHeadersBulk by remember {
-        mutableStateOf(existingRule?.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: "")
+        mutableStateOf(existingMock?.responseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: "")
     }
     var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KeyValue) }
-    var throttleDelayMs by remember { mutableStateOf(existingRule?.throttleDelayMs?.toString() ?: "") }
-    var throttleDelayMaxMs by remember { mutableStateOf(existingRule?.throttleDelayMaxMs?.toString() ?: "") }
+    var throttleDelayMs by remember {
+        mutableStateOf(
+            (existingMock?.throttleDelayMs ?: existingThrottle?.delayMs)?.toString() ?: "",
+        )
+    }
+    var throttleDelayMaxMs by remember {
+        mutableStateOf(
+            (existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs)?.toString() ?: "",
+        )
+    }
     var throttleInputMode by remember {
+        val existingDelayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
+        val existingDelayMaxMs = existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
         mutableStateOf(
             when {
-                existingRule?.throttleDelayMs == null || (existingRule.throttleDelayMs == 0L && existingRule.throttleDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.None
+                existingDelayMs == null || (existingDelayMs == 0L && existingDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.None
                 ThrottleProfile.entries.any {
-                    it.delayMinMs == existingRule.throttleDelayMs && it.delayMaxMs == existingRule.throttleDelayMaxMs
+                    it.delayMinMs == existingDelayMs && it.delayMaxMs == existingDelayMaxMs
                 } -> ThrottleInputMode.Profile
                 else -> ThrottleInputMode.Manual
             }
@@ -317,6 +329,19 @@ internal fun CreateRuleScreen(
                                             HeadersSerializerUtil.deserialize(responseHeadersBulk).takeIf { m -> m.isNotEmpty() }
                                         else null
                                 }
+                                val ruleAction = when (action) {
+                                    is RuleAction.Mock -> RuleAction.Mock(
+                                        responseCode = mockResponseCode.toIntOrNull() ?: 200,
+                                        responseBody = mockResponseBody.ifBlank { null },
+                                        responseHeaders = resolvedHeaders,
+                                        throttleDelayMs = throttleDelayMs.toLongOrNull(),
+                                        throttleDelayMaxMs = throttleDelayMaxMs.toLongOrNull(),
+                                    )
+                                    is RuleAction.Throttle -> RuleAction.Throttle(
+                                        delayMs = throttleDelayMs.toLongOrNull() ?: 1000L,
+                                        delayMaxMs = throttleDelayMaxMs.toLongOrNull(),
+                                    )
+                                }
                                 val rule = WiretapRule(
                                     id = existingRule?.id ?: 0,
                                     method = method.trim().ifBlank { "*" },
@@ -333,18 +358,7 @@ internal fun CreateRuleScreen(
                                         BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.trim())
                                         null -> null
                                     },
-                                    action = action,
-                                    mockResponseCode = if (action == RuleAction.Mock) mockResponseCode.toIntOrNull() ?: 200 else null,
-                                    mockResponseBody = if (action == RuleAction.Mock) mockResponseBody.ifBlank { null } else null,
-                                    mockResponseHeaders = if (action == RuleAction.Mock) resolvedHeaders else null,
-                                    throttleDelayMs = when (action) {
-                                        RuleAction.Throttle -> throttleDelayMs.toLongOrNull() ?: 1000L
-                                        RuleAction.Mock -> throttleDelayMs.toLongOrNull()
-                                    },
-                                    throttleDelayMaxMs = when (action) {
-                                        RuleAction.Throttle -> throttleDelayMaxMs.toLongOrNull()
-                                        RuleAction.Mock -> throttleDelayMaxMs.toLongOrNull()
-                                    },
+                                    action = ruleAction,
                                     enabled = existingRule?.enabled ?: true,
                                     createdAt = existingRule?.createdAt ?: currentTimeMillis(),
                                 )
@@ -438,8 +452,7 @@ private fun ConflictDialogSinglePreview() {
                     id = 1,
                     method = "GET",
                     urlMatcher = UrlMatcher.Contains("/api/users"),
-                    action = RuleAction.Mock,
-                    mockResponseCode = 200,
+                    action = RuleAction.Mock(responseCode = 200),
                     enabled = true,
                 ),
             ),
@@ -460,16 +473,14 @@ private fun ConflictDialogMultiplePreview() {
                     id = 1,
                     method = "GET",
                     urlMatcher = UrlMatcher.Contains("/api/users"),
-                    action = RuleAction.Mock,
-                    mockResponseCode = 200,
+                    action = RuleAction.Mock(responseCode = 200),
                     enabled = true,
                 ),
                 WiretapRule(
                     id = 2,
                     method = "*",
                     urlMatcher = UrlMatcher.Regex("/api/.*"),
-                    action = RuleAction.Throttle,
-                    throttleDelayMs = 1000,
+                    action = RuleAction.Throttle(delayMs = 1000),
                     enabled = true,
                 ),
             ),

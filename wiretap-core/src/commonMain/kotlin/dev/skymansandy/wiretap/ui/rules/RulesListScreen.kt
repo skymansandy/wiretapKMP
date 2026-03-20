@@ -133,24 +133,26 @@ private fun RuleItem(
                 )
             }
 
-            if (rule.action == RuleAction.Mock && rule.mockResponseCode != null) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(Res.string.response_code_display, rule.mockResponseCode!!),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (rule.action == RuleAction.Throttle && rule.throttleDelayMs != null) {
-                Spacer(Modifier.height(2.dp))
-                val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
-                    stringResource(Res.string.delay_range, rule.throttleDelayMs.toString(), rule.throttleDelayMaxMs.toString())
-                else stringResource(Res.string.delay_fixed, rule.throttleDelayMs.toString())
-                Text(
-                    text = delayText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            when (val action = rule.action) {
+                is RuleAction.Mock -> {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(Res.string.response_code_display, action.responseCode),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                is RuleAction.Throttle -> {
+                    Spacer(Modifier.height(2.dp))
+                    val delayText = if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
+                        stringResource(Res.string.delay_range, action.delayMs.toString(), action.delayMaxMs.toString())
+                    else stringResource(Res.string.delay_fixed, action.delayMs.toString())
+                    Text(
+                        text = delayText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -182,8 +184,8 @@ private fun MatcherBadge(
 @Composable
 internal fun ActionBadge(action: RuleAction) {
     val color = when (action) {
-        RuleAction.Mock -> MaterialTheme.colorScheme.error
-        RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
+        is RuleAction.Mock -> MaterialTheme.colorScheme.error
+        is RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
     }
     Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
@@ -229,8 +231,7 @@ private fun RuleItemMockPreview() {
                 id = 1,
                 method = "GET",
                 urlMatcher = UrlMatcher.Contains("/api/users"),
-                action = RuleAction.Mock,
-                mockResponseCode = 200,
+                action = RuleAction.Mock(responseCode = 200),
                 enabled = true,
             ),
             searchQuery = "",
@@ -249,9 +250,7 @@ private fun RuleItemThrottlePreview() {
                 id = 2,
                 method = "*",
                 urlMatcher = UrlMatcher.Regex("/api/v\\d+/.*"),
-                action = RuleAction.Throttle,
-                throttleDelayMs = 1000,
-                throttleDelayMaxMs = 3000,
+                action = RuleAction.Throttle(delayMs = 1000, delayMaxMs = 3000),
                 enabled = false,
             ),
             searchQuery = "",
@@ -265,7 +264,7 @@ private fun RuleItemThrottlePreview() {
 @Composable
 private fun ActionBadgeMockPreview() {
     MaterialTheme {
-        ActionBadge(action = RuleAction.Mock)
+        ActionBadge(action = RuleAction.Mock())
     }
 }
 
@@ -273,6 +272,6 @@ private fun ActionBadgeMockPreview() {
 @Composable
 private fun ActionBadgeThrottlePreview() {
     MaterialTheme {
-        ActionBadge(action = RuleAction.Throttle)
+        ActionBadge(action = RuleAction.Throttle())
     }
 }
