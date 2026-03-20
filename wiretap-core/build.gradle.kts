@@ -57,6 +57,8 @@ kotlin {
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
                 implementation(libs.compose.ui)
+                implementation(libs.compose.uiToolingPreview)
+                implementation(libs.compose.components.resources)
                 implementation(libs.material.icons.extended)
                 implementation(libs.androidx.lifecycle.viewmodelCompose)
                 implementation(libs.androidx.lifecycle.runtimeCompose)
@@ -100,6 +102,11 @@ kotlin {
             implementation(libs.sqldelight.sqlite.driver)
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "dev.skymansandy.wiretap.resources"
+    generateResClass = always
 }
 
 sqldelight {

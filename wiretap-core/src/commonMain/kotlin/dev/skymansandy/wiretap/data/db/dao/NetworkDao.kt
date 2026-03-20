@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.data.db.dao
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import kotlinx.coroutines.flow.Flow
 
-interface NetworkDao {
+internal interface NetworkDao {
     fun insert(entry: NetworkLogEntry)
     fun insertAndGetId(entry: NetworkLogEntry): Long
     fun update(entry: NetworkLogEntry)

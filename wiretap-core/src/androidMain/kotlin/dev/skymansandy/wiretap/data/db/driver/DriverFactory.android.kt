@@ -6,7 +6,7 @@ import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import dev.skymansandy.wiretap.db.WiretapDatabase
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 
-actual class DriverFactory {
+internal actual class DriverFactory {
 
     actual fun createDriver(): SqlDriver {
         val context = WiretapContextProvider.context

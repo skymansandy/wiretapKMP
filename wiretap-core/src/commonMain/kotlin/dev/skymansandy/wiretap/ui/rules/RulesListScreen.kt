@@ -39,7 +39,10 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.ui.network.highlightText
+import dev.skymansandy.wiretap.ui.components.highlightText
+import dev.skymansandy.wiretap.resources.*
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun RulesListScreen(
@@ -58,7 +61,7 @@ internal fun RulesListScreen(
         if (rules.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    if (searchQuery.isBlank()) "No rules yet" else "No rules match \"$searchQuery\"",
+                    if (searchQuery.isBlank()) stringResource(Res.string.no_rules_yet) else stringResource(Res.string.no_rules_match, searchQuery),
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -79,7 +82,7 @@ internal fun RulesListScreen(
             onClick = onCreateClick,
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Create rule")
+            Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.create_rule_cd))
         }
     }
 }
@@ -105,7 +108,7 @@ private fun RuleItem(
                 if (rule.method != "*") MethodBadge(rule.method)
                 if (rule.urlMatcher != null) MatcherBadge(label = urlBadgeLabel(rule.urlMatcher), color = MaterialTheme.colorScheme.primary)
                 if (rule.headerMatchers.isNotEmpty()) MatcherBadge(
-                    label = if (rule.headerMatchers.size == 1) "HDR" else "HDR×${rule.headerMatchers.size}",
+                    label = if (rule.headerMatchers.size == 1) stringResource(Res.string.hdr) else stringResource(Res.string.hdr_count, rule.headerMatchers.size),
                     color = MaterialTheme.colorScheme.secondary,
                 )
                 if (rule.bodyMatcher != null) MatcherBadge(label = bodyBadgeLabel(rule.bodyMatcher), color = MaterialTheme.colorScheme.tertiary)
@@ -130,7 +133,7 @@ private fun RuleItem(
             if (rule.action == RuleAction.MOCK && rule.mockResponseCode != null) {
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "Response: ${rule.mockResponseCode}",
+                    text = stringResource(Res.string.response_code_display, rule.mockResponseCode!!),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -138,8 +141,8 @@ private fun RuleItem(
             if (rule.action == RuleAction.THROTTLE && rule.throttleDelayMs != null) {
                 Spacer(Modifier.height(2.dp))
                 val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
-                    "Delay: ${rule.throttleDelayMs}–${rule.throttleDelayMaxMs} ms"
-                else "Delay: ${rule.throttleDelayMs} ms"
+                    stringResource(Res.string.delay_range, rule.throttleDelayMs.toString(), rule.throttleDelayMaxMs.toString())
+                else stringResource(Res.string.delay_fixed, rule.throttleDelayMs.toString())
                 Text(
                     text = delayText,
                     style = MaterialTheme.typography.labelSmall,
@@ -209,4 +212,61 @@ private fun bodyBadgeLabel(matcher: BodyMatcher) = when (matcher) {
     is BodyMatcher.Exact -> "BODY"
     is BodyMatcher.Contains -> "BODY~"
     is BodyMatcher.Regex -> "BODY*"
+}
+
+@Preview
+@Composable
+private fun RuleItemMockPreview() {
+    MaterialTheme {
+        RuleItem(
+            rule = WiretapRule(
+                id = 1,
+                method = "GET",
+                urlMatcher = UrlMatcher.Contains("/api/users"),
+                action = RuleAction.MOCK,
+                mockResponseCode = 200,
+                enabled = true,
+            ),
+            searchQuery = "",
+            onClick = {},
+            onToggle = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleItemThrottlePreview() {
+    MaterialTheme {
+        RuleItem(
+            rule = WiretapRule(
+                id = 2,
+                method = "*",
+                urlMatcher = UrlMatcher.Regex("/api/v\\d+/.*"),
+                action = RuleAction.THROTTLE,
+                throttleDelayMs = 1000,
+                throttleDelayMaxMs = 3000,
+                enabled = false,
+            ),
+            searchQuery = "",
+            onClick = {},
+            onToggle = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ActionBadgeMockPreview() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.MOCK)
+    }
+}
+
+@Preview
+@Composable
+private fun ActionBadgeThrottlePreview() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.THROTTLE)
+    }
 }

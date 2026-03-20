@@ -1,44 +1,18 @@
 package dev.skymansandy.wiretap.ui
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Rule
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -53,51 +27,28 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import app.cash.paging.LoadStateError
-import app.cash.paging.LoadStateLoading
-import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
-import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
-import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.ui.components.SearchField
+import dev.skymansandy.wiretap.ui.http.HttpLogList
 import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
-import dev.skymansandy.wiretap.ui.network.highlightText
 import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
-import dev.skymansandy.wiretap.util.formatTime
+import dev.skymansandy.wiretap.ui.socket.SocketLogList
+import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-
-private fun formatOneDecimal(value: Float): String {
-    val intPart = value.toLong()
-    val decPart = ((value - intPart) * 10).toInt().let { kotlin.math.abs(it) }
-    return "$intPart.$decPart"
-}
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,7 +104,10 @@ fun WiretapScreen(
             ruleRepository = ruleRepository,
             onBack = { selectedRule = null },
             onDeleted = { selectedRule = null },
-            onEditClick = { editRule = selectedRule; selectedRule = null },
+            onEditClick = {
+                editRule = selectedRule
+                selectedRule = null
+            },
         )
         return
     }
@@ -205,8 +159,11 @@ fun WiretapScreen(
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) value = "" else {
-            delay(450); value = searchQuery
+        if (searchQuery.isEmpty()) {
+            value = ""
+        } else {
+            delay(450)
+            value = searchQuery
         }
     }
 
@@ -231,7 +188,7 @@ fun WiretapScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text("Wiretap Console")
+                        Text(stringResource(Res.string.wiretap_console))
                     }
                 },
                 navigationIcon = {
@@ -239,29 +196,34 @@ fun WiretapScreen(
                         if (isSearchActive) {
                             isSearchActive = false
                             searchQuery = ""
-                        } else onBack()
+                        } else {
+                            onBack()
+                        }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
                     if (isSearchActive) {
-                        IconButton(onClick = { isSearchActive = false; searchQuery = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Close search")
+                        IconButton(onClick = {
+                            isSearchActive = false
+                            searchQuery = ""
+                        }) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
                         }
                     } else {
                         IconButton(onClick = { isSearchActive = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
+                            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
                         }
                     }
                     if (selectedTab == 0) {
                         IconButton(onClick = { orchestrator.clearLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
+                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_http_logs))
                         }
                     }
                     if (selectedTab == 1 && socketLogs.isNotEmpty()) {
                         IconButton(onClick = { orchestrator.clearSocketLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
+                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_websocket_logs))
                         }
                     }
                 },
@@ -271,21 +233,30 @@ fun WiretapScreen(
             NavigationBar {
                 NavigationBarItem(
                     selected = selectedTab == 0,
-                    onClick = { selectedTab = 0; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 0
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
-                    label = { Text("HTTP") },
+                    label = { Text(stringResource(Res.string.tab_http)) },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
-                    onClick = { selectedTab = 1; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 1
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                    label = { Text("WebSocket") },
+                    label = { Text(stringResource(Res.string.tab_websocket)) },
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
-                    onClick = { selectedTab = 2; searchQuery = "" },
+                    onClick = {
+                        selectedTab = 2
+                        searchQuery = ""
+                    },
                     icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
-                    label = { Text("Rules") },
+                    label = { Text(stringResource(Res.string.tab_rules)) },
                 )
             }
         },
@@ -328,527 +299,4 @@ private fun rememberPagedLogs(
 ): LazyPagingItems<NetworkLogEntry> {
     val flow = remember(query) { orchestrator.getPagedLogs(query) }
     return flow.collectAsLazyPagingItems()
-}
-
-@Composable
-private fun HttpLogList(
-    lazyItems: LazyPagingItems<NetworkLogEntry>,
-    searchQuery: String,
-    onHttpClick: (NetworkLogEntry) -> Unit,
-    onCreateRule: (NetworkLogEntry) -> Unit,
-    onViewRule: (Long) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    when {
-        lazyItems.loadState.refresh is LoadStateLoading -> {
-            Box(modifier, contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-
-        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
-            Box(modifier, contentAlignment = Alignment.Center) {
-                Text("No HTTP logs yet", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-
-        lazyItems.loadState.refresh is LoadStateError -> {
-            Box(modifier, contentAlignment = Alignment.Center) {
-                Text("Failed to load logs", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-
-        else -> {
-            val listState = rememberLazyListState()
-            val scope = rememberCoroutineScope()
-            val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-            }
-            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
-            var revealedItemId by remember { mutableStateOf<String?>(null) }
-
-            LaunchedEffect(lazyItems.itemCount) {
-                if (lazyItems.itemCount > lastItemCount && isAtTop) {
-                    scope.launch { listState.scrollToItem(0) }
-                }
-                lastItemCount = lazyItems.itemCount
-            }
-
-            LaunchedEffect(revealedItemId) {
-                if (revealedItemId != null) {
-                    delay(3000)
-                    revealedItemId = null
-                }
-            }
-
-            LazyColumn(state = listState, modifier = modifier) {
-                items(
-                    count = lazyItems.itemCount,
-                    key = lazyItems.itemKey { it.id },
-                ) { index ->
-                    val entry = lazyItems[index] ?: return@items
-                    val itemKey = "http_${entry.id}"
-                    SwipeableNetworkLogItem(
-                        entry = entry,
-                        searchQuery = searchQuery,
-                        isRevealed = revealedItemId == itemKey,
-                        onReveal = { revealedItemId = itemKey },
-                        onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
-                        onClick = { revealedItemId = null; onHttpClick(entry) },
-                        onCreateRule = { revealedItemId = null; onCreateRule(entry) },
-                        onViewRule = { revealedItemId = null; entry.matchedRuleId?.let(onViewRule) },
-                    )
-                }
-                if (lazyItems.loadState.append is LoadStateLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SocketLogList(
-    socketLogs: List<SocketLogEntry>,
-    searchQuery: String,
-    onSocketClick: (SocketLogEntry) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (socketLogs.isEmpty()) {
-        Box(modifier, contentAlignment = Alignment.Center) {
-            Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)
-        }
-    } else {
-        val listState = rememberLazyListState()
-        val scope = rememberCoroutineScope()
-        val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-        }
-        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
-
-        LaunchedEffect(socketLogs.size) {
-            if (socketLogs.size > lastItemCount && isAtTop) {
-                scope.launch { listState.scrollToItem(0) }
-            }
-            lastItemCount = socketLogs.size
-        }
-
-        LazyColumn(state = listState, modifier = modifier) {
-            items(
-                count = socketLogs.size,
-                key = { index -> socketLogs[index].id },
-            ) { index ->
-                SocketLogItemContent(
-                    entry = socketLogs[index],
-                    searchQuery = searchQuery,
-                    onClick = { onSocketClick(socketLogs[index]) },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SocketLogItemContent(
-    entry: SocketLogEntry,
-    searchQuery: String,
-    onClick: () -> Unit,
-) {
-    val statusColor = when (entry.status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) // Blue
-        SocketStatus.OPEN -> Color(0xFF4CAF50) // Green
-        SocketStatus.CLOSING -> Color(0xFFFFA726) // Amber
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) // Gray
-        SocketStatus.FAILED -> Color(0xFFEF5350) // Red
-    }
-
-    val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
-    val withoutScheme = entry.url.substringAfter("://")
-    val host = withoutScheme.substringBefore("/").substringBefore("?")
-    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
-
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text(
-                text = "WS",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = statusColor,
-                modifier = Modifier.width(44.dp),
-            )
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = highlightText(path, searchQuery),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    if (isSecure) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            modifier = Modifier.size(12.dp),
-                            tint = Color(0xFF26C6DA),
-                        )
-                    }
-                    Text(
-                        text = highlightText(host, searchQuery),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF26C6DA),
-                    )
-                }
-
-                Spacer(Modifier.height(4.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = formatTime(entry.timestamp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (entry.messageCount > 0) {
-                        Text(
-                            text = "${entry.messageCount} msgs",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    SocketStatusChip(entry.status)
-                }
-            }
-        }
-        HorizontalDivider()
-    }
-}
-
-@Composable
-private fun SocketStatusChip(status: SocketStatus) {
-    val (bgColor, label) = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) to "Connecting"
-        SocketStatus.OPEN -> Color(0xFF4CAF50) to "Open"
-        SocketStatus.CLOSING -> Color(0xFFFFA726) to "Closing"
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) to "Closed"
-        SocketStatus.FAILED -> Color(0xFFEF5350) to "Failed"
-    }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = Color.White,
-        modifier = Modifier
-            .background(bgColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-    )
-}
-
-@Composable
-private fun SearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    focusRequester: FocusRequester,
-) {
-    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = LocalContentColor.current.copy(alpha = 0.6f),
-                )
-                Spacer(Modifier.width(8.dp))
-                Box {
-                    if (query.isEmpty()) {
-                        Text(
-                            "Search\u2026",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = LocalContentColor.current.copy(alpha = 0.4f),
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        },
-    )
-}
-
-private val RevealWidth = 64.dp
-
-@Composable
-private fun SwipeableNetworkLogItem(
-    entry: NetworkLogEntry,
-    searchQuery: String,
-    isRevealed: Boolean,
-    onReveal: () -> Unit,
-    onCollapse: () -> Unit,
-    onClick: () -> Unit,
-    onCreateRule: () -> Unit,
-    onViewRule: () -> Unit,
-) {
-    val hasMatchedRule = entry.source != ResponseSource.NETWORK && entry.matchedRuleId != null
-    val revealWidthPx = with(LocalDensity.current) { RevealWidth.toPx() }
-    val offsetX = remember { Animatable(0f) }
-    val scope = rememberCoroutineScope()
-
-    // Sync external isRevealed -> animation
-    LaunchedEffect(isRevealed) {
-        val target = if (isRevealed) -revealWidthPx else 0f
-        if (offsetX.value != target) {
-            offsetX.animateTo(target)
-        }
-    }
-
-    val bgColor = if (hasMatchedRule) {
-        MaterialTheme.colorScheme.secondaryContainer
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
-    val contentColor = if (hasMatchedRule) {
-        MaterialTheme.colorScheme.onSecondaryContainer
-    } else {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    }
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        // Action revealed behind the item, pinned to end
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(bgColor)
-                .clickable { if (hasMatchedRule) onViewRule() else onCreateRule() },
-            contentAlignment = Alignment.CenterEnd,
-        ) {
-            Column(
-                modifier = Modifier.width(RevealWidth),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = if (hasMatchedRule) Icons.Default.Visibility else Icons.Default.Add,
-                    contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = if (hasMatchedRule) "View\nRule" else "Create\nRule",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = contentColor,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-
-        // Foreground content that slides
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(offsetX.value.toInt(), 0) }
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragEnd = {
-                            scope.launch {
-                                // Snap to revealed or closed based on how far user dragged
-                                if (offsetX.value < -revealWidthPx / 2) {
-                                    offsetX.animateTo(-revealWidthPx)
-                                    onReveal()
-                                } else {
-                                    offsetX.animateTo(0f)
-                                    onCollapse()
-                                }
-                            }
-                        },
-                        onDragCancel = {
-                            scope.launch {
-                                offsetX.animateTo(0f)
-                                onCollapse()
-                            }
-                        },
-                    ) { _, dragAmount ->
-                        scope.launch {
-                            val newValue = (offsetX.value + dragAmount)
-                                .coerceIn(-revealWidthPx, 0f)
-                            offsetX.snapTo(newValue)
-                        }
-                    }
-                },
-        ) {
-            NetworkLogItemContent(
-                entry = entry,
-                searchQuery = searchQuery,
-                onClick = onClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun NetworkLogItemContent(
-    entry: NetworkLogEntry,
-    searchQuery: String,
-    onClick: () -> Unit,
-) {
-    val statusColor = when {
-        entry.isInProgress -> Color(0xFF42A5F5) // Blue - in progress
-        entry.responseCode in 200..299 -> Color(0xFF4CAF50) // Green - success
-        entry.responseCode in 300..399 -> Color(0xFF42A5F5) // Blue - redirect
-        entry.responseCode in 400..499 -> Color(0xFFFFA726) // Amber - client error
-        entry.responseCode >= 500 -> Color(0xFFEF5350) // Red - server error
-        else -> Color(0xFF9E9E9E) // Gray - timeout / cancelled / no response
-    }
-
-    val isHttps = entry.url.startsWith("https://", ignoreCase = true)
-    val withoutScheme = entry.url.substringAfter("://")
-    val host = withoutScheme.substringBefore("/").substringBefore("?")
-    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
-
-    val responseBytes = entry.responseBody?.encodeToByteArray()?.size ?: 0
-    val formattedSize = when {
-        responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
-        responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
-        responseBytes > 0 -> "$responseBytes B"
-        else -> null
-    }
-
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text(
-                text = when {
-                    entry.isInProgress -> "..."
-                    entry.responseCode > 0 -> entry.responseCode.toString()
-                    entry.responseCode == -1 -> "!!!"
-                    else -> "ERR"
-                },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = statusColor,
-                modifier = Modifier.width(44.dp),
-            )
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = highlightText("${entry.method} $path", searchQuery),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    if (isHttps) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            modifier = Modifier.size(12.dp),
-                            tint = Color(0xFF26C6DA),
-                        )
-                    }
-                    Text(
-                        text = highlightText(host, searchQuery),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF26C6DA),
-                    )
-                }
-
-                Spacer(Modifier.height(4.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = formatTime(entry.timestamp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = "${entry.durationMs} ms",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (formattedSize != null) {
-                        Text(
-                            text = formattedSize,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (entry.source != ResponseSource.NETWORK) {
-                        SourceChip(entry.source)
-                    }
-                }
-            }
-        }
-        HorizontalDivider()
-    }
-}
-
-@Composable
-private fun SourceChip(source: ResponseSource) {
-    val (bgColor, textColor, label) = when (source) {
-        ResponseSource.MOCK -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            "Mock",
-        )
-        ResponseSource.THROTTLE -> Triple(
-            MaterialTheme.colorScheme.tertiaryContainer,
-            MaterialTheme.colorScheme.onTertiaryContainer,
-            "Throttle",
-        )
-        ResponseSource.NETWORK -> return
-    }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = textColor,
-        modifier = Modifier
-            .background(bgColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-    )
 }

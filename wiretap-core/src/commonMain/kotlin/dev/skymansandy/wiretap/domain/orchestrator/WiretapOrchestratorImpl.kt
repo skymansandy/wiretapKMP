@@ -14,7 +14,7 @@ import dev.skymansandy.wiretap.helper.notification.onSocketLogsCleared
 import dev.skymansandy.wiretap.helper.notification.onSocketMessageLogged
 import kotlinx.coroutines.flow.Flow
 
-class WiretapOrchestratorImpl(
+internal class WiretapOrchestratorImpl(
     private val networkRepository: NetworkRepository,
     private val socketRepository: SocketRepository,
     private val networkLogger: NetworkLogger,

@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class RuleDaoImpl(
+internal class RuleDaoImpl(
     private val database: WiretapDatabase,
 ) : RuleDao {
 

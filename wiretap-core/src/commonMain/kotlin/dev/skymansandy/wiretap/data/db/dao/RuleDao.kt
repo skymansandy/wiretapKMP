@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.data.db.dao
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import kotlinx.coroutines.flow.Flow
 
-interface RuleDao {
+internal interface RuleDao {
     fun insert(rule: WiretapRule)
     fun getAll(): Flow<List<WiretapRule>>
     fun getById(id: Long): WiretapRule?

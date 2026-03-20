@@ -45,7 +45,11 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.util.formatBytes
 import dev.skymansandy.wiretap.util.formatTime
+import dev.skymansandy.wiretap.resources.*
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,7 +99,7 @@ fun SocketDetailScreen(
                 title = {
                     Column {
                         Text(
-                            text = "WS $urlDisplay",
+                            text = stringResource(Res.string.ws_title, urlDisplay),
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -104,7 +108,7 @@ fun SocketDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
@@ -153,7 +157,7 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            InfoLabel("Status", entry.status.name)
+            InfoLabel(stringResource(Res.string.label_status), entry.status.name)
             InfoLabel("Opened", formatTime(entry.timestamp))
         }
         if (entry.closedAt != null) {
@@ -172,7 +176,7 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
         if (entry.requestHeaders.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Request Headers",
+                text = stringResource(Res.string.request_headers),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -237,7 +241,7 @@ private fun MessageBubble(message: SocketMessage) {
                 .padding(10.dp),
         ) {
             val displayText = if (message.contentType == SocketContentType.BINARY) {
-                "[Binary: ${formatBytes(message.byteCount)}]"
+                stringResource(Res.string.binary_message, formatBytes(message.byteCount))
             } else {
                 message.content
             }
@@ -280,7 +284,7 @@ private fun HistoryClearedBanner() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = "History was cleared — only showing new messages",
+            text = stringResource(Res.string.history_cleared),
             style = MaterialTheme.typography.labelMedium,
             color = Color(0xFFE65100),
         )
@@ -289,12 +293,19 @@ private fun HistoryClearedBanner() {
 
 @Composable
 private fun StatusChip(status: SocketStatus) {
-    val (bgColor, label) = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) to "Connecting"
-        SocketStatus.OPEN -> Color(0xFF4CAF50) to "Open"
-        SocketStatus.CLOSING -> Color(0xFFFFA726) to "Closing"
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) to "Closed"
-        SocketStatus.FAILED -> Color(0xFFEF5350) to "Failed"
+    val bgColor = when (status) {
+        SocketStatus.CONNECTING -> Color(0xFF42A5F5)
+        SocketStatus.OPEN -> Color(0xFF4CAF50)
+        SocketStatus.CLOSING -> Color(0xFFFFA726)
+        SocketStatus.CLOSED -> Color(0xFF9E9E9E)
+        SocketStatus.FAILED -> Color(0xFFEF5350)
+    }
+    val label = when (status) {
+        SocketStatus.CONNECTING -> stringResource(Res.string.status_connecting)
+        SocketStatus.OPEN -> stringResource(Res.string.status_open)
+        SocketStatus.CLOSING -> stringResource(Res.string.status_closing)
+        SocketStatus.CLOSED -> stringResource(Res.string.status_closed)
+        SocketStatus.FAILED -> stringResource(Res.string.status_failed)
     }
     Text(
         text = label,
@@ -308,8 +319,118 @@ private fun StatusChip(status: SocketStatus) {
     )
 }
 
-private fun formatBytes(bytes: Long): String = when {
-    bytes >= 1_048_576 -> "${bytes / 1_048_576} MB"
-    bytes >= 1_024 -> "${bytes / 1_024} kB"
-    else -> "$bytes B"
+@Preview
+@Composable
+private fun ConnectionInfoHeaderPreview() {
+    MaterialTheme {
+        ConnectionInfoHeader(
+            entry = SocketLogEntry(
+                id = 1,
+                url = "wss://echo.websocket.org/chat",
+                status = SocketStatus.OPEN,
+                timestamp = 1710850000000,
+                requestHeaders = mapOf(
+                    "Sec-WebSocket-Key" to "dGhlIHNhbXBsZSBub25jZQ==",
+                    "Sec-WebSocket-Version" to "13",
+                ),
+                protocol = "chat",
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ConnectionInfoHeaderClosedPreview() {
+    MaterialTheme {
+        ConnectionInfoHeader(
+            entry = SocketLogEntry(
+                id = 2,
+                url = "wss://api.example.com/stream",
+                status = SocketStatus.CLOSED,
+                timestamp = 1710850000000,
+                closedAt = 1710850120000,
+                closeCode = 1000,
+                closeReason = "Normal closure",
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleSentPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 1,
+                socketId = 1,
+                direction = SocketMessageDirection.SENT,
+                contentType = SocketContentType.TEXT,
+                content = """{"type":"ping","id":42}""",
+                byteCount = 23,
+                timestamp = 1710850000000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleReceivedPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 2,
+                socketId = 1,
+                direction = SocketMessageDirection.RECEIVED,
+                contentType = SocketContentType.TEXT,
+                content = """{"type":"pong","id":42,"data":{"status":"ok"}}""",
+                byteCount = 46,
+                timestamp = 1710850001000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun MessageBubbleBinaryPreview() {
+    MaterialTheme {
+        MessageBubble(
+            message = SocketMessage(
+                id = 3,
+                socketId = 1,
+                direction = SocketMessageDirection.RECEIVED,
+                contentType = SocketContentType.BINARY,
+                content = "",
+                byteCount = 1024,
+                timestamp = 1710850002000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HistoryClearedBannerPreview() {
+    MaterialTheme {
+        HistoryClearedBanner()
+    }
+}
+
+@Preview
+@Composable
+private fun StatusChipOpenPreview() {
+    MaterialTheme {
+        StatusChip(SocketStatus.OPEN)
+    }
+}
+
+@Preview
+@Composable
+private fun StatusChipFailedPreview() {
+    MaterialTheme {
+        StatusChip(SocketStatus.FAILED)
+    }
 }

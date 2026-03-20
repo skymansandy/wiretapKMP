@@ -3,6 +3,12 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xskip-prerelease-check")
+    }
+}
+
 android {
     namespace = "dev.skymansandy.wiretap"
     compileSdk {
@@ -37,6 +43,27 @@ android {
     buildFeatures {
         compose = true
     }
+}
+
+// Workaround: androidMultiplatformLibrary doesn't auto-wire Compose resources as Android assets.
+// Copy prepared resources from KMP library modules into the app's Android assets with package-qualified paths.
+val composeAssetsDir = "${layout.buildDirectory.get()}/generated/composeAssets"
+
+tasks.register<Copy>("copyComposeAppResourcesToAssets") {
+    from(project(":composeApp").layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources"))
+    into("$composeAssetsDir/composeResources/dev.skymansandy.wiretapsample.resources")
+    dependsOn(":composeApp:prepareComposeResourcesTaskForCommonMain")
+}
+tasks.register<Copy>("copyWiretapCoreResourcesToAssets") {
+    from(project(":wiretap-core").layout.buildDirectory.dir("generated/compose/resourceGenerator/preparedResources/commonMain/composeResources"))
+    into("$composeAssetsDir/composeResources/dev.skymansandy.wiretap.resources")
+    dependsOn(":wiretap-core:prepareComposeResourcesTaskForCommonMain")
+}
+
+android.sourceSets["main"].assets.srcDir(composeAssetsDir)
+
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach {
+    dependsOn("copyComposeAppResourcesToAssets", "copyWiretapCoreResourcesToAssets")
 }
 
 dependencies {

@@ -8,7 +8,7 @@ import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.Flow
 
-class RuleRepositoryImpl(
+internal class RuleRepositoryImpl(
     private val ruleDao: RuleDao,
 ) : RuleRepository {
 

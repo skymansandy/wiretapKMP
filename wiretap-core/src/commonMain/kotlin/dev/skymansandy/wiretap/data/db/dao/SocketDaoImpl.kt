@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class SocketDaoImpl(
+internal class SocketDaoImpl(
     private val database: WiretapDatabase,
 ) : SocketDao {
 

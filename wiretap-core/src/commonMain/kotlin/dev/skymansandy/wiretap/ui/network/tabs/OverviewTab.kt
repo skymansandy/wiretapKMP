@@ -7,22 +7,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.ui.network.KeyValueTable
-
-private fun formatOneDecimal(value: Float): String {
-    val intPart = value.toLong()
-    val decPart = ((value - intPart) * 10).toInt().let { kotlin.math.abs(it) }
-    return "$intPart.$decPart"
-}
-
-private fun formatSize(bytes: Long?): String {
-    if (bytes == null || bytes == 0L) return "0 B"
-    return when {
-        bytes >= 1_048_576 -> "${formatOneDecimal(bytes / 1_048_576f)} MB"
-        bytes >= 1_024 -> "${formatOneDecimal(bytes / 1_024f)} kB"
-        else -> "$bytes B"
-    }
-}
+import dev.skymansandy.wiretap.ui.components.KeyValueTable
+import dev.skymansandy.wiretap.util.formatSize
+import dev.skymansandy.wiretap.resources.*
+import androidx.compose.material3.MaterialTheme
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun OverviewTab(entry: NetworkLogEntry) {
@@ -31,23 +21,62 @@ internal fun OverviewTab(entry: NetworkLogEntry) {
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
+        val labelUrl = stringResource(Res.string.label_url)
+        val labelMethod = stringResource(Res.string.label_method)
+        val labelStatus = stringResource(Res.string.label_status)
+        val statusInProgress = stringResource(Res.string.status_in_progress)
+        val labelDuration = stringResource(Res.string.label_duration)
+        val labelSource = stringResource(Res.string.label_source)
+        val labelRequestSize = stringResource(Res.string.label_request_size)
+        val labelResponseSize = stringResource(Res.string.label_response_size)
+        val labelHttpVersion = stringResource(Res.string.label_http_version)
+        val labelRemoteAddress = stringResource(Res.string.label_remote_address)
+        val labelTlsProtocol = stringResource(Res.string.label_tls_protocol)
+        val labelCipherSuite = stringResource(Res.string.label_cipher_suite)
+        val labelCertificateCn = stringResource(Res.string.label_certificate_cn)
+        val labelIssuerCn = stringResource(Res.string.label_issuer_cn)
+        val labelValidUntil = stringResource(Res.string.label_valid_until)
+
         KeyValueTable(
             rows = buildList {
-                add("URL" to entry.url)
-                add("Method" to entry.method)
-                add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
-                add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
-                add("Source" to entry.source.name)
-                add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
-                add("Response Size" to formatSize(entry.responseBody?.encodeToByteArray()?.size?.toLong()))
-                entry.protocol?.let { add("HTTP Version" to it) }
-                entry.remoteAddress?.let { add("Remote Address" to it) }
-                entry.tlsProtocol?.let { add("TLS Protocol" to it) }
-                entry.cipherSuite?.let { add("Cipher Suite" to it) }
-                entry.certificateCn?.let { add("Certificate CN" to it) }
-                entry.issuerCn?.let { add("Issuer CN" to it) }
-                entry.certificateExpiry?.let { add("Valid Until" to it) }
+                add(labelUrl to entry.url)
+                add(labelMethod to entry.method)
+                add(labelStatus to if (entry.isInProgress) statusInProgress else entry.responseCode.toString())
+                add(labelDuration to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
+                add(labelSource to entry.source.name)
+                add(labelRequestSize to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
+                add(labelResponseSize to formatSize(entry.responseBody?.encodeToByteArray()?.size?.toLong()))
+                entry.protocol?.let { add(labelHttpVersion to it) }
+                entry.remoteAddress?.let { add(labelRemoteAddress to it) }
+                entry.tlsProtocol?.let { add(labelTlsProtocol to it) }
+                entry.cipherSuite?.let { add(labelCipherSuite to it) }
+                entry.certificateCn?.let { add(labelCertificateCn to it) }
+                entry.issuerCn?.let { add(labelIssuerCn to it) }
+                entry.certificateExpiry?.let { add(labelValidUntil to it) }
             },
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun OverviewTabPreview() {
+    MaterialTheme {
+        OverviewTab(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users/123",
+                method = "GET",
+                responseCode = 200,
+                durationMs = 142,
+                timestamp = 1710850000000,
+                requestBody = """{"query":"test"}""",
+                responseBody = """{"name":"John","age":30}""",
+                protocol = "HTTP/2",
+                remoteAddress = "93.184.216.34:443",
+                tlsProtocol = "TLSv1.3",
+                cipherSuite = "TLS_AES_256_GCM_SHA384",
+            ),
         )
     }
 }

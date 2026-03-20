@@ -6,15 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -25,7 +19,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -43,20 +36,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.ui.components.SearchField
 import dev.skymansandy.wiretap.ui.network.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.network.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.network.tabs.ResponseTab
 import dev.skymansandy.wiretap.util.buildCurlCommand
 import dev.skymansandy.wiretap.util.buildShareText
 import dev.skymansandy.wiretap.util.shareNetworkLog
+import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +64,7 @@ fun NetworkLogDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-    val tabs = listOf("Overview", "Request", "Response")
+    val tabs = listOf(stringResource(Res.string.tab_overview), stringResource(Res.string.tab_request), stringResource(Res.string.tab_response))
     val supportsSearch = selectedTab != 0
 
     LaunchedEffect(selectedTab) {
@@ -82,7 +77,12 @@ fun NetworkLogDetailScreen(
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) value = "" else { delay(450); value = searchQuery }
+        if (searchQuery.isEmpty()) {
+            value = ""
+        } else {
+            delay(450)
+            value = searchQuery
+        }
     }
 
     var showShareMenu by remember { mutableStateOf(false) }
@@ -106,32 +106,42 @@ fun NetworkLogDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { if (isSearchActive) { isSearchActive = false; searchQuery = "" } else onBack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = {
+                        if (isSearchActive) {
+                            isSearchActive = false
+                            searchQuery = ""
+                        } else {
+                            onBack()
+                        }
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
                     }
                 },
                 actions = {
                     if (supportsSearch) {
                         if (isSearchActive) {
-                            IconButton(onClick = { isSearchActive = false; searchQuery = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close search")
+                            IconButton(onClick = {
+                            isSearchActive = false
+                            searchQuery = ""
+                        }) {
+                                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
                             }
                         } else {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
+                                Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
                             }
                         }
                     }
                     Box {
                         IconButton(onClick = { showShareMenu = true }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
+                            Icon(Icons.Default.Share, contentDescription = stringResource(Res.string.share))
                         }
                         DropdownMenu(
                             expanded = showShareMenu,
                             onDismissRequest = { showShareMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Share as text") },
+                                text = { Text(stringResource(Res.string.share_as_text)) },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -141,7 +151,7 @@ fun NetworkLogDetailScreen(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text("Share as cURL") },
+                                text = { Text(stringResource(Res.string.share_as_curl)) },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -186,17 +196,20 @@ private fun RuleMatchBanner(
     matchedRuleId: Long?,
     onViewRule: ((ruleId: Long) -> Unit)?,
 ) {
-    val (bgColor, contentColor, label) = when (source) {
-        ResponseSource.MOCK -> Triple(
-            MaterialTheme.colorScheme.secondaryContainer,
-            MaterialTheme.colorScheme.onSecondaryContainer,
-            "Mocked by rule",
-        )
-        ResponseSource.THROTTLE -> Triple(
-            MaterialTheme.colorScheme.tertiaryContainer,
-            MaterialTheme.colorScheme.onTertiaryContainer,
-            "Throttled by rule",
-        )
+    val bgColor: Color
+    val contentColor: Color
+    val label: String
+    when (source) {
+        ResponseSource.MOCK -> {
+            bgColor = MaterialTheme.colorScheme.secondaryContainer
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            label = stringResource(Res.string.mocked_by_rule)
+        }
+        ResponseSource.THROTTLE -> {
+            bgColor = MaterialTheme.colorScheme.tertiaryContainer
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            label = stringResource(Res.string.throttled_by_rule)
+        }
         ResponseSource.NETWORK -> return
     }
     val clickable = matchedRuleId != null && onViewRule != null
@@ -219,7 +232,7 @@ private fun RuleMatchBanner(
         )
         if (clickable) {
             Text(
-                text = "View Rule →",
+                text = stringResource(Res.string.view_rule_arrow),
                 style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
             )
@@ -227,44 +240,75 @@ private fun RuleMatchBanner(
     }
 }
 
+@Preview
 @Composable
-private fun SearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    focusRequester: FocusRequester,
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    BasicTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = LocalContentColor.current.copy(alpha = 0.6f),
-                )
-                Spacer(Modifier.width(8.dp))
-                Box {
-                    if (query.isEmpty()) {
-                        Text(
-                            "Search…",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = LocalContentColor.current.copy(alpha = 0.4f),
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        },
-    )
+private fun NetworkLogDetailScreenPreview() {
+    MaterialTheme {
+        NetworkLogDetailScreen(
+            entry = NetworkLogEntry(
+                id = 1,
+                url = "https://api.example.com/users/123",
+                method = "GET",
+                requestHeaders = mapOf(
+                    "Authorization" to "Bearer token",
+                    "Accept" to "application/json",
+                ),
+                responseCode = 200,
+                responseHeaders = mapOf(
+                    "Content-Type" to "application/json",
+                ),
+                responseBody = """{"id":123,"name":"John","email":"john@example.com"}""",
+                durationMs = 142,
+                timestamp = 1710850000000,
+            ),
+            onBack = {},
+        )
+    }
 }
+
+@Preview
+@Composable
+private fun NetworkLogDetailScreenMockedPreview() {
+    MaterialTheme {
+        NetworkLogDetailScreen(
+            entry = NetworkLogEntry(
+                id = 2,
+                url = "https://api.example.com/users",
+                method = "POST",
+                responseCode = 201,
+                durationMs = 3,
+                timestamp = 1710850000000,
+                source = ResponseSource.MOCK,
+                matchedRuleId = 1,
+                responseBody = """{"id":456,"name":"Mock User"}""",
+            ),
+            onBack = {},
+            onViewRule = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleMatchBannerMockPreview() {
+    MaterialTheme {
+        RuleMatchBanner(
+            source = ResponseSource.MOCK,
+            matchedRuleId = 1,
+            onViewRule = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun RuleMatchBannerThrottlePreview() {
+    MaterialTheme {
+        RuleMatchBanner(
+            source = ResponseSource.THROTTLE,
+            matchedRuleId = 2,
+            onViewRule = {},
+        )
+    }
+}
+

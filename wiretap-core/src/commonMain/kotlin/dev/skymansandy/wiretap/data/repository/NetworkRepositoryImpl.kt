@@ -8,7 +8,7 @@ import dev.skymansandy.wiretap.domain.repository.NetworkRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-class NetworkRepositoryImpl(
+internal class NetworkRepositoryImpl(
     private val networkDao: NetworkDao,
 ) : NetworkRepository {
 
