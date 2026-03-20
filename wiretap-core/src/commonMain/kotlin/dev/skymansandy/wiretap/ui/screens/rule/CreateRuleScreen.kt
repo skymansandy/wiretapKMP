@@ -26,21 +26,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.any_method
 import dev.skymansandy.wiretap.resources.back
@@ -58,22 +53,9 @@ import dev.skymansandy.wiretap.resources.step_response
 import dev.skymansandy.wiretap.resources.test_input
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
-import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
-import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
-import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
-import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
-import dev.skymansandy.wiretap.ui.model.ThrottleProfile
-import dev.skymansandy.wiretap.ui.model.UrlMatchMode
-import dev.skymansandy.wiretap.ui.model.hasValue
-import dev.skymansandy.wiretap.ui.model.toBodyMode
-import dev.skymansandy.wiretap.ui.model.toDomain
-import dev.skymansandy.wiretap.ui.model.toEntry
-import dev.skymansandy.wiretap.ui.model.toUrlMode
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
-import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
-import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -81,101 +63,59 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CreateRuleScreen(
+    viewModel: CreateRuleViewModel,
     ruleRepository: RuleRepository,
-    findConflictingRules: FindConflictingRulesUseCase,
     onBack: () -> Unit,
     onSaved: () -> Unit,
-    existingRule: WiretapRule? = null,
-    prefillFromLog: HttpLogEntry? = null,
     onEditConflictingRule: ((WiretapRule) -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val isEditing = existingRule != null
-    var step by remember { mutableStateOf(1) }
+    val step by viewModel.step.collectAsStateWithLifecycle()
 
-    // Request state — pre-fill from log entry or existing rule
-    var method by remember { mutableStateOf(existingRule?.method ?: prefillFromLog?.method ?: "*") }
-    var urlMode by remember {
-        mutableStateOf(existingRule?.toUrlMode() ?: if (prefillFromLog != null) UrlMatchMode.Contains else null)
-    }
-    var urlPattern by remember {
-        mutableStateOf(existingRule?.urlMatcher?.pattern ?: prefillFromLog?.url ?: "")
-    }
-    var headerEntries by remember {
-        mutableStateOf<List<HeaderEntry>>(existingRule?.headerMatchers?.map { it.toEntry() } ?: emptyList())
-    }
-    var bodyMode by remember { mutableStateOf(existingRule?.toBodyMode()) }
-    var bodyPattern by remember { mutableStateOf(existingRule?.bodyMatcher?.pattern ?: "") }
-
-    // Conflict state
-    var conflictingRules by remember { mutableStateOf<List<WiretapRule>>(emptyList()) }
-    var showConflictDialog by remember { mutableStateOf(false) }
-    var pendingRule by remember { mutableStateOf<WiretapRule?>(null) }
+    // Request state
+    val method by viewModel.method.collectAsStateWithLifecycle()
+    val urlMode by viewModel.urlMode.collectAsStateWithLifecycle()
+    val urlPattern by viewModel.urlPattern.collectAsStateWithLifecycle()
+    val headerEntries by viewModel.headerEntries.collectAsStateWithLifecycle()
+    val bodyMode by viewModel.bodyMode.collectAsStateWithLifecycle()
+    val bodyPattern by viewModel.bodyPattern.collectAsStateWithLifecycle()
 
     // Response state
-    val existingMock = existingRule?.action as? RuleAction.Mock
-    val existingThrottle = existingRule?.action as? RuleAction.Throttle
-    var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.Mock()) }
-    var mockResponseCode by remember { mutableStateOf(existingMock?.responseCode?.toString() ?: "200") }
-    var mockResponseBody by remember { mutableStateOf(existingMock?.responseBody ?: "") }
-    var responseHeaderEntries by remember {
-        mutableStateOf<List<ResponseHeaderEntry>>(
-            existingMock?.responseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
-        )
-    }
-    var responseHeadersBulk by remember {
-        mutableStateOf(existingMock?.responseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: "")
-    }
-    var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KeyValue) }
-    var throttleDelayMs by remember {
-        mutableStateOf(
-            (existingMock?.throttleDelayMs ?: existingThrottle?.delayMs)?.toString() ?: "",
-        )
-    }
-    var throttleDelayMaxMs by remember {
-        mutableStateOf(
-            (existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs)?.toString() ?: "",
-        )
-    }
-    var throttleInputMode by remember {
-        val existingDelayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
-        val existingDelayMaxMs = existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
-        mutableStateOf(
-            when {
-                existingDelayMs == null || (existingDelayMs == 0L && existingDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.None
-                ThrottleProfile.entries.any {
-                    it.delayMinMs == existingDelayMs && it.delayMaxMs == existingDelayMaxMs
-                } -> ThrottleInputMode.Profile
-                else -> ThrottleInputMode.Manual
-            }
-        )
-    }
+    val action by viewModel.action.collectAsStateWithLifecycle()
+    val mockResponseCode by viewModel.mockResponseCode.collectAsStateWithLifecycle()
+    val mockResponseBody by viewModel.mockResponseBody.collectAsStateWithLifecycle()
+    val responseHeaderEntries by viewModel.responseHeaderEntries.collectAsStateWithLifecycle()
+    val responseHeadersBulk by viewModel.responseHeadersBulk.collectAsStateWithLifecycle()
+    val responseHeadersMode by viewModel.responseHeadersMode.collectAsStateWithLifecycle()
+    val throttleDelayMs by viewModel.throttleDelayMs.collectAsStateWithLifecycle()
+    val throttleDelayMaxMs by viewModel.throttleDelayMaxMs.collectAsStateWithLifecycle()
+    val throttleInputMode by viewModel.throttleInputMode.collectAsStateWithLifecycle()
 
     // Regex tester
-    var regexTesterPattern by remember { mutableStateOf("") }
-    val testInputLabel = stringResource(Res.string.test_input)
-    var regexTesterLabel by remember { mutableStateOf(testInputLabel) }
-    var showRegexTester by remember { mutableStateOf(false) }
+    val regexTesterPattern by viewModel.regexTesterPattern.collectAsStateWithLifecycle()
+    val regexTesterLabel by viewModel.regexTesterLabel.collectAsStateWithLifecycle()
+    val showRegexTester by viewModel.showRegexTester.collectAsStateWithLifecycle()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // Conflict
+    val conflictingRules by viewModel.conflictingRules.collectAsStateWithLifecycle()
+    val showConflictDialog by viewModel.showConflictDialog.collectAsStateWithLifecycle()
+
     // Validation
-    val urlValid = urlMode == null || urlPattern.isNotBlank()
-    val headersValid = headerEntries.all { e ->
-        e.key.isNotBlank() && (!e.mode.hasValue() || e.value.isNotBlank())
-    }
-    val bodyValid = bodyMode == null || bodyPattern.isNotBlank()
-    val hasSomeMatcher = urlMode != null || headerEntries.isNotEmpty() || bodyMode != null
-    val canProceed = hasSomeMatcher && urlValid && headersValid && bodyValid
+    val canProceed by viewModel.canProceed.collectAsStateWithLifecycle()
+
+    val testInputLabel = stringResource(Res.string.test_input)
 
     if (showRegexTester) {
         ModalBottomSheet(
-            onDismissRequest = { showRegexTester = false },
+            onDismissRequest = { viewModel.closeRegexTester() },
             sheetState = bottomSheetState,
         ) {
             RegexTesterSheet(
                 pattern = regexTesterPattern,
-                testInputLabel = regexTesterLabel,
-                onDismiss = { showRegexTester = false },
+                testInputLabel = regexTesterLabel.ifEmpty { testInputLabel },
+                onDismiss = { viewModel.closeRegexTester() },
             )
         }
     }
@@ -185,18 +125,15 @@ internal fun CreateRuleScreen(
             conflictingRules = conflictingRules,
             ruleRepository = ruleRepository,
             onEditConflictingRule = onEditConflictingRule,
-            onDismiss = {
-                showConflictDialog = false
-                conflictingRules = emptyList()
-                pendingRule = null
-            },
+            onDismiss = { viewModel.dismissConflictDialog() },
         )
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (isEditing) Res.string.edit_rule_title else Res.string.create_rule_title)) },
+                title = { Text(stringResource(if (viewModel.isEditing) Res.string.edit_rule_title else Res.string.create_rule_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
@@ -225,75 +162,43 @@ internal fun CreateRuleScreen(
                 when (step) {
                     1 -> RequestStep(
                         method = method,
-                        onMethodChange = { method = it },
+                        onMethodChange = { viewModel.updateMethod(it) },
                         urlMode = urlMode,
-                        onUrlModeChange = {
-                            urlMode = it
-                            if (it == null) urlPattern = ""
-                        },
+                        onUrlModeChange = { viewModel.updateUrlMode(it) },
                         urlPattern = urlPattern,
-                        onUrlPatternChange = { urlPattern = it },
+                        onUrlPatternChange = { viewModel.updateUrlPattern(it) },
                         headerEntries = headerEntries,
-                        onHeaderAdd = { headerEntries = headerEntries + HeaderEntry() },
-                        onHeaderUpdate = { idx, e ->
-                            headerEntries = headerEntries.mapIndexed { i, v -> if (i == idx) e else v }
-                        },
-                        onHeaderRemove = { idx ->
-                            headerEntries = headerEntries.filterIndexed { i, _ -> i != idx }
-                        },
+                        onHeaderAdd = { viewModel.addHeader() },
+                        onHeaderUpdate = { idx, e -> viewModel.updateHeader(idx, e) },
+                        onHeaderRemove = { idx -> viewModel.removeHeader(idx) },
                         bodyMode = bodyMode,
-                        onBodyModeChange = {
-                            bodyMode = it
-                            if (it == null) bodyPattern = ""
-                        },
+                        onBodyModeChange = { viewModel.updateBodyMode(it) },
                         bodyPattern = bodyPattern,
-                        onBodyPatternChange = { bodyPattern = it },
-                        onOpenRegexTester = { pattern, label ->
-                            regexTesterPattern = pattern
-                            regexTesterLabel = label
-                            showRegexTester = true
-                        },
+                        onBodyPatternChange = { viewModel.updateBodyPattern(it) },
+                        onOpenRegexTester = { pattern, label -> viewModel.openRegexTester(pattern, label) },
                     )
 
                     2 -> ResponseStep(
                         action = action,
-                        onActionChange = { action = it },
+                        onActionChange = { viewModel.updateAction(it) },
                         mockResponseCode = mockResponseCode,
-                        onMockResponseCodeChange = { mockResponseCode = it.filter { c -> c.isDigit() } },
+                        onMockResponseCodeChange = { viewModel.updateMockResponseCode(it) },
                         mockResponseBody = mockResponseBody,
-                        onMockResponseBodyChange = { mockResponseBody = it },
+                        onMockResponseBodyChange = { viewModel.updateMockResponseBody(it) },
                         responseHeaderEntries = responseHeaderEntries,
-                        onResponseHeaderAdd = { responseHeaderEntries = responseHeaderEntries + ResponseHeaderEntry() },
-                        onResponseHeaderUpdate = { idx, e ->
-                            responseHeaderEntries = responseHeaderEntries.mapIndexed { i, v -> if (i == idx) e else v }
-                        },
-                        onResponseHeaderRemove = { idx ->
-                            responseHeaderEntries = responseHeaderEntries.filterIndexed { i, _ -> i != idx }
-                        },
+                        onResponseHeaderAdd = { viewModel.addResponseHeader() },
+                        onResponseHeaderUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
+                        onResponseHeaderRemove = { idx -> viewModel.removeResponseHeader(idx) },
                         responseHeadersBulk = responseHeadersBulk,
-                        onResponseHeadersBulkChange = { responseHeadersBulk = it },
+                        onResponseHeadersBulkChange = { viewModel.updateResponseHeadersBulk(it) },
                         responseHeadersMode = responseHeadersMode,
-                        onResponseHeadersModeChange = { newMode ->
-                            when (newMode) {
-                                ResponseHeadersEditMode.KeyValue -> {
-                                    val parsed = HeadersSerializerUtil.deserialize(responseHeadersBulk)
-                                    responseHeaderEntries = parsed.entries.map { (k, v) -> ResponseHeaderEntry(k, v) }
-                                }
-                                ResponseHeadersEditMode.BulkEdit -> {
-                                    val map = responseHeaderEntries
-                                        .filter { e -> e.key.isNotBlank() }
-                                        .associate { e -> e.key.trim() to e.value.trim() }
-                                    responseHeadersBulk = HeadersSerializerUtil.serialize(map)
-                                }
-                            }
-                            responseHeadersMode = newMode
-                        },
+                        onResponseHeadersModeChange = { viewModel.updateResponseHeadersMode(it) },
                         throttleDelayMs = throttleDelayMs,
-                        onThrottleDelayMsChange = { throttleDelayMs = it.filter { c -> c.isDigit() } },
+                        onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
                         throttleDelayMaxMs = throttleDelayMaxMs,
-                        onThrottleDelayMaxMsChange = { throttleDelayMaxMs = it.filter { c -> c.isDigit() } },
+                        onThrottleDelayMaxMsChange = { viewModel.updateThrottleDelayMaxMs(it) },
                         throttleInputMode = throttleInputMode,
-                        onThrottleInputModeChange = { throttleInputMode = it },
+                        onThrottleInputModeChange = { viewModel.updateThrottleInputMode(it) },
                     )
                 }
             }
@@ -307,13 +212,13 @@ internal fun CreateRuleScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (step > 1) {
-                    OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(onClick = { viewModel.prevStep() }, modifier = Modifier.weight(1f)) {
                         Text(stringResource(Res.string.back))
                     }
                 }
                 if (step < 2) {
                     Button(
-                        onClick = { step++ },
+                        onClick = { viewModel.nextStep() },
                         enabled = canProceed,
                         modifier = Modifier.weight(1f),
                     ) {
@@ -321,63 +226,7 @@ internal fun CreateRuleScreen(
                     }
                 } else {
                     Button(
-                        onClick = {
-                            scope.launch {
-                                val resolvedHeaders: Map<String, String>? = when (responseHeadersMode) {
-                                    ResponseHeadersEditMode.KeyValue ->
-                                        responseHeaderEntries
-                                            .filter { e -> e.key.isNotBlank() }
-                                            .associate { e -> e.key.trim() to e.value.trim() }
-                                            .takeIf { m -> m.isNotEmpty() }
-                                    ResponseHeadersEditMode.BulkEdit ->
-                                        if (responseHeadersBulk.isNotBlank())
-                                            HeadersSerializerUtil.deserialize(responseHeadersBulk).takeIf { m -> m.isNotEmpty() }
-                                        else null
-                                }
-                                val ruleAction = when (action) {
-                                    is RuleAction.Mock -> RuleAction.Mock(
-                                        responseCode = mockResponseCode.toIntOrNull() ?: 200,
-                                        responseBody = mockResponseBody.ifBlank { null },
-                                        responseHeaders = resolvedHeaders,
-                                        throttleDelayMs = throttleDelayMs.toLongOrNull(),
-                                        throttleDelayMaxMs = throttleDelayMaxMs.toLongOrNull(),
-                                    )
-                                    is RuleAction.Throttle -> RuleAction.Throttle(
-                                        delayMs = throttleDelayMs.toLongOrNull() ?: 1000L,
-                                        delayMaxMs = throttleDelayMaxMs.toLongOrNull(),
-                                    )
-                                }
-                                val rule = WiretapRule(
-                                    id = existingRule?.id ?: 0,
-                                    method = method.trim().ifBlank { "*" },
-                                    urlMatcher = when (urlMode) {
-                                        UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.trim())
-                                        UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.trim())
-                                        UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.trim())
-                                        null -> null
-                                    },
-                                    headerMatchers = headerEntries.mapNotNull { entry -> entry.toDomain() },
-                                    bodyMatcher = when (bodyMode) {
-                                        BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.trim())
-                                        BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.trim())
-                                        BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.trim())
-                                        null -> null
-                                    },
-                                    action = ruleAction,
-                                    enabled = existingRule?.enabled ?: true,
-                                    createdAt = existingRule?.createdAt ?: currentTimeMillis(),
-                                )
-                                val conflicts = findConflictingRules(rule)
-                                if (conflicts.isNotEmpty()) {
-                                    pendingRule = rule
-                                    conflictingRules = conflicts
-                                    showConflictDialog = true
-                                } else {
-                                    if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
-                                    onSaved()
-                                }
-                            }
-                        },
+                        onClick = { viewModel.saveRule(onSaved) },
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(stringResource(Res.string.save_rule))

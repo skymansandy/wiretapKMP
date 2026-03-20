@@ -5,7 +5,7 @@ plugins {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xskip-prerelease-check")
+        freeCompilerArgs.addAll("-Xskip-prerelease-check", "-Xexplicit-backing-fields")
     }
 }
 
@@ -83,8 +83,12 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.koin.core)
+    implementation(libs.androidx.lifecycle.viewmodelCompose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(projects.composeApp)
     debugImplementation(projects.wiretapCore)
     debugImplementation(projects.wiretapKtor)
+    debugImplementation(projects.wiretapOkhttp)
     releaseImplementation(projects.wiretapKtorNoop)
+    releaseImplementation(projects.wiretapOkhttpNoop)
 }

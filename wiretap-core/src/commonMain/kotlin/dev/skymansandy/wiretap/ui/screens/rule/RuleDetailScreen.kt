@@ -27,11 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +38,6 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.resources.Res
@@ -84,37 +79,33 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun RuleDetailScreen(
     rule: WiretapRule,
-    ruleRepository: RuleRepository,
+    viewModel: RuleDetailViewModel,
     onBack: () -> Unit,
     onDeleted: () -> Unit,
     onEditClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
-    var showDeleteConfirm by remember { mutableStateOf(false) }
-    var enabled by remember { mutableStateOf(rule.enabled) }
+    val showDeleteConfirm by viewModel.showDeleteConfirm.collectAsStateWithLifecycle()
+    val enabled by viewModel.enabled.collectAsStateWithLifecycle()
 
     if (showDeleteConfirm) {
         AlertDialog(
-            onDismissRequest = { showDeleteConfirm = false },
+            onDismissRequest = { viewModel.dismissDelete() },
             title = { Text(stringResource(Res.string.delete_rule)) },
             text = { Text(stringResource(Res.string.delete_rule_confirm)) },
             confirmButton = {
-                TextButton(onClick = {
-                    scope.launch {
-                        ruleRepository.deleteById(rule.id)
-                        onDeleted()
-                    }
-                }) {
+                TextButton(onClick = { viewModel.confirmDelete(onDeleted) }) {
                     Text(stringResource(Res.string.delete))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(Res.string.cancel)) }
+                TextButton(onClick = { viewModel.dismissDelete() }) { Text(stringResource(Res.string.cancel)) }
             },
         )
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(Res.string.rule_details)) },
@@ -127,7 +118,7 @@ internal fun RuleDetailScreen(
                     IconButton(onClick = onEditClick) {
                         Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.edit_rule_cd))
                     }
-                    IconButton(onClick = { showDeleteConfirm = true }) {
+                    IconButton(onClick = { viewModel.requestDelete() }) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_rule_cd))
                     }
                 },
@@ -146,10 +137,7 @@ internal fun RuleDetailScreen(
                 Text(stringResource(Res.string.enabled), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
-                    onCheckedChange = {
-                        enabled = it
-                        scope.launch { ruleRepository.setEnabled(rule.id, it) }
-                    },
+                    onCheckedChange = { viewModel.toggleEnabled(it) },
                 )
             }
 

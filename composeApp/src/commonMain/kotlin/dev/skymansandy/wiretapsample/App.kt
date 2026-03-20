@@ -28,65 +28,68 @@ import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.dsl.koinConfiguration
 
 @Composable
 fun App() {
     KoinApplication(
-        application = {
-            modules(sampleAppModule)
-        },
-    ) {
-        LaunchedEffect(Unit) {
-            enableWiretapLauncher()
-        }
+        configuration = koinConfiguration(
+            declaration = {
+                modules(sampleAppModule)
+            },
+        ),
+        content = {
+            LaunchedEffect(Unit) {
+                enableWiretapLauncher()
+            }
 
-        WiretapTheme {
-            var selectedTab by remember { mutableIntStateOf(0) }
+            WiretapTheme {
+                var selectedTab by remember { mutableIntStateOf(0) }
 
-            val tabs = listOf(
-                TabItem(
-                    icon = Icons.Default.Http,
-                    label = stringResource(Res.string.tab_http),
-                ),
-                TabItem(
-                    icon = Icons.Default.Stream,
-                    label = stringResource(Res.string.tab_websocket),
-                ),
-            )
+                val tabs = listOf(
+                    TabItem(
+                        icon = Icons.Default.Http,
+                        label = stringResource(Res.string.tab_http),
+                    ),
+                    TabItem(
+                        icon = Icons.Default.Stream,
+                        label = stringResource(Res.string.tab_websocket),
+                    ),
+                )
 
-            BoxWithConstraints(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                val isLandscape = maxWidth > maxHeight
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    val isLandscape = maxWidth > maxHeight
 
-                if (isLandscape) {
-                    LandscapeLayout(
-                        tabs = tabs,
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTab = it },
-                        content = { modifier ->
-                            TabContent(
-                                modifier = modifier,
-                                selectedTab = selectedTab,
-                            )
-                        },
-                    )
-                } else {
-                    PortraitLayout(
-                        tabs = tabs,
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTab = it },
-                        content = { modifier ->
-                            TabContent(
-                                modifier = modifier,
-                                selectedTab = selectedTab,
-                            )
-                        },
-                    )
+                    if (isLandscape) {
+                        LandscapeLayout(
+                            tabs = tabs,
+                            selectedTab = selectedTab,
+                            onTabSelected = { selectedTab = it },
+                            content = { modifier ->
+                                TabContent(
+                                    modifier = modifier,
+                                    selectedTab = selectedTab,
+                                )
+                            },
+                        )
+                    } else {
+                        PortraitLayout(
+                            tabs = tabs,
+                            selectedTab = selectedTab,
+                            onTabSelected = { selectedTab = it },
+                            content = { modifier ->
+                                TabContent(
+                                    modifier = modifier,
+                                    selectedTab = selectedTab,
+                                )
+                            },
+                        )
+                    }
                 }
             }
-        }
-    }
+        })
 }
 
 @Composable

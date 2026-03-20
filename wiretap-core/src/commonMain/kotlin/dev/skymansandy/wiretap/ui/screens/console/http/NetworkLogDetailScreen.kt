@@ -71,6 +71,7 @@ internal fun NetworkLogDetailScreen(
     entry: HttpLogEntry,
     onBack: () -> Unit,
     onViewRule: ((ruleId: Long) -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -100,6 +101,7 @@ internal fun NetworkLogDetailScreen(
     var showShareMenu by remember { mutableStateOf(false) }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

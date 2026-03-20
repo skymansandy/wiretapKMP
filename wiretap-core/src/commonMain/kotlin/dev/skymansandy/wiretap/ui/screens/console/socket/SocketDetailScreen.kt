@@ -46,7 +46,6 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.Res
@@ -73,26 +72,21 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocketDetailScreen(
-    socketId: Long,
-    orchestrator: WiretapOrchestrator,
+    viewModel: SocketDetailViewModel,
     onBack: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val initialEntry by produceState<SocketLogEntry?>(null, socketId) {
-        value = orchestrator.getSocketById(socketId)
-    }
+    val initialEntry by viewModel.initialEntry.collectAsStateWithLifecycle()
     if (initialEntry == null) {
         return
     }
 
-    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId)
-        .collectAsStateWithLifecycle(initialEntry)
-    val liveEntry = liveEntryOrNull ?: run {
+    val liveEntry = viewModel.liveEntry.collectAsStateWithLifecycle().value ?: run {
         onBack()
         return
     }
 
-    val messages by orchestrator.getSocketMessages(socketId)
-        .collectAsStateWithLifecycle(emptyList())
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
     // Auto-scroll to bottom when new messages arrive and already near bottom
@@ -109,13 +103,10 @@ internal fun SocketDetailScreen(
         prevMessageCount = messages.size
     }
 
-    val urlDisplay = liveEntry.url.substringAfter("://").let {
-        val host = it.substringBefore("/").substringBefore("?")
-        val path = it.removePrefix(host).ifEmpty { "/" }
-        "$host$path"
-    }
+    val urlDisplay = viewModel.urlDisplay(liveEntry.url)
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
