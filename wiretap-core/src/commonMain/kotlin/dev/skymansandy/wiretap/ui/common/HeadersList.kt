@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun HeadersList(
+    modifier: Modifier = Modifier,
     headers: Map<String, String>,
     emptyText: String,
     searchQuery: String = "",
@@ -26,12 +27,12 @@ internal fun HeadersList(
         Text(
             text = emptyText,
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         return
     }
 
-    SelectionContainer {
+    SelectionContainer(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier
@@ -55,7 +56,7 @@ internal fun HeadersList(
 
 @Preview
 @Composable
-private fun HeadersListPreview() {
+private fun Preview_HeadersList() {
     MaterialTheme {
         HeadersList(
             headers = mapOf(
@@ -71,7 +72,7 @@ private fun HeadersListPreview() {
 
 @Preview
 @Composable
-private fun HeadersListEmptyPreview() {
+private fun Preview_HeadersListEmpty() {
     MaterialTheme {
         HeadersList(
             headers = emptyMap(),
@@ -82,7 +83,7 @@ private fun HeadersListEmptyPreview() {
 
 @Preview
 @Composable
-private fun HeadersListWithSearchPreview() {
+private fun Preview_HeadersListWithSearch() {
     MaterialTheme {
         HeadersList(
             headers = mapOf(

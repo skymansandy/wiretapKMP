@@ -79,7 +79,7 @@ internal fun SearchField(
 
 @Preview
 @Composable
-private fun SearchFieldEmptyPreview() {
+private fun Preview_SearchFieldEmpty() {
     MaterialTheme {
         SearchField(
             query = "",
@@ -91,7 +91,7 @@ private fun SearchFieldEmptyPreview() {
 
 @Preview
 @Composable
-private fun SearchFieldWithQueryPreview() {
+private fun Preview_SearchFieldWithQuery() {
     MaterialTheme {
         SearchField(
             query = "api/users",

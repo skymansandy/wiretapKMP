@@ -52,7 +52,7 @@ internal fun KeyValueTable(
 
 @Preview
 @Composable
-private fun KeyValueTablePreview() {
+private fun Preview_KeyValueTable() {
     MaterialTheme {
         KeyValueTable(
             rows = listOf(

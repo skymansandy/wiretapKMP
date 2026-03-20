@@ -67,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NetworkLogDetailScreen(
+internal fun NetworkLogDetailScreen(
     entry: HttpLogEntry,
     onBack: () -> Unit,
     onViewRule: ((ruleId: Long) -> Unit)? = null,
@@ -194,9 +194,9 @@ fun NetworkLogDetailScreen(
             }
 
             when (selectedTab) {
-                0 -> OverviewTab(entry)
-                1 -> RequestTab(entry, debouncedQuery)
-                2 -> ResponseTab(entry, debouncedQuery)
+                0 -> OverviewTab(entry = entry)
+                1 -> RequestTab(entry = entry, searchQuery = debouncedQuery)
+                2 -> ResponseTab(entry = entry, searchQuery = debouncedQuery)
             }
         }
     }
@@ -254,7 +254,7 @@ private fun RuleMatchBanner(
 
 @Preview
 @Composable
-private fun NetworkLogDetailScreenPreview() {
+private fun Preview_NetworkLogDetailScreen() {
     MaterialTheme {
         NetworkLogDetailScreen(
             entry = HttpLogEntry(
@@ -280,7 +280,7 @@ private fun NetworkLogDetailScreenPreview() {
 
 @Preview
 @Composable
-private fun NetworkLogDetailScreenMockedPreview() {
+private fun Preview_NetworkLogDetailScreenMocked() {
     MaterialTheme {
         NetworkLogDetailScreen(
             entry = HttpLogEntry(
@@ -302,7 +302,7 @@ private fun NetworkLogDetailScreenMockedPreview() {
 
 @Preview
 @Composable
-private fun RuleMatchBannerMockPreview() {
+private fun Preview_RuleMatchBannerMock() {
     MaterialTheme {
         RuleMatchBanner(
             source = ResponseSource.Mock,
@@ -314,7 +314,7 @@ private fun RuleMatchBannerMockPreview() {
 
 @Preview
 @Composable
-private fun RuleMatchBannerThrottlePreview() {
+private fun Preview_RuleMatchBannerThrottle() {
     MaterialTheme {
         RuleMatchBanner(
             source = ResponseSource.Throttle,

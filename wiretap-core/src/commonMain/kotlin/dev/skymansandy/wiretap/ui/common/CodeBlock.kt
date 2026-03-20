@@ -43,7 +43,7 @@ internal fun CodeBlock(
 
 @Preview
 @Composable
-private fun CodeBlockPreview() {
+private fun Preview_CodeBlock() {
     MaterialTheme {
         CodeBlock(text = jsonMockText)
     }
@@ -51,7 +51,7 @@ private fun CodeBlockPreview() {
 
 @Preview
 @Composable
-private fun CodeBlockWithSearchPreview() {
+private fun Preview_CodeBlockWithSearch() {
     MaterialTheme {
         CodeBlock(
             text = jsonMockText,

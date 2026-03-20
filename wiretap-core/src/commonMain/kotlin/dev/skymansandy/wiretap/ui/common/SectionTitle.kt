@@ -37,7 +37,7 @@ internal fun SectionTitle(
 
 @Preview
 @Composable
-private fun SectionTitlePreview() {
+private fun Preview_SectionTitle() {
     MaterialTheme {
         SectionTitle(text = "Request Headers")
     }
@@ -45,7 +45,7 @@ private fun SectionTitlePreview() {
 
 @Preview
 @Composable
-private fun SectionTitleWithActionPreview() {
+private fun Preview_SectionTitleWithAction() {
     MaterialTheme {
         SectionTitle(
             text = "Response Body",

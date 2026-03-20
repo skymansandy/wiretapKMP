@@ -12,6 +12,7 @@ import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.source_mock
 import dev.skymansandy.wiretap.resources.source_throttle
+import androidx.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -45,4 +46,20 @@ internal fun SourceChip(
             .background(bgColor, RoundedCornerShape(4.dp))
             .padding(horizontal = 5.dp, vertical = 1.dp),
     )
+}
+
+@Preview
+@Composable
+private fun Preview_SourceChipMock() {
+    MaterialTheme {
+        SourceChip(source = ResponseSource.Mock)
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_SourceChipThrottle() {
+    MaterialTheme {
+        SourceChip(source = ResponseSource.Throttle)
+    }
 }

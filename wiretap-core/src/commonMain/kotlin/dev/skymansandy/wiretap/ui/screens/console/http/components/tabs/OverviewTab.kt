@@ -63,7 +63,7 @@ internal fun OverviewTab(
 
 @Preview
 @Composable
-private fun OverviewTabPreview() {
+private fun Preview_OverviewTab() {
     MaterialTheme {
         OverviewTab(
             entry = HttpLogEntry(

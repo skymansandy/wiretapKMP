@@ -46,10 +46,10 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SocketLogList(
+    modifier: Modifier = Modifier,
     socketLogs: List<SocketLogEntry>,
     searchQuery: String,
     onSocketClick: (SocketLogEntry) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
@@ -205,7 +205,7 @@ private fun SocketStatusChip(status: SocketStatus) {
 
 @Preview
 @Composable
-private fun SocketLogItemOpenPreview() {
+private fun Preview_SocketLogItemOpen() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
@@ -223,7 +223,7 @@ private fun SocketLogItemOpenPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemClosedPreview() {
+private fun Preview_SocketLogItemClosed() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
@@ -243,7 +243,7 @@ private fun SocketLogItemClosedPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemFailedPreview() {
+private fun Preview_SocketLogItemFailed() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
@@ -262,7 +262,7 @@ private fun SocketLogItemFailedPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemConnectingPreview() {
+private fun Preview_SocketLogItemConnecting() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(

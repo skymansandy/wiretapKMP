@@ -8,8 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,10 +49,10 @@ import dev.skymansandy.wiretap.resources.tab_logs
 import dev.skymansandy.wiretap.resources.tab_rules
 import dev.skymansandy.wiretap.resources.tab_websocket
 import dev.skymansandy.wiretap.resources.wiretap_console
-import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 import dev.skymansandy.wiretap.ui.common.SearchField
-import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogList
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapRoute
+import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogList
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -81,7 +81,9 @@ internal fun WiretapHomeScreen(
     val searchFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(isSearchActive) {
-        if (isSearchActive) searchFocusRequester.requestFocus()
+        if (isSearchActive) {
+            searchFocusRequester.requestFocus()
+        }
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {

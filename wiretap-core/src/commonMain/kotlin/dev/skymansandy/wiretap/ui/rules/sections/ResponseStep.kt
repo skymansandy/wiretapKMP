@@ -19,10 +19,17 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.label_action
+import dev.skymansandy.wiretap.resources.mock
+import dev.skymansandy.wiretap.resources.mock_latency_hint
+import dev.skymansandy.wiretap.resources.response_body
+import dev.skymansandy.wiretap.resources.response_code_label
+import dev.skymansandy.wiretap.resources.throttle
+import dev.skymansandy.wiretap.resources.throttle_latency_hint
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
-import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -49,13 +56,21 @@ internal fun ResponseStep(
     throttleInputMode: ThrottleInputMode,
     onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
 ) {
-    Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(
+        text = stringResource(Res.string.label_action),
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+    )
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         FilterChip(
             selected = action is RuleAction.Mock,
             onClick = { onActionChange(RuleAction.Mock()) },
             label = { Text(stringResource(Res.string.mock)) },
         )
+
         FilterChip(
             selected = action is RuleAction.Throttle,
             onClick = { onActionChange(RuleAction.Throttle()) },
@@ -83,10 +98,20 @@ internal fun ResponseStep(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
-            Text(stringResource(Res.string.response_body), style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,)
+
+            Text(
+                stringResource(Res.string.response_body),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Spacer(Modifier.height(4.dp))
-            val editorState = rememberJsonEditorState(initialJson = mockResponseBody.ifBlank { "{}" }, isEditing = true)
+
+            val editorState = rememberJsonEditorState(
+                initialJson = mockResponseBody.ifBlank { "{}" },
+                isEditing = true
+            )
+
             JsonEditor(
                 state = editorState,
                 modifier = Modifier.fillMaxWidth(),
@@ -105,6 +130,7 @@ internal fun ResponseStep(
                 onModeChange = onResponseHeadersModeChange,
             )
         }
+
         is RuleAction.Throttle -> {
             ThrottleDelayInput(
                 throttleDelayMs = throttleDelayMs,

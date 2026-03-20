@@ -161,7 +161,7 @@ internal fun NetworkLogItemContent(
 
 @Preview
 @Composable
-private fun NetworkLogItemSuccessPreview() {
+private fun Preview_NetworkLogItemSuccess() {
     MaterialTheme {
         NetworkLogItemContent(
             entry = HttpLogEntry(
@@ -181,7 +181,7 @@ private fun NetworkLogItemSuccessPreview() {
 
 @Preview
 @Composable
-private fun NetworkLogItemErrorPreview() {
+private fun Preview_NetworkLogItemError() {
     MaterialTheme {
         NetworkLogItemContent(
             entry = HttpLogEntry(
@@ -200,7 +200,7 @@ private fun NetworkLogItemErrorPreview() {
 
 @Preview
 @Composable
-private fun NetworkLogItemInProgressPreview() {
+private fun Preview_NetworkLogItemInProgress() {
     MaterialTheme {
         NetworkLogItemContent(
             entry = HttpLogEntry(
@@ -218,7 +218,7 @@ private fun NetworkLogItemInProgressPreview() {
 
 @Preview
 @Composable
-private fun NetworkLogItemMockedPreview() {
+private fun Preview_NetworkLogItemMocked() {
     MaterialTheme {
         NetworkLogItemContent(
             entry = HttpLogEntry(
@@ -239,7 +239,7 @@ private fun NetworkLogItemMockedPreview() {
 
 @Preview
 @Composable
-private fun NetworkLogItemServerErrorPreview() {
+private fun Preview_NetworkLogItemServerError() {
     MaterialTheme {
         NetworkLogItemContent(
             entry = HttpLogEntry(

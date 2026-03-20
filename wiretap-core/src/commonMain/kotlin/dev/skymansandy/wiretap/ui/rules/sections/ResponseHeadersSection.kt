@@ -128,7 +128,7 @@ private fun ResponseHeaderEntryRow(
 
 @Preview
 @Composable
-private fun ResponseHeadersSectionKeyValuePreview() {
+private fun Preview_ResponseHeadersSectionKeyValue() {
     MaterialTheme {
         ResponseHeadersSection(
             entries = listOf(
@@ -148,7 +148,7 @@ private fun ResponseHeadersSectionKeyValuePreview() {
 
 @Preview
 @Composable
-private fun ResponseHeadersSectionBulkPreview() {
+private fun Preview_ResponseHeadersSectionBulk() {
     MaterialTheme {
         ResponseHeadersSection(
             entries = emptyList(),

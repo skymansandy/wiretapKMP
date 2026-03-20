@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +47,8 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.helper.util.formatBytes
+import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.back
 import dev.skymansandy.wiretap.resources.binary_message
@@ -60,13 +61,12 @@ import dev.skymansandy.wiretap.resources.status_connecting
 import dev.skymansandy.wiretap.resources.status_failed
 import dev.skymansandy.wiretap.resources.status_open
 import dev.skymansandy.wiretap.resources.ws_title
-import dev.skymansandy.wiretap.helper.util.formatBytes
-import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SocketDetailScreen(
+internal fun SocketDetailScreen(
     socketId: Long,
     orchestrator: WiretapOrchestrator,
     onBack: () -> Unit,
@@ -78,13 +78,15 @@ fun SocketDetailScreen(
         return
     }
 
-    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId).collectAsStateWithLifecycle(initialEntry)
+    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId)
+        .collectAsStateWithLifecycle(initialEntry)
     val liveEntry = liveEntryOrNull ?: run {
         onBack()
         return
     }
 
-    val messages by orchestrator.getSocketMessages(socketId).collectAsStateWithLifecycle(emptyList())
+    val messages by orchestrator.getSocketMessages(socketId)
+        .collectAsStateWithLifecycle(emptyList())
     val listState = rememberLazyListState()
 
     // Auto-scroll to bottom when new messages arrive and already near bottom
@@ -122,7 +124,10 @@ fun SocketDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.back)
+                        )
                     }
                 },
                 actions = {
@@ -170,10 +175,12 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
             fontFamily = FontFamily.Monospace,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             InfoLabel(stringResource(Res.string.label_status), entry.status.name)
             InfoLabel("Opened", formatTime(entry.timestamp))
         }
+
         if (entry.closedAt != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 InfoLabel("Closed", formatTime(entry.closedAt))
@@ -181,12 +188,15 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
             }
             entry.closeReason?.let { InfoLabel("Reason", it) }
         }
+
         if (entry.failureMessage != null) {
             InfoLabel("Error", entry.failureMessage)
         }
+
         if (entry.protocol != null) {
             InfoLabel("Protocol", entry.protocol)
         }
+
         if (entry.requestHeaders.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             Text(
@@ -213,13 +223,16 @@ private fun InfoLabel(
     label: String,
     value: String,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Text(
             text = "$label:",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
         Text(
             text = value,
             style = MaterialTheme.typography.labelSmall,
@@ -229,20 +242,20 @@ private fun InfoLabel(
 }
 
 @Composable
-private fun MessageBubble(message: SocketMessage) {
+private fun MessageBubble(
+    message: SocketMessage,
+) {
     val isSent = message.direction == SocketMessageDirection.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
 
-    val bgColor = if (isSent) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
+    val bgColor = when {
+        isSent -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
-    val textColor = if (isSent) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+    val textColor = when {
+        isSent -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Box(
@@ -257,10 +270,13 @@ private fun MessageBubble(message: SocketMessage) {
                 .background(bgColor, RoundedCornerShape(12.dp))
                 .padding(10.dp),
         ) {
-            val displayText = if (message.contentType == SocketContentType.Binary) {
-                stringResource(Res.string.binary_message, formatBytes(message.byteCount))
-            } else {
-                message.content
+            val displayText = when (message.contentType) {
+                SocketContentType.Binary -> stringResource(
+                    Res.string.binary_message,
+                    formatBytes(message.byteCount)
+                )
+
+                else -> message.content
             }
 
             Text(
@@ -281,6 +297,7 @@ private fun MessageBubble(message: SocketMessage) {
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )
+
                 Text(
                     text = formatBytes(message.byteCount),
                     style = MaterialTheme.typography.labelSmall,
@@ -338,7 +355,7 @@ private fun StatusChip(status: SocketStatus) {
 
 @Preview
 @Composable
-private fun ConnectionInfoHeaderPreview() {
+private fun Preview_ConnectionInfoHeader() {
     MaterialTheme {
         ConnectionInfoHeader(
             entry = SocketLogEntry(
@@ -358,7 +375,7 @@ private fun ConnectionInfoHeaderPreview() {
 
 @Preview
 @Composable
-private fun ConnectionInfoHeaderClosedPreview() {
+private fun Preview_ConnectionInfoHeaderClosed() {
     MaterialTheme {
         ConnectionInfoHeader(
             entry = SocketLogEntry(
@@ -376,7 +393,7 @@ private fun ConnectionInfoHeaderClosedPreview() {
 
 @Preview
 @Composable
-private fun MessageBubbleSentPreview() {
+private fun Preview_MessageBubbleSent() {
     MaterialTheme {
         MessageBubble(
             message = SocketMessage(
@@ -394,7 +411,7 @@ private fun MessageBubbleSentPreview() {
 
 @Preview
 @Composable
-private fun MessageBubbleReceivedPreview() {
+private fun Preview_MessageBubbleReceived() {
     MaterialTheme {
         MessageBubble(
             message = SocketMessage(
@@ -412,7 +429,7 @@ private fun MessageBubbleReceivedPreview() {
 
 @Preview
 @Composable
-private fun MessageBubbleBinaryPreview() {
+private fun Preview_MessageBubbleBinary() {
     MaterialTheme {
         MessageBubble(
             message = SocketMessage(
@@ -430,7 +447,7 @@ private fun MessageBubbleBinaryPreview() {
 
 @Preview
 @Composable
-private fun HistoryClearedBannerPreview() {
+private fun Preview_HistoryClearedBanner() {
     MaterialTheme {
         HistoryClearedBanner()
     }
@@ -438,7 +455,7 @@ private fun HistoryClearedBannerPreview() {
 
 @Preview
 @Composable
-private fun StatusChipOpenPreview() {
+private fun Preview_StatusChipOpen() {
     MaterialTheme {
         StatusChip(SocketStatus.Open)
     }
@@ -446,7 +463,7 @@ private fun StatusChipOpenPreview() {
 
 @Preview
 @Composable
-private fun StatusChipFailedPreview() {
+private fun Preview_StatusChipFailed() {
     MaterialTheme {
         StatusChip(SocketStatus.Failed)
     }

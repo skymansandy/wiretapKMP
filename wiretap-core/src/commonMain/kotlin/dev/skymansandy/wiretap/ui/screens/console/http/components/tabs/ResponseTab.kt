@@ -23,20 +23,33 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun ResponseTab(entry: HttpLogEntry, searchQuery: String = "") {
+internal fun ResponseTab(
+    modifier: Modifier = Modifier,
+    entry: HttpLogEntry,
+    searchQuery: String = "",
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionTitle(text = stringResource(Res.string.headers), action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null)
+        SectionTitle(
+            text = stringResource(Res.string.headers),
+            action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null
+        )
+
         HeadersList(
             headers = entry.responseHeaders,
             emptyText = stringResource(Res.string.no_headers),
             searchQuery = searchQuery,
         )
+
         val body = entry.responseBody
-        SectionTitle(text = stringResource(Res.string.body), action = if (body != null) ({ CopyBodyButton(body) }) else null)
+        SectionTitle(
+            text = stringResource(Res.string.body),
+            action = if (body != null) ({ CopyBodyButton(body = body) }) else null
+        )
+
         if (body != null && looksLikeJson(body)) {
             val editorState = rememberJsonEditorState(initialJson = body)
             JsonEditor(
@@ -56,7 +69,7 @@ internal fun ResponseTab(entry: HttpLogEntry, searchQuery: String = "") {
 
 @Preview
 @Composable
-private fun ResponseTabPreview() {
+private fun Preview_ResponseTab() {
     MaterialTheme {
         ResponseTab(
             entry = HttpLogEntry(
@@ -78,7 +91,7 @@ private fun ResponseTabPreview() {
 
 @Preview
 @Composable
-private fun ResponseTabEmptyPreview() {
+private fun Preview_ResponseTabEmpty() {
     MaterialTheme {
         ResponseTab(
             entry = HttpLogEntry(

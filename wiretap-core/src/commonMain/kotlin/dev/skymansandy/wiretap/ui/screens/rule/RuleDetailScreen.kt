@@ -193,7 +193,7 @@ internal fun RuleDetailScreen(
                 Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,)
                 Spacer(Modifier.width(8.dp))
-                ActionBadge(rule.action)
+                ActionBadge(action = rule.action)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -286,7 +286,7 @@ private fun bodyMatcherLabel(matcher: BodyMatcher) = when (matcher) {
 
 @Preview
 @Composable
-private fun DetailRowPreview() {
+private fun Preview_DetailRow() {
     MaterialTheme {
         DetailRow(label = "Method", value = "GET")
     }
@@ -294,7 +294,7 @@ private fun DetailRowPreview() {
 
 @Preview
 @Composable
-private fun HeaderMatcherKeyExistsPreview() {
+private fun Preview_HeaderMatcherKeyExists() {
     MaterialTheme {
         HeaderMatcherDetail(HeaderMatcher.KeyExists("Authorization"))
     }
@@ -302,7 +302,7 @@ private fun HeaderMatcherKeyExistsPreview() {
 
 @Preview
 @Composable
-private fun HeaderMatcherValueExactPreview() {
+private fun Preview_HeaderMatcherValueExact() {
     MaterialTheme {
         HeaderMatcherDetail(HeaderMatcher.ValueExact("Content-Type", "application/json"))
     }
@@ -310,7 +310,7 @@ private fun HeaderMatcherValueExactPreview() {
 
 @Preview
 @Composable
-private fun HeaderMatcherValueRegexPreview() {
+private fun Preview_HeaderMatcherValueRegex() {
     MaterialTheme {
         HeaderMatcherDetail(HeaderMatcher.ValueRegex("Accept", "text/(html|xml)"))
     }

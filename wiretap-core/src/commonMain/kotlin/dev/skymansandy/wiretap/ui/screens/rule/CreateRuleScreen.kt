@@ -447,7 +447,7 @@ private fun ConflictDialog(
 
 @Preview
 @Composable
-private fun ConflictDialogSinglePreview() {
+private fun Preview_ConflictDialogSingle() {
     MaterialTheme {
         ConflictDialog(
             conflictingRules = listOf(
@@ -468,7 +468,7 @@ private fun ConflictDialogSinglePreview() {
 
 @Preview
 @Composable
-private fun ConflictDialogMultiplePreview() {
+private fun Preview_ConflictDialogMultiple() {
     MaterialTheme {
         ConflictDialog(
             conflictingRules = listOf(

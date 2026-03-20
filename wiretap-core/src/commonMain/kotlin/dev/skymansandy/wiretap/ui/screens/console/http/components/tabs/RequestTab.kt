@@ -5,38 +5,55 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.helper.util.looksLikeJson
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.body
+import dev.skymansandy.wiretap.resources.headers
+import dev.skymansandy.wiretap.resources.no_body
+import dev.skymansandy.wiretap.resources.no_headers
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.CopyBodyButton
 import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.common.SectionTitle
-import dev.skymansandy.wiretap.helper.util.looksLikeJson
-import dev.skymansandy.wiretap.resources.*
-import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun RequestTab(entry: HttpLogEntry, searchQuery: String = "") {
+internal fun RequestTab(
+    modifier: Modifier = Modifier,
+    entry: HttpLogEntry,
+    searchQuery: String = "",
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionTitle(text = stringResource(Res.string.headers), action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null)
+        SectionTitle(
+            text = stringResource(Res.string.headers),
+            action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null
+        )
+
         HeadersList(
             headers = entry.requestHeaders,
             emptyText = stringResource(Res.string.no_headers),
             searchQuery = searchQuery,
         )
+
         val body = entry.requestBody
-        SectionTitle(text = stringResource(Res.string.body), action = if (body != null) ({ CopyBodyButton(body) }) else null)
+        SectionTitle(
+            text = stringResource(Res.string.body),
+            action = if (body != null) ({ CopyBodyButton(body = body) }) else null
+        )
+
         if (body != null && looksLikeJson(body)) {
             val editorState = rememberJsonEditorState(initialJson = body)
             JsonEditor(
@@ -56,7 +73,7 @@ internal fun RequestTab(entry: HttpLogEntry, searchQuery: String = "") {
 
 @Preview
 @Composable
-private fun RequestTabPreview() {
+private fun Preview_RequestTab() {
     MaterialTheme {
         RequestTab(
             entry = HttpLogEntry(
@@ -78,7 +95,7 @@ private fun RequestTabPreview() {
 
 @Preview
 @Composable
-private fun RequestTabEmptyPreview() {
+private fun Preview_RequestTabEmpty() {
     MaterialTheme {
         RequestTab(
             entry = HttpLogEntry(
