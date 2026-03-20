@@ -1,6 +1,6 @@
 # WiretapKMP
 
-[![Build](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Maven version](https://img.shields.io/github/v/release/skymansandy/wiretapKMP?label=maven)](https://github.com/skymansandy/wiretapKMP/packages)
+[![Build](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Coverage](https://img.shields.io/badge/coverage-0%25-red)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Maven version](https://img.shields.io/github/v/release/skymansandy/wiretapKMP?label=maven)](https://github.com/skymansandy/wiretapKMP/packages)
 
 Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
