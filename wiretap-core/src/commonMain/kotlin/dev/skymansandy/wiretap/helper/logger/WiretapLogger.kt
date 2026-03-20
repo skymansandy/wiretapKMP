@@ -4,7 +4,7 @@ import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 
-interface NetworkLogger {
+interface WiretapLogger {
 
     fun logHttp(entry: HttpLogEntry)
 

@@ -67,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun NetworkLogDetailScreen(
+internal fun HttpLogDetailScreen(
     entry: HttpLogEntry,
     onBack: () -> Unit,
     onViewRule: ((ruleId: Long) -> Unit)? = null,
@@ -256,9 +256,9 @@ private fun RuleMatchBanner(
 
 @Preview
 @Composable
-private fun Preview_NetworkLogDetailScreen() {
+private fun Preview_HttpLogDetailScreen() {
     MaterialTheme {
-        NetworkLogDetailScreen(
+        HttpLogDetailScreen(
             entry = HttpLogEntry(
                 id = 1,
                 url = "https://api.example.com/users/123",
@@ -282,9 +282,9 @@ private fun Preview_NetworkLogDetailScreen() {
 
 @Preview
 @Composable
-private fun Preview_NetworkLogDetailScreenMocked() {
+private fun Preview_HttpLogDetailScreenMocked() {
     MaterialTheme {
-        NetworkLogDetailScreen(
+        HttpLogDetailScreen(
             entry = HttpLogEntry(
                 id = 2,
                 url = "https://api.example.com/users",

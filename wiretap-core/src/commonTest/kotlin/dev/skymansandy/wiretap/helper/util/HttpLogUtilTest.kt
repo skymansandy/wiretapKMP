@@ -6,7 +6,7 @@ import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.string.shouldStartWith
 import kotlin.test.Test
 
-class NetworkLogUtilTest {
+class HttpLogUtilTest {
 
     // region buildShareText
 

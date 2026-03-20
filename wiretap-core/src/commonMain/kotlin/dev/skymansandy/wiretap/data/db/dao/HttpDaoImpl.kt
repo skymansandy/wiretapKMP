@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-internal class NetworkDaoImpl(
+internal class HttpDaoImpl(
     private val database: WiretapDatabase,
-) : NetworkDao {
+) : HttpDao {
 
     private val queries get() = database.wiretapQueries
 

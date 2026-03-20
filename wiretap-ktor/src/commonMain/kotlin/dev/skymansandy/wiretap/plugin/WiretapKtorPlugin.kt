@@ -40,6 +40,32 @@ private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTime
 private val MatchedRuleKey = AttributeKey<WiretapRule>("WiretapMatchedRule")
 private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
 
+/**
+ * Ktor client plugin for Wiretap network inspection.
+ *
+ * Intercepts HTTP requests and responses to log them via the Wiretap orchestrator.
+ * Supports mock and throttle rules — matching requests can return fake responses
+ * or be delayed before reaching the network.
+ *
+ * Install in your [HttpClient] configuration:
+ * ```kotlin
+ * HttpClient {
+ *     install(WiretapKtorPlugin) {
+ *         shouldLog = { url, _ -> url.contains("/api/") }
+ *         headerAction = { key ->
+ *             if (key.equals("Authorization", ignoreCase = true)) HeaderAction.Mask()
+ *             else HeaderAction.Keep
+ *         }
+ *         logRetention = LogRetention.Days(7)
+ *     }
+ * }
+ * ```
+ *
+ * WebSocket upgrade requests (101) are skipped — use [WiretapKtorWebSocketPlugin] for those.
+ *
+ * @see WiretapConfig
+ * @see WiretapKtorWebSocketPlugin
+ */
 @OptIn(InternalAPI::class)
 val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 

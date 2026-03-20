@@ -40,7 +40,7 @@ import org.jetbrains.compose.resources.stringResource
 private val RevealWidth = 64.dp
 
 @Composable
-internal fun SwipeableNetworkLogItem(
+internal fun SwipeableHttpLogItem(
     modifier: Modifier = Modifier,
     entry: HttpLogEntry,
     searchQuery: String,
@@ -143,7 +143,7 @@ internal fun SwipeableNetworkLogItem(
                     }
                 },
         ) {
-            NetworkLogItemContent(
+            HttpLogItemContent(
                 entry = entry,
                 searchQuery = searchQuery,
                 onClick = onClick,

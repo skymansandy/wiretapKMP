@@ -9,13 +9,13 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.ui.screens.console.http.NetworkLogDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.http.HttpLogDetailScreen
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class NetworkLogDetailScreenTest {
+class HttpLogDetailScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
@@ -41,7 +41,7 @@ class NetworkLogDetailScreenTest {
     fun displaysMethodAndUrlInTitle() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -56,7 +56,7 @@ class NetworkLogDetailScreenTest {
     fun displaysThreeTabs() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -72,7 +72,7 @@ class NetworkLogDetailScreenTest {
     fun overviewTabSelectedByDefault() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -86,7 +86,7 @@ class NetworkLogDetailScreenTest {
     fun clickingRequestTabSwitchesToRequestContent() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -102,7 +102,7 @@ class NetworkLogDetailScreenTest {
     fun clickingResponseTabSwitchesToResponseContent() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -122,7 +122,7 @@ class NetworkLogDetailScreenTest {
     fun overviewTabDisplaysUrlAndMethod() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -138,7 +138,7 @@ class NetworkLogDetailScreenTest {
     fun overviewTabDisplaysStatusCode() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -152,7 +152,7 @@ class NetworkLogDetailScreenTest {
     fun overviewTabDisplaysDuration() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -166,7 +166,7 @@ class NetworkLogDetailScreenTest {
     fun overviewTabDisplaysSourceNetwork() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -188,7 +188,7 @@ class NetworkLogDetailScreenTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = inProgressEntry,
                     onBack = {},
                 )
@@ -211,7 +211,7 @@ class NetworkLogDetailScreenTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = mockedEntry,
                     onBack = {},
                     onViewRule = {},
@@ -232,7 +232,7 @@ class NetworkLogDetailScreenTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = throttledEntry,
                     onBack = {},
                     onViewRule = {},
@@ -247,7 +247,7 @@ class NetworkLogDetailScreenTest {
     fun networkEntryDoesNotShowBanner() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -268,7 +268,7 @@ class NetworkLogDetailScreenTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = mockedEntry,
                     onBack = {},
                     onViewRule = { clickedRuleId = it },
@@ -290,7 +290,7 @@ class NetworkLogDetailScreenTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = { backCalled = true },
                 )
@@ -309,7 +309,7 @@ class NetworkLogDetailScreenTest {
     fun searchIconNotShownOnOverviewTab() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -323,7 +323,7 @@ class NetworkLogDetailScreenTest {
     fun searchIconShownOnRequestTab() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -338,7 +338,7 @@ class NetworkLogDetailScreenTest {
     fun searchIconShownOnResponseTab() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -357,7 +357,7 @@ class NetworkLogDetailScreenTest {
     fun shareButtonIsDisplayed() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )
@@ -371,7 +371,7 @@ class NetworkLogDetailScreenTest {
     fun shareMenuShowsOptions() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogDetailScreen(
+                HttpLogDetailScreen(
                     entry = sampleEntry,
                     onBack = {},
                 )

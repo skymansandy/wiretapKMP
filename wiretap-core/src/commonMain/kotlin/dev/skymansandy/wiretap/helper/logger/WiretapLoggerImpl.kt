@@ -6,7 +6,7 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 
-internal class NetworkLoggerImpl : NetworkLogger {
+internal class WiretapLoggerImpl : WiretapLogger {
 
     override fun logHttp(entry: HttpLogEntry) {
         if (entry.isInProgress) {

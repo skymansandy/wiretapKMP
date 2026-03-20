@@ -10,9 +10,9 @@ import dev.skymansandy.wiretap.socketLogEntry
 import dev.skymansandy.wiretap.socketMessage
 import kotlin.test.Test
 
-class NetworkLoggerImplTest {
+class WiretapLoggerImplTest {
 
-    private val logger = NetworkLoggerImpl()
+    private val logger = WiretapLoggerImpl()
 
     @Test
     fun `logHttp does not throw for in-progress entry`() {

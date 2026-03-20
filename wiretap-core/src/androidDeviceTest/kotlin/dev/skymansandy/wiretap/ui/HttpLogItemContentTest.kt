@@ -7,12 +7,12 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.ui.screens.console.http.components.NetworkLogItemContent
+import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogItemContent
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertTrue
 
-class NetworkLogItemContentTest {
+class HttpLogItemContentTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
@@ -33,7 +33,7 @@ class NetworkLogItemContentTest {
     fun displaysStatusCodeForSuccess() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -50,7 +50,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -67,7 +67,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -86,7 +86,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -103,7 +103,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -120,7 +120,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -139,7 +139,7 @@ class NetworkLogItemContentTest {
     fun displaysMethodAndPath() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -155,7 +155,7 @@ class NetworkLogItemContentTest {
     fun displaysHost() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -174,7 +174,7 @@ class NetworkLogItemContentTest {
     fun displaysDuration() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -189,7 +189,7 @@ class NetworkLogItemContentTest {
     fun displaysResponseSize() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -206,7 +206,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -230,7 +230,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -250,7 +250,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = entry,
                     searchQuery = "",
                     onClick = {},
@@ -265,7 +265,7 @@ class NetworkLogItemContentTest {
     fun noSourceChipForNetworkEntry() {
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = {},
@@ -287,7 +287,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = sampleEntry,
                     searchQuery = "",
                     onClick = { clicked = true },
@@ -311,7 +311,7 @@ class NetworkLogItemContentTest {
 
         composeTestRule.setContent {
             MaterialTheme {
-                NetworkLogItemContent(
+                HttpLogItemContent(
                     entry = httpEntry,
                     searchQuery = "",
                     onClick = {},

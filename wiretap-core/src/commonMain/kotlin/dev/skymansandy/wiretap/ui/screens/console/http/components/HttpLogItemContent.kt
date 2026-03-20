@@ -32,7 +32,7 @@ import dev.skymansandy.wiretap.ui.common.highlightText
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @Composable
-internal fun NetworkLogItemContent(
+internal fun HttpLogItemContent(
     modifier: Modifier = Modifier,
     entry: HttpLogEntry,
     searchQuery: String,
@@ -161,9 +161,9 @@ internal fun NetworkLogItemContent(
 
 @Preview
 @Composable
-private fun Preview_NetworkLogItemSuccess() {
+private fun Preview_HttpLogItemSuccess() {
     MaterialTheme {
-        NetworkLogItemContent(
+        HttpLogItemContent(
             entry = HttpLogEntry(
                 id = 1,
                 url = "https://api.example.com/users/123?include=profile",
@@ -181,9 +181,9 @@ private fun Preview_NetworkLogItemSuccess() {
 
 @Preview
 @Composable
-private fun Preview_NetworkLogItemError() {
+private fun Preview_HttpLogItemError() {
     MaterialTheme {
-        NetworkLogItemContent(
+        HttpLogItemContent(
             entry = HttpLogEntry(
                 id = 2,
                 url = "https://api.example.com/auth/login",
@@ -200,9 +200,9 @@ private fun Preview_NetworkLogItemError() {
 
 @Preview
 @Composable
-private fun Preview_NetworkLogItemInProgress() {
+private fun Preview_HttpLogItemInProgress() {
     MaterialTheme {
-        NetworkLogItemContent(
+        HttpLogItemContent(
             entry = HttpLogEntry(
                 id = 3,
                 url = "https://api.example.com/data/sync",
@@ -218,9 +218,9 @@ private fun Preview_NetworkLogItemInProgress() {
 
 @Preview
 @Composable
-private fun Preview_NetworkLogItemMocked() {
+private fun Preview_HttpLogItemMocked() {
     MaterialTheme {
-        NetworkLogItemContent(
+        HttpLogItemContent(
             entry = HttpLogEntry(
                 id = 4,
                 url = "https://api.example.com/users",
@@ -239,9 +239,9 @@ private fun Preview_NetworkLogItemMocked() {
 
 @Preview
 @Composable
-private fun Preview_NetworkLogItemServerError() {
+private fun Preview_HttpLogItemServerError() {
     MaterialTheme {
-        NetworkLogItemContent(
+        HttpLogItemContent(
             entry = HttpLogEntry(
                 id = 5,
                 url = "http://api.example.com/internal/health",

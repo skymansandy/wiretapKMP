@@ -16,12 +16,12 @@ val wiretapModule = module {
     single<WiretapOrchestrator> {
         WiretapOrchestratorImpl(
             httpOrchestrator = HttpOrchestratorImpl(
-                networkRepository = get(),
-                networkLogger = get(),
+                httpRepository = get(),
+                wiretapLogger = get(),
             ),
             socketOrchestrator = SocketOrchestratorImpl(
                 socketRepository = get(),
-                networkLogger = get(),
+                wiretapLogger = get(),
             ),
         )
     }

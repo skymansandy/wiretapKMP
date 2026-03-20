@@ -1,26 +1,25 @@
-package dev.skymansandy.wiretap.domain.repository
+package dev.skymansandy.wiretap.data.db.dao
 
-import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import kotlinx.coroutines.flow.Flow
 
-interface NetworkRepository {
+internal interface HttpDao {
 
-    suspend fun save(entry: HttpLogEntry)
+    suspend fun insert(entry: HttpLogEntry)
 
-    suspend fun saveAndGetId(entry: HttpLogEntry): Long
+    suspend fun insertAndGetId(entry: HttpLogEntry): Long
 
     suspend fun update(entry: HttpLogEntry)
 
     fun getAll(): Flow<List<HttpLogEntry>>
 
-    fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>>
+    suspend fun getPage(query: String, limit: Long, afterId: Long?): List<HttpLogEntry>
 
     suspend fun getById(id: Long): HttpLogEntry?
+
+    suspend fun deleteAll()
 
     suspend fun deleteById(id: Long)
 
     suspend fun deleteOlderThan(timestamp: Long)
-
-    suspend fun clearAll()
 }
