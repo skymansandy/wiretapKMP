@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens
+package dev.skymansandy.wiretap.ui.screens.console
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,9 +49,9 @@ import dev.skymansandy.wiretap.resources.tab_logs
 import dev.skymansandy.wiretap.resources.tab_rules
 import dev.skymansandy.wiretap.resources.tab_websocket
 import dev.skymansandy.wiretap.resources.wiretap_console
-import dev.skymansandy.wiretap.ui.WiretapRoute
-import dev.skymansandy.wiretap.ui.components.SearchField
-import dev.skymansandy.wiretap.ui.http.HttpLogList
+import dev.skymansandy.wiretap.ui.screens.WiretapRoute
+import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogList
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
 import kotlinx.coroutines.delay

@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens
+package dev.skymansandy.wiretap.ui.screens.rule
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,8 +66,8 @@ import dev.skymansandy.wiretap.resources.response_code_label
 import dev.skymansandy.wiretap.resources.response_headers
 import dev.skymansandy.wiretap.resources.rule_details
 import dev.skymansandy.wiretap.resources.throttle_delay
-import dev.skymansandy.wiretap.ui.components.CodeBlock
-import dev.skymansandy.wiretap.ui.components.HeadersList
+import dev.skymansandy.wiretap.ui.common.CodeBlock
+import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import org.jetbrains.compose.resources.stringResource

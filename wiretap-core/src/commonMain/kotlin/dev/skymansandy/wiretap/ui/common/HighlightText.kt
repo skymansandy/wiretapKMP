@@ -1,13 +1,15 @@
-package dev.skymansandy.wiretap.ui.components
+package dev.skymansandy.wiretap.ui.common
 
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 internal fun highlightText(text: String, query: String): AnnotatedString {
     if (query.isBlank()) return AnnotatedString(text)
+
     return buildAnnotatedString {
         val lowerText = text.lowercase()
         val lowerQuery = query.lowercase()
@@ -15,7 +17,7 @@ internal fun highlightText(text: String, query: String): AnnotatedString {
         var match = lowerText.indexOf(lowerQuery, cursor)
         while (match >= 0) {
             append(text.substring(cursor, match))
-            withStyle(SpanStyle(background = Color(0xFFFFEB3B), color = Color.Black)) {
+            withStyle(SpanStyle(background = WiretapColors.SearchHighlightBackground, color = Color.Black)) {
                 append(text.substring(match, match + query.length))
             }
             cursor = match + query.length

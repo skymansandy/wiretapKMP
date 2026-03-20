@@ -12,11 +12,12 @@ import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
-import dev.skymansandy.wiretap.ui.screens.CreateRuleScreen
-import dev.skymansandy.wiretap.ui.screens.NetworkLogDetailScreen
-import dev.skymansandy.wiretap.ui.screens.RuleDetailScreen
-import dev.skymansandy.wiretap.ui.screens.SocketDetailScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapHomeScreen
+import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleScreen
+import dev.skymansandy.wiretap.ui.screens.console.http.NetworkLogDetailScreen
+import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 
 @Composable
 fun WiretapScreen(

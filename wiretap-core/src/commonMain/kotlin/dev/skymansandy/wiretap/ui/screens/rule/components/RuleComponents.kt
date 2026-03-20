@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.rules.components
+package dev.skymansandy.wiretap.ui.screens.rule.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,38 +35,67 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.ui.rules.model.testRegex
-import dev.skymansandy.wiretap.resources.*
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.any_method
+import dev.skymansandy.wiretap.resources.close
+import dev.skymansandy.wiretap.resources.http_method
+import dev.skymansandy.wiretap.resources.match_found
+import dev.skymansandy.wiretap.resources.no_match
+import dev.skymansandy.wiretap.resources.regex_tester
+import dev.skymansandy.wiretap.resources.test_regex
+import dev.skymansandy.wiretap.ui.model.testRegex
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun SectionLabel(title: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+internal fun SectionLabel(
+    modifier: Modifier = Modifier,
+    title: String,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
         )
+
         Spacer(Modifier.width(8.dp))
+
         HorizontalDivider(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-internal fun RegexTesterIcon(onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
-        Icon(Icons.Default.PlayArrow, contentDescription = stringResource(Res.string.test_regex), tint = MaterialTheme.colorScheme.primary)
+internal fun RegexTesterIcon(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        modifier = modifier,
+        onClick = onClick,
+    ) {
+        Icon(
+            Icons.Default.PlayArrow,
+            contentDescription = stringResource(Res.string.test_regex),
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
 @Composable
-internal fun StepIndicator(currentStep: Int, labels: List<String>, modifier: Modifier = Modifier) {
+internal fun StepIndicator(
+    modifier: Modifier = Modifier,
+    currentStep: Int,
+    labels: List<String>,
+) {
     Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         labels.forEachIndexed { index, label ->
             val step = index + 1
@@ -84,7 +113,12 @@ internal fun StepIndicator(currentStep: Int, labels: List<String>, modifier: Mod
                 contentAlignment = Alignment.Center,
             ) {
                 if (isCompleted) {
-                    Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.Check,
+                        null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
                 } else {
                     Text(
                         text = step.toString(),
@@ -112,6 +146,7 @@ internal fun StepIndicator(currentStep: Int, labels: List<String>, modifier: Mod
 
 @Composable
 internal fun RegexTesterSheet(
+    modifier: Modifier = Modifier,
     pattern: String,
     testInputLabel: String,
     onDismiss: () -> Unit,
@@ -119,10 +154,12 @@ internal fun RegexTesterSheet(
     var testInput by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp),
+        modifier = modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 stringResource(Res.string.regex_tester),
                 style = MaterialTheme.typography.titleMedium,
@@ -161,15 +198,17 @@ internal fun RegexTesterSheet(
                 Icon(
                     imageVector = if (result.matches) Icons.Default.Check else Icons.Default.Close,
                     contentDescription = null,
-                    tint = if (result.matches) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                    tint = if (result.matches) WiretapColors.StatusGreen else MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(end = 8.dp),
                 )
                 Column {
                     Text(
-                        text = if (result.matches) stringResource(Res.string.match_found) else stringResource(Res.string.no_match),
+                        text = if (result.matches) stringResource(Res.string.match_found) else stringResource(
+                            Res.string.no_match
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (result.matches) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
+                        color = if (result.matches) WiretapColors.StatusGreen else MaterialTheme.colorScheme.error,
                     )
                     if (result.error != null) {
                         Text(
@@ -199,7 +238,8 @@ internal fun MethodSelector(method: String, onMethodChange: (String) -> Unit) {
             readOnly = true,
             label = { Text(stringResource(Res.string.http_method)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             methods.forEach { m ->

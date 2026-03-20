@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.components
+package dev.skymansandy.wiretap.ui.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -22,26 +22,29 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.*
-import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.search_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SearchField(
+    modifier: Modifier = Modifier,
     query: String,
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+
     BasicTextField(
+        modifier = modifier.focusRequester(focusRequester),
         value = query,
         onValueChange = onQueryChange,
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = LocalContentColor.current),
         singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
-        modifier = Modifier.focusRequester(focusRequester),
         decorationBox = { innerTextField ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -53,7 +56,11 @@ internal fun SearchField(
                     modifier = Modifier.size(20.dp),
                     tint = LocalContentColor.current.copy(alpha = 0.6f),
                 )
-                Spacer(Modifier.width(8.dp))
+
+                Spacer(
+                    modifier = Modifier.width(8.dp),
+                )
+
                 Box {
                     if (query.isEmpty()) {
                         Text(
@@ -62,6 +69,7 @@ internal fun SearchField(
                             color = LocalContentColor.current.copy(alpha = 0.4f),
                         )
                     }
+
                     innerTextField()
                 }
             }

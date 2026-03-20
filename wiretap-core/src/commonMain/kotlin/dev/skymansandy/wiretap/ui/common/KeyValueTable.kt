@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.components
+package dev.skymansandy.wiretap.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,17 +12,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun KeyValueTable(rows: List<Pair<String, String>>) {
+internal fun KeyValueTable(
+    modifier: Modifier = Modifier,
+    rows: List<Pair<String, String>>,
+) {
     SelectionContainer {
         Column(
-            modifier = Modifier
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             rows.forEach { (key, value) ->
                 Row(
@@ -35,6 +38,7 @@ internal fun KeyValueTable(rows: List<Pair<String, String>>) {
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(0.35f),
                     )
+
                     Text(
                         text = value,
                         style = MaterialTheme.typography.bodySmall,

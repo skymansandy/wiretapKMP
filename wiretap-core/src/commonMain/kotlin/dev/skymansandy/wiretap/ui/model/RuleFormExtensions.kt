@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.rules.model
+package dev.skymansandy.wiretap.ui.model
 
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
@@ -25,8 +25,11 @@ internal fun HeaderEntryMode.label() = when (this) {
 }
 
 internal fun UrlMatchMode.isRegex() = this == UrlMatchMode.Regex
+
 internal fun BodyMatchMode.isRegex() = this == BodyMatchMode.Regex
+
 internal fun HeaderEntryMode.isRegex() = this == HeaderEntryMode.ValueRegex
+
 internal fun HeaderEntryMode.hasValue() = this != HeaderEntryMode.KeyExists
 
 internal fun WiretapRule.toUrlMode() = when (urlMatcher) {

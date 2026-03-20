@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.network.tabs
+package dev.skymansandy.wiretap.ui.screens.console.http.components.tabs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,7 +7,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.ui.components.KeyValueTable
+import dev.skymansandy.wiretap.ui.common.KeyValueTable
 import dev.skymansandy.wiretap.helper.util.formatSize
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.material3.MaterialTheme
@@ -15,9 +15,12 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun OverviewTab(entry: HttpLogEntry) {
+internal fun OverviewTab(
+    modifier: Modifier = Modifier,
+    entry: HttpLogEntry
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {

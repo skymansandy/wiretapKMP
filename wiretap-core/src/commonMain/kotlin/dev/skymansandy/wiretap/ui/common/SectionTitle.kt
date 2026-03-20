@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.components
+package dev.skymansandy.wiretap.ui.common
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,19 +9,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun SectionTitle(
+    modifier: Modifier = Modifier,
     text: String,
     action: (@Composable () -> Unit)? = null,
 ) {
     Row(
-        modifier = Modifier
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = text,
@@ -29,6 +30,7 @@ internal fun SectionTitle(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
         )
+
         action?.invoke()
     }
 }
@@ -47,7 +49,12 @@ private fun SectionTitleWithActionPreview() {
     MaterialTheme {
         SectionTitle(
             text = "Response Body",
-            action = { Text("Copy", style = MaterialTheme.typography.labelSmall) },
+            action = {
+                Text(
+                    text = "Copy",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            },
         )
     }
 }

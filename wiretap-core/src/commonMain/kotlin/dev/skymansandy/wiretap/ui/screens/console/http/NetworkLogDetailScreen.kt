@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens
+package dev.skymansandy.wiretap.ui.screens.console.http
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,10 +55,10 @@ import dev.skymansandy.wiretap.resources.tab_request
 import dev.skymansandy.wiretap.resources.tab_response
 import dev.skymansandy.wiretap.resources.throttled_by_rule
 import dev.skymansandy.wiretap.resources.view_rule_arrow
-import dev.skymansandy.wiretap.ui.components.SearchField
-import dev.skymansandy.wiretap.ui.network.tabs.OverviewTab
-import dev.skymansandy.wiretap.ui.network.tabs.RequestTab
-import dev.skymansandy.wiretap.ui.network.tabs.ResponseTab
+import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
+import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
+import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareNetworkLog

@@ -22,8 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
+import dev.skymansandy.wiretap.ui.model.ThrottleProfile
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.foundation.layout.Column
 import org.jetbrains.compose.resources.stringResource

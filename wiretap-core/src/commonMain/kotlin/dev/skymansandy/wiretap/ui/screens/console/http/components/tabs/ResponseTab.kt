@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.network.tabs
+package dev.skymansandy.wiretap.ui.screens.console.http.components.tabs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.ui.components.CodeBlock
-import dev.skymansandy.wiretap.ui.components.CopyBodyButton
-import dev.skymansandy.wiretap.ui.components.CopyHeadersButton
-import dev.skymansandy.wiretap.ui.components.HeadersList
-import dev.skymansandy.wiretap.ui.components.SectionTitle
+import dev.skymansandy.wiretap.ui.common.CodeBlock
+import dev.skymansandy.wiretap.ui.common.CopyBodyButton
+import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
+import dev.skymansandy.wiretap.ui.common.HeadersList
+import dev.skymansandy.wiretap.ui.common.SectionTitle
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.material3.MaterialTheme
@@ -29,14 +29,14 @@ internal fun ResponseTab(entry: HttpLogEntry, searchQuery: String = "") {
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        SectionTitle(stringResource(Res.string.headers), action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(entry.responseHeaders) }) else null)
+        SectionTitle(text = stringResource(Res.string.headers), action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null)
         HeadersList(
             headers = entry.responseHeaders,
             emptyText = stringResource(Res.string.no_headers),
             searchQuery = searchQuery,
         )
         val body = entry.responseBody
-        SectionTitle(stringResource(Res.string.body), action = if (body != null) ({ CopyBodyButton(body) }) else null)
+        SectionTitle(text = stringResource(Res.string.body), action = if (body != null) ({ CopyBodyButton(body) }) else null)
         if (body != null && looksLikeJson(body)) {
             val editorState = rememberJsonEditorState(initialJson = body)
             JsonEditor(

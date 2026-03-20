@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens
+package dev.skymansandy.wiretap.ui.screens.rule
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,24 +55,25 @@ import dev.skymansandy.wiretap.resources.rule_conflict
 import dev.skymansandy.wiretap.resources.save_rule
 import dev.skymansandy.wiretap.resources.step_request
 import dev.skymansandy.wiretap.resources.step_response
-import dev.skymansandy.wiretap.ui.rules.components.RegexTesterSheet
-import dev.skymansandy.wiretap.ui.rules.components.StepIndicator
-import dev.skymansandy.wiretap.ui.rules.model.BodyMatchMode
-import dev.skymansandy.wiretap.ui.rules.model.HeaderEntry
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleProfile
-import dev.skymansandy.wiretap.ui.rules.model.UrlMatchMode
-import dev.skymansandy.wiretap.ui.rules.model.hasValue
-import dev.skymansandy.wiretap.ui.rules.model.toBodyMode
-import dev.skymansandy.wiretap.ui.rules.model.toDomain
-import dev.skymansandy.wiretap.ui.rules.model.toEntry
-import dev.skymansandy.wiretap.ui.rules.model.toUrlMode
+import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
+import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
+import dev.skymansandy.wiretap.ui.model.BodyMatchMode
+import dev.skymansandy.wiretap.ui.model.HeaderEntry
+import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
+import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
+import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
+import dev.skymansandy.wiretap.ui.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.model.UrlMatchMode
+import dev.skymansandy.wiretap.ui.model.hasValue
+import dev.skymansandy.wiretap.ui.model.toBodyMode
+import dev.skymansandy.wiretap.ui.model.toDomain
+import dev.skymansandy.wiretap.ui.model.toEntry
+import dev.skymansandy.wiretap.ui.model.toUrlMode
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -494,8 +495,8 @@ private fun ConflictDialogMultiplePreview() {
 }
 
 private object NoOpRuleRepository : RuleRepository {
-    override fun getAll() = kotlinx.coroutines.flow.flowOf(emptyList<WiretapRule>())
-    override fun search(query: String) = kotlinx.coroutines.flow.flowOf(emptyList<WiretapRule>())
+    override fun getAll() = flowOf(emptyList<WiretapRule>())
+    override fun search(query: String) = flowOf(emptyList<WiretapRule>())
     override suspend fun getById(id: Long) = null
     override suspend fun getEnabledRules() = emptyList<WiretapRule>()
     override suspend fun addRule(rule: WiretapRule) {}

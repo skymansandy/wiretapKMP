@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens
+package dev.skymansandy.wiretap.ui.screens.console.socket
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -295,14 +296,14 @@ private fun HistoryClearedBanner() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFFF3E0))
+            .background(WiretapColors.HistoryClearedBackground)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = stringResource(Res.string.history_cleared),
             style = MaterialTheme.typography.labelMedium,
-            color = Color(0xFFE65100),
+            color = WiretapColors.HistoryClearedText,
         )
     }
 }
@@ -310,11 +311,11 @@ private fun HistoryClearedBanner() {
 @Composable
 private fun StatusChip(status: SocketStatus) {
     val bgColor = when (status) {
-        SocketStatus.Connecting -> Color(0xFF42A5F5)
-        SocketStatus.Open -> Color(0xFF4CAF50)
-        SocketStatus.Closing -> Color(0xFFFFA726)
-        SocketStatus.Closed -> Color(0xFF9E9E9E)
-        SocketStatus.Failed -> Color(0xFFEF5350)
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
     }
     val label = when (status) {
         SocketStatus.Connecting -> stringResource(Res.string.status_connecting)

@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.components
+package dev.skymansandy.wiretap.ui.common
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,16 +11,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.helper.constants.jsonMockText
 
 @Composable
 internal fun CodeBlock(
-    text: String,
     modifier: Modifier = Modifier,
+    text: String,
     searchQuery: String = "",
 ) {
-    SelectionContainer(modifier = modifier.fillMaxWidth()) {
+    SelectionContainer(
+        modifier = modifier.fillMaxWidth(),
+    ) {
         Surface(
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = MaterialTheme.shapes.small,
@@ -42,9 +45,7 @@ internal fun CodeBlock(
 @Composable
 private fun CodeBlockPreview() {
     MaterialTheme {
-        CodeBlock(
-            text = """{"name": "John", "age": 30, "city": "New York"}""",
-        )
+        CodeBlock(text = jsonMockText)
     }
 }
 
@@ -53,7 +54,7 @@ private fun CodeBlockPreview() {
 private fun CodeBlockWithSearchPreview() {
     MaterialTheme {
         CodeBlock(
-            text = """{"name": "John", "age": 30, "city": "New York"}""",
+            text = jsonMockText,
             searchQuery = "John",
         )
     }

@@ -32,11 +32,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.ui.components.highlightText
+import dev.skymansandy.wiretap.ui.common.highlightText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.launch
@@ -91,11 +92,11 @@ private fun SocketLogItemContent(
     onClick: () -> Unit,
 ) {
     val statusColor = when (entry.status) {
-        SocketStatus.Connecting -> Color(0xFF42A5F5) // Blue
-        SocketStatus.Open -> Color(0xFF4CAF50) // Green
-        SocketStatus.Closing -> Color(0xFFFFA726) // Amber
-        SocketStatus.Closed -> Color(0xFF9E9E9E) // Gray
-        SocketStatus.Failed -> Color(0xFFEF5350) // Red
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
     }
 
     val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
@@ -140,13 +141,13 @@ private fun SocketLogItemContent(
                             imageVector = Icons.Default.Lock,
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = Color(0xFF26C6DA),
+                            tint = WiretapColors.SecureHost,
                         )
                     }
                     Text(
                         text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF26C6DA),
+                        color = WiretapColors.SecureHost,
                     )
                 }
 
@@ -179,11 +180,11 @@ private fun SocketLogItemContent(
 @Composable
 private fun SocketStatusChip(status: SocketStatus) {
     val bgColor = when (status) {
-        SocketStatus.Connecting -> Color(0xFF42A5F5)
-        SocketStatus.Open -> Color(0xFF4CAF50)
-        SocketStatus.Closing -> Color(0xFFFFA726)
-        SocketStatus.Closed -> Color(0xFF9E9E9E)
-        SocketStatus.Failed -> Color(0xFFEF5350)
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
     }
     val label = when (status) {
         SocketStatus.Connecting -> stringResource(Res.string.status_connecting)

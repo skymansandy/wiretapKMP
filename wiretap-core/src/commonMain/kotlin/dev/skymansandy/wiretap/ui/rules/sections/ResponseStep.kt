@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
+import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
+import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
+import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 

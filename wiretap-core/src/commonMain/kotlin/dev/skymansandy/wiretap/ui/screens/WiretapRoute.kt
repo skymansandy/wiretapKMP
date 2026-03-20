@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui
+package dev.skymansandy.wiretap.ui.screens
 
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule

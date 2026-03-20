@@ -1,9 +1,4 @@
-package dev.skymansandy.wiretap.ui.rules.model
-
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+package dev.skymansandy.wiretap.ui.model
 
 internal enum class UrlMatchMode {
     Exact,
