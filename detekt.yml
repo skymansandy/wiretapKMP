@@ -293,7 +293,7 @@ formatting:
     autoCorrect: true
   NoWildcardImports:
     active: true
-    packagesToUseImportOnDemandProperty: 'java.util.*,kotlinx.android.synthetic.**'
+    packagesToUseImportOnDemandProperty: 'java.util.*,kotlinx.android.synthetic.**,dev.skymansandy.wiretap.resources.**'
   NullableTypeSpacing:
     active: true
     autoCorrect: true
@@ -721,3 +721,4 @@ style:
     excludeImports:
       - 'java.util.*'
       - 'kotlinx.android.synthetic.*'
+      - 'dev.skymansandy.wiretap.resources.*'

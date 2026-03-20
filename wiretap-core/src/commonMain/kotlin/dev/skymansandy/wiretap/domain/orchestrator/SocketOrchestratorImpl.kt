@@ -4,15 +4,15 @@ import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
-import dev.skymansandy.wiretap.helper.logger.NetworkLogger
 import dev.skymansandy.wiretap.helper.launcher.onSocketConnectionLogged
 import dev.skymansandy.wiretap.helper.launcher.onSocketLogsCleared
 import dev.skymansandy.wiretap.helper.launcher.onSocketMessageLogged
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SocketOrchestratorImpl(
     private val socketRepository: SocketRepository,
-    private val networkLogger: NetworkLogger,
+    private val wiretapLogger: WiretapLogger,
 ) : SocketOrchestrator {
 
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
@@ -23,7 +23,7 @@ internal class SocketOrchestratorImpl(
         val id = socketRepository.openConnection(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
-        networkLogger.logSocket(entryWithId)
+        wiretapLogger.logSocket(entryWithId)
         onSocketConnectionLogged(entryWithId)
         return id
     }
@@ -33,10 +33,11 @@ internal class SocketOrchestratorImpl(
         socketRepository.updateConnection(entry)
         when (entry.status) {
             dev.skymansandy.wiretap.domain.model.SocketStatus.Closed,
-            dev.skymansandy.wiretap.domain.model.SocketStatus.Failed -> activeConnections.remove(entry.id)
+            dev.skymansandy.wiretap.domain.model.SocketStatus.Failed,
+            -> activeConnections.remove(entry.id)
             else -> activeConnections[entry.id] = entry
         }
-        networkLogger.logSocket(entry)
+        wiretapLogger.logSocket(entry)
         onSocketConnectionLogged(entry)
     }
 
@@ -54,7 +55,7 @@ internal class SocketOrchestratorImpl(
         }
 
         socketRepository.logMessage(message)
-        networkLogger.logSocketMessage(message)
+        wiretapLogger.logSocketMessage(message)
         socketRepository.getById(message.socketId)?.let { entry ->
             onSocketMessageLogged(entry, message)
         }

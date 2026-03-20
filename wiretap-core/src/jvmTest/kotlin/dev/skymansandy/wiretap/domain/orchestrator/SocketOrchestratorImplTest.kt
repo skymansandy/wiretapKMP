@@ -5,15 +5,15 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
-import dev.mokkery.verifySuspend
 import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
-import dev.skymansandy.wiretap.helper.logger.NetworkLogger
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.socketLogEntry
 import dev.skymansandy.wiretap.socketMessage
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
@@ -22,14 +22,14 @@ import kotlin.test.Test
 class SocketOrchestratorImplTest {
 
     private lateinit var socketRepository: SocketRepository
-    private lateinit var networkLogger: NetworkLogger
+    private lateinit var wiretapLogger: WiretapLogger
     private lateinit var orchestrator: SocketOrchestratorImpl
 
     @BeforeTest
     fun setup() {
         socketRepository = mock<SocketRepository>()
-        networkLogger = mock<NetworkLogger>()
-        orchestrator = SocketOrchestratorImpl(socketRepository, networkLogger)
+        wiretapLogger = mock<WiretapLogger>()
+        orchestrator = SocketOrchestratorImpl(socketRepository, wiretapLogger)
     }
 
     @Test
@@ -37,7 +37,7 @@ class SocketOrchestratorImplTest {
         val entry = socketLogEntry()
         val expectedId = 10L
         everySuspend { socketRepository.openConnection(entry) } returns expectedId
-        every { networkLogger.logSocket(entry.copy(id = expectedId)) } returns Unit
+        every { wiretapLogger.logSocket(entry.copy(id = expectedId)) } returns Unit
 
         val id = orchestrator.openSocketConnection(entry)
 
@@ -49,12 +49,12 @@ class SocketOrchestratorImplTest {
     fun `updateSocketConnection updates repository and removes from cache when closed`() = runTest {
         val entry = socketLogEntry(id = 10, status = SocketStatus.Closed)
         everySuspend { socketRepository.updateConnection(entry) } returns Unit
-        every { networkLogger.logSocket(entry) } returns Unit
+        every { wiretapLogger.logSocket(entry) } returns Unit
 
         orchestrator.updateSocketConnection(entry)
 
         verifySuspend { socketRepository.updateConnection(entry) }
-        verify { networkLogger.logSocket(entry) }
+        verify { wiretapLogger.logSocket(entry) }
     }
 
     @Test
@@ -62,13 +62,13 @@ class SocketOrchestratorImplTest {
         // First open a connection to populate cache
         val entry = socketLogEntry(id = 10, status = SocketStatus.Open)
         everySuspend { socketRepository.openConnection(entry) } returns 10L
-        every { networkLogger.logSocket(entry.copy(id = 10)) } returns Unit
+        every { wiretapLogger.logSocket(entry.copy(id = 10)) } returns Unit
         orchestrator.openSocketConnection(entry)
 
         // Then update with Open status
         val updatedEntry = entry.copy(id = 10, status = SocketStatus.Open)
         everySuspend { socketRepository.updateConnection(updatedEntry) } returns Unit
-        every { networkLogger.logSocket(updatedEntry) } returns Unit
+        every { wiretapLogger.logSocket(updatedEntry) } returns Unit
 
         orchestrator.updateSocketConnection(updatedEntry)
 
@@ -81,12 +81,12 @@ class SocketOrchestratorImplTest {
         val entry = socketLogEntry(id = 10)
         everySuspend { socketRepository.getById(10L) } returns entry
         everySuspend { socketRepository.logMessage(message) } returns Unit
-        every { networkLogger.logSocketMessage(message) } returns Unit
+        every { wiretapLogger.logSocketMessage(message) } returns Unit
 
         orchestrator.logSocketMessage(message)
 
         verifySuspend { socketRepository.logMessage(message) }
-        verify { networkLogger.logSocketMessage(message) }
+        verify { wiretapLogger.logSocketMessage(message) }
     }
 
     @Test
@@ -94,7 +94,7 @@ class SocketOrchestratorImplTest {
         // Open connection first to populate cache
         val entry = socketLogEntry(status = SocketStatus.Open)
         everySuspend { socketRepository.openConnection(entry) } returns 10L
-        every { networkLogger.logSocket(entry.copy(id = 10)) } returns Unit
+        every { wiretapLogger.logSocket(entry.copy(id = 10)) } returns Unit
         orchestrator.openSocketConnection(entry)
 
         // Simulate cleared DB - getById returns null first, then returns after reopen
@@ -103,7 +103,7 @@ class SocketOrchestratorImplTest {
         everySuspend { socketRepository.getById(10L) } returns null
         everySuspend { socketRepository.reopenConnection(reopenedEntry) } returns Unit
         everySuspend { socketRepository.logMessage(message) } returns Unit
-        every { networkLogger.logSocketMessage(message) } returns Unit
+        every { wiretapLogger.logSocketMessage(message) } returns Unit
 
         orchestrator.logSocketMessage(message)
 

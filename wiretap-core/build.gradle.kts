@@ -43,6 +43,9 @@ kotlin {
             linkerOpts("-lsqlite3")
             export(projects.wiretapShake)
         }
+        iosTarget.binaries.all {
+            linkerOpts("-lsqlite3")
+        }
     }
 
     jvm()
@@ -51,7 +54,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                api(projects.jsonCmp)
+                api(libs.jsonCmp)
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)
@@ -138,6 +141,3 @@ sqldelight {
         }
     }
 }
-
-group = "dev.skymansandy"
-version = "0.1.0"

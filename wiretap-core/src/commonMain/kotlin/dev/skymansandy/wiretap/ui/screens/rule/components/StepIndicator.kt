@@ -47,7 +47,7 @@ internal fun StepIndicator(
                         Icons.Default.Check,
                         null,
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 } else {
                     Text(

@@ -39,7 +39,7 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
         sensorManager?.registerListener(
             sensorListener,
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SensorManager.SENSOR_DELAY_NORMAL
+            SensorManager.SENSOR_DELAY_NORMAL,
         )
     }
 

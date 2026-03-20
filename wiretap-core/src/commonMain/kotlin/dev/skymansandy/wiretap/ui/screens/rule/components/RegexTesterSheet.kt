@@ -97,7 +97,7 @@ internal fun RegexTesterSheet(
                 Column {
                     Text(
                         text = if (result.matches) stringResource(Res.string.match_found) else stringResource(
-                            Res.string.no_match
+                            Res.string.no_match,
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,

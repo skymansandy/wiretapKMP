@@ -1,0 +1,208 @@
+name: Publish
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  GH_USERNAME: ${{ github.actor }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+concurrency:
+  group: main-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  packages: write
+  pages: write
+  id-token: write
+
+jobs:
+  test-and-coverage:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    outputs:
+      coverage: ${{ steps.coverage.outputs.percentage }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run tests with coverage
+        run: >
+          ./gradlew
+          :wiretap-core:jvmTest
+          :wiretap-ktor:jvmTest
+          :wiretap-ktor-noop:jvmTest
+          :wiretap-okhttp:jvmTest
+          :wiretap-okhttp-noop:jvmTest
+          koverXmlReport
+
+      - name: Parse coverage percentage
+        id: coverage
+        run: |
+          REPORT="build/reports/kover/report.xml"
+          if [ -f "$REPORT" ]; then
+            MISSED=$(grep -oP 'type="INSTRUCTION"[^/]*missed="\K[0-9]+' "$REPORT" | head -1)
+            COVERED=$(grep -oP 'type="INSTRUCTION"[^/]*covered="\K[0-9]+' "$REPORT" | head -1)
+            TOTAL=$((MISSED + COVERED))
+            if [ "$TOTAL" -gt 0 ]; then
+              PERCENTAGE=$((COVERED * 100 / TOTAL))
+            else
+              PERCENTAGE=0
+            fi
+          else
+            PERCENTAGE=0
+          fi
+          echo "percentage=$PERCENTAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/reports/kover/
+
+  update-badges:
+    name: Update Badges
+    needs: test-and-coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Determine coverage badge color
+        id: badge
+        run: |
+          COVERAGE=${{ needs.test-and-coverage.outputs.coverage }}
+          if [ "$COVERAGE" -ge 80 ]; then
+            COLOR="brightgreen"
+          elif [ "$COVERAGE" -ge 60 ]; then
+            COLOR="green"
+          elif [ "$COVERAGE" -ge 40 ]; then
+            COLOR="yellowgreen"
+          elif [ "$COVERAGE" -ge 20 ]; then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+          echo "color=$COLOR" >> "$GITHUB_OUTPUT"
+
+      - name: Update README badges
+        run: |
+          COVERAGE=${{ needs.test-and-coverage.outputs.coverage }}
+          COLOR=${{ steps.badge.outputs.color }}
+          REPO=${{ github.repository }}
+
+          BUILD_BADGE="[![Build](https://github.com/${REPO}/actions/workflows/deploy.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/deploy.yml)"
+          COVERAGE_BADGE="[![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})](https://github.com/${REPO}/actions/workflows/deploy.yml)"
+          MAVEN_BADGE="[![Maven version](https://img.shields.io/github/v/release/${REPO}?label=maven)](https://github.com/${REPO}/packages)"
+
+          BADGE_LINE="${BUILD_BADGE} ${COVERAGE_BADGE} ${MAVEN_BADGE}"
+
+          if grep -q '^\[!\[Build\]' README.md; then
+            sed -i "1,/^\[!\[Build\]/s|^\[!\[Build\].*|${BADGE_LINE}|" README.md
+          elif grep -q '^\[!\[Coverage\]' README.md; then
+            sed -i "1,/^\[!\[Coverage\]/s|^\[!\[Coverage\].*|${BADGE_LINE}|" README.md
+          else
+            sed -i "1a\\\\${BADGE_LINE}\n" README.md
+          fi
+
+      - name: Commit badge updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet || git commit -m "ci: Update README badges [skip ci]"
+          git push
+
+  publish:
+    name: Publish SDKs
+    needs: test-and-coverage
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish all modules to GitHub Packages
+        env:
+          MAVEN_REPO_USERNAME: ${{ github.actor }}
+          MAVEN_REPO_PASSWORD: ${{ secrets.GH_TOKEN }}
+        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+
+  github-release:
+    name: GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release exists
+        id: check
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-docs:
+    name: Deploy Docs
+    needs: test-and-coverage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install MkDocs and theme
+        run: pip install mkdocs-material
+
+      - name: Build docs
+        run: mkdocs build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

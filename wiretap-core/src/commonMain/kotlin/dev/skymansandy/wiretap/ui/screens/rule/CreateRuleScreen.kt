@@ -51,11 +51,10 @@ import dev.skymansandy.wiretap.resources.save_rule
 import dev.skymansandy.wiretap.resources.step_request
 import dev.skymansandy.wiretap.resources.step_response
 import dev.skymansandy.wiretap.resources.test_input
-import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
-import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
-import dev.skymansandy.wiretap.ui.model.HeaderEntry
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
+import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
+import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

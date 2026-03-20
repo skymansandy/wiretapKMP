@@ -1,20 +1,24 @@
 package dev.skymansandy.wiretap.di
 
 import app.cash.sqldelight.db.SqlDriver
-import dev.skymansandy.wiretap.data.db.dao.NetworkDao
-import dev.skymansandy.wiretap.data.db.dao.NetworkDaoImpl
+import dev.skymansandy.wiretap.data.db.dao.HttpDao
+import dev.skymansandy.wiretap.data.db.dao.HttpDaoImpl
 import dev.skymansandy.wiretap.data.db.dao.RuleDao
 import dev.skymansandy.wiretap.data.db.dao.RuleDaoImpl
 import dev.skymansandy.wiretap.data.db.dao.SocketDao
 import dev.skymansandy.wiretap.data.db.dao.SocketDaoImpl
 import dev.skymansandy.wiretap.data.db.driver.DriverFactory
-import dev.skymansandy.wiretap.data.repository.NetworkRepositoryImpl
+import dev.skymansandy.wiretap.data.repository.HttpRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.RuleRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.SocketRepositoryImpl
 import dev.skymansandy.wiretap.db.WiretapDatabase
-import dev.skymansandy.wiretap.domain.repository.NetworkRepository
+import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import org.koin.dsl.module
 
 val wiretapDataModule = module {
@@ -24,11 +28,16 @@ val wiretapDataModule = module {
     }
 
     single<WiretapDatabase> {
-        WiretapDatabase(driver = get())
+        WiretapDatabase(driver = get()).also { db ->
+            CoroutineScope(Dispatchers.IO).launch {
+                db.wiretapQueries.closeStaleHttpLogs()
+                db.wiretapQueries.closeStaleSocketLogs()
+            }
+        }
     }
 
-    single<NetworkDao> {
-        NetworkDaoImpl(database = get())
+    single<HttpDao> {
+        HttpDaoImpl(database = get())
     }
 
     single<RuleDao> {
@@ -39,8 +48,8 @@ val wiretapDataModule = module {
         SocketDaoImpl(database = get())
     }
 
-    single<NetworkRepository> {
-        NetworkRepositoryImpl(networkDao = get())
+    single<HttpRepository> {
+        HttpRepositoryImpl(httpDao = get())
     }
 
     single<RuleRepository> {

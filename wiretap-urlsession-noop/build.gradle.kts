@@ -6,6 +6,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xskip-prerelease-check")
+    }
+
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -14,6 +18,9 @@ kotlin {
             baseName = "WiretapURLSession"
             isStatic = true
         }
+        iosTarget.binaries.all {
+            linkerOpts("-lsqlite3")
+        }
     }
 
     sourceSets {
@@ -21,6 +28,7 @@ kotlin {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(libs.compose.runtime)
+                implementation(projects.wiretapCore)
             }
         }
     }

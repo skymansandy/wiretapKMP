@@ -39,7 +39,7 @@ internal fun RequestTab(
     ) {
         SectionTitle(
             text = stringResource(Res.string.headers),
-            action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null
+            action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null,
         )
 
         HeadersList(
@@ -51,7 +51,7 @@ internal fun RequestTab(
         val body = entry.requestBody
         SectionTitle(
             text = stringResource(Res.string.body),
-            action = if (body != null) ({ CopyBodyButton(body = body) }) else null
+            action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
         )
 
         if (body != null && looksLikeJson(body)) {

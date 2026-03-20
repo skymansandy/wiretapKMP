@@ -1,11 +1,11 @@
 package dev.skymansandy.wiretap.domain.usecase
 
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.wiretapRule
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
+import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.wiretapRule
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldHaveSize

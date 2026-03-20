@@ -205,7 +205,7 @@ private fun HeaderMatcherItem(
     ) {
         androidx.compose.foundation.layout.Column(
             modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
 
             // Key / Value row (50 / 50)
@@ -222,7 +222,14 @@ private fun HeaderMatcherItem(
                     OutlinedTextField(
                         value = entry.value,
                         onValueChange = { onUpdate(entry.copy(value = it)) },
-                        label = { Text(stringResource(if (entry.mode.isRegex()) Res.string.label_value_regex else Res.string.label_value)) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    if (entry.mode.isRegex()) Res.string.label_value_regex
+                                    else Res.string.label_value,
+                                ),
+                            )
+                        },
                         placeholder = { Text(headerValuePlaceholder(entry.mode)) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -249,8 +256,8 @@ private fun HeaderMatcherItem(
                                 onUpdate(
                                     entry.copy(
                                         mode = mode,
-                                        value = if (!mode.hasValue()) "" else entry.value
-                                    )
+                                        value = if (!mode.hasValue()) "" else entry.value,
+                                    ),
                                 )
                             },
                             label = { Text(mode.label()) },

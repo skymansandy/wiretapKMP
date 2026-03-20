@@ -5,6 +5,9 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
+# MkDocs build output
+site/
+
 # Log/OS Files
 *.log
 

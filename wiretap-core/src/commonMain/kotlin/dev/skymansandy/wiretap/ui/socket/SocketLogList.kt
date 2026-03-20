@@ -32,17 +32,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.ui.common.highlightText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.*
+import dev.skymansandy.wiretap.ui.common.highlightText
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SocketLogList(

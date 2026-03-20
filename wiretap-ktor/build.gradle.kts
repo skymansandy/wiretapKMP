@@ -28,7 +28,11 @@ kotlin {
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "WiretapKtor"
+            export(projects.wiretapCore)
             isStatic = true
+        }
+        iosTarget.binaries.all {
+            linkerOpts("-lsqlite3")
         }
     }
 

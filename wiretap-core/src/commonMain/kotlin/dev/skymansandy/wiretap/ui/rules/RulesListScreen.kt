@@ -80,7 +80,7 @@ internal fun RulesListScreen(
                         searchQuery.isBlank() -> stringResource(Res.string.no_rules_yet)
                         else -> stringResource(
                             Res.string.no_rules_match,
-                            searchQuery
+                            searchQuery,
                         )
                     },
                 )
@@ -141,20 +141,20 @@ private fun RuleItem(
 
                 if (rule.urlMatcher != null) MatcherBadge(
                     label = urlBadgeLabel(rule.urlMatcher),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
 
                 if (rule.headerMatchers.isNotEmpty()) MatcherBadge(
                     label = if (rule.headerMatchers.size == 1) stringResource(Res.string.hdr) else stringResource(
                         Res.string.hdr_count,
-                        rule.headerMatchers.size
+                        rule.headerMatchers.size,
                     ),
                     color = MaterialTheme.colorScheme.secondary,
                 )
 
                 if (rule.bodyMatcher != null) MatcherBadge(
                     label = bodyBadgeLabel(rule.bodyMatcher),
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = MaterialTheme.colorScheme.tertiary,
                 )
 
                 ActionBadge(action = rule.action)
@@ -182,7 +182,7 @@ private fun RuleItem(
                     Text(
                         text = stringResource(
                             Res.string.response_code_display,
-                            action.responseCode
+                            action.responseCode,
                         ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -196,7 +196,7 @@ private fun RuleItem(
                             stringResource(
                                 Res.string.delay_range,
                                 action.delayMs.toString(),
-                                action.delayMaxMs.toString()
+                                action.delayMaxMs.toString(),
                             )
                         else stringResource(Res.string.delay_fixed, action.delayMs.toString())
                     Text(
@@ -238,7 +238,7 @@ private fun MatcherBadge(
 private fun MethodBadge(method: String) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.extraSmall
+        shape = MaterialTheme.shapes.extraSmall,
     ) {
         Text(
             text = method,

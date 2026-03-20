@@ -80,6 +80,9 @@ DELETE FROM HttpLogEntity WHERE id = ?;
 deleteNetworkLogsOlderThan:
 DELETE FROM HttpLogEntity WHERE timestamp < ?;
 
+closeStaleHttpLogs:
+UPDATE HttpLogEntity SET response_code = 0 WHERE response_code = -2;
+
 getNetworkLogsPage:
 SELECT * FROM HttpLogEntity
 WHERE (url LIKE '%' || :query || '%'
@@ -189,6 +192,9 @@ DELETE FROM SocketLogEntity;
 
 deleteClosedSocketLogs:
 DELETE FROM SocketLogEntity WHERE status IN ('Closed', 'Failed');
+
+closeStaleSocketLogs:
+UPDATE SocketLogEntity SET status = 'Closed' WHERE status NOT IN ('Closed', 'Failed');
 
 getSocketLogsPage:
 SELECT * FROM SocketLogEntity

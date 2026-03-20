@@ -2,6 +2,15 @@ package dev.skymansandy.wiretap.data.db.entity
 
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 
+/**
+ * Represents a logged HTTP request/response pair.
+ *
+ * Created when a request is intercepted (with [responseCode] = [RESPONSE_CODE_IN_PROGRESS]),
+ * then updated when the response arrives. Check [isInProgress] to see if the response is pending.
+ *
+ * @property source Indicates whether this was a real network response, a mock, or a throttled request.
+ * @property matchedRuleId The ID of the [WiretapRule] that matched this request, if any.
+ */
 data class HttpLogEntry(
     val id: Long = 0,
     val url: String,

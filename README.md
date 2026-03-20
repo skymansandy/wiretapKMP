@@ -1,48 +1,162 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM).
+# WiretapKMP
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+[![Build](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Maven version](https://img.shields.io/github/v/release/skymansandy/wiretapKMP?label=maven)](https://github.com/skymansandy/wiretapKMP/packages)
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
-### Build and Run Android Application
+## Platforms
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+### KMP Plugins
 
-### Build and Run Desktop (JVM) Application
+| Client | Android | iOS | JVM Desktop |
+|--------|:-------:|:---:|:-----------:|
+| **Ktor** | ✅ | ✅ | ✅ |
+| **OkHttp** | ✅ | — | ✅ |
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+### Swift Wrapper
 
-### Build and Run iOS Application
+| Client | iOS |
+|--------|:---:|
+| **URLSession** | ✅ |
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+`wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM.
 
----
+## Features
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+- **API Mocking** — Return fake responses without hitting the network. Match on method, URL, headers, and body.
+- **Request Throttling** — Add artificial delay with fixed or random ranges.
+- **HTTP Logging** — Capture URL, method, headers, bodies, status codes, duration, TLS details (OkHttp).
+- **WebSocket Logging** — Full lifecycle tracking with message capture for Ktor and OkHttp.
+- **Header Masking** — Keep, mask, or skip headers from logs.
+- **Log Retention** — Forever, per app session, or time-based auto-pruning.
+- **Built-in Inspector UI** — Compose Multiplatform UI for browsing logs, WebSocket streams, and managing rules.
+- **No-op Variants** — Drop-in release replacements with zero overhead.
+
+## Installation
+
+WiretapKMP is published to GitHub Packages.
+
+### 1. Add the GitHub Packages repository
+
+In your `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/skymansandy/wiretapKMP")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GH_USERNAME")
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GH_TOKEN")
+            }
+        }
+    }
+}
+```
+
+### 2. Add dependencies
+
+#### Ktor
+
+```kotlin
+dependencies {
+    // Debug
+    debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-alpha1")
+    // Release (no-op)
+    releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-alpha1")
+}
+```
+
+#### OkHttp
+
+```kotlin
+dependencies {
+    // Debug
+    debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-alpha1")
+    // Release (no-op)
+    releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-alpha1")
+}
+```
+
+#### URLSession (iOS via SPM)
+
+```swift
+// Debug: wiretap-core + wiretap-urlsession frameworks
+// Release: wiretap-urlsession-noop framework
+```
+
+## Usage
+
+### Ktor plugin
+
+```kotlin
+val client = HttpClient {
+    install(WiretapKtorPlugin) {
+        enabled = true
+        logRetention = LogRetention.Days(7)
+    }
+    install(WiretapKtorWebSocketPlugin)
+}
+```
+
+### OkHttp interceptor
+
+```kotlin
+val client = OkHttpClient.Builder()
+    .addInterceptor(
+        WiretapOkHttpInterceptor {
+            enabled = true
+            logRetention = LogRetention.Days(7)
+        }
+    )
+    .build()
+```
+
+### URLSession (Swift)
+
+```swift
+let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+    config.enabled = true
+    config.logRetention = LogRetention.Days(days: 7)
+}
+
+interceptor.intercept(request: request) { data, response, error in
+    // handle response
+}
+```
+
+## No-op Variants
+
+Swap dependencies for release builds — no conditional code needed.
+
+| Debug | Release |
+|-------|---------|
+| `wiretap-ktor` | `wiretap-ktor-noop` |
+| `wiretap-okhttp` | `wiretap-okhttp-noop` |
+| `wiretap-urlsession` | `wiretap-urlsession-noop` |
+
+## Documentation
+
+[Full documentation](https://skymansandy.github.io/wiretapKMP/)
+
+## License
+
+```
+Copyright 2025 skymansandy
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```

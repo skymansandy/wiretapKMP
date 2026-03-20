@@ -109,7 +109,7 @@ internal fun ResponseStep(
 
             val editorState = rememberJsonEditorState(
                 initialJson = mockResponseBody.ifBlank { "{}" },
-                isEditing = true
+                isEditing = true,
             )
 
             JsonCMP(

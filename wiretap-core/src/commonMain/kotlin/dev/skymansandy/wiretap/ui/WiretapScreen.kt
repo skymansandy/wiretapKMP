@@ -27,7 +27,7 @@ import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
-import dev.skymansandy.wiretap.ui.screens.console.http.NetworkLogDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.http.HttpLogDetailScreen
 import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailScreen
 import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailViewModel
 import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleScreen
@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 private val WIDE_SCREEN_BREAKPOINT = 600.dp
 
 @Composable
+@Suppress("CyclomaticComplexMethod")
 fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
@@ -113,7 +114,7 @@ fun WiretapScreen(
                     VerticalDivider(modifier = Modifier.fillMaxHeight())
 
                     when (val current = route) {
-                        is WiretapRoute.HttpDetail -> NetworkLogDetailScreen(
+                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
                             entry = current.entry,
                             onBack = { navigateTo(null) },
                             onViewRule = { ruleId ->
@@ -151,7 +152,7 @@ fun WiretapScreen(
                         )
                     }
 
-                    is WiretapRoute.HttpDetail -> NetworkLogDetailScreen(
+                    is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
                         entry = current.entry,
                         onBack = { navigateTo(null) },
                         onViewRule = { ruleId ->

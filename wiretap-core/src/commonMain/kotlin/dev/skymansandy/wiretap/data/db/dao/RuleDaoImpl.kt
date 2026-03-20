@@ -2,8 +2,8 @@ package dev.skymansandy.wiretap.data.db.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.db.WiretapDatabase
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.helper.util.HeaderMatcherSerializer

@@ -37,6 +37,7 @@ mokkery = "3.3.0"
 kover = "0.9.7"
 kotest = "6.1.7"
 turbine = "1.2.1"
+jsonCmp = "1.0.0-alpha1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -96,6 +97,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+jsonCmp = { module = "dev.skymansandy:json-cmp", version.ref = "jsonCmp" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

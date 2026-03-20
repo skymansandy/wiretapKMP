@@ -113,7 +113,7 @@ internal fun HttpLogList(
                 ) { index ->
                     val entry = lazyItems[index] ?: return@items
                     val itemKey = "http_${entry.id}"
-                    SwipeableNetworkLogItem(
+                    SwipeableHttpLogItem(
                         entry = entry,
                         searchQuery = searchQuery,
                         isRevealed = revealedItemId == itemKey,
