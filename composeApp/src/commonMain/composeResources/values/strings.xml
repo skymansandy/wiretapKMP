@@ -5,7 +5,7 @@
     <string name="tab_websocket">WebSocket</string>
 
     <!-- HttpTab -->
-    <string name="http_requests">HTTP Requests</string>
+    <string name="http_requests">HTTP playground</string>
     <string name="status_ready">Ready. Tap a button to make a request.</string>
     <string name="starting_cancel">Starting request, cancelling in 500ms...</string>
     <string name="request_cancelled">Request cancelled</string>
@@ -15,7 +15,7 @@
     <string name="status_label">Status</string>
 
     <!-- WebSocketTab -->
-    <string name="websocket_title">WebSocket</string>
+    <string name="websocket_title">WebSocket playground</string>
     <string name="connecting">Connecting...</string>
     <string name="disconnect">Disconnect</string>
     <string name="connect">Connect</string>
@@ -24,6 +24,6 @@
     <string name="send">Send</string>
 
     <!-- WsMessageItem -->
-    <string name="sent_indicator">↑ </string>
-    <string name="received_indicator">↓ </string>
+    <string name="sent_indicator">▲ </string>
+    <string name="received_indicator">▼ </string>
 </resources>

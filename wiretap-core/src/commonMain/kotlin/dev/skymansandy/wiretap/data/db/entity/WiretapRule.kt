@@ -12,11 +12,6 @@ data class WiretapRule(
     val headerMatchers: List<HeaderMatcher> = emptyList(),
     val bodyMatcher: BodyMatcher? = null,
     val action: RuleAction,
-    val mockResponseCode: Int? = null,
-    val mockResponseBody: String? = null,
-    val mockResponseHeaders: Map<String, String>? = null,
-    val throttleDelayMs: Long? = null,
-    val throttleDelayMaxMs: Long? = null,
     val enabled: Boolean = true,
     val createdAt: Long = 0,
 )

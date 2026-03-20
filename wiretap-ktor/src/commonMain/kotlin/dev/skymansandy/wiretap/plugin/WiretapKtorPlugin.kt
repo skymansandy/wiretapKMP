@@ -3,15 +3,15 @@ package dev.skymansandy.wiretap.plugin
 import dev.skymansandy.wiretap.config.LogRetention
 import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.util.currentNanoTime
-import dev.skymansandy.wiretap.util.currentTimeMillis
+import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.helper.util.currentNanoTime
+import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
@@ -82,7 +82,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
             null
         }
 
-        val matchingRule = deps.ruleRepository.findMatchingRule(url, method, requestHeaders, requestBody)
+        val matchingRule = deps.findMatchingRule(url, method, requestHeaders, requestBody)
         if (matchingRule != null) {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
@@ -97,7 +97,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         // Log request immediately so it appears in the UI (gated by shouldLog)
         val logEntryId = if (config.shouldLog(url, method)) {
             deps.orchestrator.logRequest(
-                NetworkLogEntry(
+                HttpLogEntry(
                     url = url,
                     method = method,
                     requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
@@ -113,19 +113,19 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
 
         try {
-            when (matchingRule?.action) {
-                RuleAction.MOCK -> {
-                    matchingRule.throttleDelayMs?.let { minDelay ->
-                        val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+            when (val action = matchingRule?.action) {
+                is RuleAction.Mock -> {
+                    action.throttleDelayMs?.let { minDelay ->
+                        val maxDelay = action.throttleDelayMaxMs ?: minDelay
                         delay(if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay)
                     }
 
-                    val statusCode = HttpStatusCode.fromValue(matchingRule.mockResponseCode ?: 200)
+                    val statusCode = HttpStatusCode.fromValue(action.responseCode)
                     val mockHeaders = Headers.build {
-                        matchingRule.mockResponseHeaders?.forEach { (k, v) -> append(k, v) }
+                        action.responseHeaders?.forEach { (k, v) -> append(k, v) }
                     }
                     val responseBody =
-                        matchingRule.mockResponseBody?.encodeToByteArray() ?: ByteArray(0)
+                        action.responseBody?.encodeToByteArray() ?: ByteArray(0)
                     val call = HttpClientCall(
                         client = client,
                         requestData = request.build(),
@@ -143,9 +143,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                         val startNano =
                             request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                         val durationNs = currentNanoTime() - startNano
-                        val mockRespHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
+                        val mockRespHeaders = action.responseHeaders ?: emptyMap()
                         deps.orchestrator.updateEntry(
-                            NetworkLogEntry(
+                            HttpLogEntry(
                                 id = logEntryId,
                                 url = url,
                                 method = method,
@@ -153,10 +153,10 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                                 requestBody = requestBody,
                                 responseCode = statusCode.value,
                                 responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                                responseBody = matchingRule.mockResponseBody,
+                                responseBody = action.responseBody,
                                 durationMs = durationNs / 1_000_000,
                                 durationNs = durationNs,
-                                source = ResponseSource.MOCK,
+                                source = ResponseSource.Mock,
                                 timestamp = currentTimeMillis(),
                                 matchedRuleId = matchingRule.id,
                             ),
@@ -166,9 +166,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     call
                 }
 
-                RuleAction.THROTTLE -> {
-                    val minDelay = matchingRule.throttleDelayMs ?: 0L
-                    val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
+                is RuleAction.Throttle -> {
+                    val minDelay = action.delayMs
+                    val maxDelay = action.delayMaxMs ?: minDelay
                     val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
                     if (delayMs > 0) delay(delayMs)
                     proceed(request)
@@ -182,7 +182,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
                 deps.orchestrator.updateEntry(
-                    NetworkLogEntry(
+                    HttpLogEntry(
                         id = logEntryId,
                         url = url,
                         method = method,
@@ -193,7 +193,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                         responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
-                        source = ResponseSource.NETWORK,
+                        source = ResponseSource.Network,
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -230,15 +230,15 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
 
         val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
-            RuleAction.MOCK -> ResponseSource.MOCK
-            RuleAction.THROTTLE -> ResponseSource.THROTTLE
-            else -> ResponseSource.NETWORK
+            is RuleAction.Mock -> ResponseSource.Mock
+            is RuleAction.Throttle -> ResponseSource.Throttle
+            else -> ResponseSource.Network
         }
 
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
         deps.orchestrator.updateEntry(
-            NetworkLogEntry(
+            HttpLogEntry(
                 id = logEntryId,
                 url = url,
                 method = method,
@@ -259,7 +259,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 }
 
 private class WiretapDeps : KoinComponent {
+
     override fun getKoin(): Koin = WiretapDi.getKoin()
     val orchestrator: WiretapOrchestrator by inject()
-    val ruleRepository: RuleRepository by inject()
+    val findMatchingRule: FindMatchingRuleUseCase by inject()
 }

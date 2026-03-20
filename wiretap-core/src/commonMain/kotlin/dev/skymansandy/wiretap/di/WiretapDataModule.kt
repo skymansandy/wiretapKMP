@@ -24,9 +24,7 @@ val wiretapDataModule = module {
     }
 
     single<WiretapDatabase> {
-        WiretapDatabase(
-            driver = get(),
-        )
+        WiretapDatabase(driver = get())
     }
 
     single<NetworkDao> {

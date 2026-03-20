@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS NetworkLogEntity (
+CREATE TABLE IF NOT EXISTS HttpLogEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     url TEXT NOT NULL,
     method TEXT NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     response_headers TEXT NOT NULL DEFAULT "",
     response_body TEXT,
     duration_ms INTEGER NOT NULL,
-    source TEXT NOT NULL DEFAULT "NETWORK",
+    source TEXT NOT NULL DEFAULT "Network",
     timestamp INTEGER NOT NULL,
     matched_rule_id INTEGER,
     protocol TEXT,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     certificate_expiry TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_network_log_timestamp ON NetworkLogEntity (timestamp);
+CREATE INDEX IF NOT EXISTS idx_network_log_timestamp ON HttpLogEntity (timestamp);
 
 CREATE TABLE IF NOT EXISTS RuleEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -42,14 +42,14 @@ CREATE TABLE IF NOT EXISTS RuleEntity (
 
 -- NetworkLog queries
 insertNetworkLog:
-INSERT INTO NetworkLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id, protocol, remote_address, tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry)
+INSERT INTO HttpLogEntity (url, method, request_headers, request_body, response_code, response_headers, response_body, duration_ms, source, timestamp, matched_rule_id, protocol, remote_address, tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertRowId:
 SELECT last_insert_rowid();
 
 updateNetworkLog:
-UPDATE NetworkLogEntity SET
+UPDATE HttpLogEntity SET
     response_code = ?,
     response_headers = ?,
     response_body = ?,
@@ -66,22 +66,22 @@ UPDATE NetworkLogEntity SET
 WHERE id = ?;
 
 getAllNetworkLogs:
-SELECT * FROM NetworkLogEntity ORDER BY timestamp DESC;
+SELECT * FROM HttpLogEntity ORDER BY timestamp DESC;
 
 getNetworkLogById:
-SELECT * FROM NetworkLogEntity WHERE id = ?;
+SELECT * FROM HttpLogEntity WHERE id = ?;
 
 deleteAllNetworkLogs:
-DELETE FROM NetworkLogEntity;
+DELETE FROM HttpLogEntity;
 
 deleteNetworkLogById:
-DELETE FROM NetworkLogEntity WHERE id = ?;
+DELETE FROM HttpLogEntity WHERE id = ?;
 
 deleteNetworkLogsOlderThan:
-DELETE FROM NetworkLogEntity WHERE timestamp < ?;
+DELETE FROM HttpLogEntity WHERE timestamp < ?;
 
 getNetworkLogsPage:
-SELECT * FROM NetworkLogEntity
+SELECT * FROM HttpLogEntity
 WHERE (url LIKE '%' || :query || '%'
    OR method LIKE '%' || :query || '%'
    OR CAST(response_code AS TEXT) LIKE '%' || :query || '%')
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS SocketLogEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     url TEXT NOT NULL,
     request_headers TEXT NOT NULL DEFAULT "",
-    status TEXT NOT NULL DEFAULT "CONNECTING",
+    status TEXT NOT NULL DEFAULT "Connecting",
     close_code INTEGER,
     close_reason TEXT,
     failure_message TEXT,
@@ -188,7 +188,7 @@ deleteAllSocketLogs:
 DELETE FROM SocketLogEntity;
 
 deleteClosedSocketLogs:
-DELETE FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED');
+DELETE FROM SocketLogEntity WHERE status IN ('Closed', 'Failed');
 
 getSocketLogsPage:
 SELECT * FROM SocketLogEntity
@@ -211,7 +211,7 @@ getSocketMessagesBySocketId:
 SELECT * FROM SocketMessageEntity WHERE socket_id = ? ORDER BY timestamp ASC;
 
 deleteClosedSocketMessages:
-DELETE FROM SocketMessageEntity WHERE socket_id IN (SELECT id FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED'));
+DELETE FROM SocketMessageEntity WHERE socket_id IN (SELECT id FROM SocketLogEntity WHERE status IN ('Closed', 'Failed'));
 
 deleteAllSocketMessages:
 DELETE FROM SocketMessageEntity;

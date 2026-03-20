@@ -22,20 +22,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.ui.rules.components.MethodSelector
-import dev.skymansandy.wiretap.ui.rules.components.RegexTesterIcon
-import dev.skymansandy.wiretap.ui.rules.components.SectionLabel
-import dev.skymansandy.wiretap.ui.rules.model.BodyMatchMode
-import dev.skymansandy.wiretap.ui.rules.model.HeaderEntry
-import dev.skymansandy.wiretap.ui.rules.model.HeaderEntryMode
-import dev.skymansandy.wiretap.ui.rules.model.UrlMatchMode
-import dev.skymansandy.wiretap.ui.rules.model.bodyPlaceholder
-import dev.skymansandy.wiretap.ui.rules.model.hasValue
-import dev.skymansandy.wiretap.ui.rules.model.headerValuePlaceholder
-import dev.skymansandy.wiretap.ui.rules.model.isRegex
-import dev.skymansandy.wiretap.ui.rules.model.label
-import dev.skymansandy.wiretap.ui.rules.model.urlPlaceholder
-import dev.skymansandy.wiretap.resources.*
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.add_header_condition
+import dev.skymansandy.wiretap.resources.body
+import dev.skymansandy.wiretap.resources.label_key
+import dev.skymansandy.wiretap.resources.label_value
+import dev.skymansandy.wiretap.resources.label_value_regex
+import dev.skymansandy.wiretap.resources.none
+import dev.skymansandy.wiretap.resources.placeholder_authorization
+import dev.skymansandy.wiretap.resources.remove
+import dev.skymansandy.wiretap.resources.section_body
+import dev.skymansandy.wiretap.resources.section_headers
+import dev.skymansandy.wiretap.resources.section_url
+import dev.skymansandy.wiretap.resources.test_body
+import dev.skymansandy.wiretap.resources.test_header_value
+import dev.skymansandy.wiretap.resources.test_url
+import dev.skymansandy.wiretap.resources.url_label_format
+import dev.skymansandy.wiretap.ui.model.BodyMatchMode
+import dev.skymansandy.wiretap.ui.model.HeaderEntry
+import dev.skymansandy.wiretap.ui.model.HeaderEntryMode
+import dev.skymansandy.wiretap.ui.model.UrlMatchMode
+import dev.skymansandy.wiretap.ui.model.bodyPlaceholder
+import dev.skymansandy.wiretap.ui.model.hasValue
+import dev.skymansandy.wiretap.ui.model.headerValuePlaceholder
+import dev.skymansandy.wiretap.ui.model.isRegex
+import dev.skymansandy.wiretap.ui.model.label
+import dev.skymansandy.wiretap.ui.model.urlPlaceholder
+import dev.skymansandy.wiretap.ui.screens.rule.components.MethodSelector
+import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterIcon
+import dev.skymansandy.wiretap.ui.screens.rule.components.SectionLabel
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -58,16 +73,25 @@ internal fun RequestStep(
     onOpenRegexTester: (pattern: String, label: String) -> Unit,
 ) {
     // HTTP Method — at the top
-    MethodSelector(method = method, onMethodChange = onMethodChange)
+    MethodSelector(
+        method = method,
+        onMethodChange = onMethodChange,
+    )
 
     // ── URL ──────────────────────────────────────────────────────────────────
-    SectionLabel("URL")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    SectionLabel(
+        title = stringResource(Res.string.section_url),
+    )
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         FilterChip(
             selected = urlMode == null,
             onClick = { onUrlModeChange(null) },
             label = { Text(stringResource(Res.string.none)) },
         )
+
         UrlMatchMode.entries.forEach { mode ->
             FilterChip(
                 selected = urlMode == mode,
@@ -76,6 +100,11 @@ internal fun RequestStep(
             )
         }
     }
+
+    val testUrlLabel = stringResource(Res.string.test_url)
+    val testHeaderValueLabel = stringResource(Res.string.test_header_value)
+    val testBodyLabel = stringResource(Res.string.test_body)
+
     if (urlMode != null) {
         OutlinedTextField(
             value = urlPattern,
@@ -84,37 +113,55 @@ internal fun RequestStep(
             placeholder = { Text(urlPlaceholder(urlMode)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            trailingIcon = if (urlMode.isRegex()) {
-                { RegexTesterIcon { onOpenRegexTester(urlPattern, "Test URL") } }
-            } else null,
+            trailingIcon = when {
+                urlMode.isRegex() -> {
+                    { RegexTesterIcon { onOpenRegexTester(urlPattern, testUrlLabel) } }
+                }
+
+                else -> null
+            },
         )
     }
 
     // ── Headers ───────────────────────────────────────────────────────────────
-    SectionLabel("Headers")
+    SectionLabel(
+        title = stringResource(Res.string.section_headers),
+    )
+
     headerEntries.forEachIndexed { idx, entry ->
         HeaderMatcherItem(
             entry = entry,
             onUpdate = { onHeaderUpdate(idx, it) },
             onRemove = { onHeaderRemove(idx) },
-            onOpenRegexTester = { onOpenRegexTester(it, "Test Header Value") },
+            onOpenRegexTester = {
+                onOpenRegexTester(it, testHeaderValueLabel)
+            },
         )
     }
+
     TextButton(
         onClick = onHeaderAdd,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(stringResource(Res.string.add_header_condition))
+        Text(
+            text = stringResource(Res.string.add_header_condition),
+        )
     }
 
     // ── Body ──────────────────────────────────────────────────────────────────
-    SectionLabel("Body")
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    SectionLabel(
+        title = stringResource(Res.string.section_body),
+    )
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         FilterChip(
             selected = bodyMode == null,
             onClick = { onBodyModeChange(null) },
             label = { Text(stringResource(Res.string.none)) },
         )
+
         BodyMatchMode.entries.forEach { mode ->
             FilterChip(
                 selected = bodyMode == mode,
@@ -123,6 +170,7 @@ internal fun RequestStep(
             )
         }
     }
+
     if (bodyMode != null) {
         OutlinedTextField(
             value = bodyPattern,
@@ -131,9 +179,13 @@ internal fun RequestStep(
             placeholder = { Text(bodyPlaceholder(bodyMode)) },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
-            trailingIcon = if (bodyMode.isRegex()) {
-                { RegexTesterIcon { onOpenRegexTester(bodyPattern, "Test Body") } }
-            } else null,
+            trailingIcon = when {
+                bodyMode.isRegex() -> {
+                    { RegexTesterIcon { onOpenRegexTester(bodyPattern, testBodyLabel) } }
+                }
+
+                else -> null
+            },
         )
     }
 }
@@ -151,7 +203,10 @@ private fun HeaderMatcherItem(
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        androidx.compose.foundation.layout.Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        androidx.compose.foundation.layout.Column(
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
 
             // Key / Value row (50 / 50)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -190,7 +245,14 @@ private fun HeaderMatcherItem(
                     HeaderEntryMode.entries.forEach { mode ->
                         FilterChip(
                             selected = entry.mode == mode,
-                            onClick = { onUpdate(entry.copy(mode = mode, value = if (!mode.hasValue()) "" else entry.value)) },
+                            onClick = {
+                                onUpdate(
+                                    entry.copy(
+                                        mode = mode,
+                                        value = if (!mode.hasValue()) "" else entry.value
+                                    )
+                                )
+                            },
                             label = { Text(mode.label()) },
                         )
                     }

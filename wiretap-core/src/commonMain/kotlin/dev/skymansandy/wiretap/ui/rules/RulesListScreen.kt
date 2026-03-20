@@ -25,54 +25,79 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.ui.components.highlightText
-import dev.skymansandy.wiretap.resources.*
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.create_rule_cd
+import dev.skymansandy.wiretap.resources.delay_fixed
+import dev.skymansandy.wiretap.resources.delay_range
+import dev.skymansandy.wiretap.resources.hdr
+import dev.skymansandy.wiretap.resources.hdr_count
+import dev.skymansandy.wiretap.resources.no_rules_match
+import dev.skymansandy.wiretap.resources.no_rules_yet
+import dev.skymansandy.wiretap.resources.response_code_display
+import dev.skymansandy.wiretap.ui.common.highlightText
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun RulesListScreen(
+    modifier: Modifier = Modifier,
     ruleRepository: RuleRepository,
     searchQuery: String = "",
     onRuleClick: (WiretapRule) -> Unit,
     onCreateClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
+    val scope = rememberCoroutineScope()
     val rulesFlow = remember(searchQuery) {
         if (searchQuery.isBlank()) ruleRepository.getAll() else ruleRepository.search(searchQuery)
     }
-    val rules by rulesFlow.collectAsState(initial = emptyList())
+    val rules by rulesFlow.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Box(modifier = modifier) {
         if (rules.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
-                    if (searchQuery.isBlank()) stringResource(Res.string.no_rules_yet) else stringResource(Res.string.no_rules_match, searchQuery),
                     style = MaterialTheme.typography.bodyLarge,
+                    text = when {
+                        searchQuery.isBlank() -> stringResource(Res.string.no_rules_yet)
+                        else -> stringResource(
+                            Res.string.no_rules_match,
+                            searchQuery
+                        )
+                    },
                 )
             }
         } else {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(rules, key = { it.id }) { rule ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(
+                    items = rules,
+                    key = { it.id },
+                ) { rule ->
                     RuleItem(
                         rule = rule,
                         searchQuery = searchQuery,
                         onClick = { onRuleClick(rule) },
-                        onToggle = { ruleRepository.setEnabled(rule.id, it) },
+                        onToggle = { scope.launch { ruleRepository.setEnabled(rule.id, it) } },
                     )
                 }
             }
@@ -82,7 +107,10 @@ internal fun RulesListScreen(
             onClick = onCreateClick,
             modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
         ) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(Res.string.create_rule_cd))
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = stringResource(Res.string.create_rule_cd),
+            )
         }
     }
 }
@@ -103,16 +131,33 @@ private fun RuleItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(
+            modifier = Modifier.weight(1f),
+        ) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 if (rule.method != "*") MethodBadge(rule.method)
-                if (rule.urlMatcher != null) MatcherBadge(label = urlBadgeLabel(rule.urlMatcher), color = MaterialTheme.colorScheme.primary)
+
+                if (rule.urlMatcher != null) MatcherBadge(
+                    label = urlBadgeLabel(rule.urlMatcher),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
                 if (rule.headerMatchers.isNotEmpty()) MatcherBadge(
-                    label = if (rule.headerMatchers.size == 1) stringResource(Res.string.hdr) else stringResource(Res.string.hdr_count, rule.headerMatchers.size),
+                    label = if (rule.headerMatchers.size == 1) stringResource(Res.string.hdr) else stringResource(
+                        Res.string.hdr_count,
+                        rule.headerMatchers.size
+                    ),
                     color = MaterialTheme.colorScheme.secondary,
                 )
-                if (rule.bodyMatcher != null) MatcherBadge(label = bodyBadgeLabel(rule.bodyMatcher), color = MaterialTheme.colorScheme.tertiary)
-                ActionBadge(rule.action)
+
+                if (rule.bodyMatcher != null) MatcherBadge(
+                    label = bodyBadgeLabel(rule.bodyMatcher),
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+
+                ActionBadge(action = rule.action)
             }
 
             Spacer(Modifier.height(4.dp))
@@ -121,6 +166,7 @@ private fun RuleItem(
                 ?: rule.headerMatchers.firstOrNull()?.key
                 ?: rule.bodyMatcher?.pattern
                 ?: ""
+
             if (subtitle.isNotBlank()) {
                 Text(
                     text = highlightText(subtitle, searchQuery),
@@ -130,24 +176,35 @@ private fun RuleItem(
                 )
             }
 
-            if (rule.action == RuleAction.MOCK && rule.mockResponseCode != null) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = stringResource(Res.string.response_code_display, rule.mockResponseCode!!),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            if (rule.action == RuleAction.THROTTLE && rule.throttleDelayMs != null) {
-                Spacer(Modifier.height(2.dp))
-                val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
-                    stringResource(Res.string.delay_range, rule.throttleDelayMs.toString(), rule.throttleDelayMaxMs.toString())
-                else stringResource(Res.string.delay_fixed, rule.throttleDelayMs.toString())
-                Text(
-                    text = delayText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            when (val action = rule.action) {
+                is RuleAction.Mock -> {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(
+                            Res.string.response_code_display,
+                            action.responseCode
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                is RuleAction.Throttle -> {
+                    Spacer(Modifier.height(2.dp))
+                    val delayText =
+                        if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
+                            stringResource(
+                                Res.string.delay_range,
+                                action.delayMs.toString(),
+                                action.delayMaxMs.toString()
+                            )
+                        else stringResource(Res.string.delay_fixed, action.delayMs.toString())
+                    Text(
+                        text = delayText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -157,11 +214,15 @@ private fun RuleItem(
             modifier = Modifier.size(40.dp),
         )
     }
+
     HorizontalDivider()
 }
 
 @Composable
-private fun MatcherBadge(label: String, color: Color) {
+private fun MatcherBadge(
+    label: String,
+    color: Color,
+) {
     Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
             text = label,
@@ -174,25 +235,11 @@ private fun MatcherBadge(label: String, color: Color) {
 }
 
 @Composable
-internal fun ActionBadge(action: RuleAction) {
-    val color = when (action) {
-        RuleAction.MOCK -> MaterialTheme.colorScheme.error
-        RuleAction.THROTTLE -> MaterialTheme.colorScheme.tertiary
-    }
-    Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
-        Text(
-            text = action.name,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = color,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-        )
-    }
-}
-
-@Composable
 private fun MethodBadge(method: String) {
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.extraSmall) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.extraSmall
+    ) {
         Text(
             text = method,
             style = MaterialTheme.typography.labelSmall,
@@ -216,15 +263,14 @@ private fun bodyBadgeLabel(matcher: BodyMatcher) = when (matcher) {
 
 @Preview
 @Composable
-private fun RuleItemMockPreview() {
+private fun Preview_RuleItemMock() {
     MaterialTheme {
         RuleItem(
             rule = WiretapRule(
                 id = 1,
                 method = "GET",
                 urlMatcher = UrlMatcher.Contains("/api/users"),
-                action = RuleAction.MOCK,
-                mockResponseCode = 200,
+                action = RuleAction.Mock(responseCode = 200),
                 enabled = true,
             ),
             searchQuery = "",
@@ -236,37 +282,19 @@ private fun RuleItemMockPreview() {
 
 @Preview
 @Composable
-private fun RuleItemThrottlePreview() {
+private fun Preview_RuleItemThrottle() {
     MaterialTheme {
         RuleItem(
             rule = WiretapRule(
                 id = 2,
                 method = "*",
                 urlMatcher = UrlMatcher.Regex("/api/v\\d+/.*"),
-                action = RuleAction.THROTTLE,
-                throttleDelayMs = 1000,
-                throttleDelayMaxMs = 3000,
+                action = RuleAction.Throttle(delayMs = 1000, delayMaxMs = 3000),
                 enabled = false,
             ),
             searchQuery = "",
             onClick = {},
             onToggle = {},
         )
-    }
-}
-
-@Preview
-@Composable
-private fun ActionBadgeMockPreview() {
-    MaterialTheme {
-        ActionBadge(action = RuleAction.MOCK)
-    }
-}
-
-@Preview
-@Composable
-private fun ActionBadgeThrottlePreview() {
-    MaterialTheme {
-        ActionBadge(action = RuleAction.THROTTLE)
     }
 }

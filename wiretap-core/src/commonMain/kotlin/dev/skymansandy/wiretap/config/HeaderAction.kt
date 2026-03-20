@@ -6,15 +6,16 @@ package dev.skymansandy.wiretap.config
  *
  * @see WiretapConfig.headerAction
  */
-sealed class HeaderAction {
+sealed interface HeaderAction {
+
     /** Header is logged as-is. */
-    object Keep : HeaderAction()
+    object Keep : HeaderAction
 
     /** Header is omitted from logged data entirely. */
-    object Skip : HeaderAction()
+    object Skip : HeaderAction
 
     /** Header value is replaced with [mask] in logged data. */
-    data class Mask(val mask: String = "***") : HeaderAction()
+    data class Mask(val mask: String = "***") : HeaderAction
 }
 
 /**

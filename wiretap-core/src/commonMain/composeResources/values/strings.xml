@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <!-- WiretapScreen -->
+    <string name="wiretap">Wiretap</string>
     <string name="wiretap_console">Wiretap Console</string>
+    <string name="open_wiretap_console">Open Wiretap Console</string>
     <string name="back">Back</string>
     <string name="close_search">Close search</string>
     <string name="search">Search</string>
@@ -9,6 +11,7 @@
     <string name="clear_websocket_logs">Clear WebSocket logs</string>
     <string name="tab_http">HTTP</string>
     <string name="tab_websocket">WebSocket</string>
+    <string name="tab_logs">Logs</string>
     <string name="tab_rules">Rules</string>
     <string name="no_http_logs">No HTTP logs yet</string>
     <string name="failed_to_load_logs">Failed to load logs</string>
@@ -135,9 +138,55 @@
     <string name="mock_latency_hint">Optional — adds artificial latency to this mock response</string>
     <string name="throttle_latency_hint">Adds artificial latency before the real network request</string>
 
+    <!-- Match modes -->
+    <string name="match_exact">Exact</string>
+    <string name="match_contains">Contains</string>
+    <string name="match_regex">Regex</string>
+    <string name="match_key_exists">Key Exists</string>
+    <string name="invalid_regex">Invalid regex: %1$s</string>
+
+    <!-- Section labels -->
+    <string name="section_url">URL</string>
+    <string name="section_headers">Headers</string>
+    <string name="section_body">Body</string>
+
+    <!-- Regex tester labels -->
+    <string name="test_url">Test URL</string>
+    <string name="test_header_value">Test Header Value</string>
+    <string name="test_body">Test Body</string>
+    <string name="test_input">Test Input</string>
+
+    <!-- Header matcher detail -->
+    <string name="header_exact_format">%1$s  =  Exact</string>
+    <string name="header_contains_format">%1$s  ~  Contains</string>
+    <string name="header_regex_format">%1$s  *  Regex</string>
+
     <!-- SocketDetailScreen -->
     <string name="ws_title">WS %1$s</string>
     <string name="request_headers">Request Headers</string>
     <string name="history_cleared">History was cleared — only showing new messages</string>
     <string name="binary_message">[Binary: %1$s]</string>
+    <string name="label_opened">Opened</string>
+    <string name="label_closed">Closed</string>
+    <string name="label_code">Code</string>
+    <string name="label_reason">Reason</string>
+    <string name="label_error">Error</string>
+    <string name="label_protocol">Protocol</string>
+
+    <!-- Throttle profiles -->
+    <string name="profile_gprs">2G (GPRS)</string>
+    <string name="profile_edge">2G (EDGE)</string>
+    <string name="profile_slow_3g">3G (Slow)</string>
+    <string name="profile_3g">3G</string>
+    <string name="profile_slow_4g">4G (Slow)</string>
+    <string name="profile_lte">4G (LTE)</string>
+    <string name="profile_slow_wifi">Slow WiFi</string>
+    <string name="speed_gprs">~50 kbps</string>
+    <string name="speed_edge">~200 kbps</string>
+    <string name="speed_slow_3g">~400 kbps</string>
+    <string name="speed_3g">~2 Mbps</string>
+    <string name="speed_slow_4g">~5 Mbps</string>
+    <string name="speed_lte">~20 Mbps</string>
+    <string name="speed_slow_wifi">~1 Mbps</string>
+    <string name="profile_speed_delay">%1$s · %2$d–%3$dms</string>
 </resources>

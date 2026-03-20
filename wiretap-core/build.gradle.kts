@@ -6,9 +6,15 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.skie)
+    alias(libs.plugins.mokkery)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
+    }
+
     android {
         namespace = "dev.skymansandy.wiretap"
         compileSdk {
@@ -22,7 +28,6 @@ kotlin {
         }
 
         withDeviceTestBuilder {
-            sourceSetTreeName = "test"
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         }
@@ -46,7 +51,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                api(projects.jsonViewer)
+                api(projects.jsonCmp)
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)
@@ -70,6 +75,9 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.turbine)
             }
         }
 
@@ -85,9 +93,12 @@ kotlin {
 
         getByName("androidDeviceTest") {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.androidx.runner)
                 implementation(libs.androidx.core)
                 implementation(libs.androidx.testExt.junit)
+                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.androidx.compose.ui.test.manifest)
             }
         }
 
@@ -107,6 +118,16 @@ kotlin {
 compose.resources {
     packageOfResClass = "dev.skymansandy.wiretap.resources"
     generateResClass = always
+}
+
+// Workaround: Compose resources plugin doesn't configure outputDirectory for androidDeviceTest
+gradle.taskGraph.whenReady {
+    allTasks.filter { it.name == "copyAndroidDeviceTestComposeResourcesToAndroidAssets" }.forEach { task ->
+        val outputDir = task.property("outputDirectory") as? org.gradle.api.file.DirectoryProperty
+        if (outputDir != null && !outputDir.isPresent) {
+            outputDir.set(layout.buildDirectory.dir("intermediates/compose-resources/androidDeviceTest/assets"))
+        }
+    }
 }
 
 sqldelight {

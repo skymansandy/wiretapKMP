@@ -3,9 +3,14 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xexplicit-backing-fields")
+    }
+
     android {
         namespace = "dev.skymansandy.wiretap.okhttp.noop"
         compileSdk {
@@ -24,6 +29,7 @@ kotlin {
                 implementation(libs.okhttp)
                 implementation(libs.koin.core)
                 implementation(libs.compose.runtime)
+                implementation(projects.wiretapCore)
             }
         }
 

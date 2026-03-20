@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeaderEntry
-import dev.skymansandy.wiretap.ui.rules.model.ResponseHeadersEditMode
+import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
+import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,21 +49,21 @@ internal fun ResponseHeadersSection(
         IconButton(
             onClick = {
                 onModeChange(
-                    if (mode == ResponseHeadersEditMode.KEY_VALUE) ResponseHeadersEditMode.BULK_EDIT
-                    else ResponseHeadersEditMode.KEY_VALUE,
+                    if (mode == ResponseHeadersEditMode.KeyValue) ResponseHeadersEditMode.BulkEdit
+                    else ResponseHeadersEditMode.KeyValue,
                 )
             },
         ) {
             Icon(
-                imageVector = if (mode == ResponseHeadersEditMode.KEY_VALUE) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KEY_VALUE) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
+                imageVector = if (mode == ResponseHeadersEditMode.KeyValue) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
+                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KeyValue) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
 
     when (mode) {
-        ResponseHeadersEditMode.KEY_VALUE -> {
+        ResponseHeadersEditMode.KeyValue -> {
             entries.forEachIndexed { idx, entry ->
                 ResponseHeaderEntryRow(
                     entry = entry,
@@ -75,7 +75,7 @@ internal fun ResponseHeadersSection(
                 Text(stringResource(Res.string.add_header))
             }
         }
-        ResponseHeadersEditMode.BULK_EDIT -> {
+        ResponseHeadersEditMode.BulkEdit -> {
             OutlinedTextField(
                 value = bulk,
                 onValueChange = onBulkChange,
@@ -128,7 +128,7 @@ private fun ResponseHeaderEntryRow(
 
 @Preview
 @Composable
-private fun ResponseHeadersSectionKeyValuePreview() {
+private fun Preview_ResponseHeadersSectionKeyValue() {
     MaterialTheme {
         ResponseHeadersSection(
             entries = listOf(
@@ -140,7 +140,7 @@ private fun ResponseHeadersSectionKeyValuePreview() {
             onRemove = {},
             bulk = "",
             onBulkChange = {},
-            mode = ResponseHeadersEditMode.KEY_VALUE,
+            mode = ResponseHeadersEditMode.KeyValue,
             onModeChange = {},
         )
     }
@@ -148,7 +148,7 @@ private fun ResponseHeadersSectionKeyValuePreview() {
 
 @Preview
 @Composable
-private fun ResponseHeadersSectionBulkPreview() {
+private fun Preview_ResponseHeadersSectionBulk() {
     MaterialTheme {
         ResponseHeadersSection(
             entries = emptyList(),
@@ -157,7 +157,7 @@ private fun ResponseHeadersSectionBulkPreview() {
             onRemove = {},
             bulk = "Content-Type: application/json\nCache-Control: no-cache",
             onBulkChange = {},
-            mode = ResponseHeadersEditMode.BULK_EDIT,
+            mode = ResponseHeadersEditMode.BulkEdit,
             onModeChange = {},
         )
     }

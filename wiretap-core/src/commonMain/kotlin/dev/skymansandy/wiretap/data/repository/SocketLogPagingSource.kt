@@ -24,8 +24,15 @@ internal class SocketLogPagingSource(
     private val listenerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     init {
-        listenerScope.launch { invalidationSignal.collect { invalidate() } }
-        registerInvalidatedCallback { listenerScope.cancel() }
+        listenerScope.launch {
+            invalidationSignal.collect {
+                invalidate()
+            }
+        }
+
+        registerInvalidatedCallback {
+            listenerScope.cancel()
+        }
     }
 
     override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketLogEntry> {

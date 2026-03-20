@@ -32,12 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.ui.components.highlightText
-import dev.skymansandy.wiretap.util.formatTime
+import dev.skymansandy.wiretap.ui.common.highlightText
+import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -45,10 +46,10 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun SocketLogList(
+    modifier: Modifier = Modifier,
     socketLogs: List<SocketLogEntry>,
     searchQuery: String,
     onSocketClick: (SocketLogEntry) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
@@ -91,11 +92,11 @@ private fun SocketLogItemContent(
     onClick: () -> Unit,
 ) {
     val statusColor = when (entry.status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) // Blue
-        SocketStatus.OPEN -> Color(0xFF4CAF50) // Green
-        SocketStatus.CLOSING -> Color(0xFFFFA726) // Amber
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) // Gray
-        SocketStatus.FAILED -> Color(0xFFEF5350) // Red
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
     }
 
     val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
@@ -140,13 +141,13 @@ private fun SocketLogItemContent(
                             imageVector = Icons.Default.Lock,
                             contentDescription = null,
                             modifier = Modifier.size(12.dp),
-                            tint = Color(0xFF26C6DA),
+                            tint = WiretapColors.SecureHost,
                         )
                     }
                     Text(
                         text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF26C6DA),
+                        color = WiretapColors.SecureHost,
                     )
                 }
 
@@ -179,18 +180,18 @@ private fun SocketLogItemContent(
 @Composable
 private fun SocketStatusChip(status: SocketStatus) {
     val bgColor = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5)
-        SocketStatus.OPEN -> Color(0xFF4CAF50)
-        SocketStatus.CLOSING -> Color(0xFFFFA726)
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E)
-        SocketStatus.FAILED -> Color(0xFFEF5350)
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
     }
     val label = when (status) {
-        SocketStatus.CONNECTING -> stringResource(Res.string.status_connecting)
-        SocketStatus.OPEN -> stringResource(Res.string.status_open)
-        SocketStatus.CLOSING -> stringResource(Res.string.status_closing)
-        SocketStatus.CLOSED -> stringResource(Res.string.status_closed)
-        SocketStatus.FAILED -> stringResource(Res.string.status_failed)
+        SocketStatus.Connecting -> stringResource(Res.string.status_connecting)
+        SocketStatus.Open -> stringResource(Res.string.status_open)
+        SocketStatus.Closing -> stringResource(Res.string.status_closing)
+        SocketStatus.Closed -> stringResource(Res.string.status_closed)
+        SocketStatus.Failed -> stringResource(Res.string.status_failed)
     }
     Text(
         text = label,
@@ -204,13 +205,13 @@ private fun SocketStatusChip(status: SocketStatus) {
 
 @Preview
 @Composable
-private fun SocketLogItemOpenPreview() {
+private fun Preview_SocketLogItemOpen() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
-                status = SocketStatus.OPEN,
+                status = SocketStatus.Open,
                 messageCount = 12,
                 timestamp = 1710850000000,
             ),
@@ -222,13 +223,13 @@ private fun SocketLogItemOpenPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemClosedPreview() {
+private fun Preview_SocketLogItemClosed() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
                 id = 2,
                 url = "ws://localhost:8080/ws",
-                status = SocketStatus.CLOSED,
+                status = SocketStatus.Closed,
                 messageCount = 5,
                 timestamp = 1710850000000,
                 closedAt = 1710850060000,
@@ -242,13 +243,13 @@ private fun SocketLogItemClosedPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemFailedPreview() {
+private fun Preview_SocketLogItemFailed() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
                 id = 3,
                 url = "wss://api.example.com/stream",
-                status = SocketStatus.FAILED,
+                status = SocketStatus.Failed,
                 messageCount = 0,
                 timestamp = 1710850000000,
                 failureMessage = "Connection refused",
@@ -261,13 +262,13 @@ private fun SocketLogItemFailedPreview() {
 
 @Preview
 @Composable
-private fun SocketLogItemConnectingPreview() {
+private fun Preview_SocketLogItemConnecting() {
     MaterialTheme {
         SocketLogItemContent(
             entry = SocketLogEntry(
                 id = 4,
                 url = "wss://api.example.com/realtime",
-                status = SocketStatus.CONNECTING,
+                status = SocketStatus.Connecting,
                 timestamp = 1710850000000,
             ),
             searchQuery = "",

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.swiftklib)
+    alias(libs.plugins.kover)
 }
 
 kotlin {

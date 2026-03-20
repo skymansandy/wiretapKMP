@@ -12,15 +12,26 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
         <activity
             android:exported="true"
-            android:name=".WiretapSampleActivity">
+            android:name=".presentation.WiretapSampleActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:exported="false"
+            android:label="Wiretap Ktor Sample"
+            android:name=".presentation.ktor.KtorSampleActivity" />
+
+        <activity
+            android:exported="false"
+            android:label="Wiretap OkHttp Sample"
+            android:name=".presentation.okhttp.OkHttpSampleActivity" />
+
     </application>
 
 </manifest>

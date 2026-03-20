@@ -1,15 +1,19 @@
 package dev.skymansandy.wiretap.helper.initializer
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.startup.Initializer
-import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
-import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
+import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
+import dev.skymansandy.wiretap.helper.launcher.getLaunchIntent
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.open_wiretap_console
+import dev.skymansandy.wiretap.resources.wiretap
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 
-class WiretapInitializer : Initializer<Unit> {
+internal class WiretapInitializer : Initializer<Unit> {
 
     override fun create(context: Context) {
         WiretapContextProvider.init(context)
@@ -21,13 +25,9 @@ class WiretapInitializer : Initializer<Unit> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             val shortcutManager = context.getSystemService(ShortcutManager::class.java) ?: return
             val shortcut = ShortcutInfo.Builder(context, "wiretap_inspector")
-                .setShortLabel("Wiretap")
-                .setLongLabel("Open Wiretap Console")
-                .setIntent(
-                    Intent(context, WiretapConsoleActivity::class.java).apply {
-                        action = Intent.ACTION_VIEW
-                    },
-                )
+                .setShortLabel(runBlocking { getString(Res.string.wiretap) })
+                .setLongLabel(runBlocking { getString(Res.string.open_wiretap_console) })
+                .setIntent(getLaunchIntent())
                 .build()
             shortcutManager.dynamicShortcuts = listOf(shortcut)
         }

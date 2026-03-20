@@ -13,6 +13,22 @@ plugins {
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.skie) apply false
     alias(libs.plugins.kmmbridge) apply false
+    alias(libs.plugins.mokkery) apply false
+    alias(libs.plugins.kover)
+}
+
+dependencies {
+    listOf(
+        "json-cmp",
+        "wiretap-core",
+        "wiretap-ktor",
+        "wiretap-ktor-noop",
+        "wiretap-okhttp",
+        "wiretap-okhttp-noop",
+        "wiretap-urlsession",
+        "wiretap-urlsession-noop",
+        "wiretap-shake",
+    ).forEach { kover(project(":$it")) }
 }
 
 subprojects {

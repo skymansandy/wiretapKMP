@@ -4,13 +4,22 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import kotlinx.coroutines.flow.Flow
 
 internal interface RuleDao {
-    fun insert(rule: WiretapRule)
+
+    suspend fun insert(rule: WiretapRule)
+
     fun getAll(): Flow<List<WiretapRule>>
-    fun getById(id: Long): WiretapRule?
-    fun getEnabledRules(): List<WiretapRule>
-    fun update(rule: WiretapRule)
+
+    suspend fun getById(id: Long): WiretapRule?
+
+    suspend fun getEnabledRules(): List<WiretapRule>
+
+    suspend fun update(rule: WiretapRule)
+
     fun search(query: String): Flow<List<WiretapRule>>
-    fun updateEnabled(id: Long, enabled: Boolean)
-    fun deleteById(id: Long)
-    fun deleteAll()
+
+    suspend fun updateEnabled(id: Long, enabled: Boolean)
+
+    suspend fun deleteById(id: Long)
+
+    suspend fun deleteAll()
 }

@@ -1,302 +1,242 @@
 package dev.skymansandy.wiretap.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Rule
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import app.cash.paging.compose.LazyPagingItems
-import app.cash.paging.compose.collectAsLazyPagingItems
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.ui.components.SearchField
-import dev.skymansandy.wiretap.ui.http.HttpLogList
-import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
-import dev.skymansandy.wiretap.ui.rules.CreateRuleScreen
-import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
-import dev.skymansandy.wiretap.ui.rules.RulesListScreen
-import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
-import dev.skymansandy.wiretap.ui.socket.SocketLogList
-import dev.skymansandy.wiretap.resources.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.map
-import org.jetbrains.compose.resources.stringResource
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.ui.common.LocalWideScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapRoute
+import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
+import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
+import dev.skymansandy.wiretap.ui.screens.console.http.NetworkLogDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailViewModel
+import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleScreen
+import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleViewModel
+import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailScreen
+import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailViewModel
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val WIDE_SCREEN_BREAKPOINT = 600.dp
+
 @Composable
 fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
     ruleRepository: RuleRepository = WiretapDi.ruleRepository,
+    findConflictingRules: FindConflictingRulesUseCase = WiretapDi.findConflictingRules,
     initialSocketId: Long? = null,
     onInitialSocketConsumed: () -> Unit = {},
 ) {
-    var selectedLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
-    var selectedSocketId by remember { mutableStateOf<Long?>(null) }
+    var savedRouteKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var route by remember { mutableStateOf<WiretapRoute?>(null) }
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    var isWideScreen by remember { mutableStateOf(false) }
+
+    val navigateTo = remember(orchestrator, ruleRepository) {
+        { newRoute: WiretapRoute? ->
+            route = newRoute
+            savedRouteKey = newRoute?.toSaveKey()
+        }
+    }
+
+    // Restore route after config change (e.g. rotation)
+    LaunchedEffect(Unit) {
+        val key = savedRouteKey ?: return@LaunchedEffect
+        if (route != null) return@LaunchedEffect
+
+        val restored = restoreRoute(key, orchestrator, ruleRepository)
+        if (restored != null) route = restored
+    }
 
     // Handle deep-link to socket detail
     LaunchedEffect(initialSocketId) {
         if (initialSocketId != null) {
-            selectedSocketId = initialSocketId
+            navigateTo(WiretapRoute.SocketDetail(initialSocketId))
             onInitialSocketConsumed()
         }
     }
-    var selectedRule by remember { mutableStateOf<WiretapRule?>(null) }
-    var showCreateRule by remember { mutableStateOf(false) }
-    var editRule by remember { mutableStateOf<WiretapRule?>(null) }
-    var createRuleFromLog by remember { mutableStateOf<NetworkLogEntry?>(null) }
 
-    if (selectedSocketId != null) {
-        SocketDetailScreen(
-            socketId = selectedSocketId!!,
-            orchestrator = orchestrator,
-            onBack = { selectedSocketId = null },
-        )
-        return
-    }
+    CompositionLocalProvider(LocalWideScreen provides isWideScreen) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { size ->
+                    isWideScreen = with(density) { size.width.toDp() } >= WIDE_SCREEN_BREAKPOINT
+                },
+        ) {
 
-    if (selectedLog != null) {
-        NetworkLogDetailScreen(
-            entry = selectedLog!!,
-            onBack = { selectedLog = null },
-            onViewRule = { ruleId ->
-                val rule = ruleRepository.getById(ruleId)
-                if (rule != null) {
-                    selectedLog = null
-                    selectedRule = rule
+            val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
+
+            // Sync home tab when navigating to a detail route
+            LaunchedEffect(route) {
+                when (route) {
+                    is WiretapRoute.SocketDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_WEBSOCKET)
+                    is WiretapRoute.HttpDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_HTTP)
+                    else -> {}
                 }
-            },
-        )
-        return
-    }
-
-    if (selectedRule != null) {
-        RuleDetailScreen(
-            rule = selectedRule!!,
-            ruleRepository = ruleRepository,
-            onBack = { selectedRule = null },
-            onDeleted = { selectedRule = null },
-            onEditClick = {
-                editRule = selectedRule
-                selectedRule = null
-            },
-        )
-        return
-    }
-
-    if (editRule != null) {
-        CreateRuleScreen(
-            ruleRepository = ruleRepository,
-            onBack = { editRule = null },
-            onSaved = { editRule = null },
-            existingRule = editRule,
-        )
-        return
-    }
-
-    if (createRuleFromLog != null) {
-        CreateRuleScreen(
-            ruleRepository = ruleRepository,
-            onBack = { createRuleFromLog = null },
-            onSaved = { createRuleFromLog = null },
-            prefillFromLog = createRuleFromLog,
-            onEditConflictingRule = { rule ->
-                createRuleFromLog = null
-                editRule = rule
-            },
-        )
-        return
-    }
-
-    if (showCreateRule) {
-        CreateRuleScreen(
-            ruleRepository = ruleRepository,
-            onBack = { showCreateRule = false },
-            onSaved = { showCreateRule = false },
-            onEditConflictingRule = { rule ->
-                showCreateRule = false
-                editRule = rule
-            },
-        )
-        return
-    }
-
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var isSearchActive by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
-    val searchFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(isSearchActive) {
-        if (isSearchActive) searchFocusRequester.requestFocus()
-    }
-
-    val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) {
-            value = ""
-        } else {
-            delay(450)
-            value = searchQuery
-        }
-    }
-
-    val lazyItems = rememberPagedLogs(orchestrator, debouncedQuery)
-
-    // Collect socket logs for WebSocket tab
-    val socketLogs by remember {
-        orchestrator.getAllSocketLogs().map { logs ->
-            if (debouncedQuery.isEmpty()) logs
-            else logs.filter { it.url.contains(debouncedQuery, ignoreCase = true) || it.status.name.contains(debouncedQuery, ignoreCase = true) }
-        }
-    }.collectAsState(emptyList())
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        SearchField(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            focusRequester = searchFocusRequester,
-                        )
-                    } else {
-                        Text(stringResource(Res.string.wiretap_console))
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (isSearchActive) {
-                            isSearchActive = false
-                            searchQuery = ""
-                        } else {
-                            onBack()
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
-                    }
-                },
-                actions = {
-                    if (isSearchActive) {
-                        IconButton(onClick = {
-                            isSearchActive = false
-                            searchQuery = ""
-                        }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
-                        }
-                    } else {
-                        IconButton(onClick = { isSearchActive = true }) {
-                            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
-                        }
-                    }
-                    if (selectedTab == 0) {
-                        IconButton(onClick = { orchestrator.clearLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_http_logs))
-                        }
-                    }
-                    if (selectedTab == 1 && socketLogs.isNotEmpty()) {
-                        IconButton(onClick = { orchestrator.clearSocketLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_websocket_logs))
-                        }
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = {
-                        selectedTab = 0
-                        searchQuery = ""
-                    },
-                    icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
-                    label = { Text(stringResource(Res.string.tab_http)) },
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = {
-                        selectedTab = 1
-                        searchQuery = ""
-                    },
-                    icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                    label = { Text(stringResource(Res.string.tab_websocket)) },
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = {
-                        selectedTab = 2
-                        searchQuery = ""
-                    },
-                    icon = { Icon(Icons.AutoMirrored.Filled.Rule, contentDescription = null) },
-                    label = { Text(stringResource(Res.string.tab_rules)) },
-                )
             }
-        },
-    ) { padding ->
-        when (selectedTab) {
-            0 -> HttpLogList(
-                lazyItems = lazyItems,
-                searchQuery = searchQuery,
-                onHttpClick = { selectedLog = it },
-                onCreateRule = { createRuleFromLog = it },
-                onViewRule = { ruleId ->
-                    val rule = ruleRepository.getById(ruleId)
-                    if (rule != null) selectedRule = rule
-                },
-                modifier = Modifier.fillMaxSize().padding(padding),
-            )
 
-            1 -> SocketLogList(
-                socketLogs = socketLogs,
-                searchQuery = searchQuery,
-                onSocketClick = { selectedSocketId = it.id },
-                modifier = Modifier.fillMaxSize().padding(padding),
-            )
+            val isTwoPaneRoute = route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail
 
-            2 -> RulesListScreen(
-                ruleRepository = ruleRepository,
-                searchQuery = debouncedQuery,
-                onRuleClick = { selectedRule = it },
-                onCreateClick = { showCreateRule = true },
-                modifier = Modifier.fillMaxSize().padding(padding),
-            )
+            if (isWideScreen && isTwoPaneRoute) {
+                Row(modifier = Modifier.fillMaxSize()) {
+
+                    WiretapHomeScreen(
+                        viewModel = homeVm,
+                        ruleRepository = ruleRepository,
+                        onBack = onBack,
+                        onNavigate = { navigateTo(it) },
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                    )
+
+                    VerticalDivider(modifier = Modifier.fillMaxHeight())
+
+                    when (val current = route) {
+                        is WiretapRoute.HttpDetail -> NetworkLogDetailScreen(
+                            entry = current.entry,
+                            onBack = { navigateTo(null) },
+                            onViewRule = { ruleId ->
+                                scope.launch {
+                                    val rule = ruleRepository.getById(ruleId)
+                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                }
+                            },
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                        )
+
+                        is WiretapRoute.SocketDetail -> {
+                            val vm = viewModel(key = "socket_${current.socketId}") {
+                                SocketDetailViewModel(current.socketId, orchestrator)
+                            }
+                            SocketDetailScreen(
+                                viewModel = vm,
+                                onBack = { navigateTo(null) },
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                            )
+                        }
+
+                        else -> {}
+                    }
+                }
+            } else {
+                when (val current = route) {
+                    is WiretapRoute.SocketDetail -> {
+                        val vm = viewModel(key = "socket_${current.socketId}") {
+                            SocketDetailViewModel(current.socketId, orchestrator)
+                        }
+                        SocketDetailScreen(
+                            viewModel = vm,
+                            onBack = { navigateTo(null) },
+                        )
+                    }
+
+                    is WiretapRoute.HttpDetail -> NetworkLogDetailScreen(
+                        entry = current.entry,
+                        onBack = { navigateTo(null) },
+                        onViewRule = { ruleId ->
+                            scope.launch {
+                                val rule = ruleRepository.getById(ruleId)
+                                if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                            }
+                        },
+                    )
+
+                    is WiretapRoute.RuleDetail -> {
+                        val vm = viewModel(key = "rule_detail_${current.rule.id}") {
+                            RuleDetailViewModel(current.rule.id, current.rule.enabled, ruleRepository)
+                        }
+                        RuleDetailScreen(
+                            rule = current.rule,
+                            viewModel = vm,
+                            onBack = { navigateTo(null) },
+                            onDeleted = { navigateTo(null) },
+                            onEditClick = { navigateTo(WiretapRoute.CreateRule(existingRule = current.rule)) },
+                        )
+                    }
+
+                    is WiretapRoute.CreateRule -> {
+                        val vm = viewModel(
+                            key = "create_rule_${current.existingRule?.id}_${current.prefillFromLog?.id}",
+                        ) {
+                            CreateRuleViewModel(ruleRepository, findConflictingRules, current.existingRule, current.prefillFromLog)
+                        }
+                        CreateRuleScreen(
+                            viewModel = vm,
+                            ruleRepository = ruleRepository,
+                            onBack = { navigateTo(null) },
+                            onSaved = { navigateTo(null) },
+                            onEditConflictingRule = { rule -> navigateTo(WiretapRoute.CreateRule(existingRule = rule)) },
+                        )
+                    }
+
+                    null -> {
+                        WiretapHomeScreen(
+                            viewModel = homeVm,
+                            ruleRepository = ruleRepository,
+                            onBack = onBack,
+                            onNavigate = { navigateTo(it) },
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
-@Composable
-private fun rememberPagedLogs(
+private fun WiretapRoute.toSaveKey(): String = when (this) {
+    is WiretapRoute.HttpDetail -> "http:${entry.id}"
+    is WiretapRoute.SocketDetail -> "socket:$socketId"
+    is WiretapRoute.RuleDetail -> "rule:${rule.id}"
+    is WiretapRoute.CreateRule -> "create:${existingRule?.id ?: 0}:${prefillFromLog?.id ?: 0}"
+}
+
+private suspend fun restoreRoute(
+    key: String,
     orchestrator: WiretapOrchestrator,
-    query: String,
-): LazyPagingItems<NetworkLogEntry> {
-    val flow = remember(query) { orchestrator.getPagedLogs(query) }
-    return flow.collectAsLazyPagingItems()
+    ruleRepository: RuleRepository,
+): WiretapRoute? {
+    val parts = key.split(":")
+    return when (parts[0]) {
+        "http" -> parts.getOrNull(1)?.toLongOrNull()
+            ?.let { orchestrator.getLogById(it) }
+            ?.let { WiretapRoute.HttpDetail(it) }
+
+        "socket" -> parts.getOrNull(1)?.toLongOrNull()
+            ?.let { WiretapRoute.SocketDetail(it) }
+
+        "rule" -> parts.getOrNull(1)?.toLongOrNull()
+            ?.let { ruleRepository.getById(it) }
+            ?.let { WiretapRoute.RuleDetail(it) }
+
+        "create" -> {
+            val existingRule = parts.getOrNull(1)?.toLongOrNull()
+                ?.takeIf { it > 0 }?.let { ruleRepository.getById(it) }
+            val prefillLog = parts.getOrNull(2)?.toLongOrNull()
+                ?.takeIf { it > 0 }?.let { orchestrator.getLogById(it) }
+            WiretapRoute.CreateRule(existingRule, prefillLog)
+        }
+
+        else -> null
+    }
 }

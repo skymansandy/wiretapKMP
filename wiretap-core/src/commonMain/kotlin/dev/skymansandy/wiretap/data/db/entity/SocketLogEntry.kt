@@ -6,7 +6,7 @@ data class SocketLogEntry(
     val id: Long = 0,
     val url: String,
     val requestHeaders: Map<String, String> = emptyMap(),
-    val status: SocketStatus = SocketStatus.CONNECTING,
+    val status: SocketStatus = SocketStatus.Connecting,
     val closeCode: Int? = null,
     val closeReason: String? = null,
     val failureMessage: String? = null,

@@ -1,9 +1,20 @@
 package dev.skymansandy.wiretap.domain.model
 
-sealed class UrlMatcher {
-    abstract val pattern: String
+sealed interface UrlMatcher {
 
-    data class Exact(override val pattern: String) : UrlMatcher()
-    data class Contains(override val pattern: String) : UrlMatcher()
-    data class Regex(override val pattern: String) : UrlMatcher()
+    val pattern: String
+
+    val type: MatcherType
+
+    data class Exact(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Exact
+    }
+
+    data class Contains(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Contains
+    }
+
+    data class Regex(override val pattern: String) : UrlMatcher {
+        override val type = MatcherType.Regex
+    }
 }

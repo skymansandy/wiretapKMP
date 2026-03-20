@@ -4,7 +4,8 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import kotlinx.coroutines.runBlocking
 import okhttp3.WebSocket
 import okio.ByteString
 
@@ -18,30 +19,36 @@ internal class WiretapWebSocket(
 ) : WebSocket by delegate {
 
     override fun send(text: String): Boolean {
-        orchestrator.logSocketMessage(
-            SocketMessage(
-                socketId = socketId,
-                direction = SocketMessageDirection.SENT,
-                contentType = SocketContentType.TEXT,
-                content = text,
-                byteCount = text.encodeToByteArray().size.toLong(),
-                timestamp = currentTimeMillis(),
-            ),
-        )
+
+        runBlocking {
+            orchestrator.logSocketMessage(
+                SocketMessage(
+                    socketId = socketId,
+                    direction = SocketMessageDirection.Sent,
+                    contentType = SocketContentType.Text,
+                    content = text,
+                    byteCount = text.encodeToByteArray().size.toLong(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
         return delegate.send(text)
     }
 
     override fun send(bytes: ByteString): Boolean {
-        orchestrator.logSocketMessage(
-            SocketMessage(
-                socketId = socketId,
-                direction = SocketMessageDirection.SENT,
-                contentType = SocketContentType.BINARY,
-                content = "[Binary: ${bytes.size} bytes]",
-                byteCount = bytes.size.toLong(),
-                timestamp = currentTimeMillis(),
-            ),
-        )
+
+        runBlocking {
+            orchestrator.logSocketMessage(
+                SocketMessage(
+                    socketId = socketId,
+                    direction = SocketMessageDirection.Sent,
+                    contentType = SocketContentType.Binary,
+                    content = "[Binary: ${bytes.size} bytes]",
+                    byteCount = bytes.size.toLong(),
+                    timestamp = currentTimeMillis(),
+                ),
+            )
+        }
         return delegate.send(bytes)
     }
 }

@@ -2,8 +2,8 @@ package dev.skymansandy.wiretapsample.di
 
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
 import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
-import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
-import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorSampleViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.websocket.WebSockets
@@ -21,7 +21,7 @@ val sampleAppModule = module {
         }
     }
 
-    viewModelOf(::HttpViewModel)
+    viewModelOf(::KtorSampleViewModel)
 
-    viewModelOf(::WebSocketViewModel)
+    viewModelOf(::KtorWebSocketViewModel)
 }

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wiretap_shortcut_short_label">Wiretap</string>
+    <string name="wiretap_shortcut_long_label">Open Wiretap Console</string>
+</resources>

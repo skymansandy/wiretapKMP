@@ -22,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleInputMode
-import dev.skymansandy.wiretap.ui.rules.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
+import dev.skymansandy.wiretap.ui.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.model.labelRes
+import dev.skymansandy.wiretap.ui.model.speedRes
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.foundation.layout.Column
 import org.jetbrains.compose.resources.stringResource
@@ -40,33 +42,42 @@ internal fun ThrottleDelayInput(
     onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
     supportingText: String,
 ) {
-    Text(stringResource(Res.string.throttle_delay), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+    Text(
+        text = stringResource(Res.string.throttle_delay),
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+    )
 
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.NONE,
+            selected = throttleInputMode == ThrottleInputMode.None,
+            label = { Text(stringResource(Res.string.none)) },
             onClick = {
-                onThrottleInputModeChange(ThrottleInputMode.NONE)
+                onThrottleInputModeChange(ThrottleInputMode.None)
                 onThrottleDelayMsChange("0")
                 onThrottleDelayMaxMsChange("0")
             },
-            label = { Text(stringResource(Res.string.none)) },
         )
+
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.MANUAL,
-            onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
+            selected = throttleInputMode == ThrottleInputMode.Manual,
             label = { Text(stringResource(Res.string.manual)) },
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.Manual) },
         )
+
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.PROFILE,
-            onClick = { onThrottleInputModeChange(ThrottleInputMode.PROFILE) },
+            selected = throttleInputMode == ThrottleInputMode.Profile,
             label = { Text(stringResource(Res.string.network_profile)) },
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.Profile) },
         )
     }
 
     when (throttleInputMode) {
-        ThrottleInputMode.NONE -> {}
-        ThrottleInputMode.MANUAL -> {
+        ThrottleInputMode.None -> Unit
+
+        ThrottleInputMode.Manual -> {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = throttleDelayMs,
@@ -77,6 +88,7 @@ internal fun ThrottleDelayInput(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
+
                 OutlinedTextField(
                     value = throttleDelayMaxMs,
                     onValueChange = onThrottleDelayMaxMsChange,
@@ -87,30 +99,44 @@ internal fun ThrottleDelayInput(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 )
             }
+
             Text(
                 text = supportingText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        ThrottleInputMode.PROFILE -> {
+
+        ThrottleInputMode.Profile -> {
             var expanded by remember { mutableStateOf(false) }
             val selectedProfile = ThrottleProfile.entries.find {
                 it.delayMinMs == throttleDelayMs.toLongOrNull() && it.delayMaxMs == throttleDelayMaxMs.toLongOrNull()
             }
 
-            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = {
+                    expanded = it
+                },
+            ) {
                 OutlinedTextField(
-                    value = selectedProfile?.let { "${it.label}  (${it.speed} · ${it.delayMinMs}–${it.delayMaxMs}ms)" } ?: "",
+                    value = selectedProfile?.let {
+                        "${stringResource(it.labelRes)}  (${stringResource(Res.string.profile_speed_delay, stringResource(it.speedRes), it.delayMinMs, it.delayMaxMs)})"
+                    } ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(Res.string.network_profile)) },
                     placeholder = { Text(stringResource(Res.string.select_profile)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+                    modifier = Modifier.fillMaxWidth()
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     singleLine = true,
                 )
-                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                ) {
                     ThrottleProfile.entries.forEach { profile ->
                         DropdownMenuItem(
                             text = {
@@ -118,9 +144,10 @@ internal fun ThrottleDelayInput(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(profile.label)
+                                    Text(text = stringResource(profile.labelRes))
+
                                     Text(
-                                        "${profile.speed} · ${profile.delayMinMs}–${profile.delayMaxMs}ms",
+                                        text = stringResource(Res.string.profile_speed_delay, stringResource(profile.speedRes), profile.delayMinMs, profile.delayMaxMs),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -141,7 +168,7 @@ internal fun ThrottleDelayInput(
 
 @Preview
 @Composable
-private fun ThrottleDelayInputManualPreview() {
+private fun Preview_ThrottleDelayInputManual() {
     MaterialTheme {
         Column {
             ThrottleDelayInput(
@@ -149,7 +176,7 @@ private fun ThrottleDelayInputManualPreview() {
                 onThrottleDelayMsChange = {},
                 throttleDelayMaxMs = "2000",
                 onThrottleDelayMaxMsChange = {},
-                throttleInputMode = ThrottleInputMode.MANUAL,
+                throttleInputMode = ThrottleInputMode.Manual,
                 onThrottleInputModeChange = {},
                 supportingText = "Adds artificial latency to the response",
             )
@@ -159,7 +186,7 @@ private fun ThrottleDelayInputManualPreview() {
 
 @Preview
 @Composable
-private fun ThrottleDelayInputProfilePreview() {
+private fun Preview_ThrottleDelayInputProfile() {
     MaterialTheme {
         Column {
             ThrottleDelayInput(
@@ -167,7 +194,7 @@ private fun ThrottleDelayInputProfilePreview() {
                 onThrottleDelayMsChange = {},
                 throttleDelayMaxMs = "450",
                 onThrottleDelayMaxMsChange = {},
-                throttleInputMode = ThrottleInputMode.PROFILE,
+                throttleInputMode = ThrottleInputMode.Profile,
                 onThrottleInputModeChange = {},
                 supportingText = "Simulates network conditions",
             )

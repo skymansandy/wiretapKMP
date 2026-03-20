@@ -17,29 +17,29 @@ internal class SocketRepositoryImpl(
 
     internal val invalidationSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    override fun openConnection(entry: SocketLogEntry): Long {
+    override suspend fun openConnection(entry: SocketLogEntry): Long {
         val id = socketDao.insertAndGetId(entry)
         invalidationSignal.tryEmit(Unit)
         return id
     }
 
-    override fun reopenConnection(entry: SocketLogEntry) {
+    override suspend fun reopenConnection(entry: SocketLogEntry) {
         socketDao.insertWithId(entry)
         invalidationSignal.tryEmit(Unit)
     }
 
-    override fun updateConnection(entry: SocketLogEntry) {
+    override suspend fun updateConnection(entry: SocketLogEntry) {
         socketDao.update(entry)
         invalidationSignal.tryEmit(Unit)
     }
 
-    override fun logMessage(message: SocketMessage) {
+    override suspend fun logMessage(message: SocketMessage) {
         socketDao.insertMessage(message)
         socketDao.incrementMessageCount(message.socketId)
         invalidationSignal.tryEmit(Unit)
     }
 
-    override fun getById(id: Long): SocketLogEntry? = socketDao.getById(id)
+    override suspend fun getById(id: Long): SocketLogEntry? = socketDao.getById(id)
 
     override fun getByIdFlow(id: Long): Flow<SocketLogEntry?> =
         invalidationSignal
@@ -52,15 +52,19 @@ internal class SocketRepositoryImpl(
 
     override fun getPagedConnections(query: String): Flow<PagingData<SocketLogEntry>> =
         Pager(config = defaultPagingConfig) {
-            SocketLogPagingSource(socketDao, query, invalidationSignal)
+            SocketLogPagingSource(
+                dao = socketDao,
+                query = query,
+                invalidationSignal = invalidationSignal,
+            )
         }.flow
 
-    override fun clearAll() {
+    override suspend fun clearAll() {
         socketDao.deleteAll()
         invalidationSignal.tryEmit(Unit)
     }
 
-    override fun clearClosed() {
+    override suspend fun clearClosed() {
         socketDao.deleteClosed()
         invalidationSignal.tryEmit(Unit)
     }

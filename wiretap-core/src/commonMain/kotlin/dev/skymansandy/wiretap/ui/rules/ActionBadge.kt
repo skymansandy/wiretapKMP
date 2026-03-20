@@ -1,0 +1,62 @@
+package dev.skymansandy.wiretap.ui.rules
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.mock
+import dev.skymansandy.wiretap.resources.throttle
+import org.jetbrains.compose.resources.stringResource
+
+@Composable
+internal fun ActionBadge(
+    modifier: Modifier = Modifier,
+    action: RuleAction,
+) {
+    val color = when (action) {
+        is RuleAction.Mock -> MaterialTheme.colorScheme.error
+        is RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
+    }
+
+    val label = when (action) {
+        is RuleAction.Mock -> stringResource(Res.string.mock)
+        is RuleAction.Throttle -> stringResource(Res.string.throttle)
+    }
+
+    Surface(
+        modifier = modifier,
+        color = color.copy(alpha = 0.15f),
+        shape = MaterialTheme.shapes.extraSmall,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = color,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_ActionBadgeMock() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.Mock())
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_ActionBadgeThrottle() {
+    MaterialTheme {
+        ActionBadge(action = RuleAction.Throttle())
+    }
+}
