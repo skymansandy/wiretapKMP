@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.skie)
     alias(libs.plugins.mokkery)
+    alias(libs.plugins.kover)
 }
 
 kotlin {
@@ -50,7 +51,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                api(projects.jsonViewer)
+                api(projects.jsonCmp)
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)
@@ -92,9 +93,12 @@ kotlin {
 
         getByName("androidDeviceTest") {
             dependencies {
+                implementation(libs.kotlin.test)
                 implementation(libs.androidx.runner)
                 implementation(libs.androidx.core)
                 implementation(libs.androidx.testExt.junit)
+                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.androidx.compose.ui.test.manifest)
             }
         }
 

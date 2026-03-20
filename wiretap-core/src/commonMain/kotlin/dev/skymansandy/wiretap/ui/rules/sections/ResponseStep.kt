@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.jsonviewer.JsonCMP
-import dev.skymansandy.jsonviewer.config.rememberJsonEditorState
+import dev.skymansandy.jsoncmp.JsonCMP
+import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.label_action
