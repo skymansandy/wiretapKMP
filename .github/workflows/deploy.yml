@@ -96,10 +96,11 @@ jobs:
           COLOR=${{ steps.badge.outputs.color }}
           REPO=${{ github.repository }}
 
-          BUILD_BADGE="[![Build](https://github.com/${REPO}/actions/workflows/main.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/main.yml)"
-          COVERAGE_BADGE="[![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})](https://github.com/${REPO}/actions/workflows/main.yml)"
+          BUILD_BADGE="[![Build](https://github.com/${REPO}/actions/workflows/deploy.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/deploy.yml)"
+          COVERAGE_BADGE="[![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})](https://github.com/${REPO}/actions/workflows/deploy.yml)"
+          MAVEN_BADGE="[![Maven version](https://img.shields.io/github/v/release/${REPO}?label=maven)](https://github.com/${REPO}/packages)"
 
-          BADGE_LINE="${BUILD_BADGE} ${COVERAGE_BADGE}"
+          BADGE_LINE="${BUILD_BADGE} ${COVERAGE_BADGE} ${MAVEN_BADGE}"
 
           if grep -q '^\[!\[Build\]' README.md; then
             sed -i "1,/^\[!\[Build\]/s|^\[!\[Build\].*|${BADGE_LINE}|" README.md
@@ -136,6 +137,39 @@ jobs:
           MAVEN_REPO_USERNAME: ${{ github.actor }}
           MAVEN_REPO_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+
+  github-release:
+    name: GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if release exists
+        id: check
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-docs:
     name: Deploy Docs

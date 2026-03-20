@@ -1,5 +1,7 @@
 # WiretapKMP
 
+[![Build](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Maven version](https://img.shields.io/github/v/release/skymansandy/wiretapKMP?label=maven)](https://github.com/skymansandy/wiretapKMP/packages)
+
 Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
 ## Platforms
@@ -29,6 +31,65 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebS
 - **Log Retention** — Forever, per app session, or time-based auto-pruning.
 - **Built-in Inspector UI** — Compose Multiplatform UI for browsing logs, WebSocket streams, and managing rules.
 - **No-op Variants** — Drop-in release replacements with zero overhead.
+
+## Installation
+
+WiretapKMP is published to GitHub Packages.
+
+### 1. Add the GitHub Packages repository
+
+In your `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/skymansandy/wiretapKMP")
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_USERNAME")
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+```
+
+### 2. Add dependencies
+
+#### Ktor
+
+```kotlin
+dependencies {
+    // Debug
+    debugImplementation("dev.skymansandy:wiretap-core:1.0.0-alpha1")
+    debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-alpha1")
+    // Release (no-op)
+    releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-alpha1")
+}
+```
+
+#### OkHttp
+
+```kotlin
+dependencies {
+    // Debug
+    debugImplementation("dev.skymansandy:wiretap-core:1.0.0-alpha1")
+    debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-alpha1")
+    // Release (no-op)
+    releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-alpha1")
+}
+```
+
+#### URLSession (iOS via SPM)
+
+```swift
+// Debug: wiretap-core + wiretap-urlsession frameworks
+// Release: wiretap-urlsession-noop framework
+```
 
 ## Usage
 

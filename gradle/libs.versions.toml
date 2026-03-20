@@ -37,7 +37,7 @@ mokkery = "3.3.0"
 kover = "0.9.7"
 kotest = "6.1.7"
 turbine = "1.2.1"
-jsonCmp = "1.0.0-alpha2"
+jsonCmp = "1.0.0-alpha1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
