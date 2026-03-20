@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
+import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
 import dev.skymansandy.wiretap.ui.WiretapScreen
 
 class WiretapConsoleActivity : ComponentActivity() {

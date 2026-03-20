@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.awt.ComposePanel

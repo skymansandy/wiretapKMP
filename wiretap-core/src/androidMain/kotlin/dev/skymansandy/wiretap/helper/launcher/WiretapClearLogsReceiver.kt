@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 import android.content.BroadcastReceiver
 import android.content.Context

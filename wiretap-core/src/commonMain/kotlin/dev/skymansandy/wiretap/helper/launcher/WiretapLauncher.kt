@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 expect fun startWiretap()
 

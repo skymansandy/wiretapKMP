@@ -1,9 +1,11 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
-import android.Manifest
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.R
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.NotificationManager.IMPORTANCE_LOW
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -18,7 +20,6 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 internal object WiretapNotificationManager {
 
@@ -37,22 +38,20 @@ internal object WiretapNotificationManager {
 
     // Per-socket recent messages: socketId -> list of formatted message strings
     private val socketMessages = mutableMapOf<Long, MutableList<String>>()
+
     // Socket entries for status tracking
     private val socketEntries = mutableMapOf<Long, SocketLogEntry>()
+
     // Track active socket notification IDs for cleanup
     private val activeSocketNotificationIds = mutableSetOf<Int>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Network Traffic",
-                NotificationManager.IMPORTANCE_LOW,
-            ).apply {
+            val channel = NotificationChannel(CHANNEL_ID, "Network Traffic", IMPORTANCE_LOW).apply {
                 description = "Shows recent network requests captured by Wiretap"
             }
-            context.getSystemService(NotificationManager::class.java)
-                ?.createNotificationChannel(channel)
+            val notifService = context.getSystemService(NotificationManager::class.java)
+            notifService?.createNotificationChannel(channel)
         }
     }
 
@@ -62,8 +61,8 @@ internal object WiretapNotificationManager {
         if (existingIndex >= 0) {
             recentHttpEntries[existingIndex] = entry
         } else {
-            if (recentHttpEntries.size >= MAX_ENTRIES) recentHttpEntries.removeFirst()
-            recentHttpEntries.addLast(entry)
+            if (recentHttpEntries.size >= MAX_ENTRIES) recentHttpEntries.removeAt(0)
+            recentHttpEntries.add(entry)
         }
         postHttpNotification(context)
         postSummaryIfNeeded(context)
@@ -85,8 +84,8 @@ internal object WiretapNotificationManager {
         if (!hasPermission(context)) return
         socketEntries[entry.id] = entry
         val messages = socketMessages.getOrPut(entry.id) { mutableListOf() }
-        if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeFirst()
-        messages.addLast(formatSocketMessage(message))
+        if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeAt(0)
+        messages.add(formatSocketMessage(message))
         postSocketMessageNotification(context, entry, messages)
         postSummaryIfNeeded(context)
     }
@@ -117,7 +116,7 @@ internal object WiretapNotificationManager {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
         return ContextCompat.checkSelfPermission(
             context,
-            Manifest.permission.POST_NOTIFICATIONS,
+            POST_NOTIFICATIONS,
         ) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -155,7 +154,9 @@ internal object WiretapNotificationManager {
      * Posts the group summary. Only needed when there are multiple child notifications
      * (HTTP + at least one socket). Without children, the HTTP notification shows standalone.
      */
+    @SuppressLint("MissingPermission")
     private fun postSummaryIfNeeded(context: Context) {
+        if (!hasPermission(context)) return
         if (activeSocketNotificationIds.isEmpty() || recentHttpEntries.isEmpty()) return
 
         val total = recentHttpEntries.size + socketEntries.size
@@ -169,7 +170,6 @@ internal object WiretapNotificationManager {
             .setContentIntent(openWiretapIntent(context))
             .addAction(0, "Clear logs", clearLogsIntent(context))
             .build()
-
         NotificationManagerCompat.from(context).notify(SUMMARY_NOTIFICATION_ID, notification)
     }
 
@@ -177,7 +177,9 @@ internal object WiretapNotificationManager {
      * Single notification for all HTTP traffic, shown as InboxStyle with recent entries.
      * When socket notifications exist, this becomes a child in the group.
      */
+    @SuppressLint("MissingPermission")
     private fun postHttpNotification(context: Context) {
+        if (!hasPermission(context)) return
         if (recentHttpEntries.isEmpty()) return
 
         val inboxStyle = NotificationCompat.InboxStyle()
@@ -199,11 +201,14 @@ internal object WiretapNotificationManager {
         NotificationManagerCompat.from(context).notify(HTTP_NOTIFICATION_ID, builder.build())
     }
 
+    @SuppressLint("MissingPermission")
     private fun postSocketMessageNotification(
         context: Context,
         entry: SocketLogEntry,
         messages: List<String>,
     ) {
+        if (!hasPermission(context)) return
+
         val notificationId = socketNotificationId(entry.id)
         activeSocketNotificationIds.add(notificationId)
 
@@ -238,9 +243,7 @@ internal object WiretapNotificationManager {
         PendingIntent.getActivity(
             context,
             0,
-            Intent(context, WiretapConsoleActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            },
+            getLaunchIntent(),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
@@ -248,8 +251,7 @@ internal object WiretapNotificationManager {
         PendingIntent.getActivity(
             context,
             socketId.toInt(),
-            Intent(context, WiretapConsoleActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            getLaunchIntent().apply {
                 putExtra(EXTRA_SOCKET_ID, socketId)
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,

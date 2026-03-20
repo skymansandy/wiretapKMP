@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry

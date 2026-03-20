@@ -2,19 +2,21 @@ package dev.skymansandy.wiretap.data.db.driver
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import dev.skymansandy.wiretap.data.constants.DB_NAME
 import dev.skymansandy.wiretap.db.WiretapDatabase
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
 internal actual class DriverFactory {
+
     actual fun createDriver(): SqlDriver {
-        val schema = WiretapDatabase.Companion.Schema
+        val schema = WiretapDatabase.Schema
         return try {
-            NativeSqliteDriver(schema, "wiretap.db")
+            NativeSqliteDriver(schema, DB_NAME)
         } catch (_: Exception) {
             deleteDatabase()
-            NativeSqliteDriver(schema, "wiretap.db")
+            NativeSqliteDriver(schema, DB_NAME)
         }
     }
 
@@ -24,7 +26,7 @@ internal actual class DriverFactory {
         val urls = fileManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
         val docUrl = urls.firstOrNull() ?: return
         @Suppress("CAST_NEVER_SUCCEEDS")
-        val dbUrl = (docUrl as platform.Foundation.NSURL).URLByAppendingPathComponent("wiretap.db")
+        val dbUrl = (docUrl as platform.Foundation.NSURL).URLByAppendingPathComponent(DB_NAME)
         dbUrl?.path?.let { fileManager.removeItemAtPath(it, null) }
     }
 }

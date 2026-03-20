@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 import android.content.Context
 import android.hardware.Sensor
@@ -7,20 +7,19 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
+import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider.context
 import kotlin.math.sqrt
 
 internal class ShakeGestureListener : DefaultLifecycleObserver {
 
-    private val sensorManager = WiretapContextProvider.context.getSystemService(
-        Context.SENSOR_SERVICE
-    ) as? SensorManager
+    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
     private var activeAcceleration = 10f
     private var currentAcceleration = SensorManager.GRAVITY_EARTH
     private var lastAcceleration = SensorManager.GRAVITY_EARTH
     private val thresholdForAcceleration = 12f
 
     private val sensorListener = object : SensorEventListener {
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
         override fun onSensorChanged(event: SensorEvent) {
             val x = event.values[0]
             val y = event.values[1]
@@ -34,8 +33,6 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
                 startWiretap()
             }
         }
-
-        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
     }
 
     override fun onResume(owner: LifecycleOwner) {

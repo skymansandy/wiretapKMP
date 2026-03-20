@@ -12,7 +12,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.skymansandy.wiretap.helper.notification.enableWiretapLauncher
+import dev.skymansandy.wiretap.helper.launcher.enableWiretapLauncher
 import dev.skymansandy.wiretapsample.di.sampleAppModule
 import dev.skymansandy.wiretapsample.model.TabItem
 import dev.skymansandy.wiretapsample.resources.Res

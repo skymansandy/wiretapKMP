@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -21,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
@@ -37,6 +36,16 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.resources.Res
+import dev.skymansandy.wiretap.resources.back
+import dev.skymansandy.wiretap.resources.clear_http_logs
+import dev.skymansandy.wiretap.resources.clear_websocket_logs
+import dev.skymansandy.wiretap.resources.close_search
+import dev.skymansandy.wiretap.resources.search
+import dev.skymansandy.wiretap.resources.tab_http
+import dev.skymansandy.wiretap.resources.tab_rules
+import dev.skymansandy.wiretap.resources.tab_websocket
+import dev.skymansandy.wiretap.resources.wiretap_console
 import dev.skymansandy.wiretap.ui.components.SearchField
 import dev.skymansandy.wiretap.ui.http.HttpLogList
 import dev.skymansandy.wiretap.ui.network.NetworkLogDetailScreen
@@ -45,7 +54,6 @@ import dev.skymansandy.wiretap.ui.rules.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.socket.SocketDetailScreen
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
-import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource

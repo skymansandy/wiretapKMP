@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.helper.notification
+package dev.skymansandy.wiretap.helper.launcher
 
 import android.content.Intent
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -7,10 +7,16 @@ import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
 actual fun startWiretap() {
     val context = WiretapContextProvider.context
-    val intent = Intent(context, WiretapConsoleActivity::class.java).apply {
+    val intent = getLaunchIntent()
+    context.startActivity(intent)
+}
+
+internal fun getLaunchIntent(): Intent {
+    val context = WiretapContextProvider.context
+    return Intent(context, WiretapConsoleActivity::class.java).apply {
+        action = Intent.ACTION_VIEW
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
-    context.startActivity(intent)
 }
 
 actual fun enableWiretapLauncher() {

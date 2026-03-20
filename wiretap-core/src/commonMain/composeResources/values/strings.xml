@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
     <!-- WiretapScreen -->
+    <string name="wiretap">Wiretap</string>
     <string name="wiretap_console">Wiretap Console</string>
+    <string name="open_wiretap_console">Open Wiretap Console</string>
     <string name="back">Back</string>
     <string name="close_search">Close search</string>
     <string name="search">Search</string>

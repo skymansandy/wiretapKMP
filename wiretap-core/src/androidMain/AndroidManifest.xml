@@ -22,7 +22,7 @@
             android:theme="@android:style/Theme.Material.Light.NoActionBar" />
 
         <receiver
-            android:name="dev.skymansandy.wiretap.helper.notification.WiretapClearLogsReceiver"
+            android:name="dev.skymansandy.wiretap.helper.launcher.WiretapClearLogsReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="dev.skymansandy.wiretap.ACTION_CLEAR_LOGS" />
