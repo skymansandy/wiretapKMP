@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.domain.usecase
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 
-class FindMatchingRuleUseCase internal constructor(
+class FindMatchingRuleUseCase constructor(
     private val ruleRepository: RuleRepository,
 ) {
     suspend operator fun invoke(

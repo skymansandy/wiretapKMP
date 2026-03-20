@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.mokkery)
 }
 
 kotlin {
@@ -14,6 +15,12 @@ kotlin {
             }
         }
         minSdk = 24
+
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
     }
 
     listOf(
@@ -40,5 +47,34 @@ kotlin {
                 implementation(libs.compose.uiToolingPreview)
             }
         }
+
+        commonTest {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.turbine)
+            }
+        }
+
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.androidx.runner)
+                implementation(libs.androidx.core)
+                implementation(libs.androidx.testExt.junit)
+                implementation(project.dependencies.platform(libs.androidx.compose.bom))
+                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.androidx.compose.ui.test.manifest)
+            }
+        }
+    }
+}
+
+// Workaround: Compose Multiplatform resources plugin doesn't configure
+// outputDirectory for the androidDeviceTest variant.
+afterEvaluate {
+    tasks.matching {
+        it.name == "copyAndroidDeviceTestComposeResourcesToAndroidAssets"
+    }.configureEach {
+        enabled = false
     }
 }

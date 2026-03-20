@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.androidLint)
+    alias(libs.plugins.mokkery)
 }
 
 kotlin {
@@ -27,6 +28,14 @@ kotlin {
                 api(projects.wiretapCore)
                 api(libs.okhttp)
             }
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.turbine)
+            implementation(libs.okhttp.mockwebserver)
         }
     }
 }

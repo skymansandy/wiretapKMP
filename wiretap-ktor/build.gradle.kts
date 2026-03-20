@@ -3,9 +3,14 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.androidLint)
     alias(libs.plugins.skie)
+    alias(libs.plugins.mokkery)
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xskip-prerelease-check")
+    }
+
     android {
         namespace = "dev.skymansandy.wiretap.ktor"
         compileSdk {
@@ -51,6 +56,14 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.java)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.turbine)
+            implementation(libs.ktor.client.mock)
         }
     }
 }

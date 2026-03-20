@@ -19,4 +19,12 @@ object WiretapDi : KoinComponent {
     val findMatchingRule: FindMatchingRuleUseCase by inject()
 
     val findConflictingRules: FindConflictingRulesUseCase by inject()
+
+    /**
+     * Override the internal Koin context for testing.
+     * Pass `null` to restore the production context.
+     */
+    fun setTestKoin(koin: Koin?) {
+        WiretapKoinContext.setTestKoin(koin)
+    }
 }

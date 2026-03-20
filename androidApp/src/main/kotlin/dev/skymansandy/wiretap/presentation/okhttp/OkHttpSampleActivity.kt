@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dev.skymansandy.wiretap.di.okHttpSampleModule
 import dev.skymansandy.wiretapsample.ui.SampleApp
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
