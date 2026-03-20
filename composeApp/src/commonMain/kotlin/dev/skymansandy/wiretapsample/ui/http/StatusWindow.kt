@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.background
@@ -22,15 +23,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
-internal fun StatusWindow(statusLog: String) {
+internal fun StatusWindow(
+    statusLog: String,
+    modifier: Modifier = Modifier,
+) {
+
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp)
+        modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         val scrollState = rememberScrollState()
+
+        LaunchedEffect(statusLog) {
+            scrollState.animateScrollTo(0)
+        }
 
         Column(
             modifier = Modifier

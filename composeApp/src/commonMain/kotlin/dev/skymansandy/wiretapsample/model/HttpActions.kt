@@ -5,6 +5,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -12,16 +14,29 @@ import kotlinx.coroutines.coroutineScope
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+private fun formatResponse(response: HttpResponse, body: String): String {
+
+    val headers = response.headers.entries().joinToString("\n") { (key, values) ->
+        "$key: ${values.joinToString(", ")}"
+    }
+    return buildString {
+        appendLine("HTTP ${response.status.value} ${response.status.description}")
+        appendLine(headers)
+        appendLine()
+        append(body)
+    }
+}
+
 internal val httpActions = listOf(
     ApiAction("GET /get (HTTP)", ActionCategory.Success) { client, onStatus ->
         onStatus("GET /get ...")
         val response = client.get("http://httpbin.org/get")
-        onStatus("GET /get -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("GET /posts/1", ActionCategory.Success) { client, onStatus ->
         onStatus("GET /posts/1 ...")
         val response = client.get("https://jsonplaceholder.typicode.com/posts/1")
-        onStatus("GET /posts/1 -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("GET large json", ActionCategory.Success) { client, onStatus ->
         onStatus("GET /users ...")
@@ -29,12 +44,12 @@ internal val httpActions = listOf(
         val url =
             "https://gist.githubusercontent.com/gcollazo/884a489a50aec7b53765405f40c6fbd1/raw/49d1568c34090587ac82e80612a9c350108b62c5/sample.json"
         val response = client.get(url)
-        onStatus("GET /Contents.json -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("GET /comments", ActionCategory.Success) { client, onStatus ->
         onStatus("GET /posts/1/comments ...")
         val response = client.get("https://jsonplaceholder.typicode.com/posts/1/comments")
-        onStatus("GET /comments -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("POST /posts", ActionCategory.Success) { client, onStatus ->
         onStatus("POST /posts ...")
@@ -42,22 +57,22 @@ internal val httpActions = listOf(
             header("Content-Type", "application/json")
             setBody("""{"title":"Wiretap Test","body":"Hello from Wiretap!","userId":1}""")
         }
-        onStatus("POST /posts -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("301 Redirect", ActionCategory.Redirect) { client, onStatus ->
         onStatus("GET /redirect/1 ...")
         val response = client.get("https://httpbin.org/redirect/1")
-        onStatus("GET /redirect/1 -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("404 Not Found", ActionCategory.ClientError) { client, onStatus ->
         onStatus("GET /status/404 ...")
         val response = client.get("https://httpbin.org/status/404")
-        onStatus("GET /status/404 -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("500 Error", ActionCategory.ServerError) { client, onStatus ->
         onStatus("GET /status/500 ...")
         val response = client.get("https://httpbin.org/status/500")
-        onStatus("GET /status/500 -> ${response.status.value}")
+        onStatus(formatResponse(response, response.bodyAsText()))
     },
     ApiAction("Timeout (3s)", ActionCategory.Timeout) { client, onStatus ->
         onStatus("GET /delay/10 (3s timeout) ...")

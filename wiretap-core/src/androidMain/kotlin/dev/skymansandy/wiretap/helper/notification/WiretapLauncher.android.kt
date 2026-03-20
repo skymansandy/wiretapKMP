@@ -13,6 +13,6 @@ actual fun startWiretap() {
     context.startActivity(intent)
 }
 
-actual fun enableLaunchTool() {
+actual fun enableWiretapLauncher() {
     ProcessLifecycleOwner.get().lifecycle.addObserver(ShakeGestureListener())
 }

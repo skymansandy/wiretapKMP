@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -112,10 +111,10 @@ internal fun WebSocketTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Button(
+            OutlinedButton(
                 onClick = { viewModel.toggleConnection() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isConnected) ColorServerError else ColorSuccess,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = if (isConnected) ColorServerError else ColorSuccess,
                 ),
                 enabled = !isConnecting,
             ) {

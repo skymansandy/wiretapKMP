@@ -35,7 +35,7 @@ actual fun startWiretap() {
     topVc.presentViewController(wiretapVc, animated = true, completion = null)
 }
 
-actual fun enableLaunchTool() {
+actual fun enableWiretapLauncher() {
     ShakeDetector.enable {
         if (wiretapViewControllerInstance != null) return@enable
         startWiretap()

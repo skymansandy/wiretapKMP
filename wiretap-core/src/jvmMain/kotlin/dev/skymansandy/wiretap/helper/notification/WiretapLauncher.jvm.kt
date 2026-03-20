@@ -27,7 +27,7 @@ actual fun startWiretap() {
     }
 }
 
-actual fun enableLaunchTool() {
+actual fun enableWiretapLauncher() {
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
         if (event.id == KeyEvent.KEY_PRESSED &&
             event.modifiersEx == (KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK) &&
