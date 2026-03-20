@@ -15,6 +15,10 @@ import dev.skymansandy.wiretap.db.WiretapDatabase
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.launch
 import org.koin.dsl.module
 
 val wiretapDataModule = module {
@@ -24,7 +28,12 @@ val wiretapDataModule = module {
     }
 
     single<WiretapDatabase> {
-        WiretapDatabase(driver = get())
+        WiretapDatabase(driver = get()).also { db ->
+            CoroutineScope(Dispatchers.IO).launch {
+                db.wiretapQueries.closeStaleHttpLogs()
+                db.wiretapQueries.closeStaleSocketLogs()
+            }
+        }
     }
 
     single<HttpDao> {
