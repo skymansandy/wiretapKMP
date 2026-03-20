@@ -1,10 +1,10 @@
-package dev.skymansandy.wiretap.util
+package dev.skymansandy.wiretap.helper.util
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 
 internal expect fun shareNetworkLog(subject: String, text: String)
 
-internal fun buildShareText(entry: NetworkLogEntry): String = buildString {
+internal fun buildShareText(entry: HttpLogEntry): String = buildString {
     appendLine("${entry.method} ${entry.responseCode}")
     appendLine(entry.url)
     appendLine("Duration: ${entry.durationMs}ms | Source: ${entry.source.name}")
@@ -37,7 +37,7 @@ internal fun buildShareText(entry: NetworkLogEntry): String = buildString {
     append(entry.responseBody ?: "(none)")
 }
 
-internal fun buildCurlCommand(entry: NetworkLogEntry): String = buildString {
+internal fun buildCurlCommand(entry: HttpLogEntry): String = buildString {
     append("curl -X ${entry.method} '${entry.url}'")
     entry.requestHeaders.forEach { (k, v) ->
         append(" \\\n  -H '$k: $v'")

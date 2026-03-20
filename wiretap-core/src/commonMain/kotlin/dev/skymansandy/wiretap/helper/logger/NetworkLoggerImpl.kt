@@ -1,6 +1,6 @@
 package dev.skymansandy.wiretap.helper.logger
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
@@ -8,14 +8,16 @@ import dev.skymansandy.wiretap.domain.model.SocketStatus
 
 internal class NetworkLoggerImpl : NetworkLogger {
 
-    override fun log(entry: NetworkLogEntry) {
+    override fun logHttp(entry: HttpLogEntry) {
         if (entry.isInProgress) {
             println("[Wiretap] ${entry.method} ${entry.url} -> ...")
             return
         }
+
         val duration = if (entry.durationNs > 0) formatNs(entry.durationNs) else "${entry.durationMs}ms"
         val protocol = entry.protocol?.let { " $it" } ?: ""
         val remote = entry.remoteAddress?.let { " @$it" } ?: ""
+
         println("[Wiretap] ${entry.method} ${entry.url} -> ${entry.responseCode} ($duration) [${entry.source}]$protocol$remote")
     }
 

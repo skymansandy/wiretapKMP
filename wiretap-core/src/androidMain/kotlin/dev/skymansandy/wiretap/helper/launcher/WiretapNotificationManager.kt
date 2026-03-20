@@ -14,7 +14,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
@@ -34,7 +34,7 @@ internal object WiretapNotificationManager {
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
     internal const val EXTRA_SOCKET_ID = "wiretap_socket_id"
 
-    private val recentHttpEntries = mutableListOf<NetworkLogEntry>()
+    private val recentHttpEntries = mutableListOf<HttpLogEntry>()
 
     // Per-socket recent messages: socketId -> list of formatted message strings
     private val socketMessages = mutableMapOf<Long, MutableList<String>>()
@@ -55,7 +55,7 @@ internal object WiretapNotificationManager {
         }
     }
 
-    fun onNewEntry(context: Context, entry: NetworkLogEntry) {
+    fun onNewEntry(context: Context, entry: HttpLogEntry) {
         if (!hasPermission(context)) return
         val existingIndex = recentHttpEntries.indexOfFirst { it.id == entry.id }
         if (existingIndex >= 0) {
@@ -120,9 +120,9 @@ internal object WiretapNotificationManager {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun formatHttpEntry(entry: NetworkLogEntry): String {
+    private fun formatHttpEntry(entry: HttpLogEntry): String {
         val status = when {
-            entry.responseCode == NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
+            entry.responseCode == HttpLogEntry.RESPONSE_CODE_IN_PROGRESS -> "..."
             entry.responseCode > 0 -> entry.responseCode.toString()
             entry.responseCode == -1 -> "!!!"
             else -> "ERR"

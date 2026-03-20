@@ -1,10 +1,10 @@
 package dev.skymansandy.wiretap.helper.launcher
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 
-internal expect fun onNetworkEntryLogged(entry: NetworkLogEntry)
+internal expect fun onNetworkEntryLogged(entry: HttpLogEntry)
 
 internal expect fun onNetworkLogsCleared()
 

@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.util
+package dev.skymansandy.wiretap.helper.util
 
 import android.content.ClipData
 import android.content.ClipboardManager

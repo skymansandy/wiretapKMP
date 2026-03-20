@@ -2,8 +2,8 @@ package dev.skymansandy.wiretap.data.db.driver
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
-import dev.skymansandy.wiretap.data.constants.DB_NAME
 import dev.skymansandy.wiretap.db.WiretapDatabase
+import dev.skymansandy.wiretap.helper.constants.DB_NAME
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask

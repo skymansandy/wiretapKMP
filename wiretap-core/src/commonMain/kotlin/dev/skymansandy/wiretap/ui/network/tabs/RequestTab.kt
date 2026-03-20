@@ -10,20 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsonviewer.JsonEditor
 import dev.skymansandy.jsonviewer.rememberJsonEditorState
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.ui.components.CodeBlock
 import dev.skymansandy.wiretap.ui.components.CopyBodyButton
 import dev.skymansandy.wiretap.ui.components.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.components.HeadersList
 import dev.skymansandy.wiretap.ui.components.SectionTitle
-import dev.skymansandy.wiretap.util.looksLikeJson
+import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
+internal fun RequestTab(entry: HttpLogEntry, searchQuery: String = "") {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,7 +59,7 @@ internal fun RequestTab(entry: NetworkLogEntry, searchQuery: String = "") {
 private fun RequestTabPreview() {
     MaterialTheme {
         RequestTab(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 1,
                 url = "https://api.example.com/users",
                 method = "POST",
@@ -81,7 +81,7 @@ private fun RequestTabPreview() {
 private fun RequestTabEmptyPreview() {
     MaterialTheme {
         RequestTab(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 2,
                 url = "https://api.example.com/users/123",
                 method = "GET",

@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.ui.components.highlightText
-import dev.skymansandy.wiretap.util.formatTime
+import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

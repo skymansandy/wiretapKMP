@@ -4,22 +4,33 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import kotlinx.coroutines.flow.Flow
 
 interface RuleRepository {
-    fun addRule(rule: WiretapRule)
-    fun updateRule(rule: WiretapRule)
+
+    suspend fun addRule(rule: WiretapRule)
+
+    suspend fun updateRule(rule: WiretapRule)
+
     fun getAll(): Flow<List<WiretapRule>>
+
     fun search(query: String): Flow<List<WiretapRule>>
-    fun getById(id: Long): WiretapRule?
-    fun getEnabledRules(): List<WiretapRule>
-    fun findMatchingRule(
+
+    suspend fun getById(id: Long): WiretapRule?
+
+    suspend fun getEnabledRules(): List<WiretapRule>
+
+    suspend fun findMatchingRule(
         url: String,
         method: String,
         headers: Map<String, String> = emptyMap(),
         body: String? = null,
     ): WiretapRule?
-    fun findConflictingRules(
+
+    suspend fun findConflictingRules(
         rule: WiretapRule,
     ): List<WiretapRule>
-    fun setEnabled(id: Long, enabled: Boolean)
-    fun deleteById(id: Long)
-    fun deleteAll()
+
+    suspend fun setEnabled(id: Long, enabled: Boolean)
+
+    suspend fun deleteById(id: Long)
+
+    suspend fun deleteAll()
 }

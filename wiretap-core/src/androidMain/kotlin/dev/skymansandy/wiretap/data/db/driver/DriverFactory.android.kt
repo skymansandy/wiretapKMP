@@ -3,8 +3,8 @@ package dev.skymansandy.wiretap.data.db.driver
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import dev.skymansandy.wiretap.data.constants.DB_NAME
 import dev.skymansandy.wiretap.db.WiretapDatabase
+import dev.skymansandy.wiretap.helper.constants.DB_NAME
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 
 internal actual class DriverFactory {

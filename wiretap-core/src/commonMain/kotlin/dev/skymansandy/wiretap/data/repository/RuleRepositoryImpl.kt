@@ -12,17 +12,25 @@ internal class RuleRepositoryImpl(
     private val ruleDao: RuleDao,
 ) : RuleRepository {
 
-    override fun addRule(rule: WiretapRule) = ruleDao.insert(rule)
-    override fun updateRule(rule: WiretapRule) = ruleDao.update(rule)
-    override fun getAll(): Flow<List<WiretapRule>> = ruleDao.getAll()
-    override fun search(query: String): Flow<List<WiretapRule>> = ruleDao.search(query)
-    override fun getById(id: Long): WiretapRule? = ruleDao.getById(id)
-    override fun getEnabledRules(): List<WiretapRule> = ruleDao.getEnabledRules()
-    override fun setEnabled(id: Long, enabled: Boolean) = ruleDao.updateEnabled(id, enabled)
-    override fun deleteById(id: Long) = ruleDao.deleteById(id)
-    override fun deleteAll() = ruleDao.deleteAll()
+    override suspend fun addRule(rule: WiretapRule) = ruleDao.insert(rule)
 
-    override fun findMatchingRule(
+    override suspend fun updateRule(rule: WiretapRule) = ruleDao.update(rule)
+
+    override fun getAll(): Flow<List<WiretapRule>> = ruleDao.getAll()
+
+    override fun search(query: String): Flow<List<WiretapRule>> = ruleDao.search(query)
+
+    override suspend fun getById(id: Long): WiretapRule? = ruleDao.getById(id)
+
+    override suspend fun getEnabledRules(): List<WiretapRule> = ruleDao.getEnabledRules()
+
+    override suspend fun setEnabled(id: Long, enabled: Boolean) = ruleDao.updateEnabled(id, enabled)
+
+    override suspend fun deleteById(id: Long) = ruleDao.deleteById(id)
+
+    override suspend fun deleteAll() = ruleDao.deleteAll()
+
+    override suspend fun findMatchingRule(
         url: String,
         method: String,
         headers: Map<String, String>,
@@ -33,7 +41,7 @@ internal class RuleRepositoryImpl(
         }
     }
 
-    override fun findConflictingRules(rule: WiretapRule): List<WiretapRule> {
+    override suspend fun findConflictingRules(rule: WiretapRule): List<WiretapRule> {
         return ruleDao.getEnabledRules().filter { existing ->
             existing.id != rule.id && rulesOverlap(existing, rule)
         }
@@ -63,11 +71,14 @@ internal class RuleRepositoryImpl(
         return when {
             a is UrlMatcher.Exact && b is UrlMatcher.Exact ->
                 a.pattern.equals(b.pattern, ignoreCase = true)
+
             a is UrlMatcher.Contains && b is UrlMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true) ||
-                    b.pattern.contains(a.pattern, ignoreCase = true)
+                        b.pattern.contains(a.pattern, ignoreCase = true)
+
             a is UrlMatcher.Exact && b is UrlMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true)
+
             a is UrlMatcher.Contains && b is UrlMatcher.Exact ->
                 b.pattern.contains(a.pattern, ignoreCase = true)
             // Regex vs anything: conservatively assume overlap
@@ -80,13 +91,17 @@ internal class RuleRepositoryImpl(
         return when {
             a is BodyMatcher.Exact && b is BodyMatcher.Exact ->
                 a.pattern.equals(b.pattern, ignoreCase = true)
+
             a is BodyMatcher.Contains && b is BodyMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true) ||
-                    b.pattern.contains(a.pattern, ignoreCase = true)
+                        b.pattern.contains(a.pattern, ignoreCase = true)
+
             a is BodyMatcher.Exact && b is BodyMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true)
+
             a is BodyMatcher.Contains && b is BodyMatcher.Exact ->
                 b.pattern.contains(a.pattern, ignoreCase = true)
+
             else -> true
         }
     }
@@ -105,7 +120,12 @@ internal class RuleRepositoryImpl(
 
         // Each configured criterion must match (AND logic across url/headers/body).
         rule.urlMatcher?.let { if (!matchesUrl(it, url)) return false }
-        if (rule.headerMatchers.isNotEmpty() && !rule.headerMatchers.all { matchesHeader(it, headers) }) return false
+        if (rule.headerMatchers.isNotEmpty() && !rule.headerMatchers.all {
+                matchesHeader(
+                    it,
+                    headers
+                )
+            }) return false
         rule.bodyMatcher?.let { if (!matchesBody(it, body)) return false }
 
         return true
@@ -147,7 +167,9 @@ internal class RuleRepositoryImpl(
         is BodyMatcher.Exact -> body?.equals(matcher.pattern, ignoreCase = true) == true
         is BodyMatcher.Contains -> body?.contains(matcher.pattern, ignoreCase = true) == true
         is BodyMatcher.Regex -> runCatching {
-            body?.let { matcher.pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(it) } == true
+            body?.let {
+                matcher.pattern.toRegex(RegexOption.IGNORE_CASE).containsMatchIn(it)
+            } == true
         }.getOrDefault(false)
     }
 

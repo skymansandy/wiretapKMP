@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.util
+package dev.skymansandy.wiretap.helper.util
 
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection

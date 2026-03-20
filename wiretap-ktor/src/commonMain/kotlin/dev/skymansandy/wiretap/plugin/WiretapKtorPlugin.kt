@@ -3,15 +3,15 @@ package dev.skymansandy.wiretap.plugin
 import dev.skymansandy.wiretap.config.LogRetention
 import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.util.currentNanoTime
-import dev.skymansandy.wiretap.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.currentNanoTime
+import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
@@ -97,7 +97,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         // Log request immediately so it appears in the UI (gated by shouldLog)
         val logEntryId = if (config.shouldLog(url, method)) {
             deps.orchestrator.logRequest(
-                NetworkLogEntry(
+                HttpLogEntry(
                     url = url,
                     method = method,
                     requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
@@ -145,7 +145,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                         val durationNs = currentNanoTime() - startNano
                         val mockRespHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
                         deps.orchestrator.updateEntry(
-                            NetworkLogEntry(
+                            HttpLogEntry(
                                 id = logEntryId,
                                 url = url,
                                 method = method,
@@ -182,7 +182,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
                 deps.orchestrator.updateEntry(
-                    NetworkLogEntry(
+                    HttpLogEntry(
                         id = logEntryId,
                         url = url,
                         method = method,
@@ -238,7 +238,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
         deps.orchestrator.updateEntry(
-            NetworkLogEntry(
+            HttpLogEntry(
                 id = logEntryId,
                 url = url,
                 method = method,

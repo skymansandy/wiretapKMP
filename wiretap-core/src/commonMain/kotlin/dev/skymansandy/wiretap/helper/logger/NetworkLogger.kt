@@ -1,11 +1,14 @@
 package dev.skymansandy.wiretap.helper.logger
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 
 interface NetworkLogger {
-    fun log(entry: NetworkLogEntry)
-    fun logSocket(entry: SocketLogEntry) {}
-    fun logSocketMessage(message: SocketMessage) {}
+
+    fun logHttp(entry: HttpLogEntry)
+
+    fun logSocket(entry: SocketLogEntry) = Unit
+
+    fun logSocketMessage(message: SocketMessage) = Unit
 }

@@ -7,14 +7,9 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.util.currentTimeMillis
-import io.ktor.client.HttpClient
+import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.webSocketSession
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readBytes
@@ -22,6 +17,7 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -133,30 +129,32 @@ class WiretapWebSocketSession internal constructor(
             if (statusUpdated) return@invokeOnCompletion
             statusUpdated = true
             val url = delegate.call.request.url.toString().toWebSocketUrl()
-            if (cause != null && cause !is CancellationException) {
-                orchestrator.updateSocketConnection(
-                    SocketLogEntry(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.Failed,
-                        failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            } else {
-                val closeReason = try { delegate.closeReason.getCompleted() } catch (_: Exception) { null }
-                orchestrator.updateSocketConnection(
-                    SocketLogEntry(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.Closed,
-                        closeCode = closeReason?.code?.toInt(),
-                        closeReason = closeReason?.message ?: if (cause is CancellationException) "Cancelled" else null,
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+            runBlocking {
+                if (cause != null && cause !is CancellationException) {
+                    orchestrator.updateSocketConnection(
+                        SocketLogEntry(
+                            id = socketId,
+                            url = url,
+                            status = SocketStatus.Failed,
+                            failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                } else {
+                    val closeReason = try { delegate.closeReason.getCompleted() } catch (_: Exception) { null }
+                    orchestrator.updateSocketConnection(
+                        SocketLogEntry(
+                            id = socketId,
+                            url = url,
+                            status = SocketStatus.Closed,
+                            closeCode = closeReason?.code?.toInt(),
+                            closeReason = closeReason?.message ?: if (cause is CancellationException) "Cancelled" else null,
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
         }
     }
@@ -194,7 +192,7 @@ class WiretapWebSocketSession internal constructor(
         delegate.send(frame)
     }
 
-    fun logReceivedFrame(frame: Frame) {
+    suspend fun logReceivedFrame(frame: Frame) {
         when (frame) {
             is Frame.Text -> {
                 val text = frame.readText()
@@ -247,7 +245,7 @@ class WiretapWebSocketSession internal constructor(
         delegate.close()
     }
 
-    fun markFailed(error: String) {
+    suspend fun markFailed(error: String) {
 
         statusUpdated = true
         val url = delegate.call.request.url.toString()
@@ -265,7 +263,7 @@ class WiretapWebSocketSession internal constructor(
         )
     }
 
-    fun markClosed(code: Short? = null, reason: String? = null) {
+    suspend fun markClosed(code: Short? = null, reason: String? = null) {
 
         statusUpdated = true
         val url = delegate.call.request.url.toString()

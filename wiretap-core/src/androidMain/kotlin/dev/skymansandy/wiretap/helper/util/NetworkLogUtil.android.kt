@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.util
+package dev.skymansandy.wiretap.helper.util
 
 import android.content.Intent
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider

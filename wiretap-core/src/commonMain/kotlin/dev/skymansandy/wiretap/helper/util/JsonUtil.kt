@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.util
+package dev.skymansandy.wiretap.helper.util
 
 internal fun looksLikeJson(text: String): Boolean {
     val t = text.trim()

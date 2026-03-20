@@ -11,19 +11,24 @@ import javax.swing.SwingUtilities
 
 actual fun startWiretap() {
     SwingUtilities.invokeLater {
-        val frame = JFrame("Wiretap").apply {
+        JFrame("Wiretap").apply {
             defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
             size = Dimension(480, 800)
 
             val composePanel = ComposePanel()
             composePanel.setContent {
                 MaterialTheme {
-                    WiretapScreen(onBack = { dispose() })
+                    WiretapScreen(
+                        onBack = {
+                            dispose()
+                        },
+                    )
                 }
             }
             contentPane.add(composePanel)
+        }.also {
+            it.isVisible = true
         }
-        frame.isVisible = true
     }
 }
 

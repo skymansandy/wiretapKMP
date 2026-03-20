@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -51,11 +50,11 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.itemKey
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.ui.components.highlightText
-import dev.skymansandy.wiretap.util.formatOneDecimal
-import dev.skymansandy.wiretap.util.formatTime
+import dev.skymansandy.wiretap.helper.util.formatOneDecimal
+import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.resources.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -64,10 +63,10 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun HttpLogList(
-    lazyItems: LazyPagingItems<NetworkLogEntry>,
+    lazyItems: LazyPagingItems<HttpLogEntry>,
     searchQuery: String,
-    onHttpClick: (NetworkLogEntry) -> Unit,
-    onCreateRule: (NetworkLogEntry) -> Unit,
+    onHttpClick: (HttpLogEntry) -> Unit,
+    onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -157,7 +156,7 @@ private val RevealWidth = 64.dp
 
 @Composable
 private fun SwipeableNetworkLogItem(
-    entry: NetworkLogEntry,
+    entry: HttpLogEntry,
     searchQuery: String,
     isRevealed: Boolean,
     onReveal: () -> Unit,
@@ -264,7 +263,7 @@ private fun SwipeableNetworkLogItem(
 
 @Composable
 private fun NetworkLogItemContent(
-    entry: NetworkLogEntry,
+    entry: HttpLogEntry,
     searchQuery: String,
     onClick: () -> Unit,
 ) {
@@ -407,7 +406,7 @@ private fun SourceChip(source: ResponseSource) {
 private fun NetworkLogItemSuccessPreview() {
     MaterialTheme {
         NetworkLogItemContent(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 1,
                 url = "https://api.example.com/users/123?include=profile",
                 method = "GET",
@@ -427,7 +426,7 @@ private fun NetworkLogItemSuccessPreview() {
 private fun NetworkLogItemErrorPreview() {
     MaterialTheme {
         NetworkLogItemContent(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 2,
                 url = "https://api.example.com/auth/login",
                 method = "POST",
@@ -446,11 +445,11 @@ private fun NetworkLogItemErrorPreview() {
 private fun NetworkLogItemInProgressPreview() {
     MaterialTheme {
         NetworkLogItemContent(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 3,
                 url = "https://api.example.com/data/sync",
                 method = "POST",
-                responseCode = NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS,
+                responseCode = HttpLogEntry.RESPONSE_CODE_IN_PROGRESS,
                 timestamp = 1710850000000,
             ),
             searchQuery = "",
@@ -464,7 +463,7 @@ private fun NetworkLogItemInProgressPreview() {
 private fun NetworkLogItemMockedPreview() {
     MaterialTheme {
         NetworkLogItemContent(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 4,
                 url = "https://api.example.com/users",
                 method = "GET",
@@ -485,7 +484,7 @@ private fun NetworkLogItemMockedPreview() {
 private fun NetworkLogItemServerErrorPreview() {
     MaterialTheme {
         NetworkLogItemContent(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 5,
                 url = "http://api.example.com/internal/health",
                 method = "GET",

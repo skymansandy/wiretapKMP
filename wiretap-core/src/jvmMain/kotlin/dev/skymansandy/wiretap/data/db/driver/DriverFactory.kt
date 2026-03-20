@@ -6,6 +6,7 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import dev.skymansandy.wiretap.db.WiretapDatabase
 
 internal actual class DriverFactory {
+
     actual fun createDriver(): SqlDriver {
         val driver = JdbcSqliteDriver("jdbc:sqlite:wiretap.db")
         migrateOrRecreate(driver)
@@ -13,7 +14,7 @@ internal actual class DriverFactory {
     }
 
     private fun migrateOrRecreate(driver: SqlDriver) {
-        val schema = WiretapDatabase.Companion.Schema
+        val schema = WiretapDatabase.Schema
         val currentVersion = try {
             driver.executeQuery(
                 null,

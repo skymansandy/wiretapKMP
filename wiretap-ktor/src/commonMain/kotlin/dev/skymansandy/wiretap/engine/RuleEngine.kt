@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.engine
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapResponse
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import io.ktor.client.request.*
+import io.ktor.client.request.HttpRequestBuilder
 
 internal interface RuleEngine {
     suspend fun evaluate(request: HttpRequestBuilder, proceed: suspend () -> WiretapResponse): WiretapResponse
@@ -19,7 +19,6 @@ internal class RuleEngineImpl(
         request: HttpRequestBuilder,
         proceed: suspend () -> WiretapResponse,
     ): WiretapResponse {
-
         val url = request.url.buildString()
         val method = request.method.value
 

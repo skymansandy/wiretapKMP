@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.NetworkRepository
@@ -23,49 +23,56 @@ internal class WiretapOrchestratorImpl(
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
     private val activeConnections = mutableMapOf<Long, SocketLogEntry>()
 
-    override fun logEntry(entry: NetworkLogEntry) {
+    override suspend fun logEntry(entry: HttpLogEntry) {
+
         networkRepository.save(entry)
-        networkLogger.log(entry)
+        networkLogger.logHttp(entry)
         onNetworkEntryLogged(entry)
     }
 
-    override fun logRequest(entry: NetworkLogEntry): Long {
+    override suspend fun logRequest(entry: HttpLogEntry): Long {
+
         val id = networkRepository.saveAndGetId(entry)
         val entryWithId = entry.copy(id = id)
-        networkLogger.log(entryWithId)
+        networkLogger.logHttp(entryWithId)
         onNetworkEntryLogged(entryWithId)
         return id
     }
 
-    override fun updateEntry(entry: NetworkLogEntry) {
+    override suspend fun updateEntry(entry: HttpLogEntry) {
+
         networkRepository.update(entry)
-        networkLogger.log(entry)
+        networkLogger.logHttp(entry)
         onNetworkEntryLogged(entry)
     }
 
-    override fun getAllLogs(): Flow<List<NetworkLogEntry>> = networkRepository.getAll()
+    override fun getAllLogs(): Flow<List<HttpLogEntry>> = networkRepository.getAll()
 
-    override fun getPagedLogs(query: String): Flow<PagingData<NetworkLogEntry>> =
+    override fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>> =
         networkRepository.getPagedLogs(query)
 
-    override fun getLogById(id: Long): NetworkLogEntry? = networkRepository.getById(id)
+    override suspend fun getLogById(id: Long): HttpLogEntry? = networkRepository.getById(id)
 
-    override fun deleteLog(id: Long) {
+    override suspend fun deleteLog(id: Long) {
+
         networkRepository.deleteById(id)
     }
 
-    override fun clearLogs() {
+    override suspend fun clearLogs() {
+
         networkRepository.clearAll()
         onNetworkLogsCleared()
     }
 
-    override fun purgeLogsOlderThan(cutoffMs: Long) {
+    override suspend fun purgeLogsOlderThan(cutoffMs: Long) {
+
         networkRepository.deleteOlderThan(cutoffMs)
     }
 
     // Socket
 
-    override fun openSocketConnection(entry: SocketLogEntry): Long {
+    override suspend fun openSocketConnection(entry: SocketLogEntry): Long {
+
         val id = socketRepository.openConnection(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
@@ -74,7 +81,8 @@ internal class WiretapOrchestratorImpl(
         return id
     }
 
-    override fun updateSocketConnection(entry: SocketLogEntry) {
+    override suspend fun updateSocketConnection(entry: SocketLogEntry) {
+
         socketRepository.updateConnection(entry)
         when (entry.status) {
             dev.skymansandy.wiretap.domain.model.SocketStatus.Closed,
@@ -85,7 +93,8 @@ internal class WiretapOrchestratorImpl(
         onSocketConnectionLogged(entry)
     }
 
-    override fun logSocketMessage(message: SocketMessage) {
+    override suspend fun logSocketMessage(message: SocketMessage) {
+
         // If the socket entry was cleared but the connection is still active, re-create it
         val existingEntry = socketRepository.getById(message.socketId)
         if (existingEntry == null) {
@@ -104,7 +113,7 @@ internal class WiretapOrchestratorImpl(
         }
     }
 
-    override fun getSocketById(id: Long): SocketLogEntry? = socketRepository.getById(id)
+    override suspend fun getSocketById(id: Long): SocketLogEntry? = socketRepository.getById(id)
 
     override fun getSocketByIdFlow(id: Long): Flow<SocketLogEntry?> = socketRepository.getByIdFlow(id)
 
@@ -116,7 +125,8 @@ internal class WiretapOrchestratorImpl(
     override fun getPagedSocketLogs(query: String): Flow<PagingData<SocketLogEntry>> =
         socketRepository.getPagedConnections(query)
 
-    override fun clearSocketLogs() {
+    override suspend fun clearSocketLogs() {
+
         socketRepository.clearAll()
         onSocketLogsCleared()
     }

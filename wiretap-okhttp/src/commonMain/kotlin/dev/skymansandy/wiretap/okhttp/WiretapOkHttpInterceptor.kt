@@ -3,19 +3,20 @@ package dev.skymansandy.wiretap.okhttp
 import dev.skymansandy.wiretap.config.LogRetention
 import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.util.currentNanoTime
-import dev.skymansandy.wiretap.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.currentNanoTime
+import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -51,19 +52,22 @@ class WiretapOkHttpInterceptor(
 
     @Volatile private var sessionInitialized = false
 
-    override fun intercept(chain: Interceptor.Chain): Response {
+    override fun intercept(chain: Interceptor.Chain): Response = runBlocking {
 
-        if (!config.enabled) return chain.proceed(chain.request())
+        if (!config.enabled) return@runBlocking chain.proceed(chain.request())
 
         // AppSession: clear all previous logs once at first interception
         if (!sessionInitialized) {
-            synchronized(this) {
+            val shouldClear = synchronized(this@WiretapOkHttpInterceptor) {
                 if (!sessionInitialized) {
                     sessionInitialized = true
-                    if (config.logRetention == LogRetention.AppSession) {
-                        orchestrator.clearLogs()
-                    }
+                    config.logRetention == LogRetention.AppSession
+                } else {
+                    false
                 }
+            }
+            if (shouldClear) {
+                orchestrator.clearLogs()
             }
         }
 
@@ -71,7 +75,7 @@ class WiretapOkHttpInterceptor(
 
         // Skip WebSocket upgrade requests — handled by WiretapOkHttpWebSocketListener
         if (request.header("Upgrade").equals("websocket", ignoreCase = true)) {
-            return chain.proceed(request)
+            return@runBlocking chain.proceed(request)
         }
 
         val url = request.url.toString()
@@ -100,7 +104,7 @@ class WiretapOkHttpInterceptor(
         // Log request immediately so it appears in the UI (gated by shouldLog)
         val logEntryId = if (config.shouldLog(url, method)) {
             orchestrator.logRequest(
-                NetworkLogEntry(
+                HttpLogEntry(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
@@ -128,7 +132,7 @@ class WiretapOkHttpInterceptor(
             if (logEntryId >= 0) {
                 val mockRespHeaders = mockResponse.headers.toMap()
                 orchestrator.updateEntry(
-                    NetworkLogEntry(
+                    HttpLogEntry(
                         id = logEntryId,
                         url = url,
                         method = method,
@@ -144,7 +148,7 @@ class WiretapOkHttpInterceptor(
                     ),
                 )
             }
-            return mockResponse
+            return@runBlocking mockResponse
         }
 
         if (matchingRule?.action == RuleAction.Throttle) {
@@ -161,7 +165,7 @@ class WiretapOkHttpInterceptor(
                 val durationNs = currentNanoTime() - startNano
                 val isCancelled = e is java.io.IOException && e.message == "Canceled"
                 orchestrator.updateEntry(
-                    NetworkLogEntry(
+                    HttpLogEntry(
                         id = logEntryId,
                         url = url,
                         method = method,
@@ -224,7 +228,7 @@ class WiretapOkHttpInterceptor(
 
         if (logEntryId >= 0) {
             orchestrator.updateEntry(
-                NetworkLogEntry(
+                HttpLogEntry(
                     id = logEntryId,
                     url = url,
                     method = method,
@@ -248,6 +252,6 @@ class WiretapOkHttpInterceptor(
             )
         }
 
-        return response
+        response
     }
 }

@@ -11,5 +11,6 @@ object WiretapDi : KoinComponent {
     override fun getKoin(): Koin = WiretapKoinContext.koin
 
     val orchestrator: WiretapOrchestrator by inject()
+
     val ruleRepository: RuleRepository by inject()
 }

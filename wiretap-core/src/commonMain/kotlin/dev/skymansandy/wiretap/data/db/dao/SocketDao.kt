@@ -6,15 +6,25 @@ import kotlinx.coroutines.flow.Flow
 
 internal interface SocketDao {
 
-    fun insertAndGetId(entry: SocketLogEntry): Long
-    fun insertWithId(entry: SocketLogEntry)
-    fun update(entry: SocketLogEntry)
-    fun insertMessage(message: SocketMessage)
-    fun incrementMessageCount(socketId: Long)
-    fun getById(id: Long): SocketLogEntry?
+    suspend fun insertAndGetId(entry: SocketLogEntry): Long
+
+    suspend fun insertWithId(entry: SocketLogEntry)
+
+    suspend fun update(entry: SocketLogEntry)
+
+    suspend fun insertMessage(message: SocketMessage)
+
+    suspend fun incrementMessageCount(socketId: Long)
+
+    suspend fun getById(id: Long): SocketLogEntry?
+
     fun getMessages(socketId: Long): Flow<List<SocketMessage>>
+
     fun getAll(): Flow<List<SocketLogEntry>>
-    fun getPage(query: String, limit: Long, afterId: Long?): List<SocketLogEntry>
-    fun deleteAll()
-    fun deleteClosed()
+
+    suspend fun getPage(query: String, limit: Long, afterId: Long?): List<SocketLogEntry>
+
+    suspend fun deleteAll()
+
+    suspend fun deleteClosed()
 }

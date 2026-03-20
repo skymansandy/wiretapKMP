@@ -6,16 +6,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.ui.components.KeyValueTable
-import dev.skymansandy.wiretap.util.formatSize
+import dev.skymansandy.wiretap.helper.util.formatSize
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun OverviewTab(entry: NetworkLogEntry) {
+internal fun OverviewTab(entry: HttpLogEntry) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,7 +63,7 @@ internal fun OverviewTab(entry: NetworkLogEntry) {
 private fun OverviewTabPreview() {
     MaterialTheme {
         OverviewTab(
-            entry = NetworkLogEntry(
+            entry = HttpLogEntry(
                 id = 1,
                 url = "https://api.example.com/users/123",
                 method = "GET",

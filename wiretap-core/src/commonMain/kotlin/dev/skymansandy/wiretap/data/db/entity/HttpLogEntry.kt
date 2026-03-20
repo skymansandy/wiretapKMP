@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.data.db.entity
 
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 
-data class NetworkLogEntry(
+data class HttpLogEntry(
     val id: Long = 0,
     val url: String,
     val method: String,
@@ -24,7 +24,6 @@ data class NetworkLogEntry(
     val issuerCn: String? = null,
     val certificateExpiry: String? = null,
 ) {
-
     val isInProgress: Boolean get() = responseCode == RESPONSE_CODE_IN_PROGRESS
 
     companion object {

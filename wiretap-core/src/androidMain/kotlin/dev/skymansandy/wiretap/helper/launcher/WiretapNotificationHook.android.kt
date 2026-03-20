@@ -1,11 +1,11 @@
 package dev.skymansandy.wiretap.helper.launcher
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 
-internal actual fun onNetworkEntryLogged(entry: NetworkLogEntry) {
+internal actual fun onNetworkEntryLogged(entry: HttpLogEntry) {
     WiretapNotificationManager.onNewEntry(WiretapContextProvider.context, entry)
 }
 

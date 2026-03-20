@@ -17,10 +17,15 @@ private var wiretapViewControllerInstance: UIViewController? = null
 fun WiretapViewController(): UIViewController {
     return ComposeUIViewController {
         MaterialTheme {
-            WiretapScreen(onBack = {
-                getTopMostViewController()?.dismissViewControllerAnimated(true, completion = null)
-                wiretapViewControllerInstance = null
-            })
+            WiretapScreen(
+                onBack = {
+                    wiretapViewControllerInstance = null
+                    getTopMostViewController()?.dismissViewControllerAnimated(
+                        true,
+                        completion = null
+                    )
+                }
+            )
         }
     }.also {
         wiretapViewControllerInstance = it
@@ -29,6 +34,7 @@ fun WiretapViewController(): UIViewController {
 
 actual fun startWiretap() {
     if (wiretapViewControllerInstance != null) return
+
     val topVc = getTopMostViewController() ?: return
     val wiretapVc = WiretapViewController()
     wiretapVc.setModalPresentationStyle(UIModalPresentationFullScreen)
@@ -38,6 +44,7 @@ actual fun startWiretap() {
 actual fun enableWiretapLauncher() {
     ShakeDetector.enable {
         if (wiretapViewControllerInstance != null) return@enable
+
         startWiretap()
     }
 }
@@ -46,9 +53,12 @@ private fun getTopMostViewController(
     base: UIViewController? = UIApplication.sharedApplication.topWindow?.rootViewController
 ): UIViewController? {
     if (base == null) return null
+
     return when (base) {
         is UINavigationController -> getTopMostViewController(base.visibleViewController)
+
         is UITabBarController -> base.selectedViewController?.let { getTopMostViewController(it) }
+
         else -> {
             if (base.presentedViewController != null) {
                 getTopMostViewController(base.presentedViewController)
@@ -60,11 +70,10 @@ private fun getTopMostViewController(
 }
 
 private val UIApplication.topWindow: UIWindow?
-    get() {
-        return connectedScenes
-            .asSequence()
-            .mapNotNull { it as? UIWindowScene }
-            .flatMap { it.windows.asSequence() }
-            .filterIsInstance<UIWindow>()
-            .lastOrNull { it.isKeyWindow() }
-    }
+    get() = connectedScenes
+        .asSequence()
+        .mapNotNull { it as? UIWindowScene }
+        .flatMap { it.windows.asSequence() }
+        .filterIsInstance<UIWindow>()
+        .lastOrNull { it.isKeyWindow() }
+

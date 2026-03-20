@@ -11,7 +11,6 @@ class WiretapOkHttpWebSocketListener(
 ) : WebSocketListener() {
 
     override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
-
         delegate.onOpen(webSocket, response)
     }
 

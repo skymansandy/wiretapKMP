@@ -11,6 +11,7 @@
     <string name="clear_websocket_logs">Clear WebSocket logs</string>
     <string name="tab_http">HTTP</string>
     <string name="tab_websocket">WebSocket</string>
+    <string name="tab_logs">Logs</string>
     <string name="tab_rules">Rules</string>
     <string name="no_http_logs">No HTTP logs yet</string>
     <string name="failed_to_load_logs">Failed to load logs</string>

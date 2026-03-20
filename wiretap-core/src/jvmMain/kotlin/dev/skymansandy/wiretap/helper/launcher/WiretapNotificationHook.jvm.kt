@@ -1,10 +1,10 @@
 package dev.skymansandy.wiretap.helper.launcher
 
-import dev.skymansandy.wiretap.data.db.entity.NetworkLogEntry
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 
-internal actual fun onNetworkEntryLogged(entry: NetworkLogEntry) = Unit
+internal actual fun onNetworkEntryLogged(entry: HttpLogEntry) = Unit
 
 internal actual fun onNetworkLogsCleared() = Unit
 
