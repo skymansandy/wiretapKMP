@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.ui.screens.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.screens.NetworkLogDetailScreen
 import dev.skymansandy.wiretap.ui.screens.RuleDetailScreen
@@ -22,6 +23,7 @@ fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
     ruleRepository: RuleRepository = WiretapDi.ruleRepository,
+    findConflictingRules: FindConflictingRulesUseCase = WiretapDi.findConflictingRules,
     initialSocketId: Long? = null,
     onInitialSocketConsumed: () -> Unit = {},
 ) {
@@ -64,6 +66,7 @@ fun WiretapScreen(
 
         is WiretapRoute.CreateRule -> CreateRuleScreen(
             ruleRepository = ruleRepository,
+            findConflictingRules = findConflictingRules,
             onBack = { route = null },
             onSaved = { route = null },
             existingRule = current.existingRule,

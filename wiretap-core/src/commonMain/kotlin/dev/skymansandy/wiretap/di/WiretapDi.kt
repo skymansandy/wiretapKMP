@@ -2,6 +2,8 @@ package dev.skymansandy.wiretap.di
 
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -13,4 +15,8 @@ object WiretapDi : KoinComponent {
     val orchestrator: WiretapOrchestrator by inject()
 
     val ruleRepository: RuleRepository by inject()
+
+    val findMatchingRule: FindMatchingRuleUseCase by inject()
+
+    val findConflictingRules: FindConflictingRulesUseCase by inject()
 }

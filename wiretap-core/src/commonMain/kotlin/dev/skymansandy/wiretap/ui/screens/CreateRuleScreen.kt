@@ -40,6 +40,7 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.any_method
 import dev.skymansandy.wiretap.resources.back
@@ -79,6 +80,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun CreateRuleScreen(
     ruleRepository: RuleRepository,
+    findConflictingRules: FindConflictingRulesUseCase,
     onBack: () -> Unit,
     onSaved: () -> Unit,
     existingRule: WiretapRule? = null,
@@ -362,7 +364,7 @@ internal fun CreateRuleScreen(
                                     enabled = existingRule?.enabled ?: true,
                                     createdAt = existingRule?.createdAt ?: currentTimeMillis(),
                                 )
-                                val conflicts = ruleRepository.findConflictingRules(rule)
+                                val conflicts = findConflictingRules(rule)
                                 if (conflicts.isNotEmpty()) {
                                     pendingRule = rule
                                     conflictingRules = conflicts
@@ -496,11 +498,9 @@ private object NoOpRuleRepository : RuleRepository {
     override fun search(query: String) = kotlinx.coroutines.flow.flowOf(emptyList<WiretapRule>())
     override suspend fun getById(id: Long) = null
     override suspend fun getEnabledRules() = emptyList<WiretapRule>()
-    override suspend fun findMatchingRule(url: String, method: String, headers: Map<String, String>, body: String?) = null
     override suspend fun addRule(rule: WiretapRule) {}
     override suspend fun updateRule(rule: WiretapRule) {}
     override suspend fun deleteById(id: Long) {}
     override suspend fun deleteAll() {}
     override suspend fun setEnabled(id: Long, enabled: Boolean) {}
-    override suspend fun findConflictingRules(rule: WiretapRule) = emptyList<WiretapRule>()
 }

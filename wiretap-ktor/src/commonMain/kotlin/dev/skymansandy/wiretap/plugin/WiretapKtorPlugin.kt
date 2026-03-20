@@ -9,7 +9,7 @@ import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall
@@ -82,7 +82,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
             null
         }
 
-        val matchingRule = deps.ruleRepository.findMatchingRule(url, method, requestHeaders, requestBody)
+        val matchingRule = deps.findMatchingRule(url, method, requestHeaders, requestBody)
         if (matchingRule != null) {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
@@ -262,5 +262,5 @@ private class WiretapDeps : KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
     val orchestrator: WiretapOrchestrator by inject()
-    val ruleRepository: RuleRepository by inject()
+    val findMatchingRule: FindMatchingRuleUseCase by inject()
 }

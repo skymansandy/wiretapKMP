@@ -9,7 +9,7 @@ import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.cinterop.BetaInteropApi
@@ -67,15 +67,10 @@ class WiretapURLSessionInterceptor(
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
-    private val ruleRepository: RuleRepository by inject()
+    private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
     @Volatile
     private var sessionInitialized = false
-
-    companion object {
-
-        val shared by lazy { WiretapURLSessionInterceptor() }
-    }
 
     /**
      * Intercepts a URL request with full rule support (mock, throttle).
@@ -104,7 +99,7 @@ class WiretapURLSessionInterceptor(
         val reqHeaders = extractRequestHeaders(request)
         val requestBody = request.HTTPBody?.toKotlinString()
 
-        val matchingRule = ruleRepository.findMatchingRule(url, method, reqHeaders, requestBody)
+        val matchingRule = findMatchingRule(url, method, reqHeaders, requestBody)
 
         val retention = config.logRetention
         if (retention is LogRetention.Days) {

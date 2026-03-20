@@ -9,7 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -162,7 +162,7 @@ internal fun WiretapHomeScreen(
                         selectedTab = TAB_HTTP
                         searchQuery = ""
                     },
-                    icon = { Icon(Icons.Default.SwapVert, contentDescription = null) },
+                    icon = { Icon(Icons.Default.Http, contentDescription = null) },
                     label = { Text(stringResource(Res.string.tab_http)) },
                 )
                 NavigationBarItem(

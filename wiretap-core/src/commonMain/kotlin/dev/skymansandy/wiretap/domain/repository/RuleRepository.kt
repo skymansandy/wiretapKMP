@@ -17,17 +17,6 @@ interface RuleRepository {
 
     suspend fun getEnabledRules(): List<WiretapRule>
 
-    suspend fun findMatchingRule(
-        url: String,
-        method: String,
-        headers: Map<String, String> = emptyMap(),
-        body: String? = null,
-    ): WiretapRule?
-
-    suspend fun findConflictingRules(
-        rule: WiretapRule,
-    ): List<WiretapRule>
-
     suspend fun setEnabled(id: Long, enabled: Boolean)
 
     suspend fun deleteById(id: Long)
