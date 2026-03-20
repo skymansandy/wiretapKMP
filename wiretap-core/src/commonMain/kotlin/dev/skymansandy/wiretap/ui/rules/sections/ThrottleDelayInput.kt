@@ -24,6 +24,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
 import dev.skymansandy.wiretap.ui.model.ThrottleProfile
+import dev.skymansandy.wiretap.ui.model.labelRes
+import dev.skymansandy.wiretap.ui.model.speedRes
 import dev.skymansandy.wiretap.resources.*
 import androidx.compose.foundation.layout.Column
 import org.jetbrains.compose.resources.stringResource
@@ -118,8 +120,9 @@ internal fun ThrottleDelayInput(
                 },
             ) {
                 OutlinedTextField(
-                    value = selectedProfile?.let { "${it.label}  (${it.speed} · ${it.delayMinMs}–${it.delayMaxMs}ms)" }
-                        ?: "",
+                    value = selectedProfile?.let {
+                        "${stringResource(it.labelRes)}  (${stringResource(Res.string.profile_speed_delay, stringResource(it.speedRes), it.delayMinMs, it.delayMaxMs)})"
+                    } ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(Res.string.network_profile)) },
@@ -141,10 +144,10 @@ internal fun ThrottleDelayInput(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(text = profile.label)
+                                    Text(text = stringResource(profile.labelRes))
 
                                     Text(
-                                        text = "${profile.speed} · ${profile.delayMinMs}–${profile.delayMaxMs}ms",
+                                        text = stringResource(Res.string.profile_speed_delay, stringResource(profile.speedRes), profile.delayMinMs, profile.delayMaxMs),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

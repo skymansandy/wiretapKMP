@@ -31,18 +31,16 @@ internal enum class ThrottleInputMode {
 }
 
 internal enum class ThrottleProfile(
-    val label: String,
-    val speed: String,
     val delayMinMs: Long,
     val delayMaxMs: Long,
 ) {
-    Gprs("2G (GPRS)", "~50 kbps", 1500, 3000),
-    Edge("2G (EDGE)", "~200 kbps", 800, 2000),
-    Slow3g("3G (Slow)", "~400 kbps", 500, 1500),
-    Fast3g("3G", "~2 Mbps", 300, 800),
-    Slow4g("4G (Slow)", "~5 Mbps", 150, 400),
-    Lte("4G (LTE)", "~20 Mbps", 50, 200),
-    SlowWifi("Slow WiFi", "~1 Mbps", 500, 1000),
+    Gprs(1500, 3000),
+    Edge(800, 2000),
+    Slow3g(500, 1500),
+    Fast3g(300, 800),
+    Slow4g(150, 400),
+    Lte(50, 200),
+    SlowWifi(500, 1000),
 }
 
 internal data class HeaderEntry(

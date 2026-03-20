@@ -31,6 +31,12 @@ import dev.skymansandy.wiretap.resources.label_value_regex
 import dev.skymansandy.wiretap.resources.none
 import dev.skymansandy.wiretap.resources.placeholder_authorization
 import dev.skymansandy.wiretap.resources.remove
+import dev.skymansandy.wiretap.resources.section_body
+import dev.skymansandy.wiretap.resources.section_headers
+import dev.skymansandy.wiretap.resources.section_url
+import dev.skymansandy.wiretap.resources.test_body
+import dev.skymansandy.wiretap.resources.test_header_value
+import dev.skymansandy.wiretap.resources.test_url
 import dev.skymansandy.wiretap.resources.url_label_format
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
@@ -74,7 +80,7 @@ internal fun RequestStep(
 
     // ── URL ──────────────────────────────────────────────────────────────────
     SectionLabel(
-        title = "URL",
+        title = stringResource(Res.string.section_url),
     )
 
     FlowRow(
@@ -95,6 +101,10 @@ internal fun RequestStep(
         }
     }
 
+    val testUrlLabel = stringResource(Res.string.test_url)
+    val testHeaderValueLabel = stringResource(Res.string.test_header_value)
+    val testBodyLabel = stringResource(Res.string.test_body)
+
     if (urlMode != null) {
         OutlinedTextField(
             value = urlPattern,
@@ -105,7 +115,7 @@ internal fun RequestStep(
             singleLine = true,
             trailingIcon = when {
                 urlMode.isRegex() -> {
-                    { RegexTesterIcon { onOpenRegexTester(urlPattern, "Test URL") } }
+                    { RegexTesterIcon { onOpenRegexTester(urlPattern, testUrlLabel) } }
                 }
 
                 else -> null
@@ -115,7 +125,7 @@ internal fun RequestStep(
 
     // ── Headers ───────────────────────────────────────────────────────────────
     SectionLabel(
-        title = "Headers",
+        title = stringResource(Res.string.section_headers),
     )
 
     headerEntries.forEachIndexed { idx, entry ->
@@ -124,7 +134,7 @@ internal fun RequestStep(
             onUpdate = { onHeaderUpdate(idx, it) },
             onRemove = { onHeaderRemove(idx) },
             onOpenRegexTester = {
-                onOpenRegexTester(it, "Test Header Value")
+                onOpenRegexTester(it, testHeaderValueLabel)
             },
         )
     }
@@ -140,7 +150,7 @@ internal fun RequestStep(
 
     // ── Body ──────────────────────────────────────────────────────────────────
     SectionLabel(
-        title = "Body",
+        title = stringResource(Res.string.section_body),
     )
 
     FlowRow(
@@ -171,7 +181,7 @@ internal fun RequestStep(
             minLines = 3,
             trailingIcon = when {
                 bodyMode.isRegex() -> {
-                    { RegexTesterIcon { onOpenRegexTester(bodyPattern, "Test Body") } }
+                    { RegexTesterIcon { onOpenRegexTester(bodyPattern, testBodyLabel) } }
                 }
 
                 else -> null

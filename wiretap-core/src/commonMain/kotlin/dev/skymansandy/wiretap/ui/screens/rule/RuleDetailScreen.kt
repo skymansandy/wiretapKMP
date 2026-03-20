@@ -56,10 +56,18 @@ import dev.skymansandy.wiretap.resources.delete_rule_cd
 import dev.skymansandy.wiretap.resources.delete_rule_confirm
 import dev.skymansandy.wiretap.resources.edit_rule_cd
 import dev.skymansandy.wiretap.resources.enabled
+import dev.skymansandy.wiretap.resources.header_contains_format
+import dev.skymansandy.wiretap.resources.header_exact_format
+import dev.skymansandy.wiretap.resources.header_regex_format
 import dev.skymansandy.wiretap.resources.headers
 import dev.skymansandy.wiretap.resources.label_action
 import dev.skymansandy.wiretap.resources.label_delay
+import dev.skymansandy.wiretap.resources.label_method
 import dev.skymansandy.wiretap.resources.label_url
+import dev.skymansandy.wiretap.resources.match_contains
+import dev.skymansandy.wiretap.resources.match_exact
+import dev.skymansandy.wiretap.resources.match_key_exists
+import dev.skymansandy.wiretap.resources.match_regex
 import dev.skymansandy.wiretap.resources.no_headers
 import dev.skymansandy.wiretap.resources.response_body
 import dev.skymansandy.wiretap.resources.response_code_label
@@ -147,7 +155,7 @@ internal fun RuleDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            DetailRow("Method", if (rule.method == "*") stringResource(Res.string.any_method) else rule.method)
+            DetailRow(stringResource(Res.string.label_method), if (rule.method == "*") stringResource(Res.string.any_method) else rule.method)
 
             // URL matcher
             rule.urlMatcher?.let { matcher ->
@@ -249,13 +257,13 @@ internal fun RuleDetailScreen(
 private fun HeaderMatcherDetail(matcher: HeaderMatcher) {
     when (matcher) {
         is HeaderMatcher.KeyExists ->
-            DetailRow("Key Exists", matcher.key)
+            DetailRow(stringResource(Res.string.match_key_exists), matcher.key)
         is HeaderMatcher.ValueExact ->
-            DetailRow("${matcher.key}  =  Exact", matcher.value)
+            DetailRow(stringResource(Res.string.header_exact_format, matcher.key), matcher.value)
         is HeaderMatcher.ValueContains ->
-            DetailRow("${matcher.key}  ~  Contains", matcher.value)
+            DetailRow(stringResource(Res.string.header_contains_format, matcher.key), matcher.value)
         is HeaderMatcher.ValueRegex ->
-            DetailRow("${matcher.key}  *  Regex", matcher.pattern)
+            DetailRow(stringResource(Res.string.header_regex_format, matcher.key), matcher.pattern)
     }
 }
 
@@ -272,16 +280,18 @@ private fun DetailRow(
     }
 }
 
+@Composable
 private fun urlMatcherLabel(matcher: UrlMatcher) = when (matcher) {
-    is UrlMatcher.Exact -> "Exact"
-    is UrlMatcher.Contains -> "Contains"
-    is UrlMatcher.Regex -> "Regex"
+    is UrlMatcher.Exact -> stringResource(Res.string.match_exact)
+    is UrlMatcher.Contains -> stringResource(Res.string.match_contains)
+    is UrlMatcher.Regex -> stringResource(Res.string.match_regex)
 }
 
+@Composable
 private fun bodyMatcherLabel(matcher: BodyMatcher) = when (matcher) {
-    is BodyMatcher.Exact -> "Exact"
-    is BodyMatcher.Contains -> "Contains"
-    is BodyMatcher.Regex -> "Regex"
+    is BodyMatcher.Exact -> stringResource(Res.string.match_exact)
+    is BodyMatcher.Contains -> stringResource(Res.string.match_contains)
+    is BodyMatcher.Regex -> stringResource(Res.string.match_regex)
 }
 
 @Preview

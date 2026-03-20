@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.close
+import dev.skymansandy.wiretap.resources.invalid_regex
 import dev.skymansandy.wiretap.resources.match_found
 import dev.skymansandy.wiretap.resources.no_match
 import dev.skymansandy.wiretap.resources.regex_tester
@@ -104,7 +105,7 @@ internal fun RegexTesterSheet(
                     )
                     if (result.error != null) {
                         Text(
-                            text = result.error,
+                            text = stringResource(Res.string.invalid_regex, result.error),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )

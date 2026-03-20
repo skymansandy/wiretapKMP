@@ -55,6 +55,7 @@ import dev.skymansandy.wiretap.resources.rule_conflict
 import dev.skymansandy.wiretap.resources.save_rule
 import dev.skymansandy.wiretap.resources.step_request
 import dev.skymansandy.wiretap.resources.step_response
+import dev.skymansandy.wiretap.resources.test_input
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
@@ -152,7 +153,8 @@ internal fun CreateRuleScreen(
 
     // Regex tester
     var regexTesterPattern by remember { mutableStateOf("") }
-    var regexTesterLabel by remember { mutableStateOf("Test Input") }
+    val testInputLabel = stringResource(Res.string.test_input)
+    var regexTesterLabel by remember { mutableStateOf(testInputLabel) }
     var showRegexTester by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 

@@ -53,6 +53,12 @@ import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.back
 import dev.skymansandy.wiretap.resources.binary_message
 import dev.skymansandy.wiretap.resources.history_cleared
+import dev.skymansandy.wiretap.resources.label_closed
+import dev.skymansandy.wiretap.resources.label_code
+import dev.skymansandy.wiretap.resources.label_error
+import dev.skymansandy.wiretap.resources.label_opened
+import dev.skymansandy.wiretap.resources.label_protocol
+import dev.skymansandy.wiretap.resources.label_reason
 import dev.skymansandy.wiretap.resources.label_status
 import dev.skymansandy.wiretap.resources.request_headers
 import dev.skymansandy.wiretap.resources.status_closed
@@ -178,23 +184,23 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             InfoLabel(stringResource(Res.string.label_status), entry.status.name)
-            InfoLabel("Opened", formatTime(entry.timestamp))
+            InfoLabel(stringResource(Res.string.label_opened), formatTime(entry.timestamp))
         }
 
         if (entry.closedAt != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                InfoLabel("Closed", formatTime(entry.closedAt))
-                entry.closeCode?.let { InfoLabel("Code", it.toString()) }
+                InfoLabel(stringResource(Res.string.label_closed), formatTime(entry.closedAt))
+                entry.closeCode?.let { InfoLabel(stringResource(Res.string.label_code), it.toString()) }
             }
-            entry.closeReason?.let { InfoLabel("Reason", it) }
+            entry.closeReason?.let { InfoLabel(stringResource(Res.string.label_reason), it) }
         }
 
         if (entry.failureMessage != null) {
-            InfoLabel("Error", entry.failureMessage)
+            InfoLabel(stringResource(Res.string.label_error), entry.failureMessage)
         }
 
         if (entry.protocol != null) {
-            InfoLabel("Protocol", entry.protocol)
+            InfoLabel(stringResource(Res.string.label_protocol), entry.protocol)
         }
 
         if (entry.requestHeaders.isNotEmpty()) {
