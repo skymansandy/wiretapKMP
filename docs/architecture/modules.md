@@ -11,6 +11,7 @@ WiretapKMP/
 ├── wiretap-okhttp-noop/        OkHttp no-op stubs (release)
 ├── wiretap-urlsession/         URLSession interceptor (iOS)
 ├── wiretap-urlsession-noop/    URLSession no-op stubs (iOS release)
+├── wiretap-shake/              Shake detector (iOS, via swiftklib)
 ├── composeApp/                 KMP Compose sample app
 ├── androidApp/                 Android sample wrapper
 └── swiftSampleApp/             Native Swift sample app
@@ -86,6 +87,20 @@ Published as `WiretapURLSession` static framework via KMMBridge/SPM. Exports wir
 
 Same `WiretapURLSession` framework name. Pass-through behavior, no Koin, no database, no logging.
 
+## wiretap-shake
+
+**Platforms:** iOS (iosArm64 + iosSimulatorArm64)
+
+| Component | Description |
+|-----------|-------------|
+| `ShakeDetector` | Kotlin object that bridges to Swift `WiretapShakeDetector` via c-interop |
+| `WiretapShakeDetector.swift` | Extends `UIWindow.motionEnded` to detect shake gestures |
+
+Used internally by `wiretap-core` on iOS to implement `enableWiretapLauncher()`. Built via the **swiftklib** plugin which compiles the Swift source and generates c-interop bindings.
+
+!!! note
+    On Android, shake detection uses the accelerometer sensor directly in `wiretap-core` — no separate module needed. On JVM Desktop, `enableWiretapLauncher()` registers a `Ctrl+Shift+D` keyboard shortcut instead.
+
 ## Dependency Graph
 
 ```mermaid
@@ -97,10 +112,12 @@ graph TD
     ktor_noop["wiretap-ktor-noop"]
     okhttp_noop["wiretap-okhttp-noop"]
     urlsession_noop["wiretap-urlsession-noop"]
+    shake["wiretap-shake"]
 
     ktor -->|api| core
     okhttp -->|api| core
     urlsession -->|api| core
+    core -->|impl| shake
     ktor_noop -.->|impl| core
     okhttp_noop -.->|impl| core
 
@@ -111,6 +128,7 @@ graph TD
     style ktor_noop fill:#6b7280,color:#fff
     style okhttp_noop fill:#6b7280,color:#fff
     style urlsession_noop fill:#6b7280,color:#fff
+    style shake fill:#059669,color:#fff
 ```
 
 Solid arrows = `api()` dependency (transitive). Dashed arrows = `implementation()` (not transitive).

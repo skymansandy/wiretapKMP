@@ -6,6 +6,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xskip-prerelease-check")
+    }
+
     listOf(
         iosArm64(),
         iosSimulatorArm64(),

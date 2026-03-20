@@ -106,6 +106,23 @@ Compose Multiplatform UI with:
 - Two-pane layout on wide screens
 - Copy buttons for headers and bodies
 
+## Shake to Launch
+
+Wiretap includes a built-in shake detector that opens the inspector UI when the device is shaken. Call `enableWiretapLauncher()` once during app startup.
+
+| Platform | Trigger |
+|----------|---------|
+| **Android** | Shake gesture (accelerometer sensor) |
+| **iOS** | Shake gesture (`UIWindow.motionEnded` via `wiretap-shake` module) |
+| **JVM Desktop** | `Ctrl+Shift+D` keyboard shortcut |
+
+```kotlin
+// Call once at app startup (e.g., Application.onCreate or main())
+enableWiretapLauncher()
+```
+
+No additional setup is needed — the launcher registers itself and presents the Wiretap inspector automatically on trigger.
+
 ## No-op Variants
 
 Every plugin module has a matching no-op module with identical API surface and zero runtime overhead. Swap the dependency for release builds — no conditional code needed.

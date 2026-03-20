@@ -31,8 +31,49 @@ dependencies {
     ).forEach { kover(project(":$it")) }
 }
 
+val publishableModules = setOf(
+    "json-cmp",
+    "wiretap-core",
+    "wiretap-ktor",
+    "wiretap-ktor-noop",
+    "wiretap-okhttp",
+    "wiretap-okhttp-noop",
+    "wiretap-urlsession",
+    "wiretap-urlsession-noop",
+)
+
 subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
+
+    if (name in publishableModules) {
+        val wiretapGroup = findProperty("wiretap.group") as String
+        val wiretapVersion = findProperty("wiretap.version") as String
+
+        group = wiretapGroup
+        version = wiretapVersion
+
+        apply(plugin = "maven-publish")
+
+        afterEvaluate {
+            extensions.findByType<PublishingExtension>()?.apply {
+                repositories {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri(
+                            System.getenv("MAVEN_REPO_URL")
+                                ?: "https://maven.pkg.github.com/skymansandy/wiretapKMP"
+                        )
+                        credentials {
+                            username = System.getenv("MAVEN_REPO_USERNAME")
+                                ?: findProperty("gpr.user") as? String ?: ""
+                            password = System.getenv("MAVEN_REPO_PASSWORD")
+                                ?: findProperty("gpr.key") as? String ?: ""
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
         buildUponDefaultConfig = true

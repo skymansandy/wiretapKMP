@@ -82,7 +82,7 @@ WiretapKMP uses `expect/actual` for platform-specific implementations:
 |------------|---------|-----|-----|
 | `DriverFactory()` | SQLite Android driver (via `WiretapContextProvider`) | Native SQLite driver | JVM SQLite driver |
 | `currentTimeMillis()` | `System.currentTimeMillis()` | Foundation date | `System.currentTimeMillis()` |
-| `startWiretap()` | Launches `WiretapConsoleActivity` | Presents Compose UI | No-op (embed manually) |
-| `enableWiretapLauncher()` | Shake gesture listener | — | — |
+| `startWiretap()` | Launches `WiretapConsoleActivity` | Presents Compose UI via `ComposeUIViewController` | Opens Swing `JFrame` with Compose panel |
+| `enableWiretapLauncher()` | Shake gesture (accelerometer) | Shake gesture (`wiretap-shake` module) | `Ctrl+Shift+D` keyboard shortcut |
 
 Android context is captured automatically via **AndroidX App Startup** (`WiretapInitializer`).
