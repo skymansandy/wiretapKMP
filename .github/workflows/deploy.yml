@@ -137,9 +137,6 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Publish all modules to GitHub Packages
-        env:
-          MAVEN_REPO_USERNAME: ${{ github.actor }}
-          MAVEN_REPO_PASSWORD: ${{ secrets.GH_TOKEN }}
         run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
 
   github-release:

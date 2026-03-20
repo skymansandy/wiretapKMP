@@ -62,9 +62,9 @@ subprojects {
                                 ?: "https://maven.pkg.github.com/skymansandy/wiretapKMP"
                         )
                         credentials {
-                            username = System.getenv("MAVEN_REPO_USERNAME")
+                            username = System.getenv("GH_USERNAME")
                                 ?: findProperty("gpr.user") as? String ?: ""
-                            password = System.getenv("MAVEN_REPO_PASSWORD")
+                            password = System.getenv("GH_TOKEN")
                                 ?: findProperty("gpr.key") as? String ?: ""
                         }
                     }
