@@ -1,0 +1,74 @@
+name: Detekt and Test
+
+on:
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detekt:
+    name: Detekt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Detekt
+        run: ./gradlew detektAll
+
+  test-jvm:
+    name: Tests (JVM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run JVM tests
+        run: >
+          ./gradlew
+          :json-cmp:jvmTest
+          :wiretap-core:jvmTest
+          :wiretap-ktor:jvmTest
+          :wiretap-ktor-noop:jvmTest
+          :wiretap-okhttp:jvmTest
+          :wiretap-okhttp-noop:jvmTest
+
+  test-ios:
+    name: Tests (iOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run iOS simulator tests
+        run: >
+          ./gradlew
+          :wiretap-core:iosSimulatorArm64Test
+          :wiretap-ktor:iosSimulatorArm64Test
+          :wiretap-ktor-noop:iosSimulatorArm64Test
+          :wiretap-urlsession:iosSimulatorArm64Test
+          :wiretap-urlsession-noop:iosSimulatorArm64Test
