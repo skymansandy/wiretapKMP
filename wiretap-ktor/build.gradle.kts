@@ -31,6 +31,9 @@ kotlin {
             export(projects.wiretapCore)
             isStatic = true
         }
+        iosTarget.binaries.all {
+            linkerOpts("-lsqlite3")
+        }
     }
 
     jvm()

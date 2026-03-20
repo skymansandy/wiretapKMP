@@ -69,8 +69,8 @@ internal class JsonParser(private val src: String) {
         return JsonNode.JArray(items)
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun parseStringValue(): String {
-
         eat('"')
         val sb = StringBuilder()
         while (pos < src.length) {
@@ -84,7 +84,11 @@ internal class JsonParser(private val src: String) {
                     'b' -> sb.append('\b')
                     'f' -> sb.append('\u000C')
                     'u' -> {
-                        if (pos + 4 < src.length && src.substring(pos + 1, pos + 5).all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }) {
+                        @Suppress("ComplexCondition")
+                        val isValidHex = pos + 4 < src.length &&
+                            src.substring(pos + 1, pos + 5)
+                                .all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+                        if (isValidHex) {
                             sb.append(src.substring(pos + 1, pos + 5).toInt(16).toChar())
                             pos += 4
                         } else {
@@ -102,6 +106,7 @@ internal class JsonParser(private val src: String) {
                 // by a JSON structural character. This handles malformed JSON where
                 // string values contain unescaped quotes (e.g. embedded HTML).
                 val next = peekNextNonWs(pos + 1)
+                @Suppress("ComplexCondition")
                 if (next == ',' || next == '}' || next == ']' || next == ':' || next == '\u0000') {
                     break
                 }
@@ -123,6 +128,7 @@ internal class JsonParser(private val src: String) {
         return if (i < src.length) src[i] else '\u0000'
     }
 
+    @Suppress("CyclomaticComplexMethod")
     private fun parseNumber(): JsonNode.JNumber {
 
         val start = pos
@@ -143,7 +149,6 @@ internal class JsonParser(private val src: String) {
     private fun cur(): Char = if (pos < src.length) src[pos] else '\u0000'
 
     private fun eat(c: Char) {
-
         check(cur() == c) { "Expected '$c' at $pos, got '${cur()}'" }
         pos++
     }

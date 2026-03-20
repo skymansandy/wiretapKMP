@@ -4,20 +4,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.ui.common.KeyValueTable
 import dev.skymansandy.wiretap.helper.util.formatSize
 import dev.skymansandy.wiretap.resources.*
-import androidx.compose.material3.MaterialTheme
+import dev.skymansandy.wiretap.ui.common.KeyValueTable
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun OverviewTab(
     modifier: Modifier = Modifier,
-    entry: HttpLogEntry
+    entry: HttpLogEntry,
 ) {
     Column(
         modifier = modifier

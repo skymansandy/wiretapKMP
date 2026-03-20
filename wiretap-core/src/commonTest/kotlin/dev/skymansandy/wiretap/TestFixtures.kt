@@ -13,6 +13,7 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 
+@Suppress("LongParameterList")
 internal fun httpLogEntry(
     id: Long = 0,
     url: String = "https://api.example.com/users",
@@ -57,6 +58,7 @@ internal fun httpLogEntry(
     certificateExpiry = certificateExpiry,
 )
 
+@Suppress("LongParameterList")
 internal fun wiretapRule(
     id: Long = 1,
     method: String = "*",
@@ -77,6 +79,7 @@ internal fun wiretapRule(
     createdAt = createdAt,
 )
 
+@Suppress("LongParameterList")
 internal fun socketLogEntry(
     id: Long = 0,
     url: String = "wss://api.example.com/ws",

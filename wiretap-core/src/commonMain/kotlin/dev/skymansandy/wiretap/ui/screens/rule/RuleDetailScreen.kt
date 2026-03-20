@@ -27,19 +27,20 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.skymansandy.jsoncmp.JsonCMP
+import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.jsoncmp.JsonCMP
-import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
+import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.any_method
 import dev.skymansandy.wiretap.resources.back
@@ -72,9 +73,9 @@ import dev.skymansandy.wiretap.resources.throttle_delay
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
-import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import org.jetbrains.compose.resources.stringResource
 
+@Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RuleDetailScreen(
@@ -143,7 +144,10 @@ internal fun RuleDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            DetailRow(stringResource(Res.string.label_method), if (rule.method == "*") stringResource(Res.string.any_method) else rule.method)
+            DetailRow(
+                stringResource(Res.string.label_method),
+                if (rule.method == "*") stringResource(Res.string.any_method) else rule.method,
+            )
 
             // URL matcher
             rule.urlMatcher?.let { matcher ->

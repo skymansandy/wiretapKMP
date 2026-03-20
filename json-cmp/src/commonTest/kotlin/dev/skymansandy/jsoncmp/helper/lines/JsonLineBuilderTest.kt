@@ -82,21 +82,21 @@ class JsonLineBuilderTest {
     fun depthTracksNestingLevel() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
 
-        lines[0].depth shouldBe 0  // {
-        lines[1].depth shouldBe 1  // "name": "John",
-        lines[2].depth shouldBe 1  // "age": 30
-        lines[3].depth shouldBe 0  // }
+        lines[0].depth shouldBe 0 // {
+        lines[1].depth shouldBe 1 // "name": "John",
+        lines[2].depth shouldBe 1 // "age": 30
+        lines[3].depth shouldBe 0 // }
     }
 
     @Test
     fun nestedDepthTracksCorrectly() {
         val lines = buildDisplayLines(TestData.nestedObjectNode)
 
-        lines[0].depth shouldBe 0  // {
-        lines[1].depth shouldBe 1  // "user": {
-        lines[2].depth shouldBe 2  // "name": "John",
-        lines[3].depth shouldBe 2  // "address": {
-        lines[4].depth shouldBe 3  // "city": "NYC"
+        lines[0].depth shouldBe 0 // {
+        lines[1].depth shouldBe 1 // "user": {
+        lines[2].depth shouldBe 2 // "name": "John",
+        lines[3].depth shouldBe 2 // "address": {
+        lines[4].depth shouldBe 3 // "city": "NYC"
     }
 
     // ── Fold IDs ──
@@ -129,8 +129,8 @@ class JsonLineBuilderTest {
     fun primitiveLinesDoNotGetFoldIDs() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
 
-        lines[1].foldId.shouldBeNull()  // "name": "John",
-        lines[2].foldId.shouldBeNull()  // "age": 30
+        lines[1].foldId.shouldBeNull() // "name": "John",
+        lines[2].foldId.shouldBeNull() // "age": 30
     }
 
     @Test
@@ -153,7 +153,7 @@ class JsonLineBuilderTest {
     fun rootLevelLinesHaveEmptyParentFoldIDs() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
 
-        lines[0].parentFoldIds.shouldBeEmpty()  // {
+        lines[0].parentFoldIds.shouldBeEmpty() // {
     }
 
     @Test
@@ -163,7 +163,7 @@ class JsonLineBuilderTest {
 
         lines[1].parentFoldIds shouldBe listOf(rootFoldId)
         lines[2].parentFoldIds shouldBe listOf(rootFoldId)
-        lines[3].parentFoldIds shouldBe listOf(rootFoldId)  // closing }
+        lines[3].parentFoldIds shouldBe listOf(rootFoldId) // closing }
     }
 
     @Test
@@ -181,14 +181,14 @@ class JsonLineBuilderTest {
     fun foldChildCountMatchesNumberOfDirectChildren() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
 
-        lines[0].foldChildCount shouldBe 2  // "name" and "age"
+        lines[0].foldChildCount shouldBe 2 // "name" and "age"
     }
 
     @Test
     fun arrayFoldChildCountMatchesElementCount() {
         val lines = buildDisplayLines(TestData.simpleArrayNode)
 
-        lines[0].foldChildCount shouldBe 3  // 1, 2, 3
+        lines[0].foldChildCount shouldBe 3 // 1, 2, 3
     }
 
     // ── Folded content ──
@@ -209,9 +209,9 @@ class JsonLineBuilderTest {
     fun closingBracketsAreMarked() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
 
-        lines[0].isClosingBracket.shouldBeFalse()  // {
-        lines[1].isClosingBracket.shouldBeFalse()  // "name": "John",
-        lines[3].isClosingBracket.shouldBeTrue()   // }
+        lines[0].isClosingBracket.shouldBeFalse() // {
+        lines[1].isClosingBracket.shouldBeFalse() // "name": "John",
+        lines[3].isClosingBracket.shouldBeTrue() // }
     }
 
     // ── Path tracking ──
@@ -245,7 +245,7 @@ class JsonLineBuilderTest {
     @Test
     fun objectFieldLineHasCorrectPartTypes() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
-        val nameLine = lines[1]  // "name": "John",
+        val nameLine = lines[1] // "name": "John",
 
         nameLine.parts.any { it is JsonPart.Indent }.shouldBeTrue()
         nameLine.parts.any { it is JsonPart.Key }.shouldBeTrue()
@@ -256,7 +256,7 @@ class JsonLineBuilderTest {
     @Test
     fun numberValueLineHasNumValPart() {
         val lines = buildDisplayLines(TestData.simpleObjectNode)
-        val ageLine = lines[2]  // "age": 30
+        val ageLine = lines[2] // "age": 30
 
         ageLine.parts.any { it is JsonPart.NumVal }.shouldBeTrue()
     }

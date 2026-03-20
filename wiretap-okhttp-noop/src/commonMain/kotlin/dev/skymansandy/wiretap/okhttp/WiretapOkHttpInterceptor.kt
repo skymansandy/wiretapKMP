@@ -4,6 +4,7 @@ import dev.skymansandy.wiretap.config.WiretapConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 
+@Suppress("UnusedPrivateProperty")
 class WiretapOkHttpInterceptor(
     configure: WiretapConfig.() -> Unit = {},
 ) : Interceptor {

@@ -18,12 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
-import dev.skymansandy.wiretap.resources.*
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun ResponseHeadersSection(
@@ -56,7 +56,10 @@ internal fun ResponseHeadersSection(
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KeyValue) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KeyValue) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
+                contentDescription = stringResource(
+                    if (mode == ResponseHeadersEditMode.KeyValue) Res.string.switch_to_bulk_edit
+                    else Res.string.switch_to_key_value,
+                ),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }

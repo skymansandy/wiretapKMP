@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.jsoncmp.component.common.ContentCell
 import dev.skymansandy.jsoncmp.component.common.GutterCell
-import dev.skymansandy.jsoncmp.config.JsonEditorState
 import dev.skymansandy.jsoncmp.component.common.PlainText
+import dev.skymansandy.jsoncmp.config.JsonEditorState
 import dev.skymansandy.jsoncmp.helper.constants.colors.JsonCmpColors
 
 @Composable

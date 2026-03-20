@@ -158,7 +158,6 @@ internal fun HttpLogItemContent(
     }
 }
 
-
 @Preview
 @Composable
 private fun Preview_HttpLogItemSuccess() {
@@ -256,4 +255,3 @@ private fun Preview_HttpLogItemServerError() {
         )
     }
 }
-

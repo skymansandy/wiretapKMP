@@ -4,10 +4,10 @@ import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.launcher.onSocketConnectionLogged
 import dev.skymansandy.wiretap.helper.launcher.onSocketLogsCleared
 import dev.skymansandy.wiretap.helper.launcher.onSocketMessageLogged
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SocketOrchestratorImpl(
@@ -33,7 +33,8 @@ internal class SocketOrchestratorImpl(
         socketRepository.updateConnection(entry)
         when (entry.status) {
             dev.skymansandy.wiretap.domain.model.SocketStatus.Closed,
-            dev.skymansandy.wiretap.domain.model.SocketStatus.Failed -> activeConnections.remove(entry.id)
+            dev.skymansandy.wiretap.domain.model.SocketStatus.Failed,
+            -> activeConnections.remove(entry.id)
             else -> activeConnections[entry.id] = entry
         }
         wiretapLogger.logSocket(entry)

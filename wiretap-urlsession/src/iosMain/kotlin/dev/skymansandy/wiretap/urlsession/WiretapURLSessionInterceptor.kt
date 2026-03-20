@@ -77,6 +77,7 @@ class WiretapURLSessionInterceptor(
      * Automatically executes the request and calls [completionHandler] with the result.
      * For mock rules, the completion handler is called with mock data without network access.
      */
+    @Suppress("LongMethod")
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun intercept(
         request: NSURLRequest,
@@ -243,6 +244,7 @@ class WiretapURLSessionInterceptor(
         }
     }
 
+    @Suppress("LongParameterList")
     @OptIn(BetaInteropApi::class)
     private suspend fun handleMockResponse(
         logEntryId: Long,
@@ -294,6 +296,7 @@ class WiretapURLSessionInterceptor(
         completionHandler(mockData, mockResponse, null)
     }
 
+    @Suppress("LongParameterList")
     private suspend fun logResponse(
         logEntryId: Long,
         url: String,

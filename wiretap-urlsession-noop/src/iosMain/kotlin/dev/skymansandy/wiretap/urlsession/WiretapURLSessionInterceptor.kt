@@ -4,17 +4,18 @@ import dev.skymansandy.wiretap.config.WiretapConfig
 import platform.Foundation.NSData
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.Foundation.NSURLResponse
 import platform.Foundation.NSURLSession
 import platform.Foundation.NSURLSessionDataTask
-import platform.Foundation.NSURL
 import platform.Foundation.dataTaskWithRequest
 
 /**
  * No-op URLSession interceptor for release builds.
  * Passes requests through without logging.
  */
+@Suppress("UnusedPrivateProperty")
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
     configure: WiretapConfig.() -> Unit = {},

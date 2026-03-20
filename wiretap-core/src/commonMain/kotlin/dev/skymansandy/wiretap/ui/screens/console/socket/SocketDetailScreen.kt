@@ -120,7 +120,7 @@ internal fun SocketDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.back)
+                            contentDescription = stringResource(Res.string.back),
                         )
                     }
                 },
@@ -267,7 +267,7 @@ private fun MessageBubble(
             val displayText = when (message.contentType) {
                 SocketContentType.Binary -> stringResource(
                     Res.string.binary_message,
-                    formatBytes(message.byteCount)
+                    formatBytes(message.byteCount),
                 )
 
                 else -> message.content

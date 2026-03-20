@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.ui.rules.sections
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -21,15 +22,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
 import dev.skymansandy.wiretap.ui.model.ThrottleProfile
 import dev.skymansandy.wiretap.ui.model.labelRes
 import dev.skymansandy.wiretap.ui.model.speedRes
-import dev.skymansandy.wiretap.resources.*
-import androidx.compose.foundation.layout.Column
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,7 +121,8 @@ internal fun ThrottleDelayInput(
             ) {
                 OutlinedTextField(
                     value = selectedProfile?.let {
-                        "${stringResource(it.labelRes)}  (${stringResource(Res.string.profile_speed_delay, stringResource(it.speedRes), it.delayMinMs, it.delayMaxMs)})"
+                        "${stringResource(it.labelRes)}  " +
+                            "(${stringResource(Res.string.profile_speed_delay, stringResource(it.speedRes), it.delayMinMs, it.delayMaxMs)})"
                     } ?: "",
                     onValueChange = {},
                     readOnly = true,
@@ -147,7 +148,12 @@ internal fun ThrottleDelayInput(
                                     Text(text = stringResource(profile.labelRes))
 
                                     Text(
-                                        text = stringResource(Res.string.profile_speed_delay, stringResource(profile.speedRes), profile.delayMinMs, profile.delayMaxMs),
+                                        text = stringResource(
+                                            Res.string.profile_speed_delay,
+                                            stringResource(profile.speedRes),
+                                            profile.delayMinMs,
+                                            profile.delayMaxMs,
+                                        ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

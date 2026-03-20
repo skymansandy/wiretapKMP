@@ -26,6 +26,7 @@ internal class JsonLineBuilder {
         return out
     }
 
+    @Suppress("LongMethod")
     private fun addNode(
         node: JsonNode,
         key: String?,

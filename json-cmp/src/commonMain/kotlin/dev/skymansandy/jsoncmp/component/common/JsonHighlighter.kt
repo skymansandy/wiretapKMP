@@ -44,6 +44,7 @@ internal fun highlightJson(
     }
 }
 
+@Suppress("LongMethod", "CyclomaticComplexMethod")
 private fun tokenizeJson(text: String): List<Token> {
     val tokens = mutableListOf<Token>()
     var pos = 0
@@ -88,7 +89,7 @@ private fun tokenizeJson(text: String): List<Token> {
 
             text.startsWith(
                 "true",
-                pos
+                pos,
             ) && (pos + 4 >= len || !text[pos + 4].isLetterOrDigit()) -> {
                 tokens += Token(TokenType.Boolean, pos, pos + 4)
                 pos += 4
@@ -96,7 +97,7 @@ private fun tokenizeJson(text: String): List<Token> {
 
             text.startsWith(
                 "false",
-                pos
+                pos,
             ) && (pos + 5 >= len || !text[pos + 5].isLetterOrDigit()) -> {
                 tokens += Token(TokenType.Boolean, pos, pos + 5)
                 pos += 5
@@ -104,7 +105,7 @@ private fun tokenizeJson(text: String): List<Token> {
 
             text.startsWith(
                 "null",
-                pos
+                pos,
             ) && (pos + 4 >= len || !text[pos + 4].isLetterOrDigit()) -> {
                 tokens += Token(TokenType.Null, pos, pos + 4)
                 pos += 4

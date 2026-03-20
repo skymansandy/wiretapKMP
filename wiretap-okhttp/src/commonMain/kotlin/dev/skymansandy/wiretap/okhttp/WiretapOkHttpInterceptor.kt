@@ -11,12 +11,12 @@ import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
-import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -52,6 +52,7 @@ class WiretapOkHttpInterceptor(
 
     @Volatile private var sessionInitialized = false
 
+    @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun intercept(chain: Interceptor.Chain): Response = runBlocking {
 
         if (!config.enabled) return@runBlocking chain.proceed(chain.request())

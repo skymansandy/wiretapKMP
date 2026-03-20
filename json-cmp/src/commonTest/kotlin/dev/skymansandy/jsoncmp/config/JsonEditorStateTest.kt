@@ -251,8 +251,6 @@ class JsonEditorStateTest {
         val state = JsonEditorState(TestData.SIMPLE_OBJECT, isEditing = true)
 
         state.collapseAll()
-        val originalFoldIds = state.foldState.keys.toSet()
-
         state.updateRawJson(TestData.SIMPLE_ARRAY)
 
         val newValidIds = state.allLines.mapNotNull { it.foldId }.toSet()

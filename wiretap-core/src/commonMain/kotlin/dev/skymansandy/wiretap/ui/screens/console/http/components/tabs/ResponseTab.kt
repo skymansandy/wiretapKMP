@@ -5,22 +5,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.helper.util.looksLikeJson
+import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.CopyBodyButton
 import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.common.SectionTitle
-import dev.skymansandy.wiretap.helper.util.looksLikeJson
-import dev.skymansandy.wiretap.resources.*
-import androidx.compose.material3.MaterialTheme
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 internal fun ResponseTab(
@@ -35,7 +35,7 @@ internal fun ResponseTab(
     ) {
         SectionTitle(
             text = stringResource(Res.string.headers),
-            action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null
+            action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null,
         )
 
         HeadersList(
@@ -47,7 +47,7 @@ internal fun ResponseTab(
         val body = entry.responseBody
         SectionTitle(
             text = stringResource(Res.string.body),
-            action = if (body != null) ({ CopyBodyButton(body = body) }) else null
+            action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
         )
 
         if (body != null && looksLikeJson(body)) {

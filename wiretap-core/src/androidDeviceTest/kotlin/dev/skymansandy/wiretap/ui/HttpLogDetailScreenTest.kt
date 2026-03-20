@@ -15,6 +15,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@Suppress("TooManyFunctions")
 class HttpLogDetailScreenTest {
 
     @get:Rule

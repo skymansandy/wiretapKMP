@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 private val WIDE_SCREEN_BREAKPOINT = 600.dp
 
 @Composable
+@Suppress("CyclomaticComplexMethod")
 fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,

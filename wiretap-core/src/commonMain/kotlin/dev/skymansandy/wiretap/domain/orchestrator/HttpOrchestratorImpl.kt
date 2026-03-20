@@ -3,9 +3,9 @@ package dev.skymansandy.wiretap.domain.orchestrator
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.launcher.onNetworkEntryLogged
 import dev.skymansandy.wiretap.helper.launcher.onNetworkLogsCleared
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class HttpOrchestratorImpl(

@@ -69,7 +69,7 @@ internal fun CodeEditor(
                         borderColor,
                         Offset(x, 0f),
                         Offset(x, size.height),
-                        strokeWidth = 1.dp.toPx()
+                        strokeWidth = 1.dp.toPx(),
                     )
                 }
                 .padding(start = 12.dp, end = 8.dp),

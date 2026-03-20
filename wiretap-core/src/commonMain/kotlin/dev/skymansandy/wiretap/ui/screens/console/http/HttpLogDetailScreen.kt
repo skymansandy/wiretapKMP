@@ -42,6 +42,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.helper.util.buildCurlCommand
+import dev.skymansandy.wiretap.helper.util.buildShareText
+import dev.skymansandy.wiretap.helper.util.shareNetworkLog
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.back
 import dev.skymansandy.wiretap.resources.close_search
@@ -59,9 +62,6 @@ import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab
-import dev.skymansandy.wiretap.helper.util.buildCurlCommand
-import dev.skymansandy.wiretap.helper.util.buildShareText
-import dev.skymansandy.wiretap.helper.util.shareNetworkLog
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
@@ -77,7 +77,11 @@ internal fun HttpLogDetailScreen(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-    val tabs = listOf(stringResource(Res.string.tab_overview), stringResource(Res.string.tab_request), stringResource(Res.string.tab_response))
+    val tabs = listOf(
+        stringResource(Res.string.tab_overview),
+        stringResource(Res.string.tab_request),
+        stringResource(Res.string.tab_response),
+    )
     val supportsSearch = selectedTab != 0
 
     LaunchedEffect(selectedTab) {
@@ -135,9 +139,9 @@ internal fun HttpLogDetailScreen(
                     if (supportsSearch) {
                         if (isSearchActive) {
                             IconButton(onClick = {
-                            isSearchActive = false
-                            searchQuery = ""
-                        }) {
+                                isSearchActive = false
+                                searchQuery = ""
+                            }) {
                                 Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
                             }
                         } else {

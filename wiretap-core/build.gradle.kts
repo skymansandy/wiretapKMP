@@ -43,6 +43,9 @@ kotlin {
             linkerOpts("-lsqlite3")
             export(projects.wiretapShake)
         }
+        iosTarget.binaries.all {
+            linkerOpts("-lsqlite3")
+        }
     }
 
     jvm()

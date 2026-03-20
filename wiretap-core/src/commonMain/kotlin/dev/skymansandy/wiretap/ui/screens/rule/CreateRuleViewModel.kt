@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@Suppress("TooManyFunctions")
 internal class CreateRuleViewModel(
     private val ruleRepository: RuleRepository,
     private val findConflictingRules: FindConflictingRulesUseCase,
@@ -114,7 +115,9 @@ internal class CreateRuleViewModel(
                 val existingDelayMaxMs =
                     existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
                 when {
-                    existingDelayMs == null || (existingDelayMs == 0L && existingDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.None
+                    existingDelayMs == null ||
+                        (existingDelayMs == 0L && existingDelayMaxMs.let { it == null || it == 0L }) ->
+                        ThrottleInputMode.None
                     ThrottleProfile.entries.any {
                         it.delayMinMs == existingDelayMs && it.delayMaxMs == existingDelayMaxMs
                     } -> ThrottleInputMode.Profile

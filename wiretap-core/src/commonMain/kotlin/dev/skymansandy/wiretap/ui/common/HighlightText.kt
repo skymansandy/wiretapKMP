@@ -1,8 +1,8 @@
 package dev.skymansandy.wiretap.ui.common
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import dev.skymansandy.wiretap.ui.theme.WiretapColors

@@ -22,9 +22,9 @@ fun WiretapViewController(): UIViewController {
                     wiretapViewControllerInstance = null
                     getTopMostViewController()?.dismissViewControllerAnimated(
                         true,
-                        completion = null
+                        completion = null,
                     )
-                }
+                },
             )
         }
     }.also {
@@ -50,7 +50,7 @@ actual fun enableWiretapLauncher() {
 }
 
 private fun getTopMostViewController(
-    base: UIViewController? = UIApplication.sharedApplication.topWindow?.rootViewController
+    base: UIViewController? = UIApplication.sharedApplication.topWindow?.rootViewController,
 ): UIViewController? {
     if (base == null) return null
 
@@ -76,4 +76,3 @@ private val UIApplication.topWindow: UIWindow?
         .flatMap { it.windows.asSequence() }
         .filterIsInstance<UIWindow>()
         .lastOrNull { it.isKeyWindow() }
-
