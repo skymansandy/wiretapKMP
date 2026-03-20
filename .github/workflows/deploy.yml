@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]
 
+env:
+  GH_USERNAME: ${{ github.actor }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 concurrency:
   group: main-${{ github.sha }}
   cancel-in-progress: true
@@ -135,7 +139,7 @@ jobs:
       - name: Publish all modules to GitHub Packages
         env:
           MAVEN_REPO_USERNAME: ${{ github.actor }}
-          MAVEN_REPO_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_REPO_PASSWORD: ${{ secrets.GH_TOKEN }}
         run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
 
   github-release:

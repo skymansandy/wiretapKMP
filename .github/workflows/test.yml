@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  GH_USERNAME: ${{ github.actor }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
