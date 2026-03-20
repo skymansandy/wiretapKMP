@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.jsonviewer.JsonEditor
-import dev.skymansandy.jsonviewer.rememberJsonEditorState
+import dev.skymansandy.jsonviewer.JsonCMP
+import dev.skymansandy.jsonviewer.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.resources.Res
@@ -56,7 +56,7 @@ internal fun RequestTab(
 
         if (body != null && looksLikeJson(body)) {
             val editorState = rememberJsonEditorState(initialJson = body)
-            JsonEditor(
+            JsonCMP(
                 state = editorState,
                 searchQuery = searchQuery,
                 modifier = Modifier.padding(8.dp),

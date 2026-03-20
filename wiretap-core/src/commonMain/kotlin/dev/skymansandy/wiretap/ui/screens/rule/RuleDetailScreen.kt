@@ -38,8 +38,8 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.jsonviewer.JsonEditor
-import dev.skymansandy.jsonviewer.rememberJsonEditorState
+import dev.skymansandy.jsonviewer.JsonCMP
+import dev.skymansandy.jsonviewer.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.resources.Res
 import dev.skymansandy.wiretap.resources.any_method
 import dev.skymansandy.wiretap.resources.back
@@ -205,7 +205,7 @@ internal fun RuleDetailScreen(
                         Spacer(Modifier.height(4.dp))
                         if (looksLikeJson(action.responseBody)) {
                             val editorState = rememberJsonEditorState(initialJson = action.responseBody)
-                            JsonEditor(
+                            JsonCMP(
                                 state = editorState,
                                 modifier = Modifier.padding(vertical = 4.dp),
                             )

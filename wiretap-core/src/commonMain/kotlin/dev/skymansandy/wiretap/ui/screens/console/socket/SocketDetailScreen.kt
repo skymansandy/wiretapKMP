@@ -29,7 +29,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -77,12 +76,10 @@ internal fun SocketDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val initialEntry by viewModel.initialEntry.collectAsStateWithLifecycle()
-    if (initialEntry == null) {
-        return
-    }
+    val liveEntry by viewModel.liveEntry.collectAsStateWithLifecycle()
+    val entry = liveEntry ?: initialEntry
 
-    val liveEntry = viewModel.liveEntry.collectAsStateWithLifecycle().value ?: run {
-        onBack()
+    if (entry == null) {
         return
     }
 
@@ -103,7 +100,7 @@ internal fun SocketDetailScreen(
         prevMessageCount = messages.size
     }
 
-    val urlDisplay = viewModel.urlDisplay(liveEntry.url)
+    val urlDisplay = viewModel.urlDisplay(entry.url)
 
     Scaffold(
         modifier = modifier,
@@ -128,7 +125,7 @@ internal fun SocketDetailScreen(
                     }
                 },
                 actions = {
-                    StatusChip(liveEntry.status)
+                    StatusChip(entry.status)
                 },
             )
         },
@@ -139,11 +136,11 @@ internal fun SocketDetailScreen(
         ) {
             // Connection info header
             item(key = "header") {
-                ConnectionInfoHeader(liveEntry)
+                ConnectionInfoHeader(entry)
             }
 
             // History cleared banner
-            if (liveEntry.historyCleared) {
+            if (entry.historyCleared) {
                 item(key = "history_cleared") {
                     HistoryClearedBanner()
                 }

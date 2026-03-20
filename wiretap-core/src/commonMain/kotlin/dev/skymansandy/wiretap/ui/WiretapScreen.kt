@@ -87,6 +87,16 @@ fun WiretapScreen(
         ) {
 
             val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
+
+            // Sync home tab when navigating to a detail route
+            LaunchedEffect(route) {
+                when (route) {
+                    is WiretapRoute.SocketDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_WEBSOCKET)
+                    is WiretapRoute.HttpDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_HTTP)
+                    else -> {}
+                }
+            }
+
             val isTwoPaneRoute = route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail
 
             if (isWideScreen && isTwoPaneRoute) {

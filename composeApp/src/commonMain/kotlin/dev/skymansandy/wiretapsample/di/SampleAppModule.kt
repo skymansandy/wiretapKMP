@@ -2,15 +2,15 @@ package dev.skymansandy.wiretapsample.di
 
 import dev.skymansandy.wiretap.plugin.WiretapKtorPlugin
 import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
-import dev.skymansandy.wiretapsample.viewmodel.HttpViewModel
-import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorSampleViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.websocket.WebSockets
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-internal val sampleAppModule = module {
+val sampleAppModule = module {
 
     single {
         HttpClient {
@@ -21,7 +21,7 @@ internal val sampleAppModule = module {
         }
     }
 
-    viewModelOf(::HttpViewModel)
+    viewModelOf(::KtorSampleViewModel)
 
-    viewModelOf(::WebSocketViewModel)
+    viewModelOf(::KtorWebSocketViewModel)
 }

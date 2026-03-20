@@ -15,7 +15,7 @@
 
         <activity
             android:exported="true"
-            android:name=".WiretapSampleActivity">
+            android:name=".presentation.WiretapSampleActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -23,14 +23,14 @@
         </activity>
 
         <activity
-            android:exported="true"
+            android:exported="false"
+            android:label="Wiretap Ktor Sample"
+            android:name=".presentation.ktor.KtorSampleActivity" />
+
+        <activity
+            android:exported="false"
             android:label="Wiretap OkHttp Sample"
-            android:name=".okhttp.OkHttpSampleActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:name=".presentation.okhttp.OkHttpSampleActivity" />
 
     </application>
 
