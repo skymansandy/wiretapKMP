@@ -1,6 +1,6 @@
 # WiretapConfig
 
-`WiretapConfig` is the shared configuration class used by all three plugins (Ktor, OkHttp, URLSession).
+`WiretapConfig` is the shared configuration class used by both Ktor and OkHttp plugins.
 
 ## Properties
 
@@ -12,7 +12,7 @@ Master switch. When `false`, the plugin passes requests through without any logg
 
 ```kotlin
 install(WiretapKtorPlugin) {
-    enabled = BuildConfig.DEBUG  // Only inspect in debug builds
+    enabled = BuildConfig.DEBUG
 }
 ```
 
@@ -78,16 +78,5 @@ logRetention = LogRetention.Days(7)
         shouldLog = { url, _ -> url.contains("/api/") }
         headerAction = { key -> HeaderAction.Keep }
         logRetention = LogRetention.AppSession
-    }
-    ```
-
-=== "URLSession (Swift)"
-
-    ```swift
-    WiretapURLSessionInterceptor(session: .shared) { config in
-        config.enabled = true
-        config.shouldLog = { url, method in KotlinBoolean(value: true) }
-        config.headerAction = { key in HeaderAction.Keep.shared }
-        config.logRetention = LogRetention.AppSession.shared
     }
     ```

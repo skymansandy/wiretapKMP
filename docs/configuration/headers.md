@@ -70,20 +70,3 @@ headerAction = { key ->
     else HeaderAction.Skip
 }
 ```
-
-## Swift Usage
-
-```swift
-config.headerAction = { key in
-    if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-        return HeaderAction.Mask(mask: "***")
-    }
-    if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-        return HeaderAction.Skip.shared
-    }
-    return HeaderAction.Keep.shared
-}
-```
-
-!!! note
-    In Swift, `Keep` and `Skip` are Kotlin objects — access them via `.shared`. `Mask` is a data class and is constructed normally.

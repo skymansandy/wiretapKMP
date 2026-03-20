@@ -1,15 +1,13 @@
 # Module Structure
 
-WiretapKMP is organized into focused modules that can be mixed and matched based on your client library and build variant.
-
 ## Module Map
 
 ```
 WiretapKMP/
-├── wiretap-core/               Core SDK (all platforms)
-├── wiretap-ktor/               Ktor client plugin
+├── wiretap-core/               Core SDK (Android, iOS, JVM)
+├── wiretap-ktor/               Ktor client plugin (Android, iOS, JVM)
 ├── wiretap-ktor-noop/          Ktor no-op stubs (release)
-├── wiretap-okhttp/             OkHttp interceptor
+├── wiretap-okhttp/             OkHttp interceptor (Android, JVM)
 ├── wiretap-okhttp-noop/        OkHttp no-op stubs (release)
 ├── wiretap-urlsession/         URLSession interceptor (iOS)
 ├── wiretap-urlsession-noop/    URLSession no-op stubs (iOS release)
@@ -24,12 +22,19 @@ WiretapKMP/
 
 The core module contains everything except client-specific plugins:
 
-- **Config** — `WiretapConfig`, `HeaderAction`, `LogRetention`
-- **Domain** — `WiretapOrchestrator`, repositories, use cases, rule matching
-- **Data** — SQLDelight database, DAOs, entity models
-- **DI** — Koin modules (`wiretapModule`, `wiretapDataModule`, `wiretapUtilityModule`)
-- **UI** — Compose Multiplatform inspector (`WiretapScreen`, detail screens, rule management)
-- **Platform** — Android activity/notifications/shake launcher, iOS launcher, JVM driver
+| Package | Contents |
+|---------|----------|
+| `config` | `WiretapConfig`, `HeaderAction`, `LogRetention` |
+| `domain.orchestrator` | `WiretapOrchestrator`, `HttpOrchestrator`, `SocketOrchestrator` |
+| `domain.repository` | `HttpRepository`, `SocketRepository`, `RuleRepository` |
+| `domain.usecase` | `FindMatchingRuleUseCase`, `FindConflictingRulesUseCase` |
+| `domain.model` | `RuleAction`, `UrlMatcher`, `HeaderMatcher`, `BodyMatcher`, `ResponseSource`, enums |
+| `data.db.entity` | `HttpLogEntry`, `SocketLogEntry`, `SocketMessage`, `WiretapRule` |
+| `data.db.dao` | `HttpDao`, `SocketDao`, `RuleDao` (internal) |
+| `data.repository` | `HttpRepositoryImpl`, `SocketRepositoryImpl`, `RuleRepositoryImpl` (internal) |
+| `di` | `wiretapModule`, `WiretapDi`, `WiretapKoinContext` |
+| `helper.logger` | `WiretapLogger`, `WiretapLoggerImpl` |
+| `ui` | `WiretapScreen`, `HttpLogDetailScreen`, `SocketDetailScreen`, rule screens |
 
 **Dependencies exposed as `api()`:** Koin, Coroutines, SQLDelight runtime
 
@@ -37,12 +42,11 @@ The core module contains everything except client-specific plugins:
 
 **Platforms:** Android, iOS, JVM
 
-Ktor client plugin with full interception:
-
-- `WiretapKtorPlugin` — HTTP request/response logging + rule evaluation
-- `WiretapKtorWebSocketPlugin` — WebSocket connection/message logging
-- `WiretapWebSocketSession` — Session wrapper for message interception
-- Rule engines: `MockEngine`, `ThrottleEngine` (Ktor-specific, not Koin-registered)
+| Component | Description |
+|-----------|-------------|
+| `WiretapKtorPlugin` | HTTP request/response logging + rule evaluation |
+| `WiretapKtorWebSocketPlugin` | WebSocket connection/message logging |
+| `WiretapWebSocketSession` | Session wrapper for message interception |
 
 **Dependencies exposed as `api()`:** wiretap-core, ktor-client-core
 
@@ -50,57 +54,37 @@ Ktor client plugin with full interception:
 
 ## wiretap-ktor-noop
 
-**Platforms:** Android, iOS, JVM
-
-Drop-in replacement for release builds:
-
-- Same `WiretapKtorPlugin` and `WiretapKtorWebSocketPlugin` vals with empty bodies
-- Empty Koin module
-- Same package (`dev.skymansandy.wiretap`) for API compatibility
-- Zero overhead — no database, no logging, no rule evaluation
+Same API surface with empty implementations. Same package (`dev.skymansandy.wiretap`) for drop-in replacement.
 
 ## wiretap-okhttp
 
 **Platforms:** Android, JVM
 
-OkHttp interceptor with full interception:
-
-- `WiretapOkHttpInterceptor` — HTTP logging + rule evaluation + TLS details
-- `WiretapOkHttpWebSocketListener` — WebSocket event logging
-- `WiretapWebSocket` — Internal WebSocket wrapper for outgoing message logging
+| Component | Description |
+|-----------|-------------|
+| `WiretapOkHttpInterceptor` | HTTP logging + rule evaluation + TLS details |
+| `WiretapOkHttpWebSocketListener` | WebSocket event logging |
+| `WiretapWebSocket` | Internal outgoing message logger |
 
 **Dependencies exposed as `api()`:** wiretap-core, okhttp
 
 ## wiretap-okhttp-noop
 
-**Platforms:** Android, JVM
-
-Drop-in replacement for release builds:
-
-- `WiretapOkHttpInterceptor` calls `chain.proceed()` directly
-- `WiretapOkHttpWebSocketListener` delegates all events without logging
-- Empty Koin module
+Same API surface with pass-through implementations.
 
 ## wiretap-urlsession
 
 **Platforms:** iOS (iosArm64 + iosSimulatorArm64)
 
-URLSession interceptor for native iOS:
+| Component | Description |
+|-----------|-------------|
+| `WiretapURLSessionInterceptor` | Two APIs: `intercept()` (full rules) and `dataTask()` (logging only) |
 
-- `WiretapURLSessionInterceptor` — Two APIs: `intercept()` (full rules) and `dataTask()` (logging only)
-- Published as `WiretapURLSession` static framework via KMMBridge/SPM
-- Exports wiretap-core (included in framework)
+Published as `WiretapURLSession` static framework via KMMBridge/SPM. Exports wiretap-core.
 
 ## wiretap-urlsession-noop
 
-**Platforms:** iOS (iosArm64 + iosSimulatorArm64)
-
-Drop-in replacement for release builds:
-
-- Same `WiretapURLSession` framework name
-- `intercept()` executes request directly
-- `dataTask()` returns raw session task
-- No Koin, no database, no logging
+Same `WiretapURLSession` framework name. Pass-through behavior, no Koin, no database, no logging.
 
 ## Dependency Graph
 

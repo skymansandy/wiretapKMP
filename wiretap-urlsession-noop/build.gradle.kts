@@ -21,6 +21,7 @@ kotlin {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(libs.compose.runtime)
+                implementation(projects.wiretapCore)
             }
         }
     }

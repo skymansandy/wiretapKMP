@@ -5,11 +5,11 @@
 ```mermaid
 sequenceDiagram
     participant App as App (HTTP Client)
-    participant Plugin as Plugin (Ktor/OkHttp/URLSession)
+    participant Plugin as Plugin (Ktor / OkHttp)
     participant Rules as FindMatchingRuleUseCase
     participant Orchestrator as WiretapOrchestrator
     participant DB as WiretapDatabase
-    participant Logger as NetworkLogger
+    participant Logger as WiretapLogger
 
     App->>Plugin: Outgoing HTTP Request
 
@@ -25,20 +25,17 @@ sequenceDiagram
         Plugin->>Plugin: Create mock response
         Plugin->>Orchestrator: updateEntry(mockResponse)
         Orchestrator->>DB: UPDATE (source=Mock)
-        Orchestrator->>Logger: logHttp(updated)
         Plugin-->>App: Mock Response
     else Throttle Rule Matched
         Plugin->>Plugin: delay(delayMs)
         Plugin->>Plugin: Proceed to network
         Plugin->>Orchestrator: updateEntry(response)
         Orchestrator->>DB: UPDATE (source=Throttle)
-        Orchestrator->>Logger: logHttp(updated)
         Plugin-->>App: Real Response (delayed)
-    else No Rule / Passthrough
+    else No Rule
         Plugin->>Plugin: Proceed to network
         Plugin->>Orchestrator: updateEntry(response)
         Orchestrator->>DB: UPDATE (source=Network)
-        Orchestrator->>Logger: logHttp(updated)
         Plugin-->>App: Real Response
     end
 ```
@@ -70,28 +67,11 @@ sequenceDiagram
 
     alt Graceful Close
         Plugin->>Orchestrator: updateSocketConnection(Closed)
-        Orchestrator->>DB: UPDATE (status=Closed)
+        Orchestrator->>DB: UPDATE status=Closed
     else Error
         Plugin->>Orchestrator: updateSocketConnection(Failed)
-        Orchestrator->>DB: UPDATE (status=Failed)
+        Orchestrator->>DB: UPDATE status=Failed
     end
-```
-
-## Rule Registration
-
-```mermaid
-sequenceDiagram
-    participant UI as Rules Screen
-    participant Repo as RuleRepository
-    participant Dao as RuleDao
-    participant DB as WiretapDatabase
-
-    UI->>Repo: addRule(rule)
-    Repo->>Dao: insert(rule)
-    Dao->>DB: SQL INSERT
-    DB-->>Dao: rule with id
-    Dao-->>Repo: WiretapRule
-    Repo-->>UI: Success
 ```
 
 ## Response Status Codes

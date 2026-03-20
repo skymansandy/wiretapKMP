@@ -20,7 +20,7 @@ Clears all existing logs when the plugin first initializes (i.e., on the first r
 logRetention = LogRetention.AppSession
 ```
 
-This is ideal during development when you only care about the current debugging session.
+Ideal during development when you only care about the current debugging session.
 
 ### `LogRetention.Days(days: Int)`
 
@@ -41,31 +41,3 @@ Uses an indexed timestamp query — no full table scans, so performance is consi
 | `Forever` | Never | Nothing pruned |
 | `AppSession` | First request after app start | `orchestrator.clearLogs()` — deletes all HTTP and WebSocket logs |
 | `Days(n)` | Each new request capture | `orchestrator.purgeLogsOlderThan(cutoff)` — deletes entries with timestamp before cutoff |
-
-## Platform Examples
-
-=== "Kotlin"
-
-    ```kotlin
-    // Ktor
-    install(WiretapKtorPlugin) {
-        logRetention = LogRetention.Days(7)
-    }
-
-    // OkHttp
-    WiretapOkHttpInterceptor {
-        logRetention = LogRetention.AppSession
-    }
-    ```
-
-=== "Swift"
-
-    ```swift
-    WiretapURLSessionInterceptor(session: .shared) { config in
-        config.logRetention = LogRetention.Days(days: 7)
-        // or
-        config.logRetention = LogRetention.AppSession.shared
-        // or
-        config.logRetention = LogRetention.Forever.shared
-    }
-    ```

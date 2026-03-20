@@ -1,46 +1,31 @@
-# Architecture Overview
+# High-Level Overview
 
 WiretapKMP follows a layered architecture where platform-specific client plugins feed into a shared core that handles storage, rule evaluation, and UI.
 
-## High-Level Diagram
+## Architecture Diagram
 
 ```mermaid
-flowchart TD
-    subgraph Plugins["Client Plugins"]
-        KtorPlugin["WiretapKtorPlugin<br/>(Android, iOS, JVM)"]
-        OkHttpPlugin["WiretapOkHttpInterceptor<br/>(Android, JVM)"]
-        URLSessionPlugin["WiretapURLSessionInterceptor<br/>(iOS)"]
-    end
+flowchart BT
+    DB[("SQLDelight")]
+    UI["Compose UI"]
 
     subgraph Core["wiretap-core"]
-        Orchestrator["WiretapOrchestrator"]
-        RuleEval["FindMatchingRuleUseCase"]
-        NetworkRepo["NetworkRepository"]
-        SocketRepo["SocketRepository"]
-        RuleRepo["RuleRepository"]
-        Logger["NetworkLogger"]
-        DB["WiretapDatabase<br/>(SQLDelight)"]
-        UI["Compose UI<br/>(WiretapScreen)"]
+        Rules["Rule Engine"]
+        Orchestrator
     end
 
-    KtorPlugin --> Orchestrator
-    KtorPlugin --> RuleEval
-    OkHttpPlugin --> Orchestrator
-    OkHttpPlugin --> RuleEval
-    URLSessionPlugin --> Orchestrator
-    URLSessionPlugin --> RuleEval
+    subgraph Plugins["Client Plugins"]
+        Ktor["Ktor Plugin"]
+        OkHttp["OkHttp Plugin"]
+        URLSession["URLSession Plugin"]
+    end
 
-    Orchestrator --> NetworkRepo
-    Orchestrator --> SocketRepo
-    Orchestrator --> Logger
-    RuleEval --> RuleRepo
-
-    NetworkRepo --> DB
-    SocketRepo --> DB
-    RuleRepo --> DB
-
-    UI --> Orchestrator
-    UI --> RuleRepo
+    Ktor --> Core
+    OkHttp --> Core
+    URLSession --> Core
+    Rules --> DB
+    Orchestrator --> DB
+    UI --> Core
 ```
 
 ## Data Flow
@@ -54,11 +39,11 @@ flowchart TD
     - **Mock**: Plugin creates fake response, updates log entry, returns immediately
     - **Throttle**: Plugin delays, then proceeds to network
 5. **Response captured** — `Orchestrator.updateEntry()` completes the log entry
-6. **Logger notified** — Console output via `NetworkLogger`
+6. **Logger notified** — Console output via `WiretapLogger`
 
 ### Orchestrator Pattern
 
-The `WiretapOrchestrator` combines two sub-orchestrators via delegation:
+The `WiretapOrchestrator` combines two sub-orchestrators via Kotlin delegation:
 
 ```kotlin
 class WiretapOrchestratorImpl(
@@ -69,10 +54,8 @@ class WiretapOrchestratorImpl(
     SocketOrchestrator by socketOrchestrator
 ```
 
-- **`HttpOrchestrator`** — Manages HTTP log entries (CRUD + pagination)
-- **`SocketOrchestrator`** — Manages WebSocket connections and messages
-
-Each orchestrator chains: **Repository → Logger → Platform hooks** (notifications on Android).
+- **`HttpOrchestrator`** — Manages HTTP log entries (CRUD + pagination). Uses `HttpRepository` for persistence and `WiretapLogger` for console output.
+- **`SocketOrchestrator`** — Manages WebSocket connections and messages. Uses `SocketRepository` and `WiretapLogger`.
 
 ### Dependency Injection
 
@@ -81,9 +64,10 @@ Wiretap uses **Koin** (non-annotation) with lazy initialization:
 ```
 WiretapKoinContext (lazy singleton)
   └─ wiretapModule
-       ├─ wiretapDataModule (DB, DAOs, Repositories)
-       ├─ wiretapUtilityModule (Logger)
-       ├─ WiretapOrchestrator
+       ├─ wiretapDataModule (SqlDriver, WiretapDatabase, HttpDao, SocketDao, RuleDao,
+       │                      HttpRepository, SocketRepository, RuleRepository)
+       ├─ wiretapUtilityModule (WiretapLogger)
+       ├─ WiretapOrchestrator (HttpOrchestratorImpl + SocketOrchestratorImpl)
        ├─ FindMatchingRuleUseCase
        └─ FindConflictingRulesUseCase
 ```

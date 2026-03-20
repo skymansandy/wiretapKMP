@@ -1,7 +1,7 @@
 site_name: WiretapKMP
-site_description: Kotlin Multiplatform network inspection SDK for Android, iOS, and JVM
+site_description: Kotlin Multiplatform network inspection and mocking SDK for Android, iOS, and JVM
 site_url: ""
-repo_url: https://github.com/aspect-build/WiretapKMP
+repo_url: https://github.com/skymansandy/wiretapKMP
 repo_name: WiretapKMP
 
 theme:
@@ -21,6 +21,7 @@ theme:
         name: Switch to light mode
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
     - navigation.top
@@ -55,32 +56,33 @@ plugins:
   - search
 
 nav:
-  - Home: index.md
-  - Getting Started:
-      - Installation: getting-started/installation.md
-      - Quick Start: getting-started/quickstart.md
-  - Guides:
-      - Ktor (KMP): guides/ktor.md
-      - OkHttp (Android/JVM): guides/okhttp.md
-      - URLSession (iOS/Swift): guides/urlsession.md
-      - WebSocket Support: guides/websockets.md
-      - Rules Engine: guides/rules.md
+  - Overview:
+      - Home: index.md
+  - Architecture:
+      - High-Level Overview: architecture/overview.md
+      - Module Structure: architecture/modules.md
+      - Request Flow: architecture/request-flow.md
   - Configuration:
       - WiretapConfig: configuration/config.md
       - Header Actions: configuration/headers.md
       - Log Retention: configuration/retention.md
-  - Architecture:
-      - Overview: architecture/overview.md
-      - Module Structure: architecture/modules.md
-      - Request Flow: architecture/request-flow.md
-  - API Reference:
-      - Core: api/core.md
-      - Ktor Plugin: api/ktor.md
-      - OkHttp Interceptor: api/okhttp.md
-      - URLSession Interceptor: api/urlsession.md
-      - Rules & Matchers: api/rules.md
+      - Rules Engine: configuration/rules.md
+  - Ktor Plugin:
+      - Setup: ktor/setup.md
+      - HTTP Logging: ktor/http.md
+      - WebSocket Logging: ktor/websockets.md
+      - API Reference: ktor/api.md
+  - OkHttp Interceptor:
+      - Setup: okhttp/setup.md
+      - HTTP Logging: okhttp/http.md
+      - WebSocket Logging: okhttp/websockets.md
+      - API Reference: okhttp/api.md
+  - URLSession Wrapper (Swift):
+      - Setup: urlsession/setup.md
+      - HTTP Logging: urlsession/http.md
+      - API Reference: urlsession/api.md
 
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/aspect-build/WiretapKMP
+      link: https://github.com/skymansandy/wiretapKMP
