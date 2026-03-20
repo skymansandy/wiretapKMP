@@ -24,6 +24,6 @@
     <string name="send">Send</string>
 
     <!-- WsMessageItem -->
-    <string name="sent_indicator">↑ </string>
-    <string name="received_indicator">↓ </string>
+    <string name="sent_indicator">▲ </string>
+    <string name="received_indicator">▼ </string>
 </resources>

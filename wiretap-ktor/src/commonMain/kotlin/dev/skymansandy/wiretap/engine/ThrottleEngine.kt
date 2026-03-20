@@ -21,6 +21,7 @@ internal class ThrottleEngineImpl : ThrottleEngine {
         rule: WiretapRule,
         proceed: suspend () -> WiretapResponse,
     ): WiretapResponse {
+
         val minDelay = rule.throttleDelayMs ?: 0L
         val maxDelay = rule.throttleDelayMaxMs ?: minDelay
         val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
@@ -28,6 +29,6 @@ internal class ThrottleEngineImpl : ThrottleEngine {
             delay(delayMs)
         }
         val response = proceed()
-        return response.copy(source = ResponseSource.THROTTLE)
+        return response.copy(source = ResponseSource.Throttle)
     }
 }

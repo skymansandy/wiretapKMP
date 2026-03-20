@@ -1,19 +1,19 @@
 package dev.skymansandy.wiretap.domain.model
 
 enum class SocketStatus {
-    CONNECTING,
-    OPEN,
-    CLOSING,
-    CLOSED,
-    FAILED,
+    Connecting,
+    Open,
+    Closing,
+    Closed,
+    Failed,
 }
 
 enum class SocketMessageDirection {
-    SENT,
-    RECEIVED,
+    Sent,
+    Received,
 }
 
 enum class SocketContentType {
-    TEXT,
-    BINARY,
+    Text,
+    Binary,
 }

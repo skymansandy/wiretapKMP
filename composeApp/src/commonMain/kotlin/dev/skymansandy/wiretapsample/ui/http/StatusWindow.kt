@@ -31,6 +31,7 @@ internal fun StatusWindow(statusLog: String) {
             .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         val scrollState = rememberScrollState()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -42,6 +43,7 @@ internal fun StatusWindow(statusLog: String) {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
             Text(
                 text = statusLog,
                 style = MaterialTheme.typography.bodySmall,

@@ -11,26 +11,32 @@ class WiretapOkHttpWebSocketListener(
 ) : WebSocketListener() {
 
     override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
+
         delegate.onOpen(webSocket, response)
     }
 
     override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
+
         delegate.onMessage(webSocket, text)
     }
 
     override fun onMessage(webSocket: okhttp3.WebSocket, bytes: okio.ByteString) {
+
         delegate.onMessage(webSocket, bytes)
     }
 
     override fun onClosing(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
+
         delegate.onClosing(webSocket, code, reason)
     }
 
     override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
+
         delegate.onClosed(webSocket, code, reason)
     }
 
     override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
+
         delegate.onFailure(webSocket, t, response)
     }
 }

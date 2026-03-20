@@ -6,33 +6,33 @@ import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 
 internal enum class UrlMatchMode {
-    EXACT,
-    CONTAINS,
-    REGEX,
+    Exact,
+    Contains,
+    Regex,
 }
 
 internal enum class BodyMatchMode {
-    EXACT,
-    CONTAINS,
-    REGEX,
+    Exact,
+    Contains,
+    Regex,
 }
 
 internal enum class HeaderEntryMode {
-    KEY_EXISTS,
-    VALUE_EXACT,
-    VALUE_CONTAINS,
-    VALUE_REGEX,
+    KeyExists,
+    ValueExact,
+    ValueContains,
+    ValueRegex,
 }
 
 internal enum class ResponseHeadersEditMode {
-    KEY_VALUE,
-    BULK_EDIT,
+    KeyValue,
+    BulkEdit,
 }
 
 internal enum class ThrottleInputMode {
-    NONE,
-    MANUAL,
-    PROFILE,
+    None,
+    Manual,
+    Profile,
 }
 
 internal enum class ThrottleProfile(
@@ -41,19 +41,19 @@ internal enum class ThrottleProfile(
     val delayMinMs: Long,
     val delayMaxMs: Long,
 ) {
-    GPRS("2G (GPRS)", "~50 kbps", 1500, 3000),
-    EDGE("2G (EDGE)", "~200 kbps", 800, 2000),
-    SLOW_3G("3G (Slow)", "~400 kbps", 500, 1500),
-    FAST_3G("3G", "~2 Mbps", 300, 800),
-    SLOW_4G("4G (Slow)", "~5 Mbps", 150, 400),
-    LTE("4G (LTE)", "~20 Mbps", 50, 200),
-    SLOW_WIFI("Slow WiFi", "~1 Mbps", 500, 1000),
+    Gprs("2G (GPRS)", "~50 kbps", 1500, 3000),
+    Edge("2G (EDGE)", "~200 kbps", 800, 2000),
+    Slow3g("3G (Slow)", "~400 kbps", 500, 1500),
+    Fast3g("3G", "~2 Mbps", 300, 800),
+    Slow4g("4G (Slow)", "~5 Mbps", 150, 400),
+    Lte("4G (LTE)", "~20 Mbps", 50, 200),
+    SlowWifi("Slow WiFi", "~1 Mbps", 500, 1000),
 }
 
 internal data class HeaderEntry(
     val key: String = "",
     val value: String = "",
-    val mode: HeaderEntryMode = HeaderEntryMode.KEY_EXISTS,
+    val mode: HeaderEntryMode = HeaderEntryMode.KeyExists,
 )
 
 internal data class ResponseHeaderEntry(

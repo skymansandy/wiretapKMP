@@ -177,7 +177,7 @@ fun NetworkLogDetailScreen(
                 }
             }
 
-            if (entry.source != ResponseSource.NETWORK) {
+            if (entry.source != ResponseSource.Network) {
                 RuleMatchBanner(entry.source, entry.matchedRuleId, onViewRule)
             }
 
@@ -200,17 +200,17 @@ private fun RuleMatchBanner(
     val contentColor: Color
     val label: String
     when (source) {
-        ResponseSource.MOCK -> {
+        ResponseSource.Mock -> {
             bgColor = MaterialTheme.colorScheme.secondaryContainer
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             label = stringResource(Res.string.mocked_by_rule)
         }
-        ResponseSource.THROTTLE -> {
+        ResponseSource.Throttle -> {
             bgColor = MaterialTheme.colorScheme.tertiaryContainer
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             label = stringResource(Res.string.throttled_by_rule)
         }
-        ResponseSource.NETWORK -> return
+        ResponseSource.Network -> return
     }
     val clickable = matchedRuleId != null && onViewRule != null
     Row(
@@ -278,7 +278,7 @@ private fun NetworkLogDetailScreenMockedPreview() {
                 responseCode = 201,
                 durationMs = 3,
                 timestamp = 1710850000000,
-                source = ResponseSource.MOCK,
+                source = ResponseSource.Mock,
                 matchedRuleId = 1,
                 responseBody = """{"id":456,"name":"Mock User"}""",
             ),
@@ -293,7 +293,7 @@ private fun NetworkLogDetailScreenMockedPreview() {
 private fun RuleMatchBannerMockPreview() {
     MaterialTheme {
         RuleMatchBanner(
-            source = ResponseSource.MOCK,
+            source = ResponseSource.Mock,
             matchedRuleId = 1,
             onViewRule = {},
         )
@@ -305,7 +305,7 @@ private fun RuleMatchBannerMockPreview() {
 private fun RuleMatchBannerThrottlePreview() {
     MaterialTheme {
         RuleMatchBanner(
-            source = ResponseSource.THROTTLE,
+            source = ResponseSource.Throttle,
             matchedRuleId = 2,
             onViewRule = {},
         )

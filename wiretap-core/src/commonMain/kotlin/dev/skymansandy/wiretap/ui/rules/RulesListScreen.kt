@@ -25,7 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -55,7 +55,7 @@ internal fun RulesListScreen(
     val rulesFlow = remember(searchQuery) {
         if (searchQuery.isBlank()) ruleRepository.getAll() else ruleRepository.search(searchQuery)
     }
-    val rules by rulesFlow.collectAsState(initial = emptyList())
+    val rules by rulesFlow.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Box(modifier = modifier) {
         if (rules.isEmpty()) {
@@ -130,7 +130,7 @@ private fun RuleItem(
                 )
             }
 
-            if (rule.action == RuleAction.MOCK && rule.mockResponseCode != null) {
+            if (rule.action == RuleAction.Mock && rule.mockResponseCode != null) {
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = stringResource(Res.string.response_code_display, rule.mockResponseCode!!),
@@ -138,7 +138,7 @@ private fun RuleItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            if (rule.action == RuleAction.THROTTLE && rule.throttleDelayMs != null) {
+            if (rule.action == RuleAction.Throttle && rule.throttleDelayMs != null) {
                 Spacer(Modifier.height(2.dp))
                 val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
                     stringResource(Res.string.delay_range, rule.throttleDelayMs.toString(), rule.throttleDelayMaxMs.toString())
@@ -161,7 +161,10 @@ private fun RuleItem(
 }
 
 @Composable
-private fun MatcherBadge(label: String, color: Color) {
+private fun MatcherBadge(
+    label: String,
+    color: Color,
+) {
     Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
             text = label,
@@ -176,8 +179,8 @@ private fun MatcherBadge(label: String, color: Color) {
 @Composable
 internal fun ActionBadge(action: RuleAction) {
     val color = when (action) {
-        RuleAction.MOCK -> MaterialTheme.colorScheme.error
-        RuleAction.THROTTLE -> MaterialTheme.colorScheme.tertiary
+        RuleAction.Mock -> MaterialTheme.colorScheme.error
+        RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
     }
     Surface(color = color.copy(alpha = 0.15f), shape = MaterialTheme.shapes.extraSmall) {
         Text(
@@ -223,7 +226,7 @@ private fun RuleItemMockPreview() {
                 id = 1,
                 method = "GET",
                 urlMatcher = UrlMatcher.Contains("/api/users"),
-                action = RuleAction.MOCK,
+                action = RuleAction.Mock,
                 mockResponseCode = 200,
                 enabled = true,
             ),
@@ -243,7 +246,7 @@ private fun RuleItemThrottlePreview() {
                 id = 2,
                 method = "*",
                 urlMatcher = UrlMatcher.Regex("/api/v\\d+/.*"),
-                action = RuleAction.THROTTLE,
+                action = RuleAction.Throttle,
                 throttleDelayMs = 1000,
                 throttleDelayMaxMs = 3000,
                 enabled = false,
@@ -259,7 +262,7 @@ private fun RuleItemThrottlePreview() {
 @Composable
 private fun ActionBadgeMockPreview() {
     MaterialTheme {
-        ActionBadge(action = RuleAction.MOCK)
+        ActionBadge(action = RuleAction.Mock)
     }
 }
 
@@ -267,6 +270,6 @@ private fun ActionBadgeMockPreview() {
 @Composable
 private fun ActionBadgeThrottlePreview() {
     MaterialTheme {
-        ActionBadge(action = RuleAction.THROTTLE)
+        ActionBadge(action = RuleAction.Throttle)
     }
 }

@@ -1,6 +1,12 @@
 package dev.skymansandy.wiretapsample.model
 
 internal data class WsLogEntry(
-    val direction: String,
+    val type: WsMsgType,
     val text: String,
-)
+) {
+    enum class WsMsgType {
+        Sent,
+        Recv,
+        Sys,
+    }
+}

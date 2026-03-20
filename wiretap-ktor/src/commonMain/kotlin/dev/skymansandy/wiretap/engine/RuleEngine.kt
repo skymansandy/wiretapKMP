@@ -19,6 +19,7 @@ internal class RuleEngineImpl(
         request: HttpRequestBuilder,
         proceed: suspend () -> WiretapResponse,
     ): WiretapResponse {
+
         val url = request.url.buildString()
         val method = request.method.value
 
@@ -26,8 +27,8 @@ internal class RuleEngineImpl(
             ?: return proceed()
 
         return when (matchingRule.action) {
-            RuleAction.MOCK -> mockEngine.execute(request, matchingRule)
-            RuleAction.THROTTLE -> throttleEngine.execute(request, matchingRule, proceed)
+            RuleAction.Mock -> mockEngine.execute(request, matchingRule)
+            RuleAction.Throttle -> throttleEngine.execute(request, matchingRule, proceed)
         }
     }
 }

@@ -18,11 +18,12 @@ internal class WiretapWebSocket(
 ) : WebSocket by delegate {
 
     override fun send(text: String): Boolean {
+
         orchestrator.logSocketMessage(
             SocketMessage(
                 socketId = socketId,
-                direction = SocketMessageDirection.SENT,
-                contentType = SocketContentType.TEXT,
+                direction = SocketMessageDirection.Sent,
+                contentType = SocketContentType.Text,
                 content = text,
                 byteCount = text.encodeToByteArray().size.toLong(),
                 timestamp = currentTimeMillis(),
@@ -32,11 +33,12 @@ internal class WiretapWebSocket(
     }
 
     override fun send(bytes: ByteString): Boolean {
+
         orchestrator.logSocketMessage(
             SocketMessage(
                 socketId = socketId,
-                direction = SocketMessageDirection.SENT,
-                contentType = SocketContentType.BINARY,
+                direction = SocketMessageDirection.Sent,
+                contentType = SocketContentType.Binary,
                 content = "[Binary: ${bytes.size} bytes]",
                 byteCount = bytes.size.toLong(),
                 timestamp = currentTimeMillis(),

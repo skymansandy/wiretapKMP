@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS NetworkLogEntity (
     response_headers TEXT NOT NULL DEFAULT "",
     response_body TEXT,
     duration_ms INTEGER NOT NULL,
-    source TEXT NOT NULL DEFAULT "NETWORK",
+    source TEXT NOT NULL DEFAULT "Network",
     timestamp INTEGER NOT NULL,
     matched_rule_id INTEGER,
     protocol TEXT,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS SocketLogEntity (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     url TEXT NOT NULL,
     request_headers TEXT NOT NULL DEFAULT "",
-    status TEXT NOT NULL DEFAULT "CONNECTING",
+    status TEXT NOT NULL DEFAULT "Connecting",
     close_code INTEGER,
     close_reason TEXT,
     failure_message TEXT,
@@ -188,7 +188,7 @@ deleteAllSocketLogs:
 DELETE FROM SocketLogEntity;
 
 deleteClosedSocketLogs:
-DELETE FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED');
+DELETE FROM SocketLogEntity WHERE status IN ('Closed', 'Failed');
 
 getSocketLogsPage:
 SELECT * FROM SocketLogEntity
@@ -211,7 +211,7 @@ getSocketMessagesBySocketId:
 SELECT * FROM SocketMessageEntity WHERE socket_id = ? ORDER BY timestamp ASC;
 
 deleteClosedSocketMessages:
-DELETE FROM SocketMessageEntity WHERE socket_id IN (SELECT id FROM SocketLogEntity WHERE status IN ('CLOSED', 'FAILED'));
+DELETE FROM SocketMessageEntity WHERE socket_id IN (SELECT id FROM SocketLogEntity WHERE status IN ('Closed', 'Failed'));
 
 deleteAllSocketMessages:
 DELETE FROM SocketMessageEntity;

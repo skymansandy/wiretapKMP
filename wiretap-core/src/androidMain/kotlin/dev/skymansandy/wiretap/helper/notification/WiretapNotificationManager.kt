@@ -132,8 +132,8 @@ internal object WiretapNotificationManager {
     }
 
     private fun formatSocketMessage(message: SocketMessage): String {
-        val direction = if (message.direction == SocketMessageDirection.SENT) "\u2191" else "\u2193"
-        val content = if (message.contentType == SocketContentType.BINARY) {
+        val direction = if (message.direction == SocketMessageDirection.Sent) "▲" else "▼"
+        val content = if (message.contentType == SocketContentType.Binary) {
             "[Binary: ${message.byteCount} B]"
         } else {
             message.content.take(100)
@@ -211,7 +211,7 @@ internal object WiretapNotificationManager {
         val statusLabel = entry.status.name
         val title = "WS $urlDisplay [$statusLabel]"
 
-        val isActive = entry.status == SocketStatus.OPEN || entry.status == SocketStatus.CONNECTING
+        val isActive = entry.status == SocketStatus.Open || entry.status == SocketStatus.Connecting
 
         val inboxStyle = NotificationCompat.InboxStyle()
             .setBigContentTitle(title)

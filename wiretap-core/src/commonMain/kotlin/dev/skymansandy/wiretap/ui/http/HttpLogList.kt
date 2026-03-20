@@ -166,7 +166,7 @@ private fun SwipeableNetworkLogItem(
     onCreateRule: () -> Unit,
     onViewRule: () -> Unit,
 ) {
-    val hasMatchedRule = entry.source != ResponseSource.NETWORK && entry.matchedRuleId != null
+    val hasMatchedRule = entry.source != ResponseSource.Network && entry.matchedRuleId != null
     val revealWidthPx = with(LocalDensity.current) { RevealWidth.toPx() }
     val offsetX = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
@@ -365,7 +365,7 @@ private fun NetworkLogItemContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    if (entry.source != ResponseSource.NETWORK) {
+                    if (entry.source != ResponseSource.Network) {
                         SourceChip(entry.source)
                     }
                 }
@@ -378,19 +378,19 @@ private fun NetworkLogItemContent(
 @Composable
 private fun SourceChip(source: ResponseSource) {
     val bgColor = when (source) {
-        ResponseSource.MOCK -> MaterialTheme.colorScheme.secondaryContainer
-        ResponseSource.THROTTLE -> MaterialTheme.colorScheme.tertiaryContainer
-        ResponseSource.NETWORK -> return
+        ResponseSource.Mock -> MaterialTheme.colorScheme.secondaryContainer
+        ResponseSource.Throttle -> MaterialTheme.colorScheme.tertiaryContainer
+        ResponseSource.Network -> return
     }
     val textColor = when (source) {
-        ResponseSource.MOCK -> MaterialTheme.colorScheme.onSecondaryContainer
-        ResponseSource.THROTTLE -> MaterialTheme.colorScheme.onTertiaryContainer
-        ResponseSource.NETWORK -> return
+        ResponseSource.Mock -> MaterialTheme.colorScheme.onSecondaryContainer
+        ResponseSource.Throttle -> MaterialTheme.colorScheme.onTertiaryContainer
+        ResponseSource.Network -> return
     }
     val label = when (source) {
-        ResponseSource.MOCK -> stringResource(Res.string.source_mock)
-        ResponseSource.THROTTLE -> stringResource(Res.string.source_throttle)
-        ResponseSource.NETWORK -> return
+        ResponseSource.Mock -> stringResource(Res.string.source_mock)
+        ResponseSource.Throttle -> stringResource(Res.string.source_throttle)
+        ResponseSource.Network -> return
     }
     Text(
         text = label,
@@ -471,7 +471,7 @@ private fun NetworkLogItemMockedPreview() {
                 responseCode = 200,
                 durationMs = 5,
                 timestamp = 1710850000000,
-                source = ResponseSource.MOCK,
+                source = ResponseSource.Mock,
                 matchedRuleId = 1,
             ),
             searchQuery = "",

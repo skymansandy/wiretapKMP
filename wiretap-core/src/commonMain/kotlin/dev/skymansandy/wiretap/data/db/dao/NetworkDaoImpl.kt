@@ -18,6 +18,7 @@ internal class NetworkDaoImpl(
     private val queries get() = database.wiretapQueries
 
     override fun insert(entry: NetworkLogEntry) {
+
         queries.insertNetworkLog(
             url = entry.url,
             method = entry.method,
@@ -41,6 +42,7 @@ internal class NetworkDaoImpl(
     }
 
     override fun insertAndGetId(entry: NetworkLogEntry): Long {
+
         return database.transactionWithResult {
             queries.insertNetworkLog(
                 url = entry.url,
@@ -67,6 +69,7 @@ internal class NetworkDaoImpl(
     }
 
     override fun update(entry: NetworkLogEntry) {
+
         queries.updateNetworkLog(
             response_code = entry.responseCode.toLong(),
             response_headers = HeadersSerializerUtil.serialize(entry.responseHeaders),
@@ -86,6 +89,7 @@ internal class NetworkDaoImpl(
     }
 
     override fun getAll(): Flow<List<NetworkLogEntry>> {
+
         return queries.getAllNetworkLogs()
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -93,6 +97,7 @@ internal class NetworkDaoImpl(
     }
 
     override fun getPage(query: String, limit: Long, afterId: Long?): List<NetworkLogEntry> {
+
         return queries.getNetworkLogsPage(query, afterId, limit)
             .executeAsList()
             .map { it.toDomain() }
@@ -103,18 +108,22 @@ internal class NetworkDaoImpl(
     }
 
     override fun deleteAll() {
+
         queries.deleteAllNetworkLogs()
     }
 
     override fun deleteById(id: Long) {
+
         queries.deleteNetworkLogById(id)
     }
 
     override fun deleteOlderThan(timestamp: Long) {
+
         queries.deleteNetworkLogsOlderThan(timestamp)
     }
 
     private fun NetworkLogEntity.toDomain(): NetworkLogEntry {
+
         return NetworkLogEntry(
             id = id,
             url = url,

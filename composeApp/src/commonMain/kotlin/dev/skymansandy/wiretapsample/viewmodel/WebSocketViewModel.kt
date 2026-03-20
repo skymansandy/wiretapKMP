@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.plugin.WiretapWebSocketSession
 import dev.skymansandy.wiretap.plugin.wiretapWrap
 import dev.skymansandy.wiretapsample.model.WsLogEntry
+import dev.skymansandy.wiretapsample.model.WsLogEntry.WsMsgType
 import dev.skymansandy.wiretapsample.model.wsServers
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
@@ -60,7 +61,7 @@ internal class WebSocketViewModel(
     private fun connect() {
         isConnecting.value = true
         messageLog.clear()
-        messageLog.add(WsLogEntry("SYS", "Connecting to ${wsUrl.value} ..."))
+        messageLog.add(WsLogEntry(WsMsgType.Sys, "Connecting to ${wsUrl.value} ..."))
         connectionJob = viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 client.webSocket(wsUrl.value) {
@@ -68,14 +69,14 @@ internal class WebSocketViewModel(
                     session = wrapped
                     isConnected.value = true
                     isConnecting.value = false
-                    messageLog.add(WsLogEntry("SYS", "Connected!"))
+                    messageLog.add(WsLogEntry(WsMsgType.Sys, "Connected!"))
 
                     try {
                         for (frame in wrapped.incoming) {
                             if (frame is Frame.Text) {
                                 val text = frame.readText()
                                 wrapped.logReceivedFrame(frame)
-                                messageLog.add(WsLogEntry("RECV", text))
+                                messageLog.add(WsLogEntry(WsMsgType.Recv, text))
                             }
                         }
                     } catch (_: Exception) {
@@ -83,13 +84,13 @@ internal class WebSocketViewModel(
                     }
                     isConnected.value = false
                     session = null
-                    messageLog.add(WsLogEntry("SYS", "Connection closed"))
+                    messageLog.add(WsLogEntry(WsMsgType.Sys, "Connection closed"))
                 }
             } catch (e: Exception) {
                 isConnecting.value = false
                 isConnected.value = false
                 session = null
-                messageLog.add(WsLogEntry("SYS", "Error: ${e.message}"))
+                messageLog.add(WsLogEntry(WsMsgType.Sys, "Error: ${e.message}"))
             }
         }
     }
@@ -105,7 +106,7 @@ internal class WebSocketViewModel(
             connectionJob?.cancel()
             session = null
             isConnected.value = false
-            messageLog.add(WsLogEntry("SYS", "Disconnected"))
+            messageLog.add(WsLogEntry(WsMsgType.Sys, "Disconnected"))
         }
     }
 
@@ -115,9 +116,9 @@ internal class WebSocketViewModel(
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 currentSession?.send(Frame.Text(text))
-                messageLog.add(WsLogEntry("SENT", text))
+                messageLog.add(WsLogEntry(WsMsgType.Sent, text))
             } catch (e: Exception) {
-                messageLog.add(WsLogEntry("SYS", "Send failed: ${e.message}"))
+                messageLog.add(WsLogEntry(WsMsgType.Sys, "Send failed: ${e.message}"))
             }
         }
     }

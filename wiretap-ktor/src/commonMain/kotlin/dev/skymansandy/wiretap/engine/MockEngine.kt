@@ -12,11 +12,12 @@ internal interface MockEngine {
 internal class MockEngineImpl : MockEngine {
 
     override suspend fun execute(request: HttpRequestBuilder, rule: WiretapRule): WiretapResponse {
+
         return WiretapResponse(
             statusCode = rule.mockResponseCode ?: 200,
             headers = rule.mockResponseHeaders ?: emptyMap(),
             body = rule.mockResponseBody,
-            source = ResponseSource.MOCK,
+            source = ResponseSource.Mock,
             durationMs = 0,
         )
     }

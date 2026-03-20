@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.data.db.entity
 
 sealed interface ActivityEntry {
+
     val timestamp: Long
 
     data class Http(val entry: NetworkLogEntry) : ActivityEntry {

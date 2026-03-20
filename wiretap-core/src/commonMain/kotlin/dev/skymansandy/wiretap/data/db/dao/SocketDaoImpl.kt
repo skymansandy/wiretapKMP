@@ -22,6 +22,7 @@ internal class SocketDaoImpl(
     private val queries get() = database.wiretapQueries
 
     override fun insertAndGetId(entry: SocketLogEntry): Long {
+
         return database.transactionWithResult {
             queries.insertSocketLog(
                 url = entry.url,
@@ -36,6 +37,7 @@ internal class SocketDaoImpl(
     }
 
     override fun insertWithId(entry: SocketLogEntry) {
+
         queries.insertSocketLogWithId(
             id = entry.id,
             url = entry.url,
@@ -50,6 +52,7 @@ internal class SocketDaoImpl(
     }
 
     override fun update(entry: SocketLogEntry) {
+
         queries.updateSocketLog(
             status = entry.status.name,
             close_code = entry.closeCode?.toLong(),
@@ -63,6 +66,7 @@ internal class SocketDaoImpl(
     }
 
     override fun insertMessage(message: SocketMessage) {
+
         queries.insertSocketMessage(
             socket_id = message.socketId,
             direction = message.direction.name,
@@ -74,6 +78,7 @@ internal class SocketDaoImpl(
     }
 
     override fun incrementMessageCount(socketId: Long) {
+
         queries.incrementSocketMessageCount(socketId)
     }
 
@@ -82,6 +87,7 @@ internal class SocketDaoImpl(
     }
 
     override fun getMessages(socketId: Long): Flow<List<SocketMessage>> {
+
         return queries.getSocketMessagesBySocketId(socketId)
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -89,6 +95,7 @@ internal class SocketDaoImpl(
     }
 
     override fun getAll(): Flow<List<SocketLogEntry>> {
+
         return queries.getAllSocketLogs()
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -96,12 +103,14 @@ internal class SocketDaoImpl(
     }
 
     override fun getPage(query: String, limit: Long, afterId: Long?): List<SocketLogEntry> {
+
         return queries.getSocketLogsPage(query, afterId, limit)
             .executeAsList()
             .map { it.toDomain() }
     }
 
     override fun deleteAll() {
+
         queries.deleteAllSocketMessages()
         queries.deleteAllSocketLogs()
     }

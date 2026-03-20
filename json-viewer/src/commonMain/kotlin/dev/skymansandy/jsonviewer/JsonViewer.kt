@@ -93,7 +93,7 @@ internal data class JsonLine(
     val isClosingBracket: Boolean = false,
 )
 
-internal enum class FoldType { OBJECT, ARRAY }
+internal enum class FoldType { Object, Array }
 
 internal sealed class JsonPart {
     abstract val text: String
@@ -111,11 +111,13 @@ internal sealed class JsonPart {
 internal fun buildDisplayLines(root: JsonNode): List<JsonLine> = JsonLineBuilder().build(root)
 
 private class JsonLineBuilder {
+
     private val out = mutableListOf<JsonLine>()
     private var lineNum = 0
     private var nextFoldId = 0
 
     fun build(root: JsonNode): List<JsonLine> {
+
         addNode(root, key = null, isLast = true, depth = 0, parentFoldIds = emptyList(), path = emptyList())
         return out
     }
@@ -128,6 +130,7 @@ private class JsonLineBuilder {
         parentFoldIds: List<Int>,
         path: JsonPath,
     ) {
+
         val indent: List<JsonPart> = if (depth > 0) listOf(JsonPart.Indent("  ".repeat(depth))) else emptyList()
         val keyParts: List<JsonPart> = if (key != null) {
             listOf(JsonPart.Key("\"$key\""), JsonPart.Punct(": "))
@@ -141,7 +144,7 @@ private class JsonLineBuilder {
                 } else {
                     val myId = nextFoldId++
                     val headerIdx = out.size
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{"), myId, FoldType.OBJECT, parentFoldIds, foldChildCount = node.fields.size, path = path)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("{"), myId, FoldType.Object, parentFoldIds, foldChildCount = node.fields.size, path = path)
                     val childParents = parentFoldIds + myId
                     node.fields.forEachIndexed { i, (k, v) ->
                         addNode(v, k, i == node.fields.lastIndex, depth + 1, childParents, path = path + PathSegment.Key(k))
@@ -159,7 +162,7 @@ private class JsonLineBuilder {
                 } else {
                     val myId = nextFoldId++
                     val headerIdx = out.size
-                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("["), myId, FoldType.ARRAY, parentFoldIds, foldChildCount = node.elements.size, path = path)
+                    out += JsonLine(++lineNum, depth, indent + keyParts + JsonPart.Punct("["), myId, FoldType.Array, parentFoldIds, foldChildCount = node.elements.size, path = path)
                     val childParents = parentFoldIds + myId
                     node.elements.forEachIndexed { i, v ->
                         addNode(v, null, i == node.elements.lastIndex, depth + 1, childParents, path = path + PathSegment.Index(i))
@@ -264,9 +267,10 @@ internal fun ContentCell(
     if (isFolded && line.foldedContent.isNotEmpty()) {
         // Folded: show "{ ... }" as visible text.
         // Tap → expand fold. Long-press → copy full JSON to clipboard.
+        @Suppress("DEPRECATION")
         val clipboardManager = LocalClipboardManager.current
         val fullJson = lineText + " " + line.foldedContent
-        val closingBracket = if (line.foldType == FoldType.OBJECT) "}" else "]"
+        val closingBracket = if (line.foldType == FoldType.Object) "}" else "]"
 
         val styledText = buildAnnotatedString {
             var cursor = 0
@@ -318,7 +322,9 @@ internal fun ContentCell(
                 .pointerInput(line.foldId) {
                     detectTapGestures(
                         onTap = { onFoldToggle() },
-                        onLongPress = { clipboardManager.setText(AnnotatedString(fullJson)) },
+                        onLongPress = {
+                            clipboardManager.setText(AnnotatedString(fullJson))
+                        },
                     )
                 }
                 .padding(start = 8.dp, end = 16.dp, top = cellVerticalPadding, bottom = cellVerticalPadding),

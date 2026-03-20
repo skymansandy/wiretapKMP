@@ -27,7 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,13 +64,13 @@ fun SocketDetailScreen(
         return
     }
 
-    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId).collectAsState(initialEntry)
+    val liveEntryOrNull by orchestrator.getSocketByIdFlow(socketId).collectAsStateWithLifecycle(initialEntry)
     val liveEntry = liveEntryOrNull ?: run {
         onBack()
         return
     }
 
-    val messages by orchestrator.getSocketMessages(socketId).collectAsState(emptyList())
+    val messages by orchestrator.getSocketMessages(socketId).collectAsStateWithLifecycle(emptyList())
     val listState = rememberLazyListState()
 
     // Auto-scroll to bottom when new messages arrive and already near bottom
@@ -195,7 +195,10 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
 }
 
 @Composable
-private fun InfoLabel(label: String, value: String) {
+private fun InfoLabel(
+    label: String,
+    value: String,
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = "$label:",
@@ -213,7 +216,7 @@ private fun InfoLabel(label: String, value: String) {
 
 @Composable
 private fun MessageBubble(message: SocketMessage) {
-    val isSent = message.direction == SocketMessageDirection.SENT
+    val isSent = message.direction == SocketMessageDirection.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
 
     val bgColor = if (isSent) {
@@ -240,7 +243,7 @@ private fun MessageBubble(message: SocketMessage) {
                 .background(bgColor, RoundedCornerShape(12.dp))
                 .padding(10.dp),
         ) {
-            val displayText = if (message.contentType == SocketContentType.BINARY) {
+            val displayText = if (message.contentType == SocketContentType.Binary) {
                 stringResource(Res.string.binary_message, formatBytes(message.byteCount))
             } else {
                 message.content
@@ -294,18 +297,18 @@ private fun HistoryClearedBanner() {
 @Composable
 private fun StatusChip(status: SocketStatus) {
     val bgColor = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5)
-        SocketStatus.OPEN -> Color(0xFF4CAF50)
-        SocketStatus.CLOSING -> Color(0xFFFFA726)
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E)
-        SocketStatus.FAILED -> Color(0xFFEF5350)
+        SocketStatus.Connecting -> Color(0xFF42A5F5)
+        SocketStatus.Open -> Color(0xFF4CAF50)
+        SocketStatus.Closing -> Color(0xFFFFA726)
+        SocketStatus.Closed -> Color(0xFF9E9E9E)
+        SocketStatus.Failed -> Color(0xFFEF5350)
     }
     val label = when (status) {
-        SocketStatus.CONNECTING -> stringResource(Res.string.status_connecting)
-        SocketStatus.OPEN -> stringResource(Res.string.status_open)
-        SocketStatus.CLOSING -> stringResource(Res.string.status_closing)
-        SocketStatus.CLOSED -> stringResource(Res.string.status_closed)
-        SocketStatus.FAILED -> stringResource(Res.string.status_failed)
+        SocketStatus.Connecting -> stringResource(Res.string.status_connecting)
+        SocketStatus.Open -> stringResource(Res.string.status_open)
+        SocketStatus.Closing -> stringResource(Res.string.status_closing)
+        SocketStatus.Closed -> stringResource(Res.string.status_closed)
+        SocketStatus.Failed -> stringResource(Res.string.status_failed)
     }
     Text(
         text = label,
@@ -327,7 +330,7 @@ private fun ConnectionInfoHeaderPreview() {
             entry = SocketLogEntry(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
-                status = SocketStatus.OPEN,
+                status = SocketStatus.Open,
                 timestamp = 1710850000000,
                 requestHeaders = mapOf(
                     "Sec-WebSocket-Key" to "dGhlIHNhbXBsZSBub25jZQ==",
@@ -347,7 +350,7 @@ private fun ConnectionInfoHeaderClosedPreview() {
             entry = SocketLogEntry(
                 id = 2,
                 url = "wss://api.example.com/stream",
-                status = SocketStatus.CLOSED,
+                status = SocketStatus.Closed,
                 timestamp = 1710850000000,
                 closedAt = 1710850120000,
                 closeCode = 1000,
@@ -365,8 +368,8 @@ private fun MessageBubbleSentPreview() {
             message = SocketMessage(
                 id = 1,
                 socketId = 1,
-                direction = SocketMessageDirection.SENT,
-                contentType = SocketContentType.TEXT,
+                direction = SocketMessageDirection.Sent,
+                contentType = SocketContentType.Text,
                 content = """{"type":"ping","id":42}""",
                 byteCount = 23,
                 timestamp = 1710850000000,
@@ -383,8 +386,8 @@ private fun MessageBubbleReceivedPreview() {
             message = SocketMessage(
                 id = 2,
                 socketId = 1,
-                direction = SocketMessageDirection.RECEIVED,
-                contentType = SocketContentType.TEXT,
+                direction = SocketMessageDirection.Received,
+                contentType = SocketContentType.Text,
                 content = """{"type":"pong","id":42,"data":{"status":"ok"}}""",
                 byteCount = 46,
                 timestamp = 1710850001000,
@@ -401,8 +404,8 @@ private fun MessageBubbleBinaryPreview() {
             message = SocketMessage(
                 id = 3,
                 socketId = 1,
-                direction = SocketMessageDirection.RECEIVED,
-                contentType = SocketContentType.BINARY,
+                direction = SocketMessageDirection.Received,
+                contentType = SocketContentType.Binary,
                 content = "",
                 byteCount = 1024,
                 timestamp = 1710850002000,
@@ -423,7 +426,7 @@ private fun HistoryClearedBannerPreview() {
 @Composable
 private fun StatusChipOpenPreview() {
     MaterialTheme {
-        StatusChip(SocketStatus.OPEN)
+        StatusChip(SocketStatus.Open)
     }
 }
 
@@ -431,6 +434,6 @@ private fun StatusChipOpenPreview() {
 @Composable
 private fun StatusChipFailedPreview() {
     MaterialTheme {
-        StatusChip(SocketStatus.FAILED)
+        StatusChip(SocketStatus.Failed)
     }
 }

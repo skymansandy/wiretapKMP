@@ -13,7 +13,7 @@ data class NetworkLogEntry(
     val responseBody: String? = null,
     val durationMs: Long = 0,
     val durationNs: Long = 0,
-    val source: ResponseSource = ResponseSource.NETWORK,
+    val source: ResponseSource = ResponseSource.Network,
     val timestamp: Long,
     val matchedRuleId: Long? = null,
     val protocol: String? = null,
@@ -24,9 +24,11 @@ data class NetworkLogEntry(
     val issuerCn: String? = null,
     val certificateExpiry: String? = null,
 ) {
+
     val isInProgress: Boolean get() = responseCode == RESPONSE_CODE_IN_PROGRESS
 
     companion object {
+
         const val RESPONSE_CODE_IN_PROGRESS = -2
     }
 }

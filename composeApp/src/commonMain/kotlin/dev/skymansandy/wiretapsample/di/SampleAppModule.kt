@@ -10,7 +10,7 @@ import io.ktor.client.plugins.websocket.WebSockets
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val sampleAppModule = module {
+internal val sampleAppModule = module {
 
     single {
         HttpClient {

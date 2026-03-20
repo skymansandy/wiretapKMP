@@ -21,6 +21,7 @@ internal class RuleDaoImpl(
     private val queries get() = database.wiretapQueries
 
     override fun insert(rule: WiretapRule) {
+
         queries.insertRule(
             method = rule.method,
             url_matcher_type = rule.urlMatcher?.typeString(),
@@ -41,6 +42,7 @@ internal class RuleDaoImpl(
     }
 
     override fun getAll(): Flow<List<WiretapRule>> {
+
         return queries.getAllRules()
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -56,6 +58,7 @@ internal class RuleDaoImpl(
     }
 
     override fun update(rule: WiretapRule) {
+
         queries.updateRule(
             method = rule.method,
             url_matcher_type = rule.urlMatcher?.typeString(),
@@ -76,6 +79,7 @@ internal class RuleDaoImpl(
     }
 
     override fun search(query: String): Flow<List<WiretapRule>> {
+
         return queries.searchRules(query = query)
             .asFlow()
             .mapToList(Dispatchers.Default)
@@ -83,18 +87,25 @@ internal class RuleDaoImpl(
     }
 
     override fun updateEnabled(id: Long, enabled: Boolean) {
-        queries.updateRuleEnabled(enabled = if (enabled) 1L else 0L, id = id)
+
+        queries.updateRuleEnabled(
+            enabled = if (enabled) 1L else 0L,
+            id = id,
+        )
     }
 
     override fun deleteById(id: Long) {
+
         queries.deleteRuleById(id)
     }
 
     override fun deleteAll() {
+
         queries.deleteAllRules()
     }
 
     private fun RuleEntity.toDomain(): WiretapRule {
+
         return WiretapRule(
             id = id,
             method = method,

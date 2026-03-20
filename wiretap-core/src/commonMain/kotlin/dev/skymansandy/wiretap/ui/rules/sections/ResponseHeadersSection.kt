@@ -49,21 +49,21 @@ internal fun ResponseHeadersSection(
         IconButton(
             onClick = {
                 onModeChange(
-                    if (mode == ResponseHeadersEditMode.KEY_VALUE) ResponseHeadersEditMode.BULK_EDIT
-                    else ResponseHeadersEditMode.KEY_VALUE,
+                    if (mode == ResponseHeadersEditMode.KeyValue) ResponseHeadersEditMode.BulkEdit
+                    else ResponseHeadersEditMode.KeyValue,
                 )
             },
         ) {
             Icon(
-                imageVector = if (mode == ResponseHeadersEditMode.KEY_VALUE) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KEY_VALUE) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
+                imageVector = if (mode == ResponseHeadersEditMode.KeyValue) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
+                contentDescription = stringResource(if (mode == ResponseHeadersEditMode.KeyValue) Res.string.switch_to_bulk_edit else Res.string.switch_to_key_value),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
     }
 
     when (mode) {
-        ResponseHeadersEditMode.KEY_VALUE -> {
+        ResponseHeadersEditMode.KeyValue -> {
             entries.forEachIndexed { idx, entry ->
                 ResponseHeaderEntryRow(
                     entry = entry,
@@ -75,7 +75,7 @@ internal fun ResponseHeadersSection(
                 Text(stringResource(Res.string.add_header))
             }
         }
-        ResponseHeadersEditMode.BULK_EDIT -> {
+        ResponseHeadersEditMode.BulkEdit -> {
             OutlinedTextField(
                 value = bulk,
                 onValueChange = onBulkChange,
@@ -140,7 +140,7 @@ private fun ResponseHeadersSectionKeyValuePreview() {
             onRemove = {},
             bulk = "",
             onBulkChange = {},
-            mode = ResponseHeadersEditMode.KEY_VALUE,
+            mode = ResponseHeadersEditMode.KeyValue,
             onModeChange = {},
         )
     }
@@ -157,7 +157,7 @@ private fun ResponseHeadersSectionBulkPreview() {
             onRemove = {},
             bulk = "Content-Type: application/json\nCache-Control: no-cache",
             onBulkChange = {},
-            mode = ResponseHeadersEditMode.BULK_EDIT,
+            mode = ResponseHeadersEditMode.BulkEdit,
             onModeChange = {},
         )
     }

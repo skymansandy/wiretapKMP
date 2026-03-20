@@ -91,11 +91,11 @@ private fun SocketLogItemContent(
     onClick: () -> Unit,
 ) {
     val statusColor = when (entry.status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5) // Blue
-        SocketStatus.OPEN -> Color(0xFF4CAF50) // Green
-        SocketStatus.CLOSING -> Color(0xFFFFA726) // Amber
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E) // Gray
-        SocketStatus.FAILED -> Color(0xFFEF5350) // Red
+        SocketStatus.Connecting -> Color(0xFF42A5F5) // Blue
+        SocketStatus.Open -> Color(0xFF4CAF50) // Green
+        SocketStatus.Closing -> Color(0xFFFFA726) // Amber
+        SocketStatus.Closed -> Color(0xFF9E9E9E) // Gray
+        SocketStatus.Failed -> Color(0xFFEF5350) // Red
     }
 
     val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
@@ -179,18 +179,18 @@ private fun SocketLogItemContent(
 @Composable
 private fun SocketStatusChip(status: SocketStatus) {
     val bgColor = when (status) {
-        SocketStatus.CONNECTING -> Color(0xFF42A5F5)
-        SocketStatus.OPEN -> Color(0xFF4CAF50)
-        SocketStatus.CLOSING -> Color(0xFFFFA726)
-        SocketStatus.CLOSED -> Color(0xFF9E9E9E)
-        SocketStatus.FAILED -> Color(0xFFEF5350)
+        SocketStatus.Connecting -> Color(0xFF42A5F5)
+        SocketStatus.Open -> Color(0xFF4CAF50)
+        SocketStatus.Closing -> Color(0xFFFFA726)
+        SocketStatus.Closed -> Color(0xFF9E9E9E)
+        SocketStatus.Failed -> Color(0xFFEF5350)
     }
     val label = when (status) {
-        SocketStatus.CONNECTING -> stringResource(Res.string.status_connecting)
-        SocketStatus.OPEN -> stringResource(Res.string.status_open)
-        SocketStatus.CLOSING -> stringResource(Res.string.status_closing)
-        SocketStatus.CLOSED -> stringResource(Res.string.status_closed)
-        SocketStatus.FAILED -> stringResource(Res.string.status_failed)
+        SocketStatus.Connecting -> stringResource(Res.string.status_connecting)
+        SocketStatus.Open -> stringResource(Res.string.status_open)
+        SocketStatus.Closing -> stringResource(Res.string.status_closing)
+        SocketStatus.Closed -> stringResource(Res.string.status_closed)
+        SocketStatus.Failed -> stringResource(Res.string.status_failed)
     }
     Text(
         text = label,
@@ -210,7 +210,7 @@ private fun SocketLogItemOpenPreview() {
             entry = SocketLogEntry(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
-                status = SocketStatus.OPEN,
+                status = SocketStatus.Open,
                 messageCount = 12,
                 timestamp = 1710850000000,
             ),
@@ -228,7 +228,7 @@ private fun SocketLogItemClosedPreview() {
             entry = SocketLogEntry(
                 id = 2,
                 url = "ws://localhost:8080/ws",
-                status = SocketStatus.CLOSED,
+                status = SocketStatus.Closed,
                 messageCount = 5,
                 timestamp = 1710850000000,
                 closedAt = 1710850060000,
@@ -248,7 +248,7 @@ private fun SocketLogItemFailedPreview() {
             entry = SocketLogEntry(
                 id = 3,
                 url = "wss://api.example.com/stream",
-                status = SocketStatus.FAILED,
+                status = SocketStatus.Failed,
                 messageCount = 0,
                 timestamp = 1710850000000,
                 failureMessage = "Connection refused",
@@ -267,7 +267,7 @@ private fun SocketLogItemConnectingPreview() {
             entry = SocketLogEntry(
                 id = 4,
                 url = "wss://api.example.com/realtime",
-                status = SocketStatus.CONNECTING,
+                status = SocketStatus.Connecting,
                 timestamp = 1710850000000,
             ),
             searchQuery = "",

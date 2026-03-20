@@ -13,7 +13,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-internal fun SectionTitle(text: String, action: (@Composable () -> Unit)? = null) {
+internal fun SectionTitle(
+    text: String,
+    action: (@Composable () -> Unit)? = null,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

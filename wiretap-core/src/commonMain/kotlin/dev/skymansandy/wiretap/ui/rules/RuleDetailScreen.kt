@@ -172,7 +172,7 @@ internal fun RuleDetailScreen(
             Spacer(Modifier.height(12.dp))
 
             when (rule.action) {
-                RuleAction.MOCK -> {
+                RuleAction.Mock -> {
                     DetailRow(stringResource(Res.string.response_code_label), (rule.mockResponseCode ?: 200).toString())
 
                     if (!rule.mockResponseBody.isNullOrBlank()) {
@@ -199,7 +199,7 @@ internal fun RuleDetailScreen(
                         HeadersList(headers = rule.mockResponseHeaders, emptyText = stringResource(Res.string.no_headers))
                     }
                 }
-                RuleAction.THROTTLE -> {
+                RuleAction.Throttle -> {
                     val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != rule.throttleDelayMs)
                         "${rule.throttleDelayMs ?: 0}–${rule.throttleDelayMaxMs} ms"
                     else "${rule.throttleDelayMs ?: 0} ms"
@@ -208,7 +208,7 @@ internal fun RuleDetailScreen(
             }
 
             rule.throttleDelayMs?.let { delay ->
-                if (rule.action == RuleAction.MOCK) {
+                if (rule.action == RuleAction.Mock) {
                     Spacer(Modifier.height(12.dp))
                     val delayText = if (rule.throttleDelayMaxMs != null && rule.throttleDelayMaxMs != delay)
                         "$delay–${rule.throttleDelayMaxMs} ms"
@@ -235,7 +235,10 @@ private fun HeaderMatcherDetail(matcher: HeaderMatcher) {
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
+private fun DetailRow(
+    label: String,
+    value: String,
+) {
     Column {
         Text(label, style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,)

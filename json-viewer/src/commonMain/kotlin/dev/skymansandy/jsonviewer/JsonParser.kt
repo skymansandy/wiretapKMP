@@ -13,16 +13,19 @@ internal fun parseJsonResult(input: String): Pair<JsonNode?, JsonError?> = try {
 }
 
 internal class JsonParser(private val src: String) {
+
     private var pos = 0
 
     fun exhausted() = pos >= src.length
     fun currentPos() = pos
 
     fun skipWs() {
+
         while (pos < src.length && src[pos].isWhitespace()) pos++
     }
 
     fun parseValue(): JsonNode {
+
         skipWs()
         return when {
             cur() == '{' -> parseObject()
@@ -37,6 +40,7 @@ internal class JsonParser(private val src: String) {
     }
 
     private fun parseObject(): JsonNode.JObject {
+
         eat('{')
         skipWs()
         val fields = mutableListOf<Pair<String, JsonNode>>()
@@ -54,6 +58,7 @@ internal class JsonParser(private val src: String) {
     }
 
     private fun parseArray(): JsonNode.JArray {
+
         eat('[')
         skipWs()
         val items = mutableListOf<JsonNode>()
@@ -67,6 +72,7 @@ internal class JsonParser(private val src: String) {
     }
 
     private fun parseStringValue(): String {
+
         eat('"')
         val sb = StringBuilder()
         while (pos < src.length) {
@@ -115,6 +121,7 @@ internal class JsonParser(private val src: String) {
     }
 
     private fun parseNumber(): JsonNode.JNumber {
+
         val start = pos
         if (cur() == '-') pos++
         while (pos < src.length && cur().isDigit()) pos++

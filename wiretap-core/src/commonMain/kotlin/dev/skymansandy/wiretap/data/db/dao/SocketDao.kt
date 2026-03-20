@@ -5,6 +5,7 @@ import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import kotlinx.coroutines.flow.Flow
 
 internal interface SocketDao {
+
     fun insertAndGetId(entry: SocketLogEntry): Long
     fun insertWithId(entry: SocketLogEntry)
     fun update(entry: SocketLogEntry)

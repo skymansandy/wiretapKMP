@@ -52,19 +52,19 @@ internal fun ResponseStep(
     Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
-            selected = action == RuleAction.MOCK,
-            onClick = { onActionChange(RuleAction.MOCK) },
+            selected = action == RuleAction.Mock,
+            onClick = { onActionChange(RuleAction.Mock) },
             label = { Text(stringResource(Res.string.mock)) },
         )
         FilterChip(
-            selected = action == RuleAction.THROTTLE,
-            onClick = { onActionChange(RuleAction.THROTTLE) },
+            selected = action == RuleAction.Throttle,
+            onClick = { onActionChange(RuleAction.Throttle) },
             label = { Text(stringResource(Res.string.throttle)) },
         )
     }
 
     when (action) {
-        RuleAction.MOCK -> {
+        RuleAction.Mock -> {
             ThrottleDelayInput(
                 throttleDelayMs = throttleDelayMs,
                 onThrottleDelayMsChange = onThrottleDelayMsChange,
@@ -105,7 +105,7 @@ internal fun ResponseStep(
                 onModeChange = onResponseHeadersModeChange,
             )
         }
-        RuleAction.THROTTLE -> {
+        RuleAction.Throttle -> {
             ThrottleDelayInput(
                 throttleDelayMs = throttleDelayMs,
                 onThrottleDelayMsChange = onThrottleDelayMsChange,

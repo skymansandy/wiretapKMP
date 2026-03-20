@@ -75,7 +75,7 @@ internal fun CreateRuleScreen(
     // Request state — pre-fill from log entry or existing rule
     var method by remember { mutableStateOf(existingRule?.method ?: prefillFromLog?.method ?: "*") }
     var urlMode by remember {
-        mutableStateOf(existingRule?.toUrlMode() ?: if (prefillFromLog != null) UrlMatchMode.CONTAINS else null)
+        mutableStateOf(existingRule?.toUrlMode() ?: if (prefillFromLog != null) UrlMatchMode.Contains else null)
     }
     var urlPattern by remember {
         mutableStateOf(existingRule?.urlMatcher?.pattern ?: prefillFromLog?.url ?: "")
@@ -92,7 +92,7 @@ internal fun CreateRuleScreen(
     var pendingRule by remember { mutableStateOf<WiretapRule?>(null) }
 
     // Response state
-    var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.MOCK) }
+    var action by remember { mutableStateOf(existingRule?.action ?: RuleAction.Mock) }
     var mockResponseCode by remember { mutableStateOf(existingRule?.mockResponseCode?.toString() ?: "200") }
     var mockResponseBody by remember { mutableStateOf(existingRule?.mockResponseBody ?: "") }
     var responseHeaderEntries by remember {
@@ -103,17 +103,17 @@ internal fun CreateRuleScreen(
     var responseHeadersBulk by remember {
         mutableStateOf(existingRule?.mockResponseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: "")
     }
-    var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KEY_VALUE) }
+    var responseHeadersMode by remember { mutableStateOf(ResponseHeadersEditMode.KeyValue) }
     var throttleDelayMs by remember { mutableStateOf(existingRule?.throttleDelayMs?.toString() ?: "") }
     var throttleDelayMaxMs by remember { mutableStateOf(existingRule?.throttleDelayMaxMs?.toString() ?: "") }
     var throttleInputMode by remember {
         mutableStateOf(
             when {
-                existingRule?.throttleDelayMs == null || (existingRule.throttleDelayMs == 0L && existingRule.throttleDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.NONE
+                existingRule?.throttleDelayMs == null || (existingRule.throttleDelayMs == 0L && existingRule.throttleDelayMaxMs.let { it == null || it == 0L }) -> ThrottleInputMode.None
                 ThrottleProfile.entries.any {
                     it.delayMinMs == existingRule.throttleDelayMs && it.delayMaxMs == existingRule.throttleDelayMaxMs
-                } -> ThrottleInputMode.PROFILE
-                else -> ThrottleInputMode.MANUAL
+                } -> ThrottleInputMode.Profile
+                else -> ThrottleInputMode.Manual
             }
         )
     }
@@ -241,11 +241,11 @@ internal fun CreateRuleScreen(
                         responseHeadersMode = responseHeadersMode,
                         onResponseHeadersModeChange = { newMode ->
                             when (newMode) {
-                                ResponseHeadersEditMode.KEY_VALUE -> {
+                                ResponseHeadersEditMode.KeyValue -> {
                                     val parsed = HeadersSerializerUtil.deserialize(responseHeadersBulk)
                                     responseHeaderEntries = parsed.entries.map { (k, v) -> ResponseHeaderEntry(k, v) }
                                 }
-                                ResponseHeadersEditMode.BULK_EDIT -> {
+                                ResponseHeadersEditMode.BulkEdit -> {
                                     val map = responseHeaderEntries
                                         .filter { e -> e.key.isNotBlank() }
                                         .associate { e -> e.key.trim() to e.value.trim() }
@@ -289,12 +289,12 @@ internal fun CreateRuleScreen(
                     Button(
                         onClick = {
                             val resolvedHeaders: Map<String, String>? = when (responseHeadersMode) {
-                                ResponseHeadersEditMode.KEY_VALUE ->
+                                ResponseHeadersEditMode.KeyValue ->
                                     responseHeaderEntries
                                         .filter { e -> e.key.isNotBlank() }
                                         .associate { e -> e.key.trim() to e.value.trim() }
                                         .takeIf { m -> m.isNotEmpty() }
-                                ResponseHeadersEditMode.BULK_EDIT ->
+                                ResponseHeadersEditMode.BulkEdit ->
                                     if (responseHeadersBulk.isNotBlank())
                                         HeadersSerializerUtil.deserialize(responseHeadersBulk).takeIf { m -> m.isNotEmpty() }
                                     else null
@@ -303,29 +303,29 @@ internal fun CreateRuleScreen(
                                 id = existingRule?.id ?: 0,
                                 method = method.trim().ifBlank { "*" },
                                 urlMatcher = when (urlMode) {
-                                    UrlMatchMode.EXACT -> UrlMatcher.Exact(urlPattern.trim())
-                                    UrlMatchMode.CONTAINS -> UrlMatcher.Contains(urlPattern.trim())
-                                    UrlMatchMode.REGEX -> UrlMatcher.Regex(urlPattern.trim())
+                                    UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.trim())
+                                    UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.trim())
+                                    UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.trim())
                                     null -> null
                                 },
                                 headerMatchers = headerEntries.mapNotNull { entry -> entry.toDomain() },
                                 bodyMatcher = when (bodyMode) {
-                                    BodyMatchMode.EXACT -> BodyMatcher.Exact(bodyPattern.trim())
-                                    BodyMatchMode.CONTAINS -> BodyMatcher.Contains(bodyPattern.trim())
-                                    BodyMatchMode.REGEX -> BodyMatcher.Regex(bodyPattern.trim())
+                                    BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.trim())
+                                    BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.trim())
+                                    BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.trim())
                                     null -> null
                                 },
                                 action = action,
-                                mockResponseCode = if (action == RuleAction.MOCK) mockResponseCode.toIntOrNull() ?: 200 else null,
-                                mockResponseBody = if (action == RuleAction.MOCK) mockResponseBody.ifBlank { null } else null,
-                                mockResponseHeaders = if (action == RuleAction.MOCK) resolvedHeaders else null,
+                                mockResponseCode = if (action == RuleAction.Mock) mockResponseCode.toIntOrNull() ?: 200 else null,
+                                mockResponseBody = if (action == RuleAction.Mock) mockResponseBody.ifBlank { null } else null,
+                                mockResponseHeaders = if (action == RuleAction.Mock) resolvedHeaders else null,
                                 throttleDelayMs = when (action) {
-                                    RuleAction.THROTTLE -> throttleDelayMs.toLongOrNull() ?: 1000L
-                                    RuleAction.MOCK -> throttleDelayMs.toLongOrNull()
+                                    RuleAction.Throttle -> throttleDelayMs.toLongOrNull() ?: 1000L
+                                    RuleAction.Mock -> throttleDelayMs.toLongOrNull()
                                 },
                                 throttleDelayMaxMs = when (action) {
-                                    RuleAction.THROTTLE -> throttleDelayMaxMs.toLongOrNull()
-                                    RuleAction.MOCK -> throttleDelayMaxMs.toLongOrNull()
+                                    RuleAction.Throttle -> throttleDelayMaxMs.toLongOrNull()
+                                    RuleAction.Mock -> throttleDelayMaxMs.toLongOrNull()
                                 },
                                 enabled = existingRule?.enabled ?: true,
                                 createdAt = existingRule?.createdAt ?: currentTimeMillis(),

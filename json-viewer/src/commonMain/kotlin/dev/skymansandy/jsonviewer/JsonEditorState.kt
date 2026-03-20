@@ -11,6 +11,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 
 @Stable
 class JsonEditorState(initialJson: String, isEditing: Boolean) {
+
     var rawJson: String by mutableStateOf(initialJson)
         private set
 
@@ -34,27 +35,32 @@ class JsonEditorState(initialJson: String, isEditing: Boolean) {
     }
 
     fun collapseAll() {
+
         allLines.forEach { line ->
             line.foldId?.let { foldState[it] = true }
         }
     }
 
     fun expandAll() {
+
         foldState.clear()
     }
 
     fun updateRawJson(newJson: String) {
+
         rawJson = newJson
         reparse(newJson)
     }
 
     fun format(compact: Boolean) {
+
         val node = parsedJson ?: return
         isCompact = compact
         rawJson = node.toJsonString(compact = compact)
     }
 
     fun sortKeys(ascending: Boolean) {
+
         val node = parsedJson ?: return
         val sorted = node.sortKeys(ascending = ascending, recursive = true)
         parsedJson = sorted
@@ -63,6 +69,7 @@ class JsonEditorState(initialJson: String, isEditing: Boolean) {
     }
 
     private fun reparse(json: String) {
+
         val trimmed = json.trim()
         if (trimmed.isEmpty()) {
             parsedJson = null

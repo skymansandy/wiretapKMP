@@ -14,33 +14,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretapsample.model.WsLogEntry
+import dev.skymansandy.wiretapsample.model.WsLogEntry.WsMsgType
+import dev.skymansandy.wiretapsample.resources.Res
+import dev.skymansandy.wiretapsample.resources.received_indicator
+import dev.skymansandy.wiretapsample.resources.sent_indicator
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
 internal fun WsMessageItem(entry: WsLogEntry) {
-    val (bgColor, textColor, alignment) = when (entry.direction) {
-        "SENT" -> Triple(
+
+    val (bgColor, textColor, alignment) = when (entry.type) {
+        WsMsgType.Sent -> Triple(
             Color(0xFF7E57C2).copy(alpha = 0.15f),
             Color(0xFF7E57C2),
             Alignment.CenterEnd,
         )
-        "RECV" -> Triple(
+        WsMsgType.Recv -> Triple(
             MaterialTheme.colorScheme.surface,
             MaterialTheme.colorScheme.onSurface,
             Alignment.CenterStart,
         )
-        else -> Triple(
+        WsMsgType.Sys -> Triple(
             Color.Transparent,
             MaterialTheme.colorScheme.onSurfaceVariant,
             Alignment.Center,
         )
     }
 
-    if (entry.direction == "SYS") {
+    if (entry.type == WsMsgType.Sys) {
         Text(
             text = entry.text,
             style = MaterialTheme.typography.labelSmall,
@@ -60,7 +64,7 @@ internal fun WsMessageItem(entry: WsLogEntry) {
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
                 Text(
-                    text = if (entry.direction == "SENT") stringResource(Res.string.sent_indicator) else stringResource(Res.string.received_indicator),
+                    text = if (entry.type == WsMsgType.Sent) stringResource(Res.string.sent_indicator) else stringResource(Res.string.received_indicator),
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )
@@ -79,7 +83,7 @@ internal fun WsMessageItem(entry: WsLogEntry) {
 @Composable
 private fun WsMessageItemSentPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(direction = "SENT", text = """{"type":"subscribe","channel":"updates"}"""))
+        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Sent, text = """{"type":"subscribe","channel":"updates"}"""))
     }
 }
 
@@ -87,7 +91,7 @@ private fun WsMessageItemSentPreview() {
 @Composable
 private fun WsMessageItemRecvPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(direction = "RECV", text = """{"type":"message","data":{"id":1,"status":"ok"}}"""))
+        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Recv, text = """{"type":"message","data":{"id":1,"status":"ok"}}"""))
     }
 }
 
@@ -95,6 +99,6 @@ private fun WsMessageItemRecvPreview() {
 @Composable
 private fun WsMessageItemSysPreview() {
     MaterialTheme {
-        WsMessageItem(entry = WsLogEntry(direction = "SYS", text = "Connected to wss://echo.websocket.org"))
+        WsMessageItem(entry = WsLogEntry(type = WsMsgType.Sys, text = "Connected to wss://echo.websocket.org"))
     }
 }

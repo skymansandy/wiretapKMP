@@ -44,29 +44,29 @@ internal fun ThrottleDelayInput(
 
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.NONE,
+            selected = throttleInputMode == ThrottleInputMode.None,
             onClick = {
-                onThrottleInputModeChange(ThrottleInputMode.NONE)
+                onThrottleInputModeChange(ThrottleInputMode.None)
                 onThrottleDelayMsChange("0")
                 onThrottleDelayMaxMsChange("0")
             },
             label = { Text(stringResource(Res.string.none)) },
         )
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.MANUAL,
-            onClick = { onThrottleInputModeChange(ThrottleInputMode.MANUAL) },
+            selected = throttleInputMode == ThrottleInputMode.Manual,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.Manual) },
             label = { Text(stringResource(Res.string.manual)) },
         )
         FilterChip(
-            selected = throttleInputMode == ThrottleInputMode.PROFILE,
-            onClick = { onThrottleInputModeChange(ThrottleInputMode.PROFILE) },
+            selected = throttleInputMode == ThrottleInputMode.Profile,
+            onClick = { onThrottleInputModeChange(ThrottleInputMode.Profile) },
             label = { Text(stringResource(Res.string.network_profile)) },
         )
     }
 
     when (throttleInputMode) {
-        ThrottleInputMode.NONE -> {}
-        ThrottleInputMode.MANUAL -> {
+        ThrottleInputMode.None -> {}
+        ThrottleInputMode.Manual -> {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = throttleDelayMs,
@@ -93,7 +93,7 @@ internal fun ThrottleDelayInput(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        ThrottleInputMode.PROFILE -> {
+        ThrottleInputMode.Profile -> {
             var expanded by remember { mutableStateOf(false) }
             val selectedProfile = ThrottleProfile.entries.find {
                 it.delayMinMs == throttleDelayMs.toLongOrNull() && it.delayMaxMs == throttleDelayMaxMs.toLongOrNull()
@@ -149,7 +149,7 @@ private fun ThrottleDelayInputManualPreview() {
                 onThrottleDelayMsChange = {},
                 throttleDelayMaxMs = "2000",
                 onThrottleDelayMaxMsChange = {},
-                throttleInputMode = ThrottleInputMode.MANUAL,
+                throttleInputMode = ThrottleInputMode.Manual,
                 onThrottleInputModeChange = {},
                 supportingText = "Adds artificial latency to the response",
             )
@@ -167,7 +167,7 @@ private fun ThrottleDelayInputProfilePreview() {
                 onThrottleDelayMsChange = {},
                 throttleDelayMaxMs = "450",
                 onThrottleDelayMaxMsChange = {},
-                throttleInputMode = ThrottleInputMode.PROFILE,
+                throttleInputMode = ThrottleInputMode.Profile,
                 onThrottleInputModeChange = {},
                 supportingText = "Simulates network conditions",
             )

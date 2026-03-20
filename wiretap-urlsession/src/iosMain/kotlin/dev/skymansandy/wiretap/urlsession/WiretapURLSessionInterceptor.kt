@@ -72,6 +72,7 @@ class WiretapURLSessionInterceptor(
     private var sessionInitialized = false
 
     companion object {
+
         val shared by lazy { WiretapURLSessionInterceptor() }
     }
 
@@ -85,6 +86,7 @@ class WiretapURLSessionInterceptor(
         request: NSURLRequest,
         completionHandler: (NSData?, NSHTTPURLResponse?, NSError?) -> Unit,
     ) {
+
         if (!config.enabled) {
             session.dataTaskWithRequest(request) { data, response, error ->
                 completionHandler(data, response as? NSHTTPURLResponse, error)
@@ -123,7 +125,7 @@ class WiretapURLSessionInterceptor(
             -1L
         }
 
-        if (matchingRule?.action == RuleAction.MOCK) {
+        if (matchingRule?.action == RuleAction.Mock) {
             handleMockResponse(
                 logEntryId, url, method, reqHeaders, requestBody,
                 matchingRule, startNano, completionHandler,
@@ -147,7 +149,7 @@ class WiretapURLSessionInterceptor(
             }.resume()
         }
 
-        if (matchingRule?.action == RuleAction.THROTTLE) {
+        if (matchingRule?.action == RuleAction.Throttle) {
             val minDelay = matchingRule.throttleDelayMs ?: 0L
             val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
@@ -174,6 +176,7 @@ class WiretapURLSessionInterceptor(
         request: NSURLRequest,
         completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
     ): NSURLSessionDataTask {
+
         if (!config.enabled) {
             return session.dataTaskWithRequest(request, completionHandler)
         }
@@ -223,12 +226,14 @@ class WiretapURLSessionInterceptor(
         url: String,
         completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
     ): NSURLSessionDataTask {
+
         val nsUrl = NSURL.URLWithString(url)!!
         val request = NSURLRequest.requestWithURL(nsUrl)
         return dataTask(request, completionHandler)
     }
 
     private fun initSessionIfNeeded() {
+
         if (!sessionInitialized) {
             sessionInitialized = true
             if (config.logRetention == LogRetention.AppSession) {
@@ -248,6 +253,7 @@ class WiretapURLSessionInterceptor(
         startNano: Long,
         completionHandler: (NSData?, NSHTTPURLResponse?, NSError?) -> Unit,
     ) {
+
         val durationNs = currentNanoTime() - startNano
         val mockCode = matchingRule.mockResponseCode ?: 200
         val mockHeaders = matchingRule.mockResponseHeaders ?: emptyMap()
@@ -266,7 +272,7 @@ class WiretapURLSessionInterceptor(
                     responseBody = mockBody,
                     durationMs = durationNs / 1_000_000,
                     durationNs = durationNs,
-                    source = ResponseSource.MOCK,
+                    source = ResponseSource.Mock,
                     timestamp = currentTimeMillis(),
                     matchedRuleId = matchingRule.id,
                 ),
@@ -298,6 +304,7 @@ class WiretapURLSessionInterceptor(
         durationNs: Long,
         matchingRule: WiretapRule?,
     ) {
+
         val responseCode = httpResponse?.statusCode?.toInt()
             ?: if (error != null) 0 else NetworkLogEntry.RESPONSE_CODE_IN_PROGRESS
 
@@ -309,8 +316,8 @@ class WiretapURLSessionInterceptor(
         }
 
         val source = when (matchingRule?.action) {
-            RuleAction.THROTTLE -> ResponseSource.THROTTLE
-            else -> ResponseSource.NETWORK
+            RuleAction.Throttle -> ResponseSource.Throttle
+            else -> ResponseSource.Network
         }
 
         orchestrator.updateEntry(
@@ -334,6 +341,7 @@ class WiretapURLSessionInterceptor(
 
     @Suppress("UNCHECKED_CAST")
     private fun extractRequestHeaders(request: NSURLRequest): Map<String, String> {
+
         val headers = mutableMapOf<String, String>()
         (request.allHTTPHeaderFields as? Map<String, String>)?.forEach { (key, value) ->
             headers[key] = value
@@ -343,6 +351,7 @@ class WiretapURLSessionInterceptor(
 
     @Suppress("UNCHECKED_CAST")
     private fun extractResponseHeaders(response: NSHTTPURLResponse?): Map<String, String> {
+
         if (response == null) return emptyMap()
         val headers = mutableMapOf<String, String>()
         (response.allHeaderFields as? Map<String, String>)?.forEach { (key, value) ->

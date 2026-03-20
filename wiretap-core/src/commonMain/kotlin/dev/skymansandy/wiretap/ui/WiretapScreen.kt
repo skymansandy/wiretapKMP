@@ -21,7 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -175,7 +175,7 @@ fun WiretapScreen(
             if (debouncedQuery.isEmpty()) logs
             else logs.filter { it.url.contains(debouncedQuery, ignoreCase = true) || it.status.name.contains(debouncedQuery, ignoreCase = true) }
         }
-    }.collectAsState(emptyList())
+    }.collectAsStateWithLifecycle(emptyList())
 
     Scaffold(
         topBar = {

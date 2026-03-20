@@ -14,7 +14,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,9 +27,11 @@ import org.jetbrains.compose.resources.stringResource
 import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
-internal fun HttpTab(viewModel: HttpViewModel, modifier: Modifier = Modifier) {
-
-    val statusLog by viewModel.statusLog.collectAsState()
+internal fun HttpTab(
+    viewModel: HttpViewModel,
+    modifier: Modifier = Modifier,
+) {
+    val statusLog by viewModel.statusLog.collectAsStateWithLifecycle()
     val readyText = stringResource(Res.string.status_ready)
 
     Column(
@@ -47,28 +49,22 @@ internal fun HttpTab(viewModel: HttpViewModel, modifier: Modifier = Modifier) {
         StatusWindow(statusLog = statusLog.ifEmpty { readyText })
 
         LazyVerticalGrid(
+            modifier = Modifier.weight(1f),
             columns = GridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 8.dp),
-            modifier = Modifier.weight(1f),
         ) {
             items(httpActions) { action ->
                 val color = actionColor.getValue(action.category)
                 Button(
-                    onClick = {
-                        if (action.label == "Cancel") {
-                            viewModel.executeCancelDemo()
-                        } else {
-                            viewModel.executeAction(action)
-                        }
-                    },
                     modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+                    onClick = { viewModel.executeAction(action) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = color,
                         contentColor = Color.White,
                     ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
                 ) {
                     Text(
                         text = action.label,

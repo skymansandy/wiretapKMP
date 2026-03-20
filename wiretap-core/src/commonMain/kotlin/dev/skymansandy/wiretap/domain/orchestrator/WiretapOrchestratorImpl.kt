@@ -77,8 +77,8 @@ internal class WiretapOrchestratorImpl(
     override fun updateSocketConnection(entry: SocketLogEntry) {
         socketRepository.updateConnection(entry)
         when (entry.status) {
-            dev.skymansandy.wiretap.domain.model.SocketStatus.CLOSED,
-            dev.skymansandy.wiretap.domain.model.SocketStatus.FAILED -> activeConnections.remove(entry.id)
+            dev.skymansandy.wiretap.domain.model.SocketStatus.Closed,
+            dev.skymansandy.wiretap.domain.model.SocketStatus.Failed -> activeConnections.remove(entry.id)
             else -> activeConnections[entry.id] = entry
         }
         networkLogger.logSocket(entry)

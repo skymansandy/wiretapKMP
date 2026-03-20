@@ -35,6 +35,7 @@ class WiretapOkHttpWebSocketListener(
     private var socketId: Long = -1
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
+
         val url = webSocket.request().url.toString()
         val reqHeaders = webSocket.request().headers.toMap()
 
@@ -42,7 +43,7 @@ class WiretapOkHttpWebSocketListener(
             SocketLogEntry(
                 url = url,
                 requestHeaders = reqHeaders,
-                status = SocketStatus.OPEN,
+                status = SocketStatus.Open,
                 timestamp = currentTimeMillis(),
                 protocol = response.protocol.toString(),
             ),
@@ -53,12 +54,13 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
+
         if (socketId >= 0) {
             orchestrator.logSocketMessage(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.RECEIVED,
-                    contentType = SocketContentType.TEXT,
+                    direction = SocketMessageDirection.Received,
+                    contentType = SocketContentType.Text,
                     content = text,
                     byteCount = text.encodeToByteArray().size.toLong(),
                     timestamp = currentTimeMillis(),
@@ -69,12 +71,13 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+
         if (socketId >= 0) {
             orchestrator.logSocketMessage(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.RECEIVED,
-                    contentType = SocketContentType.BINARY,
+                    direction = SocketMessageDirection.Received,
+                    contentType = SocketContentType.Binary,
                     content = "[Binary: ${bytes.size} bytes]",
                     byteCount = bytes.size.toLong(),
                     timestamp = currentTimeMillis(),
@@ -85,12 +88,13 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+
         if (socketId >= 0) {
             orchestrator.updateSocketConnection(
                 SocketLogEntry(
                     id = socketId,
                     url = webSocket.request().url.toString(),
-                    status = SocketStatus.CLOSING,
+                    status = SocketStatus.Closing,
                     closeCode = code,
                     closeReason = reason,
                     timestamp = currentTimeMillis(),
@@ -101,12 +105,13 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+
         if (socketId >= 0) {
             orchestrator.updateSocketConnection(
                 SocketLogEntry(
                     id = socketId,
                     url = webSocket.request().url.toString(),
-                    status = SocketStatus.CLOSED,
+                    status = SocketStatus.Closed,
                     closeCode = code,
                     closeReason = reason,
                     closedAt = currentTimeMillis(),
@@ -118,12 +123,13 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+
         if (socketId >= 0) {
             orchestrator.updateSocketConnection(
                 SocketLogEntry(
                     id = socketId,
                     url = webSocket.request().url.toString(),
-                    status = SocketStatus.FAILED,
+                    status = SocketStatus.Failed,
                     failureMessage = t.message ?: t::class.simpleName ?: "Unknown error",
                     closedAt = currentTimeMillis(),
                     timestamp = currentTimeMillis(),

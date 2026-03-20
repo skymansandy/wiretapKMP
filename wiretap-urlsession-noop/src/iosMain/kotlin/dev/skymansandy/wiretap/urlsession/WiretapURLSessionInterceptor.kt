@@ -21,6 +21,7 @@ class WiretapURLSessionInterceptor(
 ) {
 
     companion object {
+
         val shared by lazy { WiretapURLSessionInterceptor() }
     }
 
@@ -28,6 +29,7 @@ class WiretapURLSessionInterceptor(
         request: NSURLRequest,
         completionHandler: (NSData?, NSHTTPURLResponse?, NSError?) -> Unit,
     ) {
+
         session.dataTaskWithRequest(request) { data, response, error ->
             completionHandler(data, response as? NSHTTPURLResponse, error)
         }.resume()
@@ -42,6 +44,7 @@ class WiretapURLSessionInterceptor(
         url: String,
         completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
     ): NSURLSessionDataTask {
+
         val nsUrl = NSURL(string = url)
         val request = NSURLRequest(uRL = nsUrl)
         return dataTask(request, completionHandler)

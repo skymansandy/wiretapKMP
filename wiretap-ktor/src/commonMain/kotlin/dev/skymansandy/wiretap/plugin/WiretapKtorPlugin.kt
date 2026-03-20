@@ -114,7 +114,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         try {
             when (matchingRule?.action) {
-                RuleAction.MOCK -> {
+                RuleAction.Mock -> {
                     matchingRule.throttleDelayMs?.let { minDelay ->
                         val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
                         delay(if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay)
@@ -156,7 +156,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                                 responseBody = matchingRule.mockResponseBody,
                                 durationMs = durationNs / 1_000_000,
                                 durationNs = durationNs,
-                                source = ResponseSource.MOCK,
+                                source = ResponseSource.Mock,
                                 timestamp = currentTimeMillis(),
                                 matchedRuleId = matchingRule.id,
                             ),
@@ -166,7 +166,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     call
                 }
 
-                RuleAction.THROTTLE -> {
+                RuleAction.Throttle -> {
                     val minDelay = matchingRule.throttleDelayMs ?: 0L
                     val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
                     val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
@@ -193,7 +193,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                         responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
-                        source = ResponseSource.NETWORK,
+                        source = ResponseSource.Network,
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -230,9 +230,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
 
         val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
-            RuleAction.MOCK -> ResponseSource.MOCK
-            RuleAction.THROTTLE -> ResponseSource.THROTTLE
-            else -> ResponseSource.NETWORK
+            RuleAction.Mock -> ResponseSource.Mock
+            RuleAction.Throttle -> ResponseSource.Throttle
+            else -> ResponseSource.Network
         }
 
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
@@ -259,6 +259,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 }
 
 private class WiretapDeps : KoinComponent {
+
     override fun getKoin(): Koin = WiretapDi.getKoin()
     val orchestrator: WiretapOrchestrator by inject()
     val ruleRepository: RuleRepository by inject()

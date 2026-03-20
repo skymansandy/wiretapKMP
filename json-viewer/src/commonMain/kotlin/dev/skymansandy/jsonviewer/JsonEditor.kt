@@ -135,7 +135,11 @@ private fun ViewerContent(
 }
 
 @Composable
-private fun PlainText(text: String, searchQuery: String, colors: JsonViewerColors) {
+private fun PlainText(
+    text: String,
+    searchQuery: String,
+    colors: JsonViewerColors,
+) {
     val annotated = buildAnnotatedString {
         append(text)
         addStyle(SpanStyle(color = colors.punctuation), 0, text.length)
@@ -322,7 +326,11 @@ private fun ToolbarDivider(colors: JsonViewerColors) {
 }
 
 @Composable
-private fun SortOption(label: String, colors: JsonViewerColors, onClick: () -> Unit) {
+private fun SortOption(
+    label: String,
+    colors: JsonViewerColors,
+    onClick: () -> Unit,
+) {
     Text(
         text = label,
         style = monoStyle.copy(fontSize = 13.sp),
@@ -337,7 +345,10 @@ private fun SortOption(label: String, colors: JsonViewerColors, onClick: () -> U
 // ─── Error Banner ─────────────────────────────────────────────────────────────────
 
 @Composable
-private fun ErrorBanner(error: JsonError?, colors: JsonViewerColors) {
+private fun ErrorBanner(
+    error: JsonError?,
+    colors: JsonViewerColors,
+) {
     if (error == null) return
     Row(
         modifier = Modifier

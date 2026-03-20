@@ -23,7 +23,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,26 +34,42 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretapsample.model.ColorServerError
 import dev.skymansandy.wiretapsample.model.ColorSuccess
 import dev.skymansandy.wiretapsample.model.wsServers
+import dev.skymansandy.wiretapsample.resources.Res
+import dev.skymansandy.wiretapsample.resources.connect
+import dev.skymansandy.wiretapsample.resources.connected
+import dev.skymansandy.wiretapsample.resources.connecting
+import dev.skymansandy.wiretapsample.resources.disconnect
+import dev.skymansandy.wiretapsample.resources.send
+import dev.skymansandy.wiretapsample.resources.type_message
+import dev.skymansandy.wiretapsample.resources.websocket_title
 import dev.skymansandy.wiretapsample.viewmodel.WebSocketViewModel
 import org.jetbrains.compose.resources.stringResource
-import dev.skymansandy.wiretapsample.resources.*
 
 @Composable
 internal fun WebSocketTab(
     viewModel: WebSocketViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val isConnected by viewModel.isConnected.collectAsState()
-    val isConnecting by viewModel.isConnecting.collectAsState()
-    val selectedServerIndex by viewModel.selectedServerIndex.collectAsState()
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
+    val isConnecting by viewModel.isConnecting.collectAsStateWithLifecycle()
+    val selectedServerIndex by viewModel.selectedServerIndex.collectAsStateWithLifecycle()
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItems = listState.layoutInfo.totalItemsCount
+            totalItems == 0 || lastVisibleItem >= totalItems - 2
+        }
+    }
+
     LaunchedEffect(viewModel.messageLog.size) {
-        if (viewModel.messageLog.isNotEmpty()) {
+        if (viewModel.messageLog.isNotEmpty() && isAtBottom) {
             listState.animateScrollToItem(viewModel.messageLog.size - 1)
         }
     }
@@ -70,17 +86,24 @@ internal fun WebSocketTab(
             fontWeight = FontWeight.Bold,
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             wsServers.forEachIndexed { index, (_, label) ->
                 OutlinedButton(
                     onClick = { viewModel.selectServer(index) },
                     colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (selectedServerIndex == index)
-                            MaterialTheme.colorScheme.primaryContainer
-                        else Color.Transparent,
+                        containerColor = when (selectedServerIndex) {
+                            index -> MaterialTheme.colorScheme.primaryContainer
+                            else -> Color.Transparent
+                        },
                     ),
                 ) {
-                    Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                    )
                 }
             }
         }
@@ -144,6 +167,7 @@ internal fun WebSocketTab(
                 singleLine = true,
                 enabled = isConnected,
             )
+
             IconButton(
                 onClick = {
                     val text = messageText.trim()
@@ -157,9 +181,10 @@ internal fun WebSocketTab(
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
                     contentDescription = stringResource(Res.string.send),
-                    tint = if (isConnected && messageText.isNotBlank())
-                        MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    tint = when {
+                        isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    },
                 )
             }
         }

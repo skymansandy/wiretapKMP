@@ -52,6 +52,7 @@ class WiretapOkHttpInterceptor(
     @Volatile private var sessionInitialized = false
 
     override fun intercept(chain: Interceptor.Chain): Response {
+
         if (!config.enabled) return chain.proceed(chain.request())
 
         // AppSession: clear all previous logs once at first interception
@@ -111,7 +112,7 @@ class WiretapOkHttpInterceptor(
             -1L
         }
 
-        if (matchingRule?.action == RuleAction.MOCK) {
+        if (matchingRule?.action == RuleAction.Mock) {
             val durationNs = currentNanoTime() - startNano
             val body = (matchingRule.mockResponseBody ?: "")
                 .toResponseBody("application/json; charset=utf-8".toMediaType())
@@ -138,7 +139,7 @@ class WiretapOkHttpInterceptor(
                         responseBody = matchingRule.mockResponseBody,
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
-                        source = ResponseSource.MOCK,
+                        source = ResponseSource.Mock,
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -146,7 +147,7 @@ class WiretapOkHttpInterceptor(
             return mockResponse
         }
 
-        if (matchingRule?.action == RuleAction.THROTTLE) {
+        if (matchingRule?.action == RuleAction.Throttle) {
             val minDelay = matchingRule.throttleDelayMs ?: 0L
             val maxDelay = matchingRule.throttleDelayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
@@ -171,7 +172,7 @@ class WiretapOkHttpInterceptor(
                         responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
                         durationMs = (currentNanoTime() - startNano) / 1_000_000,
                         durationNs = currentNanoTime() - startNano,
-                        source = ResponseSource.NETWORK,
+                        source = ResponseSource.Network,
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -190,8 +191,8 @@ class WiretapOkHttpInterceptor(
         }
 
         val source = when (matchingRule?.action) {
-            RuleAction.THROTTLE -> ResponseSource.THROTTLE
-            else -> ResponseSource.NETWORK
+            RuleAction.Throttle -> ResponseSource.Throttle
+            else -> ResponseSource.Network
         }
 
         val protocol = response.protocol.toString()
