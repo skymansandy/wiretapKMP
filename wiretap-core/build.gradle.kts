@@ -24,9 +24,6 @@ kotlin {
         }
         minSdk = 24
 
-        withHostTestBuilder {
-        }
-
         withDeviceTestBuilder {
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

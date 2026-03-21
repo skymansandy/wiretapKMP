@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.kmmbridge) apply false
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.kover)
+    alias(libs.plugins.mavenPublish) apply false
 }
 
 dependencies {
@@ -28,6 +29,26 @@ dependencies {
         "wiretap-urlsession-noop",
         "wiretap-shake",
     ).forEach { kover(project(":$it")) }
+}
+
+kover {
+    merge {
+        allProjects {
+            it.name in listOf(
+                "wiretap-core",
+                "wiretap-ktor",
+                "wiretap-ktor-noop",
+                "wiretap-okhttp",
+                "wiretap-okhttp-noop",
+                "wiretap-urlsession",
+                "wiretap-urlsession-noop",
+                "wiretap-shake",
+            )
+        }
+        createVariant("jvmCoverage") {
+            add("jvm", optional = true)
+        }
+    }
 }
 
 val publishableModules = setOf(
@@ -47,27 +68,40 @@ subprojects {
         val wiretapGroup = findProperty("wiretap.group") as String
         val wiretapVersion = findProperty("wiretap.version") as String
 
-        group = wiretapGroup
-        version = wiretapVersion
-
-        apply(plugin = "maven-publish")
+        apply(plugin = "com.vanniktech.maven.publish")
 
         afterEvaluate {
-            extensions.findByType<PublishingExtension>()?.apply {
-                repositories {
-                    maven {
-                        name = "GitHubPackages"
-                        url = uri(
-                            System.getenv("MAVEN_REPO_URL")
-                                ?: "https://maven.pkg.github.com/skymansandy/wiretapKMP"
-                        )
-                        credentials {
-                            username = System.getenv("GH_USERNAME")
-                                ?: findProperty("gpr.user") as? String ?: ""
-                            password = System.getenv("GH_TOKEN")
-                                ?: findProperty("gpr.key") as? String ?: ""
-                        }
+            tasks.withType<Sign>().configureEach {
+                isEnabled = !gradle.startParameter.taskNames.any { it.contains("MavenLocal", ignoreCase = true) }
+            }
+        }
+
+        extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+            coordinates(wiretapGroup, name, wiretapVersion)
+            publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+            signAllPublications()
+
+            pom {
+                name.set("WiretapKMP")
+                description.set("Kotlin Multiplatform network inspection and mocking SDK")
+                url.set("https://github.com/skymansandy/wiretapKMP")
+                licenses {
+                    license {
+                        name.set("Apache License 2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0")
                     }
+                }
+                developers {
+                    developer {
+                        id.set("skymansandy")
+                        name.set("skymansandy")
+                        email.set("iamsandythedev@gmail.com")
+                    }
+                }
+                scm {
+                    url.set("https://github.com/skymansandy/wiretapKMP")
+                    connection.set("scm:git:git://github.com/skymansandy/wiretapKMP.git")
+                    developerConnection.set("scm:git:ssh://github.com/skymansandy/wiretapKMP.git")
                 }
             }
         }

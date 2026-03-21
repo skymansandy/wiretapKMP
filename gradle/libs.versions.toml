@@ -35,6 +35,7 @@ lifecycleRuntimeKtx = "2.10.0"
 composeBom = "2026.03.00"
 mokkery = "3.3.0"
 kover = "0.9.7"
+mavenPublish = "0.30.0"
 kotest = "6.1.7"
 turbine = "1.2.1"
 jsonCmp = "1.0.0-alpha1"
@@ -115,3 +116,4 @@ kmmbridge = { id = "co.touchlab.kmmbridge", version.ref = "kmmbridge" }
 swiftklib = { id = "io.github.ttypic.swiftklib", version.ref = "swiftklib" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

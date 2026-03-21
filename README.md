@@ -1,6 +1,14 @@
-# WiretapKMP
+<h1 align="center">WiretapKMP</h1>
 
-[![Build](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Coverage](https://img.shields.io/badge/coverage-0%25-red)](https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml) [![Maven version](https://img.shields.io/github/v/release/skymansandy/wiretapKMP?label=maven)](https://github.com/skymansandy/wiretapKMP/packages)
+<p align="center">
+  <img src="art/wiretap_icon.png" width="120" alt="WiretapKMP Icon"/>
+</p>
+
+<p align="center">
+  <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
+  <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-0%25-red" alt="Coverage"/></a>
+  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--alpha1-blue" alt="Maven Central"/></a>
+</p>
 
 Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
@@ -34,26 +42,17 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebS
 
 ## Installation
 
-WiretapKMP is published to GitHub Packages.
+WiretapKMP is published to Maven Central.
 
-### 1. Add the GitHub Packages repository
+### 1. Add Maven Central repository
 
 In your `settings.gradle.kts`:
 
 ```kotlin
 dependencyResolutionManagement {
     repositories {
-        google()
         mavenCentral()
-        maven {
-            url = uri("https://maven.pkg.github.com/skymansandy/wiretapKMP")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull
-                    ?: System.getenv("GH_USERNAME")
-                password = providers.gradleProperty("gpr.key").orNull
-                    ?: System.getenv("GH_TOKEN")
-            }
-        }
+        google()
     }
 }
 ```
