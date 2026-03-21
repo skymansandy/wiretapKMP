@@ -60,11 +60,10 @@ EXAMPLES:
     $(basename "$0") --all
 
 ENVIRONMENT VARIABLES (for --remote):
-    MAVEN_REPO_URL         Remote Maven repository URL
-    MAVEN_REPO_USERNAME    Repository username
-    MAVEN_REPO_PASSWORD    Repository password/token
-
-    Alternatively, set gpr.user and gpr.key in ~/.gradle/gradle.properties
+    ORG_GRADLE_PROJECT_mavenCentralUsername   Sonatype Central Portal token username
+    ORG_GRADLE_PROJECT_mavenCentralPassword   Sonatype Central Portal token password
+    ORG_GRADLE_PROJECT_signingInMemoryKey     ASCII-armored GPG private key
+    ORG_GRADLE_PROJECT_signingInMemoryKeyPassword  GPG key passphrase
 EOF
     exit 0
 }
@@ -265,7 +264,7 @@ fi
 if [[ "$TARGET" == "local" ]]; then
     MAVEN_TASK="publishToMavenLocal"
 else
-    MAVEN_TASK="publishAllPublicationsToGitHubPackagesRepository"
+    MAVEN_TASK="publishAndReleaseToMavenCentral"
 fi
 
 cd "$PROJECT_ROOT"

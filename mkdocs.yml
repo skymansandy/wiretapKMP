@@ -8,14 +8,14 @@ theme:
   name: material
   palette:
     - scheme: default
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: deep purple
-      accent: amber
+      primary: blue
+      accent: light blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -29,6 +29,8 @@ theme:
     - content.tabs.link
     - search.highlight
     - search.share
+  logo: assets/logo-white.png
+  favicon: assets/favicon.png
   icon:
     repo: fontawesome/brands/github
 
@@ -82,6 +84,9 @@ nav:
       - Setup: urlsession/setup.md
       - HTTP Logging: urlsession/http.md
       - API Reference: urlsession/api.md
+
+extra_css:
+  - assets/extra.css
 
 extra:
   social:

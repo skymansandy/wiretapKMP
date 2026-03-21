@@ -26,13 +26,6 @@ dependencyResolutionManagement {
         }
         mavenCentral()
         mavenLocal()
-        maven {
-            url = uri("https://maven.pkg.github.com/skymansandy/jsonCMP")
-            credentials {
-                username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GH_USERNAME")
-                password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GH_TOKEN")
-            }
-        }
     }
 }
 

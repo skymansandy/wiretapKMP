@@ -4,17 +4,12 @@ on:
   push:
     branches: [ main ]
 
-env:
-  GH_USERNAME: ${{ github.actor }}
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 concurrency:
   group: main-${{ github.sha }}
   cancel-in-progress: true
 
 permissions:
   contents: write
-  packages: write
   pages: write
   id-token: write
 
@@ -94,15 +89,23 @@ jobs:
           fi
           echo "color=$COLOR" >> "$GITHUB_OUTPUT"
 
+      - name: Read version from gradle.properties
+        id: version
+        run: |
+          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Update README badges
         run: |
           COVERAGE=${{ needs.test-and-coverage.outputs.coverage }}
           COLOR=${{ steps.badge.outputs.color }}
           REPO=${{ github.repository }}
+          VERSION=${{ steps.version.outputs.version }}
 
           BUILD_BADGE="[![Build](https://github.com/${REPO}/actions/workflows/deploy.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/deploy.yml)"
           COVERAGE_BADGE="[![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})](https://github.com/${REPO}/actions/workflows/deploy.yml)"
-          MAVEN_BADGE="[![Maven version](https://img.shields.io/github/v/release/${REPO}?label=maven)](https://github.com/${REPO}/packages)"
+          VERSION_ESCAPED=$(echo "$VERSION" | sed 's/-/--/g')
+          MAVEN_BADGE="[![Maven Central](https://img.shields.io/badge/maven--central-${VERSION_ESCAPED}-blue)](https://central.sonatype.com/search?q=dev.skymansandy+wiretap)"
 
           BADGE_LINE="${BUILD_BADGE} ${COVERAGE_BADGE} ${MAVEN_BADGE}"
 
@@ -114,6 +117,12 @@ jobs:
             sed -i "1a\\\\${BADGE_LINE}\n" README.md
           fi
 
+      - name: Update version in README and docs
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          sed -i "s|dev.skymansandy:wiretap-\([a-z-]*\):[^\"]*\"|dev.skymansandy:wiretap-\1:${VERSION}\"|g" README.md
+          find docs -name '*.md' -exec sed -i "s|dev.skymansandy:wiretap-\([a-z-]*\):[^\"]*\"|dev.skymansandy:wiretap-\1:${VERSION}\"|g" {} +
+
       - name: Commit badge updates
         run: |
           git config user.name "github-actions[bot]"
@@ -123,7 +132,7 @@ jobs:
           git push
 
   publish:
-    name: Publish SDKs
+    name: Publish to Maven Central
     needs: test-and-coverage
     runs-on: macos-latest
     steps:
@@ -136,12 +145,17 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Publish all modules to GitHub Packages
-        run: ./gradlew publishAllPublicationsToGitHubPackagesRepository
+      - name: Publish and release to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
 
   github-release:
     name: GitHub Release
-    needs: publish
+    needs: [publish, update-badges]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
