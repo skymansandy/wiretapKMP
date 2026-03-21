@@ -31,6 +31,26 @@ dependencies {
     ).forEach { kover(project(":$it")) }
 }
 
+kover {
+    merge {
+        allProjects {
+            it.name in listOf(
+                "wiretap-core",
+                "wiretap-ktor",
+                "wiretap-ktor-noop",
+                "wiretap-okhttp",
+                "wiretap-okhttp-noop",
+                "wiretap-urlsession",
+                "wiretap-urlsession-noop",
+                "wiretap-shake",
+            )
+        }
+        createVariant("jvmCoverage") {
+            add("jvm", optional = true)
+        }
+    }
+}
+
 val publishableModules = setOf(
     "wiretap-core",
     "wiretap-ktor",

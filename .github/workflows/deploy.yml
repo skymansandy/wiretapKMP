@@ -30,19 +30,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Run tests with coverage
-        run: >
-          ./gradlew
-          :wiretap-core:jvmTest
-          :wiretap-ktor:jvmTest
-          :wiretap-ktor-noop:jvmTest
-          :wiretap-okhttp:jvmTest
-          :wiretap-okhttp-noop:jvmTest
-          koverXmlReport
+        run: ./gradlew koverXmlReportJvmCoverage
 
       - name: Parse coverage percentage
         id: coverage
         run: |
-          REPORT="build/reports/kover/report.xml"
+          REPORT="build/reports/kover/reportJvmCoverage.xml"
           if [ -f "$REPORT" ]; then
             MISSED=$(grep -oP 'type="INSTRUCTION"[^/]*missed="\K[0-9]+' "$REPORT" | head -1)
             COVERED=$(grep -oP 'type="INSTRUCTION"[^/]*covered="\K[0-9]+' "$REPORT" | head -1)
@@ -102,20 +95,27 @@ jobs:
           REPO=${{ github.repository }}
           VERSION=${{ steps.version.outputs.version }}
 
-          BUILD_BADGE="[![Build](https://github.com/${REPO}/actions/workflows/deploy.yml/badge.svg)](https://github.com/${REPO}/actions/workflows/deploy.yml)"
-          COVERAGE_BADGE="[![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})](https://github.com/${REPO}/actions/workflows/deploy.yml)"
           VERSION_ESCAPED=$(echo "$VERSION" | sed 's/-/--/g')
-          MAVEN_BADGE="[![Maven Central](https://img.shields.io/badge/maven--central-${VERSION_ESCAPED}-blue)](https://central.sonatype.com/search?q=dev.skymansandy+wiretap)"
 
-          BADGE_LINE="${BUILD_BADGE} ${COVERAGE_BADGE} ${MAVEN_BADGE}"
+          BUILD_BADGE='  <a href="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml"><img src="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>'
+          COVERAGE_BADGE='  <a href="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-'"${COVERAGE}"'%25-'"${COLOR}"'" alt="Coverage"/></a>'
+          MAVEN_BADGE='  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-'"${VERSION_ESCAPED}"'-blue" alt="Maven Central"/></a>'
 
-          if grep -q '^\[!\[Build\]' README.md; then
-            sed -i "1,/^\[!\[Build\]/s|^\[!\[Build\].*|${BADGE_LINE}|" README.md
-          elif grep -q '^\[!\[Coverage\]' README.md; then
-            sed -i "1,/^\[!\[Coverage\]/s|^\[!\[Coverage\].*|${BADGE_LINE}|" README.md
-          else
-            sed -i "1a\\\\${BADGE_LINE}\n" README.md
-          fi
+          # Replace badge block between <p align="center"> and </p> (second occurrence — after icon)
+          python3 -c "
+          import re
+          with open('README.md', 'r') as f:
+              content = f.read()
+          badges = '''$BUILD_BADGE\n$COVERAGE_BADGE\n$MAVEN_BADGE'''
+          # Match the second <p align=\"center\"> block (badges, not icon)
+          pattern = r'(<p align=\"center\">\n)(.*?)(</p>)'
+          parts = list(re.finditer(pattern, content, re.DOTALL))
+          if len(parts) >= 2:
+              m = parts[1]
+              content = content[:m.start()] + m.group(1) + badges + '\n' + m.group(3) + content[m.end():]
+          with open('README.md', 'w') as f:
+              f.write(content)
+          "
 
       - name: Update version in README and docs
         run: |
@@ -135,6 +135,7 @@ jobs:
     name: Publish to Maven Central
     needs: test-and-coverage
     runs-on: macos-latest
+    environment: default
     steps:
       - uses: actions/checkout@v4
 
