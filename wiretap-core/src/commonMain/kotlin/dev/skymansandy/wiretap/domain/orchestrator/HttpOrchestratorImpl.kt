@@ -13,15 +13,13 @@ internal class HttpOrchestratorImpl(
     private val wiretapLogger: WiretapLogger,
 ) : HttpOrchestrator {
 
-    override suspend fun logEntry(entry: HttpLogEntry) {
-
+    override suspend fun logHttp(entry: HttpLogEntry) {
         httpRepository.save(entry)
         wiretapLogger.logHttp(entry)
         onNetworkEntryLogged(entry)
     }
 
-    override suspend fun logRequest(entry: HttpLogEntry): Long {
-
+    override suspend fun logHttpAndGetId(entry: HttpLogEntry): Long {
         val id = httpRepository.saveAndGetId(entry)
         val entryWithId = entry.copy(id = id)
         wiretapLogger.logHttp(entryWithId)
@@ -29,33 +27,29 @@ internal class HttpOrchestratorImpl(
         return id
     }
 
-    override suspend fun updateEntry(entry: HttpLogEntry) {
-
+    override suspend fun updateHttp(entry: HttpLogEntry) {
         httpRepository.update(entry)
         wiretapLogger.logHttp(entry)
         onNetworkEntryLogged(entry)
     }
 
-    override fun getAllLogs(): Flow<List<HttpLogEntry>> = httpRepository.getAll()
+    override fun getAllHttpLogs(): Flow<List<HttpLogEntry>> = httpRepository.getAll()
 
-    override fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>> =
+    override fun getPagedHttpLogs(query: String): Flow<PagingData<HttpLogEntry>> =
         httpRepository.getPagedLogs(query)
 
-    override suspend fun getLogById(id: Long): HttpLogEntry? = httpRepository.getById(id)
+    override suspend fun getHttpLogById(id: Long): HttpLogEntry? = httpRepository.getById(id)
 
-    override suspend fun deleteLog(id: Long) {
-
+    override suspend fun deleteHttpLog(id: Long) {
         httpRepository.deleteById(id)
     }
 
-    override suspend fun clearLogs() {
-
+    override suspend fun clearHttpLogs() {
         httpRepository.clearAll()
         onNetworkLogsCleared()
     }
 
-    override suspend fun purgeLogsOlderThan(cutoffMs: Long) {
-
+    override suspend fun purgeHttpLogsOlderThan(cutoffMs: Long) {
         httpRepository.deleteOlderThan(cutoffMs)
     }
 }

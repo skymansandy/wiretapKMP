@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
@@ -48,10 +48,10 @@ internal class WiretapHomeViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val pagedLogs: Flow<PagingData<HttpLogEntry>> = debouncedQuery
-        .flatMapLatest { query -> orchestrator.getPagedLogs(query) }
+        .flatMapLatest { query -> orchestrator.getPagedHttpLogs(query) }
 
-    val socketLogs: StateFlow<List<SocketLogEntry>> = combine(
-        orchestrator.getAllSocketLogs(),
+    val socketLogs: StateFlow<List<SocketEntry>> = combine(
+        orchestrator.getAllSockets(),
         debouncedQuery,
     ) { logs, query ->
         when {
@@ -89,11 +89,11 @@ internal class WiretapHomeViewModel(
     }
 
     fun clearHttpLogs() {
-        viewModelScope.launch { orchestrator.clearLogs() }
+        viewModelScope.launch { orchestrator.clearHttpLogs() }
     }
 
     fun clearSocketLogs() {
-        viewModelScope.launch { orchestrator.clearSocketLogs() }
+        viewModelScope.launch { orchestrator.clearHttpLogs() }
     }
 
     suspend fun getRuleById(id: Long): WiretapRule? {

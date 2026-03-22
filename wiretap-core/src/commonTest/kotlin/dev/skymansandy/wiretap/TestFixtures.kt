@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap
 
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
@@ -94,7 +94,7 @@ internal fun socketLogEntry(
     protocol: String? = null,
     remoteAddress: String? = null,
     historyCleared: Boolean = false,
-) = SocketLogEntry(
+) = SocketEntry(
     id = id,
     url = url,
     requestHeaders = requestHeaders,

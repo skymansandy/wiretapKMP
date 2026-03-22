@@ -24,6 +24,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
@@ -59,6 +60,10 @@ fun WiretapScreen(
             route = newRoute
             savedRouteKey = newRoute?.toSaveKey()
         }
+    }
+
+    PlatformBackHandler(enabled = route != null) {
+        navigateTo(null)
     }
 
     // Restore route after config change (e.g. rotation)
@@ -220,7 +225,7 @@ private suspend fun restoreRoute(
     val parts = key.split(":")
     return when (parts[0]) {
         "http" -> parts.getOrNull(1)?.toLongOrNull()
-            ?.let { orchestrator.getLogById(it) }
+            ?.let { orchestrator.getHttpLogById(it) }
             ?.let { WiretapRoute.HttpDetail(it) }
 
         "socket" -> parts.getOrNull(1)?.toLongOrNull()
@@ -234,7 +239,7 @@ private suspend fun restoreRoute(
             val existingRule = parts.getOrNull(1)?.toLongOrNull()
                 ?.takeIf { it > 0 }?.let { ruleRepository.getById(it) }
             val prefillLog = parts.getOrNull(2)?.toLongOrNull()
-                ?.takeIf { it > 0 }?.let { orchestrator.getLogById(it) }
+                ?.takeIf { it > 0 }?.let { orchestrator.getHttpLogById(it) }
             WiretapRoute.CreateRule(existingRule, prefillLog)
         }
 

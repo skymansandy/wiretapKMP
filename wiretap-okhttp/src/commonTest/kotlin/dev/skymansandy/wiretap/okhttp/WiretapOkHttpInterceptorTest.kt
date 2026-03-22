@@ -54,11 +54,11 @@ class WiretapOkHttpInterceptorTest {
             }.koin,
         )
 
-        everySuspend { orchestrator.logRequest(any()) } returns 1L
-        everySuspend { orchestrator.updateEntry(any()) } returns Unit
-        everySuspend { orchestrator.clearLogs() } returns Unit
-        everySuspend { orchestrator.purgeLogsOlderThan(any()) } returns Unit
-        everySuspend { orchestrator.deleteLog(any()) } returns Unit
+        everySuspend { orchestrator.logHttpAndGetId(any()) } returns 1L
+        everySuspend { orchestrator.updateHttp(any()) } returns Unit
+        everySuspend { orchestrator.clearHttpLogs() } returns Unit
+        everySuspend { orchestrator.purgeHttpLogsOlderThan(any()) } returns Unit
+        everySuspend { orchestrator.deleteHttpLog(any()) } returns Unit
         everySuspend { ruleRepo.getEnabledRules() } returns emptyList()
 
         server = MockWebServer()
@@ -120,8 +120,8 @@ class WiretapOkHttpInterceptorTest {
         ).execute()
 
         response.code shouldBe 200
-        verifySuspend { orchestrator.logRequest(any()) }
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     @Test
@@ -137,8 +137,8 @@ class WiretapOkHttpInterceptorTest {
                 .build(),
         ).execute()
 
-        verifySuspend { orchestrator.logRequest(any()) }
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -239,7 +239,7 @@ class WiretapOkHttpInterceptorTest {
 
         response.code shouldBe 200
         response.body?.string() shouldBe """{"real":true}"""
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -263,7 +263,7 @@ class WiretapOkHttpInterceptorTest {
                 .build(),
         ).execute()
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     @Test
@@ -284,7 +284,7 @@ class WiretapOkHttpInterceptorTest {
                 .build(),
         ).execute()
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     @Test
@@ -306,7 +306,7 @@ class WiretapOkHttpInterceptorTest {
             Request.Builder().url(server.url("/api/test")).build(),
         ).execute()
 
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -324,7 +324,7 @@ class WiretapOkHttpInterceptorTest {
             Request.Builder().url(server.url("/api/test")).build(),
         ).execute()
 
-        verifySuspend { orchestrator.clearLogs() }
+        verifySuspend { orchestrator.clearHttpLogs() }
     }
 
     @Test
@@ -338,7 +338,7 @@ class WiretapOkHttpInterceptorTest {
             Request.Builder().url(server.url("/api/test")).build(),
         ).execute()
 
-        verifySuspend { orchestrator.purgeLogsOlderThan(any()) }
+        verifySuspend { orchestrator.purgeHttpLogsOlderThan(any()) }
     }
 
     // endregion
@@ -355,7 +355,7 @@ class WiretapOkHttpInterceptorTest {
         ).execute()
 
         response.code shouldBe 404
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     @Test
@@ -370,7 +370,7 @@ class WiretapOkHttpInterceptorTest {
         }
 
         result.isFailure shouldBe true
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -403,7 +403,7 @@ class WiretapOkHttpInterceptorTest {
             Request.Builder().url(server.url("/api/test")).build(),
         ).execute()
 
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion

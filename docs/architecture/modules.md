@@ -10,7 +10,6 @@ WiretapKMP/
 ├── wiretap-okhttp/             OkHttp interceptor (Android, JVM)
 ├── wiretap-okhttp-noop/        OkHttp no-op stubs (release)
 ├── wiretap-urlsession/         URLSession interceptor (iOS)
-├── wiretap-urlsession-noop/    URLSession no-op stubs (iOS release)
 ├── wiretap-shake/              Shake detector (iOS, via swiftklib)
 ├── composeApp/                 KMP Compose sample app
 ├── androidApp/                 Android sample wrapper
@@ -30,7 +29,7 @@ The core module contains everything except client-specific plugins:
 | `domain.repository` | `HttpRepository`, `SocketRepository`, `RuleRepository` |
 | `domain.usecase` | `FindMatchingRuleUseCase`, `FindConflictingRulesUseCase` |
 | `domain.model` | `RuleAction`, `UrlMatcher`, `HeaderMatcher`, `BodyMatcher`, `ResponseSource`, enums |
-| `data.db.entity` | `HttpLogEntry`, `SocketLogEntry`, `SocketMessage`, `WiretapRule` |
+| `data.db.entity` | `HttpLogEntry`, `SocketEntry`, `SocketMessage`, `WiretapRule` |
 | `data.db.dao` | `HttpDao`, `SocketDao`, `RuleDao` (internal) |
 | `data.repository` | `HttpRepositoryImpl`, `SocketRepositoryImpl`, `RuleRepositoryImpl` (internal) |
 | `di` | `wiretapModule`, `WiretapDi`, `WiretapKoinContext` |
@@ -83,10 +82,6 @@ Same API surface with pass-through implementations.
 
 Published as `WiretapURLSession` static framework via KMMBridge/SPM. Exports wiretap-core.
 
-## wiretap-urlsession-noop
-
-Same `WiretapURLSession` framework name. Pass-through behavior, no Koin, no database, no logging.
-
 ## wiretap-shake
 
 **Platforms:** iOS (iosArm64 + iosSimulatorArm64)
@@ -111,7 +106,6 @@ graph TD
     urlsession["wiretap-urlsession"]
     ktor_noop["wiretap-ktor-noop"]
     okhttp_noop["wiretap-okhttp-noop"]
-    urlsession_noop["wiretap-urlsession-noop"]
     shake["wiretap-shake"]
 
     ktor -->|api| core
@@ -127,7 +121,6 @@ graph TD
     style urlsession fill:#2563eb,color:#fff
     style ktor_noop fill:#6b7280,color:#fff
     style okhttp_noop fill:#6b7280,color:#fff
-    style urlsession_noop fill:#6b7280,color:#fff
     style shake fill:#059669,color:#fff
 ```
 

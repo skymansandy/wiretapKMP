@@ -54,9 +54,11 @@ internal fun ResponseHeadersSection(
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KeyValue) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = if (mode == ResponseHeadersEditMode.KeyValue) "Switch to bulk edit"
-                    else "Switch to key/value",
                 tint = MaterialTheme.colorScheme.primary,
+                contentDescription = when (mode) {
+                    ResponseHeadersEditMode.KeyValue -> "Switch to bulk edit"
+                    else -> "Switch to key/value"
+                },
             )
         }
     }
@@ -74,6 +76,7 @@ internal fun ResponseHeadersSection(
                 Text("+ Add Header")
             }
         }
+
         ResponseHeadersEditMode.BulkEdit -> {
             OutlinedTextField(
                 value = bulk,

@@ -6,21 +6,21 @@ import kotlinx.coroutines.flow.Flow
 
 interface HttpOrchestrator {
 
-    suspend fun logEntry(entry: HttpLogEntry)
+    suspend fun logHttp(entry: HttpLogEntry)
 
-    suspend fun logRequest(entry: HttpLogEntry): Long
+    suspend fun logHttpAndGetId(entry: HttpLogEntry): Long
 
-    suspend fun updateEntry(entry: HttpLogEntry)
+    suspend fun updateHttp(entry: HttpLogEntry)
 
-    fun getAllLogs(): Flow<List<HttpLogEntry>>
+    fun getAllHttpLogs(): Flow<List<HttpLogEntry>>
 
-    fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>>
+    fun getPagedHttpLogs(query: String): Flow<PagingData<HttpLogEntry>>
 
-    suspend fun getLogById(id: Long): HttpLogEntry?
+    suspend fun getHttpLogById(id: Long): HttpLogEntry?
 
-    suspend fun deleteLog(id: Long)
+    suspend fun deleteHttpLog(id: Long)
 
-    suspend fun clearLogs()
+    suspend fun clearHttpLogs()
 
-    suspend fun purgeLogsOlderThan(cutoffMs: Long)
+    suspend fun purgeHttpLogsOlderThan(cutoffMs: Long)
 }

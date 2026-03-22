@@ -39,7 +39,7 @@ class SocketOrchestratorImplTest {
         everySuspend { socketRepository.openConnection(entry) } returns expectedId
         every { wiretapLogger.logSocket(entry.copy(id = expectedId)) } returns Unit
 
-        val id = orchestrator.openSocketConnection(entry)
+        val id = orchestrator.openSocket(entry)
 
         id shouldBe expectedId
         verifySuspend { socketRepository.openConnection(entry) }
@@ -51,7 +51,7 @@ class SocketOrchestratorImplTest {
         everySuspend { socketRepository.updateConnection(entry) } returns Unit
         every { wiretapLogger.logSocket(entry) } returns Unit
 
-        orchestrator.updateSocketConnection(entry)
+        orchestrator.updateSocket(entry)
 
         verifySuspend { socketRepository.updateConnection(entry) }
         verify { wiretapLogger.logSocket(entry) }
@@ -63,14 +63,14 @@ class SocketOrchestratorImplTest {
         val entry = socketLogEntry(id = 10, status = SocketStatus.Open)
         everySuspend { socketRepository.openConnection(entry) } returns 10L
         every { wiretapLogger.logSocket(entry.copy(id = 10)) } returns Unit
-        orchestrator.openSocketConnection(entry)
+        orchestrator.openSocket(entry)
 
         // Then update with Open status
         val updatedEntry = entry.copy(id = 10, status = SocketStatus.Open)
         everySuspend { socketRepository.updateConnection(updatedEntry) } returns Unit
         every { wiretapLogger.logSocket(updatedEntry) } returns Unit
 
-        orchestrator.updateSocketConnection(updatedEntry)
+        orchestrator.updateSocket(updatedEntry)
 
         verifySuspend { socketRepository.updateConnection(updatedEntry) }
     }
@@ -83,7 +83,7 @@ class SocketOrchestratorImplTest {
         everySuspend { socketRepository.logMessage(message) } returns Unit
         every { wiretapLogger.logSocketMessage(message) } returns Unit
 
-        orchestrator.logSocketMessage(message)
+        orchestrator.logSocketMsg(message)
 
         verifySuspend { socketRepository.logMessage(message) }
         verify { wiretapLogger.logSocketMessage(message) }
@@ -95,7 +95,7 @@ class SocketOrchestratorImplTest {
         val entry = socketLogEntry(status = SocketStatus.Open)
         everySuspend { socketRepository.openConnection(entry) } returns 10L
         every { wiretapLogger.logSocket(entry.copy(id = 10)) } returns Unit
-        orchestrator.openSocketConnection(entry)
+        orchestrator.openSocket(entry)
 
         // Simulate cleared DB - getById returns null first, then returns after reopen
         val message = socketMessage(socketId = 10)
@@ -105,7 +105,7 @@ class SocketOrchestratorImplTest {
         everySuspend { socketRepository.logMessage(message) } returns Unit
         every { wiretapLogger.logSocketMessage(message) } returns Unit
 
-        orchestrator.logSocketMessage(message)
+        orchestrator.logSocketMsg(message)
 
         verifySuspend { socketRepository.reopenConnection(reopenedEntry) }
         verifySuspend { socketRepository.logMessage(message) }
@@ -131,7 +131,7 @@ class SocketOrchestratorImplTest {
         val entry = socketLogEntry(id = 5)
         every { socketRepository.getByIdFlow(5L) } returns flowOf(entry)
 
-        orchestrator.getSocketByIdFlow(5L).test {
+        orchestrator.flowSocketById(5L).test {
             awaitItem() shouldBe entry
             awaitComplete()
         }
@@ -142,7 +142,7 @@ class SocketOrchestratorImplTest {
         val messages = listOf(socketMessage(id = 1), socketMessage(id = 2))
         every { socketRepository.getMessages(5L) } returns flowOf(messages)
 
-        orchestrator.getSocketMessages(5L).test {
+        orchestrator.flowSocketMessagesById(5L).test {
             awaitItem() shouldBe messages
             awaitComplete()
         }
@@ -153,7 +153,7 @@ class SocketOrchestratorImplTest {
         val entries = listOf(socketLogEntry(id = 1), socketLogEntry(id = 2))
         every { socketRepository.getAll() } returns flowOf(entries)
 
-        orchestrator.getAllSocketLogs().test {
+        orchestrator.getAllSockets().test {
             awaitItem() shouldBe entries
             awaitComplete()
         }
@@ -163,7 +163,7 @@ class SocketOrchestratorImplTest {
     fun `clearSocketLogs clears repository`() = runTest {
         everySuspend { socketRepository.clearAll() } returns Unit
 
-        orchestrator.clearSocketLogs()
+        orchestrator.clearLogs()
 
         verifySuspend { socketRepository.clearAll() }
     }

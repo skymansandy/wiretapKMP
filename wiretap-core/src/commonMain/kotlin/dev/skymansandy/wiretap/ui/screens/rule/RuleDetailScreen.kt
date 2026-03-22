@@ -96,11 +96,13 @@ internal fun RuleDetailScreen(
             )
         },
     ) { padding ->
+        val hasJsonBody = (rule.action as? RuleAction.Mock)?.responseBody?.let { looksLikeJson(it) } == true
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .then(if (!hasJsonBody) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                 .padding(16.dp),
         ) {
             // Enabled toggle
@@ -181,7 +183,7 @@ internal fun RuleDetailScreen(
                             val editorState = rememberJsonEditorState(initialJson = action.responseBody)
                             JsonCMP(
                                 state = editorState,
-                                modifier = Modifier.padding(vertical = 4.dp),
+                                modifier = Modifier.padding(vertical = 4.dp).weight(1f),
                             )
                         } else {
                             CodeBlock(text = action.responseBody, modifier = Modifier.padding(vertical = 4.dp))

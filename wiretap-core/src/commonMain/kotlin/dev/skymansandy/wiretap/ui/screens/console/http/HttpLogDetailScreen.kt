@@ -186,9 +186,9 @@ internal fun HttpLogDetailScreen(
             }
 
             when (selectedTab) {
-                0 -> OverviewTab(entry = entry)
-                1 -> RequestTab(entry = entry, searchQuery = debouncedQuery)
-                2 -> ResponseTab(entry = entry, searchQuery = debouncedQuery)
+                0 -> OverviewTab(modifier = Modifier.weight(1f), entry = entry)
+                1 -> RequestTab(modifier = Modifier.weight(1f), entry = entry, searchQuery = debouncedQuery)
+                2 -> ResponseTab(modifier = Modifier.weight(1f), entry = entry, searchQuery = debouncedQuery)
             }
         }
     }

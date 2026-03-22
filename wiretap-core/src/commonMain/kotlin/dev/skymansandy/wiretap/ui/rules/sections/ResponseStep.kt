@@ -105,7 +105,7 @@ internal fun ResponseStep(
 
             JsonCMP(
                 state = editorState,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(300.dp),
                 onJsonChange = { json, _, _ -> onMockResponseBodyChange(json) },
             )
 
