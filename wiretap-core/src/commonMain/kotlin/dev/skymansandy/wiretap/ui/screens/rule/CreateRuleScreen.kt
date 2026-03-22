@@ -36,28 +36,12 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.any_method
-import dev.skymansandy.wiretap.resources.back
-import dev.skymansandy.wiretap.resources.conflict_multiple
-import dev.skymansandy.wiretap.resources.conflict_single
-import dev.skymansandy.wiretap.resources.create_rule_title
-import dev.skymansandy.wiretap.resources.discard
-import dev.skymansandy.wiretap.resources.edit_existing_rule
-import dev.skymansandy.wiretap.resources.edit_rule_title
-import dev.skymansandy.wiretap.resources.next_response
-import dev.skymansandy.wiretap.resources.rule_conflict
-import dev.skymansandy.wiretap.resources.save_rule
-import dev.skymansandy.wiretap.resources.step_request
-import dev.skymansandy.wiretap.resources.step_response
-import dev.skymansandy.wiretap.resources.test_input
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +88,7 @@ internal fun CreateRuleScreen(
     // Validation
     val canProceed by viewModel.canProceed.collectAsStateWithLifecycle()
 
-    val testInputLabel = stringResource(Res.string.test_input)
+    val testInputLabel = "Test Input"
 
     if (showRegexTester) {
         ModalBottomSheet(
@@ -132,10 +116,10 @@ internal fun CreateRuleScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (viewModel.isEditing) Res.string.edit_rule_title else Res.string.create_rule_title)) },
+                title = { Text(if (viewModel.isEditing) "Edit Rule" else "Create Rule") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
             )
@@ -145,7 +129,7 @@ internal fun CreateRuleScreen(
 
             StepIndicator(
                 currentStep = step,
-                labels = listOf(stringResource(Res.string.step_request), stringResource(Res.string.step_response)),
+                labels = listOf("Request", "Response"),
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
 
@@ -212,7 +196,7 @@ internal fun CreateRuleScreen(
             ) {
                 if (step > 1) {
                     OutlinedButton(onClick = { viewModel.prevStep() }, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(Res.string.back))
+                        Text("Back")
                     }
                 }
                 if (step < 2) {
@@ -221,14 +205,14 @@ internal fun CreateRuleScreen(
                         enabled = canProceed,
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(Res.string.next_response))
+                        Text("Next: Response")
                     }
                 } else {
                     Button(
                         onClick = { viewModel.saveRule(onSaved) },
                         modifier = Modifier.weight(1f),
                     ) {
-                        Text(stringResource(Res.string.save_rule))
+                        Text("Save Rule")
                     }
                 }
             }
@@ -245,7 +229,7 @@ private fun ConflictDialog(
 ) {
     val scope = rememberCoroutineScope()
     val firstConflict = conflictingRules.first()
-    val anyMethodLabel = stringResource(Res.string.any_method)
+    val anyMethodLabel = "Any"
     val conflictSummary = conflictingRules.joinToString("\n") { rule ->
         buildString {
             append(if (rule.method == "*") anyMethodLabel else rule.method)
@@ -255,14 +239,14 @@ private fun ConflictDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.rule_conflict)) },
+        title = { Text("Rule Conflict") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = if (conflictingRules.size == 1) {
-                        stringResource(Res.string.conflict_single)
+                        "An existing rule already matches the same requests:"
                     } else {
-                        stringResource(Res.string.conflict_multiple, conflictingRules.size)
+                        "${conflictingRules.size} existing rules already match the same requests:"
                     },
                 )
                 Text(
@@ -283,13 +267,13 @@ private fun ConflictDialog(
                         }
                     }
                 }) {
-                    Text(stringResource(Res.string.edit_existing_rule))
+                    Text("Edit Existing Rule")
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.discard))
+                Text("Discard")
             }
         },
     )

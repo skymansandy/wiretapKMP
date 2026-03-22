@@ -47,26 +47,7 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.back
-import dev.skymansandy.wiretap.resources.binary_message
-import dev.skymansandy.wiretap.resources.history_cleared
-import dev.skymansandy.wiretap.resources.label_closed
-import dev.skymansandy.wiretap.resources.label_code
-import dev.skymansandy.wiretap.resources.label_error
-import dev.skymansandy.wiretap.resources.label_opened
-import dev.skymansandy.wiretap.resources.label_protocol
-import dev.skymansandy.wiretap.resources.label_reason
-import dev.skymansandy.wiretap.resources.label_status
-import dev.skymansandy.wiretap.resources.request_headers
-import dev.skymansandy.wiretap.resources.status_closed
-import dev.skymansandy.wiretap.resources.status_closing
-import dev.skymansandy.wiretap.resources.status_connecting
-import dev.skymansandy.wiretap.resources.status_failed
-import dev.skymansandy.wiretap.resources.status_open
-import dev.skymansandy.wiretap.resources.ws_title
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +90,7 @@ internal fun SocketDetailScreen(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(Res.string.ws_title, urlDisplay),
+                            text = "WS $urlDisplay",
                             style = MaterialTheme.typography.titleSmall,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -120,7 +101,7 @@ internal fun SocketDetailScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.back),
+                            contentDescription = "Back",
                         )
                     }
                 },
@@ -171,30 +152,30 @@ private fun ConnectionInfoHeader(entry: SocketLogEntry) {
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            InfoLabel(stringResource(Res.string.label_status), entry.status.name)
-            InfoLabel(stringResource(Res.string.label_opened), formatTime(entry.timestamp))
+            InfoLabel("Status", entry.status.name)
+            InfoLabel("Opened", formatTime(entry.timestamp))
         }
 
         if (entry.closedAt != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                InfoLabel(stringResource(Res.string.label_closed), formatTime(entry.closedAt))
-                entry.closeCode?.let { InfoLabel(stringResource(Res.string.label_code), it.toString()) }
+                InfoLabel("Closed", formatTime(entry.closedAt))
+                entry.closeCode?.let { InfoLabel("Code", it.toString()) }
             }
-            entry.closeReason?.let { InfoLabel(stringResource(Res.string.label_reason), it) }
+            entry.closeReason?.let { InfoLabel("Reason", it) }
         }
 
         if (entry.failureMessage != null) {
-            InfoLabel(stringResource(Res.string.label_error), entry.failureMessage)
+            InfoLabel("Error", entry.failureMessage)
         }
 
         if (entry.protocol != null) {
-            InfoLabel(stringResource(Res.string.label_protocol), entry.protocol)
+            InfoLabel("Protocol", entry.protocol)
         }
 
         if (entry.requestHeaders.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
             Text(
-                text = stringResource(Res.string.request_headers),
+                text = "Request Headers",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -265,10 +246,7 @@ private fun MessageBubble(
                 .padding(10.dp),
         ) {
             val displayText = when (message.contentType) {
-                SocketContentType.Binary -> stringResource(
-                    Res.string.binary_message,
-                    formatBytes(message.byteCount),
-                )
+                SocketContentType.Binary -> "[Binary: ${formatBytes(message.byteCount)}]"
 
                 else -> message.content
             }
@@ -312,7 +290,7 @@ private fun HistoryClearedBanner() {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(Res.string.history_cleared),
+            text = "History was cleared \u2014 only showing new messages",
             style = MaterialTheme.typography.labelMedium,
             color = WiretapColors.HistoryClearedText,
         )
@@ -329,11 +307,11 @@ private fun StatusChip(status: SocketStatus) {
         SocketStatus.Failed -> WiretapColors.StatusRed
     }
     val label = when (status) {
-        SocketStatus.Connecting -> stringResource(Res.string.status_connecting)
-        SocketStatus.Open -> stringResource(Res.string.status_open)
-        SocketStatus.Closing -> stringResource(Res.string.status_closing)
-        SocketStatus.Closed -> stringResource(Res.string.status_closed)
-        SocketStatus.Failed -> stringResource(Res.string.status_failed)
+        SocketStatus.Connecting -> "Connecting"
+        SocketStatus.Open -> "Open"
+        SocketStatus.Closing -> "Closing"
+        SocketStatus.Closed -> "Closed"
+        SocketStatus.Failed -> "Failed"
     }
     Text(
         text = label,

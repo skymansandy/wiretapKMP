@@ -38,11 +38,9 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.common.highlightText
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SocketLogList(
@@ -53,7 +51,7 @@ internal fun SocketLogList(
 ) {
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
-            Text(stringResource(Res.string.no_websocket_connections), style = MaterialTheme.typography.bodyLarge)
+            Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)
         }
     } else {
         val listState = rememberLazyListState()
@@ -114,7 +112,7 @@ private fun SocketLogItemContent(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = stringResource(Res.string.ws_prefix),
+                text = "WS",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = statusColor,
@@ -164,7 +162,7 @@ private fun SocketLogItemContent(
                     )
                     if (entry.messageCount > 0) {
                         Text(
-                            text = stringResource(Res.string.msgs_count, entry.messageCount),
+                            text = "${entry.messageCount} msgs",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -187,11 +185,11 @@ private fun SocketStatusChip(status: SocketStatus) {
         SocketStatus.Failed -> WiretapColors.StatusRed
     }
     val label = when (status) {
-        SocketStatus.Connecting -> stringResource(Res.string.status_connecting)
-        SocketStatus.Open -> stringResource(Res.string.status_open)
-        SocketStatus.Closing -> stringResource(Res.string.status_closing)
-        SocketStatus.Closed -> stringResource(Res.string.status_closed)
-        SocketStatus.Failed -> stringResource(Res.string.status_failed)
+        SocketStatus.Connecting -> "Connecting"
+        SocketStatus.Open -> "Open"
+        SocketStatus.Closing -> "Closing"
+        SocketStatus.Closed -> "Closed"
+        SocketStatus.Failed -> "Failed"
     }
     Text(
         text = label,

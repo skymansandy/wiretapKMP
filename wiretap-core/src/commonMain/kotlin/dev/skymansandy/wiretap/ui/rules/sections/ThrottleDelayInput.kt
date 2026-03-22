@@ -24,12 +24,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
 import dev.skymansandy.wiretap.ui.model.ThrottleProfile
-import dev.skymansandy.wiretap.ui.model.labelRes
-import dev.skymansandy.wiretap.ui.model.speedRes
-import org.jetbrains.compose.resources.stringResource
+import dev.skymansandy.wiretap.ui.model.labelText
+import dev.skymansandy.wiretap.ui.model.speedText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +41,7 @@ internal fun ThrottleDelayInput(
     supportingText: String,
 ) {
     Text(
-        text = stringResource(Res.string.throttle_delay),
+        text = "Throttle Delay",
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
     )
@@ -53,7 +51,7 @@ internal fun ThrottleDelayInput(
     ) {
         FilterChip(
             selected = throttleInputMode == ThrottleInputMode.None,
-            label = { Text(stringResource(Res.string.none)) },
+            label = { Text("None") },
             onClick = {
                 onThrottleInputModeChange(ThrottleInputMode.None)
                 onThrottleDelayMsChange("0")
@@ -63,13 +61,13 @@ internal fun ThrottleDelayInput(
 
         FilterChip(
             selected = throttleInputMode == ThrottleInputMode.Manual,
-            label = { Text(stringResource(Res.string.manual)) },
+            label = { Text("Manual") },
             onClick = { onThrottleInputModeChange(ThrottleInputMode.Manual) },
         )
 
         FilterChip(
             selected = throttleInputMode == ThrottleInputMode.Profile,
-            label = { Text(stringResource(Res.string.network_profile)) },
+            label = { Text("Network Profile") },
             onClick = { onThrottleInputModeChange(ThrottleInputMode.Profile) },
         )
     }
@@ -82,8 +80,8 @@ internal fun ThrottleDelayInput(
                 OutlinedTextField(
                     value = throttleDelayMs,
                     onValueChange = onThrottleDelayMsChange,
-                    label = { Text(stringResource(Res.string.min_ms)) },
-                    placeholder = { Text(stringResource(Res.string.placeholder_500)) },
+                    label = { Text("Min (ms)") },
+                    placeholder = { Text("e.g. 500") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -92,8 +90,8 @@ internal fun ThrottleDelayInput(
                 OutlinedTextField(
                     value = throttleDelayMaxMs,
                     onValueChange = onThrottleDelayMaxMsChange,
-                    label = { Text(stringResource(Res.string.max_ms)) },
-                    placeholder = { Text(stringResource(Res.string.placeholder_2000)) },
+                    label = { Text("Max (ms)") },
+                    placeholder = { Text("e.g. 2000") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -121,13 +119,13 @@ internal fun ThrottleDelayInput(
             ) {
                 OutlinedTextField(
                     value = selectedProfile?.let {
-                        "${stringResource(it.labelRes)}  " +
-                            "(${stringResource(Res.string.profile_speed_delay, stringResource(it.speedRes), it.delayMinMs, it.delayMaxMs)})"
+                        "${it.labelText}  " +
+                            "(${it.speedText} \u00B7 ${it.delayMinMs}\u2013${it.delayMaxMs}ms)"
                     } ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text(stringResource(Res.string.network_profile)) },
-                    placeholder = { Text(stringResource(Res.string.select_profile)) },
+                    label = { Text("Network Profile") },
+                    placeholder = { Text("Select a profile") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier.fillMaxWidth()
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
@@ -145,15 +143,10 @@ internal fun ThrottleDelayInput(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    Text(text = stringResource(profile.labelRes))
+                                    Text(text = profile.labelText)
 
                                     Text(
-                                        text = stringResource(
-                                            Res.string.profile_speed_delay,
-                                            stringResource(profile.speedRes),
-                                            profile.delayMinMs,
-                                            profile.delayMaxMs,
-                                        ),
+                                        text = "${profile.speedText} \u00B7 ${profile.delayMinMs}\u2013${profile.delayMaxMs}ms",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )

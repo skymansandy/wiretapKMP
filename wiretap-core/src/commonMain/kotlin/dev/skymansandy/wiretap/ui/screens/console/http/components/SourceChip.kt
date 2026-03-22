@@ -10,10 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.source_mock
-import dev.skymansandy.wiretap.resources.source_throttle
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SourceChip(
@@ -33,8 +29,8 @@ internal fun SourceChip(
     }
 
     val label = when (source) {
-        ResponseSource.Mock -> stringResource(Res.string.source_mock)
-        ResponseSource.Throttle -> stringResource(Res.string.source_throttle)
+        ResponseSource.Mock -> "Mock"
+        ResponseSource.Throttle -> "Throttle"
         ResponseSource.Network -> return
     }
 

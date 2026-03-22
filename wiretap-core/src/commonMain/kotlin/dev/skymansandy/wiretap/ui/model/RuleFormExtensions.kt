@@ -5,48 +5,27 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.match_contains
-import dev.skymansandy.wiretap.resources.match_exact
-import dev.skymansandy.wiretap.resources.match_key_exists
-import dev.skymansandy.wiretap.resources.match_regex
-import dev.skymansandy.wiretap.resources.profile_3g
-import dev.skymansandy.wiretap.resources.profile_edge
-import dev.skymansandy.wiretap.resources.profile_gprs
-import dev.skymansandy.wiretap.resources.profile_lte
-import dev.skymansandy.wiretap.resources.profile_slow_3g
-import dev.skymansandy.wiretap.resources.profile_slow_4g
-import dev.skymansandy.wiretap.resources.profile_slow_wifi
-import dev.skymansandy.wiretap.resources.speed_3g
-import dev.skymansandy.wiretap.resources.speed_edge
-import dev.skymansandy.wiretap.resources.speed_gprs
-import dev.skymansandy.wiretap.resources.speed_lte
-import dev.skymansandy.wiretap.resources.speed_slow_3g
-import dev.skymansandy.wiretap.resources.speed_slow_4g
-import dev.skymansandy.wiretap.resources.speed_slow_wifi
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun UrlMatchMode.label() = when (this) {
-    UrlMatchMode.Exact -> stringResource(Res.string.match_exact)
-    UrlMatchMode.Contains -> stringResource(Res.string.match_contains)
-    UrlMatchMode.Regex -> stringResource(Res.string.match_regex)
+    UrlMatchMode.Exact -> "Exact"
+    UrlMatchMode.Contains -> "Contains"
+    UrlMatchMode.Regex -> "Regex"
 }
 
 @Composable
 internal fun BodyMatchMode.label() = when (this) {
-    BodyMatchMode.Exact -> stringResource(Res.string.match_exact)
-    BodyMatchMode.Contains -> stringResource(Res.string.match_contains)
-    BodyMatchMode.Regex -> stringResource(Res.string.match_regex)
+    BodyMatchMode.Exact -> "Exact"
+    BodyMatchMode.Contains -> "Contains"
+    BodyMatchMode.Regex -> "Regex"
 }
 
 @Composable
 internal fun HeaderEntryMode.label() = when (this) {
-    HeaderEntryMode.KeyExists -> stringResource(Res.string.match_key_exists)
-    HeaderEntryMode.ValueExact -> stringResource(Res.string.match_exact)
-    HeaderEntryMode.ValueContains -> stringResource(Res.string.match_contains)
-    HeaderEntryMode.ValueRegex -> stringResource(Res.string.match_regex)
+    HeaderEntryMode.KeyExists -> "Key Exists"
+    HeaderEntryMode.ValueExact -> "Exact"
+    HeaderEntryMode.ValueContains -> "Contains"
+    HeaderEntryMode.ValueRegex -> "Regex"
 }
 
 internal fun UrlMatchMode.isRegex() = this == UrlMatchMode.Regex
@@ -118,24 +97,24 @@ internal fun headerValuePlaceholder(mode: HeaderEntryMode) = when (mode) {
     else -> ""
 }
 
-internal val ThrottleProfile.labelRes: StringResource
+internal val ThrottleProfile.labelText: String
     get() = when (this) {
-        ThrottleProfile.Gprs -> Res.string.profile_gprs
-        ThrottleProfile.Edge -> Res.string.profile_edge
-        ThrottleProfile.Slow3g -> Res.string.profile_slow_3g
-        ThrottleProfile.Fast3g -> Res.string.profile_3g
-        ThrottleProfile.Slow4g -> Res.string.profile_slow_4g
-        ThrottleProfile.Lte -> Res.string.profile_lte
-        ThrottleProfile.SlowWifi -> Res.string.profile_slow_wifi
+        ThrottleProfile.Gprs -> "2G (GPRS)"
+        ThrottleProfile.Edge -> "2G (EDGE)"
+        ThrottleProfile.Slow3g -> "3G (Slow)"
+        ThrottleProfile.Fast3g -> "3G"
+        ThrottleProfile.Slow4g -> "4G (Slow)"
+        ThrottleProfile.Lte -> "4G (LTE)"
+        ThrottleProfile.SlowWifi -> "Slow WiFi"
     }
 
-internal val ThrottleProfile.speedRes: StringResource
+internal val ThrottleProfile.speedText: String
     get() = when (this) {
-        ThrottleProfile.Gprs -> Res.string.speed_gprs
-        ThrottleProfile.Edge -> Res.string.speed_edge
-        ThrottleProfile.Slow3g -> Res.string.speed_slow_3g
-        ThrottleProfile.Fast3g -> Res.string.speed_3g
-        ThrottleProfile.Slow4g -> Res.string.speed_slow_4g
-        ThrottleProfile.Lte -> Res.string.speed_lte
-        ThrottleProfile.SlowWifi -> Res.string.speed_slow_wifi
+        ThrottleProfile.Gprs -> "~50 kbps"
+        ThrottleProfile.Edge -> "~200 kbps"
+        ThrottleProfile.Slow3g -> "~400 kbps"
+        ThrottleProfile.Fast3g -> "~2 Mbps"
+        ThrottleProfile.Slow4g -> "~5 Mbps"
+        ThrottleProfile.Lte -> "~20 Mbps"
+        ThrottleProfile.SlowWifi -> "~1 Mbps"
     }

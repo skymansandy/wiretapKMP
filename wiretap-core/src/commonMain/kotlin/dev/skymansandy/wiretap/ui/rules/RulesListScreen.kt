@@ -41,18 +41,8 @@ import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.create_rule_cd
-import dev.skymansandy.wiretap.resources.delay_fixed
-import dev.skymansandy.wiretap.resources.delay_range
-import dev.skymansandy.wiretap.resources.hdr
-import dev.skymansandy.wiretap.resources.hdr_count
-import dev.skymansandy.wiretap.resources.no_rules_match
-import dev.skymansandy.wiretap.resources.no_rules_yet
-import dev.skymansandy.wiretap.resources.response_code_display
 import dev.skymansandy.wiretap.ui.common.highlightText
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RulesListScreen(
@@ -77,11 +67,8 @@ internal fun RulesListScreen(
                 Text(
                     style = MaterialTheme.typography.bodyLarge,
                     text = when {
-                        searchQuery.isBlank() -> stringResource(Res.string.no_rules_yet)
-                        else -> stringResource(
-                            Res.string.no_rules_match,
-                            searchQuery,
-                        )
+                        searchQuery.isBlank() -> "No rules yet"
+                        else -> "No rules match \"$searchQuery\""
                     },
                 )
             }
@@ -109,7 +96,7 @@ internal fun RulesListScreen(
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
-                contentDescription = stringResource(Res.string.create_rule_cd),
+                contentDescription = "Create rule",
             )
         }
     }
@@ -145,10 +132,7 @@ private fun RuleItem(
                 )
 
                 if (rule.headerMatchers.isNotEmpty()) MatcherBadge(
-                    label = if (rule.headerMatchers.size == 1) stringResource(Res.string.hdr) else stringResource(
-                        Res.string.hdr_count,
-                        rule.headerMatchers.size,
-                    ),
+                    label = if (rule.headerMatchers.size == 1) "HDR" else "HDR\u00D7${rule.headerMatchers.size}",
                     color = MaterialTheme.colorScheme.secondary,
                 )
 
@@ -180,10 +164,7 @@ private fun RuleItem(
                 is RuleAction.Mock -> {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = stringResource(
-                            Res.string.response_code_display,
-                            action.responseCode,
-                        ),
+                        text = "Response: ${action.responseCode}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -193,12 +174,8 @@ private fun RuleItem(
                     Spacer(Modifier.height(2.dp))
                     val delayText =
                         if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
-                            stringResource(
-                                Res.string.delay_range,
-                                action.delayMs.toString(),
-                                action.delayMaxMs.toString(),
-                            )
-                        else stringResource(Res.string.delay_fixed, action.delayMs.toString())
+                            "Delay: ${action.delayMs}\u2013${action.delayMaxMs} ms"
+                        else "Delay: ${action.delayMs} ms"
                     Text(
                         text = delayText,
                         style = MaterialTheme.typography.labelSmall,

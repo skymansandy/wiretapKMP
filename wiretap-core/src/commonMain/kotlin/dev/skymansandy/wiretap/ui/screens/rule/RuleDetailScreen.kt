@@ -41,39 +41,9 @@ import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.any_method
-import dev.skymansandy.wiretap.resources.back
-import dev.skymansandy.wiretap.resources.body
-import dev.skymansandy.wiretap.resources.cancel
-import dev.skymansandy.wiretap.resources.delete
-import dev.skymansandy.wiretap.resources.delete_rule
-import dev.skymansandy.wiretap.resources.delete_rule_cd
-import dev.skymansandy.wiretap.resources.delete_rule_confirm
-import dev.skymansandy.wiretap.resources.edit_rule_cd
-import dev.skymansandy.wiretap.resources.enabled
-import dev.skymansandy.wiretap.resources.header_contains_format
-import dev.skymansandy.wiretap.resources.header_exact_format
-import dev.skymansandy.wiretap.resources.header_regex_format
-import dev.skymansandy.wiretap.resources.headers
-import dev.skymansandy.wiretap.resources.label_action
-import dev.skymansandy.wiretap.resources.label_delay
-import dev.skymansandy.wiretap.resources.label_method
-import dev.skymansandy.wiretap.resources.label_url
-import dev.skymansandy.wiretap.resources.match_contains
-import dev.skymansandy.wiretap.resources.match_exact
-import dev.skymansandy.wiretap.resources.match_key_exists
-import dev.skymansandy.wiretap.resources.match_regex
-import dev.skymansandy.wiretap.resources.no_headers
-import dev.skymansandy.wiretap.resources.response_body
-import dev.skymansandy.wiretap.resources.response_code_label
-import dev.skymansandy.wiretap.resources.response_headers
-import dev.skymansandy.wiretap.resources.rule_details
-import dev.skymansandy.wiretap.resources.throttle_delay
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
-import org.jetbrains.compose.resources.stringResource
 
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,15 +62,15 @@ internal fun RuleDetailScreen(
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDelete() },
-            title = { Text(stringResource(Res.string.delete_rule)) },
-            text = { Text(stringResource(Res.string.delete_rule_confirm)) },
+            title = { Text("Delete Rule") },
+            text = { Text("Are you sure you want to delete this rule?") },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmDelete(onDeleted) }) {
-                    Text(stringResource(Res.string.delete))
+                    Text("Delete")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissDelete() }) { Text(stringResource(Res.string.cancel)) }
+                TextButton(onClick = { viewModel.dismissDelete() }) { Text("Cancel") }
             },
         )
     }
@@ -109,18 +79,18 @@ internal fun RuleDetailScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.rule_details)) },
+                title = { Text("Rule Details") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     IconButton(onClick = onEditClick) {
-                        Icon(Icons.Default.Edit, contentDescription = stringResource(Res.string.edit_rule_cd))
+                        Icon(Icons.Default.Edit, contentDescription = "Edit rule")
                     }
                     IconButton(onClick = { viewModel.requestDelete() }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(Res.string.delete_rule_cd))
+                        Icon(Icons.Default.Delete, contentDescription = "Delete rule")
                     }
                 },
             )
@@ -135,7 +105,7 @@ internal fun RuleDetailScreen(
         ) {
             // Enabled toggle
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(Res.string.enabled), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text("Enabled", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Switch(
                     checked = enabled,
                     onCheckedChange = { viewModel.toggleEnabled(it) },
@@ -145,8 +115,8 @@ internal fun RuleDetailScreen(
             Spacer(Modifier.height(16.dp))
 
             DetailRow(
-                stringResource(Res.string.label_method),
-                if (rule.method == "*") stringResource(Res.string.any_method) else rule.method,
+                "Method",
+                if (rule.method == "*") "Any" else rule.method,
             )
 
             // URL matcher
@@ -154,7 +124,7 @@ internal fun RuleDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text(stringResource(Res.string.label_url), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text("URL", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(urlMatcherLabel(matcher), matcher.pattern)
@@ -165,7 +135,7 @@ internal fun RuleDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text(stringResource(Res.string.headers), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text("Headers", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 rule.headerMatchers.forEach { matcher ->
                     Spacer(Modifier.height(8.dp))
@@ -178,7 +148,7 @@ internal fun RuleDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 HorizontalDivider()
                 Spacer(Modifier.height(12.dp))
-                Text(stringResource(Res.string.body), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                Text("Body", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,)
                 Spacer(Modifier.height(8.dp))
                 DetailRow(bodyMatcherLabel(matcher), matcher.pattern)
@@ -190,7 +160,7 @@ internal fun RuleDetailScreen(
 
             // Action
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(Res.string.label_action), style = MaterialTheme.typography.labelMedium,
+                Text("Action", style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,)
                 Spacer(Modifier.width(8.dp))
                 ActionBadge(action = rule.action)
@@ -200,11 +170,11 @@ internal fun RuleDetailScreen(
 
             when (val action = rule.action) {
                 is RuleAction.Mock -> {
-                    DetailRow(stringResource(Res.string.response_code_label), action.responseCode.toString())
+                    DetailRow("Response Code", action.responseCode.toString())
 
                     if (!action.responseBody.isNullOrBlank()) {
                         Spacer(Modifier.height(12.dp))
-                        Text(stringResource(Res.string.response_body), style = MaterialTheme.typography.labelMedium,
+                        Text("Response Body", style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
                         if (looksLikeJson(action.responseBody)) {
@@ -220,10 +190,10 @@ internal fun RuleDetailScreen(
 
                     if (!action.responseHeaders.isNullOrEmpty()) {
                         Spacer(Modifier.height(12.dp))
-                        Text(stringResource(Res.string.response_headers), style = MaterialTheme.typography.labelMedium,
+                        Text("Response Headers", style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,)
                         Spacer(Modifier.height(4.dp))
-                        HeadersList(headers = action.responseHeaders, emptyText = stringResource(Res.string.no_headers))
+                        HeadersList(headers = action.responseHeaders, emptyText = "No headers")
                     }
 
                     action.throttleDelayMs?.let { delay ->
@@ -231,14 +201,14 @@ internal fun RuleDetailScreen(
                         val delayText = if (action.throttleDelayMaxMs != null && action.throttleDelayMaxMs != delay)
                             "$delay–${action.throttleDelayMaxMs} ms"
                         else "$delay ms"
-                        DetailRow(stringResource(Res.string.throttle_delay), delayText)
+                        DetailRow("Throttle Delay", delayText)
                     }
                 }
                 is RuleAction.Throttle -> {
                     val delayText = if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
                         "${action.delayMs}–${action.delayMaxMs} ms"
                     else "${action.delayMs} ms"
-                    DetailRow(stringResource(Res.string.label_delay), delayText)
+                    DetailRow("Delay", delayText)
                 }
             }
         }
@@ -249,13 +219,13 @@ internal fun RuleDetailScreen(
 private fun HeaderMatcherDetail(matcher: HeaderMatcher) {
     when (matcher) {
         is HeaderMatcher.KeyExists ->
-            DetailRow(stringResource(Res.string.match_key_exists), matcher.key)
+            DetailRow("Key Exists", matcher.key)
         is HeaderMatcher.ValueExact ->
-            DetailRow(stringResource(Res.string.header_exact_format, matcher.key), matcher.value)
+            DetailRow("${matcher.key}  =  Exact", matcher.value)
         is HeaderMatcher.ValueContains ->
-            DetailRow(stringResource(Res.string.header_contains_format, matcher.key), matcher.value)
+            DetailRow("${matcher.key}  ~  Contains", matcher.value)
         is HeaderMatcher.ValueRegex ->
-            DetailRow(stringResource(Res.string.header_regex_format, matcher.key), matcher.pattern)
+            DetailRow("${matcher.key}  *  Regex", matcher.pattern)
     }
 }
 
@@ -274,16 +244,16 @@ private fun DetailRow(
 
 @Composable
 private fun urlMatcherLabel(matcher: UrlMatcher) = when (matcher) {
-    is UrlMatcher.Exact -> stringResource(Res.string.match_exact)
-    is UrlMatcher.Contains -> stringResource(Res.string.match_contains)
-    is UrlMatcher.Regex -> stringResource(Res.string.match_regex)
+    is UrlMatcher.Exact -> "Exact"
+    is UrlMatcher.Contains -> "Contains"
+    is UrlMatcher.Regex -> "Regex"
 }
 
 @Composable
 private fun bodyMatcherLabel(matcher: BodyMatcher) = when (matcher) {
-    is BodyMatcher.Exact -> stringResource(Res.string.match_exact)
-    is BodyMatcher.Contains -> stringResource(Res.string.match_contains)
-    is BodyMatcher.Regex -> stringResource(Res.string.match_regex)
+    is BodyMatcher.Exact -> "Exact"
+    is BodyMatcher.Contains -> "Contains"
+    is BodyMatcher.Regex -> "Regex"
 }
 
 @Preview

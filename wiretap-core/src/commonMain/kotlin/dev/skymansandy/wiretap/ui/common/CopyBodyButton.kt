@@ -14,10 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.helper.util.copyToClipboard
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.copy
-import dev.skymansandy.wiretap.resources.copy_body
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun CopyBodyButton(
@@ -32,7 +28,7 @@ internal fun CopyBodyButton(
     ) {
         Icon(
             imageVector = Icons.Filled.ContentCopy,
-            contentDescription = stringResource(Res.string.copy_body),
+            contentDescription = "Copy body",
             modifier = Modifier.size(14.dp),
         )
 
@@ -41,7 +37,7 @@ internal fun CopyBodyButton(
         )
 
         Text(
-            text = stringResource(Res.string.copy),
+            text = "Copy",
             style = MaterialTheme.typography.labelSmall,
         )
     }

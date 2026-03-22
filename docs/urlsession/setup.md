@@ -6,28 +6,51 @@
 
 ### Swift Package Manager
 
-Add the WiretapKMP SPM package dependency, then link the `WiretapURLSession` framework.
+Add the WiretapKMP SPM package via its GitHub repository URL, then link the `WiretapURLSession` framework.
 
-For release builds, swap to `wiretap-urlsession-noop` which exports the same `WiretapURLSession` framework with pass-through behavior.
+=== "Xcode"
 
-### XcodeGen Example
+    1. **File → Add Package Dependencies…**
+    2. Enter the repository URL:
+       ```
+       https://github.com/skymansandy/wiretapKMP.git
+       ```
+    3. Set the version rule (e.g. **Up to Next Major** from `1.0.0-RC2`)
+    4. Add the `WiretapURLSession` library to your target
 
-```yaml
-packages:
-  WiretapURLSession:
-    path: path/to/WiretapKMP
+=== "Package.swift"
 
-targets:
-  MyApp:
-    dependencies:
-      - package: WiretapURLSession
-    preBuildScripts:
-      - name: "Compile Kotlin Frameworks"
-        script: |
-          cd "$SRCROOT/path/to/WiretapKMP"
-          ./gradlew :wiretap-urlsession:spmDevBuild \
-            -PspmBuildTargets=ios_simulator_arm64
-```
+    ```swift
+    dependencies: [
+        .package(
+            url: "https://github.com/skymansandy/wiretapKMP.git",
+            from: "1.0.0-RC2"
+        )
+    ]
+    ```
+    Then add the dependency to your target:
+    ```swift
+    .target(
+        name: "MyApp",
+        dependencies: [
+            .product(name: "WiretapURLSession", package: "wiretapKMP")
+        ]
+    )
+    ```
+
+=== "XcodeGen"
+
+    ```yaml
+    packages:
+      WiretapURLSession:
+        url: https://github.com/skymansandy/wiretapKMP.git
+        from: 1.0.0-RC2
+
+    targets:
+      MyApp:
+        dependencies:
+          - package: WiretapURLSession
+    ```
 
 !!! warning "Linker Flag Required"
     Add `-lsqlite3` to **Other Linker Flags** in your Xcode target's Build Settings. WiretapKMP uses SQLite for log storage, and the iOS framework requires this system library to be linked.

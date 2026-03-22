@@ -45,25 +45,11 @@ import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareNetworkLog
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.back
-import dev.skymansandy.wiretap.resources.close_search
-import dev.skymansandy.wiretap.resources.mocked_by_rule
-import dev.skymansandy.wiretap.resources.search
-import dev.skymansandy.wiretap.resources.share
-import dev.skymansandy.wiretap.resources.share_as_curl
-import dev.skymansandy.wiretap.resources.share_as_text
-import dev.skymansandy.wiretap.resources.tab_overview
-import dev.skymansandy.wiretap.resources.tab_request
-import dev.skymansandy.wiretap.resources.tab_response
-import dev.skymansandy.wiretap.resources.throttled_by_rule
-import dev.skymansandy.wiretap.resources.view_rule_arrow
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,9 +64,9 @@ internal fun HttpLogDetailScreen(
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
     val tabs = listOf(
-        stringResource(Res.string.tab_overview),
-        stringResource(Res.string.tab_request),
-        stringResource(Res.string.tab_response),
+        "Overview",
+        "Request",
+        "Response",
     )
     val supportsSearch = selectedTab != 0
 
@@ -132,7 +118,7 @@ internal fun HttpLogDetailScreen(
                             onBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -142,24 +128,24 @@ internal fun HttpLogDetailScreen(
                                 isSearchActive = false
                                 searchQuery = ""
                             }) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
+                                Icon(Icons.Default.Close, contentDescription = "Close search")
                             }
                         } else {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
+                                Icon(Icons.Default.Search, contentDescription = "Search")
                             }
                         }
                     }
                     Box {
                         IconButton(onClick = { showShareMenu = true }) {
-                            Icon(Icons.Default.Share, contentDescription = stringResource(Res.string.share))
+                            Icon(Icons.Default.Share, contentDescription = "Share")
                         }
                         DropdownMenu(
                             expanded = showShareMenu,
                             onDismissRequest = { showShareMenu = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.share_as_text)) },
+                                text = { Text("Share as text") },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -169,7 +155,7 @@ internal fun HttpLogDetailScreen(
                                 },
                             )
                             DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.share_as_curl)) },
+                                text = { Text("Share as cURL") },
                                 onClick = {
                                     showShareMenu = false
                                     shareNetworkLog(
@@ -221,12 +207,12 @@ private fun RuleMatchBanner(
         ResponseSource.Mock -> {
             bgColor = MaterialTheme.colorScheme.secondaryContainer
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            label = stringResource(Res.string.mocked_by_rule)
+            label = "Mocked by rule"
         }
         ResponseSource.Throttle -> {
             bgColor = MaterialTheme.colorScheme.tertiaryContainer
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-            label = stringResource(Res.string.throttled_by_rule)
+            label = "Throttled by rule"
         }
         ResponseSource.Network -> return
     }
@@ -250,7 +236,7 @@ private fun RuleMatchBanner(
         )
         if (clickable) {
             Text(
-                text = stringResource(Res.string.view_rule_arrow),
+                text = "View Rule \u2192",
                 style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
             )

@@ -27,12 +27,8 @@ import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.failed_to_load_logs
-import dev.skymansandy.wiretap.resources.no_http_logs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun HttpLogList(
@@ -59,7 +55,7 @@ internal fun HttpLogList(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(Res.string.no_http_logs),
+                    text = "No HTTP logs yet",
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
@@ -71,7 +67,7 @@ internal fun HttpLogList(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(Res.string.failed_to_load_logs),
+                    text = "Failed to load logs",
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }

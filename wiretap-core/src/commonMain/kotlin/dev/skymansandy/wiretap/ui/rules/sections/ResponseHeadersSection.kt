@@ -20,10 +20,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.*
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ResponseHeadersSection(
@@ -41,7 +39,7 @@ internal fun ResponseHeadersSection(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(Res.string.response_headers),
+            text = "Response Headers",
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -56,10 +54,8 @@ internal fun ResponseHeadersSection(
         ) {
             Icon(
                 imageVector = if (mode == ResponseHeadersEditMode.KeyValue) Icons.Default.Edit else Icons.AutoMirrored.Filled.List,
-                contentDescription = stringResource(
-                    if (mode == ResponseHeadersEditMode.KeyValue) Res.string.switch_to_bulk_edit
-                    else Res.string.switch_to_key_value,
-                ),
+                contentDescription = if (mode == ResponseHeadersEditMode.KeyValue) "Switch to bulk edit"
+                    else "Switch to key/value",
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
@@ -75,15 +71,15 @@ internal fun ResponseHeadersSection(
                 )
             }
             TextButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(Res.string.add_header))
+                Text("+ Add Header")
             }
         }
         ResponseHeadersEditMode.BulkEdit -> {
             OutlinedTextField(
                 value = bulk,
                 onValueChange = onBulkChange,
-                label = { Text(stringResource(Res.string.headers_bulk_label)) },
-                placeholder = { Text(stringResource(Res.string.placeholder_headers_bulk)) },
+                label = { Text("Headers") },
+                placeholder = { Text("Content-Type: application/json\nCache-Control: no-cache") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 8,
@@ -106,23 +102,23 @@ private fun ResponseHeaderEntryRow(
         OutlinedTextField(
             value = entry.key,
             onValueChange = { onUpdate(entry.copy(key = it)) },
-            label = { Text(stringResource(Res.string.label_key)) },
-            placeholder = { Text(stringResource(Res.string.placeholder_content_type)) },
+            label = { Text("Key") },
+            placeholder = { Text("Content-Type") },
             modifier = Modifier.weight(1f),
             singleLine = true,
         )
         OutlinedTextField(
             value = entry.value,
             onValueChange = { onUpdate(entry.copy(value = it)) },
-            label = { Text(stringResource(Res.string.label_value)) },
-            placeholder = { Text(stringResource(Res.string.placeholder_application_json)) },
+            label = { Text("Value") },
+            placeholder = { Text("application/json") },
             modifier = Modifier.weight(1f),
             singleLine = true,
         )
         IconButton(onClick = onRemove) {
             Icon(
                 Icons.Default.Close,
-                contentDescription = stringResource(Res.string.remove),
+                contentDescription = "Remove",
                 tint = MaterialTheme.colorScheme.error,
             )
         }
