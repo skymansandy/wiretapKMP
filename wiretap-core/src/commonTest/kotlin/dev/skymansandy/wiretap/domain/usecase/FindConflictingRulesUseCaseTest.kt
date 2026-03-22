@@ -63,7 +63,7 @@ class FindConflictingRulesUseCaseTest {
         val conflict1 = wiretapRule(id = 2, method = "GET", urlMatcher = UrlMatcher.Contains("api"))
         val conflict2 = wiretapRule(id = 3, method = "POST", urlMatcher = UrlMatcher.Contains("api"))
         val noConflict = wiretapRule(id = 4, method = "GET", urlMatcher = UrlMatcher.Exact("https://other.com"))
-        everySuspend { ruleRepository.getEnabledRules() } returns listOf(rule, conflict1, conflict2, noConflict)
+        everySuspend { ruleRepository.getAll() } returns flowOf(listOf(rule, conflict1, conflict2, noConflict))
 
         val result = useCase(rule)
 

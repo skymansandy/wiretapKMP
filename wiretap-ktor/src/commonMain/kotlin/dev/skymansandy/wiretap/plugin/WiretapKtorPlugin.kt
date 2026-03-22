@@ -90,7 +90,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
         val upgradeHeader = request.headers.getAll("Upgrade")
-        val isWebSocketUpgrade = upgradeHeader?.any { it.equals("websocket", ignoreCase = true) } == true
+        val isWebSocketUpgrade =
+            upgradeHeader?.any { it.equals("websocket", ignoreCase = true) } == true
         if (isWebSocketUpgrade) return@on proceed(request)
 
         val url = request.url.buildString()
@@ -159,7 +160,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
                     if (logEntryId >= 0) {
                         val startNano =
-                            request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+                            request.attributes.getOrNull(RequestNanoTimestampKey)
+                                ?: currentNanoTime()
                         val durationNs = currentNanoTime() - startNano
                         val mockRespHeaders = action.responseHeaders ?: emptyMap()
                         deps.orchestrator.updateHttp(
@@ -187,7 +189,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                 is RuleAction.Throttle -> {
                     val minDelay = action.delayMs
                     val maxDelay = action.delayMaxMs ?: minDelay
-                    val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
+                    val delayMs =
+                        if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
                     if (delayMs > 0) delay(delayMs)
                     proceed(request)
                 }
