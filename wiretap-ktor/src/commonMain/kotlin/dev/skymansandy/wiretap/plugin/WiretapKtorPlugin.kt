@@ -28,13 +28,13 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
-import kotlin.concurrent.atomics.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
