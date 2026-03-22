@@ -94,21 +94,18 @@ fun dataTask(
 
 ---
 
-## No-op (wiretap-urlsession-noop)
+## Disabling for Release
 
-```kotlin
-class WiretapURLSessionInterceptor(
-    private val session: NSURLSession = NSURLSession.sharedSession,
-    configure: WiretapConfig.() -> Unit = {},
-)
+Use `config.enabled = false` to disable all logging and rule evaluation. When disabled, requests pass through directly to `NSURLSession` with no overhead.
+
+```swift
+#if DEBUG
+let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+    config.enabled = true
+}
+#else
+let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+    config.enabled = false
+}
+#endif
 ```
-
-| Method | Behavior |
-|--------|----------|
-| `intercept()` | `session.dataTaskWithRequest(request).resume()` |
-| `dataTask(request)` | `session.dataTaskWithRequest(request, completionHandler)` |
-| `dataTask(url)` | Creates `NSURLRequest` from URL, delegates to `dataTask(request)` |
-
-- Does NOT extend `KoinComponent`
-- Config parameter accepted but ignored
-- Zero overhead — direct pass-through

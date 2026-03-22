@@ -68,7 +68,7 @@ class WiretapOkHttpInterceptor(
                 }
             }
             if (shouldClear) {
-                orchestrator.clearLogs()
+                orchestrator.clearHttpLogs()
             }
         }
 
@@ -99,12 +99,12 @@ class WiretapOkHttpInterceptor(
         val retention = config.logRetention
         if (retention is LogRetention.Days) {
             val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            orchestrator.purgeLogsOlderThan(cutoff)
+            orchestrator.purgeHttpLogsOlderThan(cutoff)
         }
 
         // Log request immediately so it appears in the UI (gated by shouldLog)
         val logEntryId = if (config.shouldLog(url, method)) {
-            orchestrator.logRequest(
+            orchestrator.logHttpAndGetId(
                 HttpLogEntry(
                     url = url,
                     method = method,
@@ -133,7 +133,7 @@ class WiretapOkHttpInterceptor(
 
             if (logEntryId >= 0) {
                 val mockRespHeaders = mockResponse.headers.toMap()
-                orchestrator.updateEntry(
+                orchestrator.updateHttp(
                     HttpLogEntry(
                         id = logEntryId,
                         url = url,
@@ -167,7 +167,7 @@ class WiretapOkHttpInterceptor(
             if (logEntryId >= 0) {
                 val durationNs = currentNanoTime() - startNano
                 val isCancelled = e is java.io.IOException && e.message == "Canceled"
-                orchestrator.updateEntry(
+                orchestrator.updateHttp(
                     HttpLogEntry(
                         id = logEntryId,
                         url = url,
@@ -230,7 +230,7 @@ class WiretapOkHttpInterceptor(
         val certificateExpiry = peerCert?.notAfter?.toString()
 
         if (logEntryId >= 0) {
-            orchestrator.updateEntry(
+            orchestrator.updateHttp(
                 HttpLogEntry(
                     id = logEntryId,
                     url = url,

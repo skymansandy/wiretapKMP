@@ -58,10 +58,10 @@ class WiretapURLSessionInterceptorTest {
             }.koin,
         )
 
-        everySuspend { orchestrator.logRequest(any()) } returns 1L
-        everySuspend { orchestrator.updateEntry(any()) } returns Unit
-        everySuspend { orchestrator.clearLogs() } returns Unit
-        everySuspend { orchestrator.purgeLogsOlderThan(any()) } returns Unit
+        everySuspend { orchestrator.logHttpAndGetId(any()) } returns 1L
+        everySuspend { orchestrator.updateHttp(any()) } returns Unit
+        everySuspend { orchestrator.clearHttpLogs() } returns Unit
+        everySuspend { orchestrator.purgeHttpLogsOlderThan(any()) } returns Unit
         everySuspend { ruleRepo.getEnabledRules() } returns emptyList()
     }
 
@@ -140,8 +140,8 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(request) { _, _, _ -> }
 
-        verifySuspend { orchestrator.logRequest(any()) }
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     @Test
@@ -186,7 +186,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(request) { _, _, _ -> }
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     @Test
@@ -210,7 +210,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(request) { _, _, _ -> }
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     @Test
@@ -236,7 +236,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(request) { _, _, _ -> }
 
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -258,7 +258,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(buildRequest()) { _, _, _ -> }
 
-        verifySuspend { orchestrator.clearLogs() }
+        verifySuspend { orchestrator.clearHttpLogs() }
     }
 
     @Test
@@ -276,7 +276,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(buildRequest()) { _, _, _ -> }
 
-        verifySuspend { orchestrator.purgeLogsOlderThan(any()) }
+        verifySuspend { orchestrator.purgeHttpLogsOlderThan(any()) }
     }
 
     // endregion
@@ -301,7 +301,7 @@ class WiretapURLSessionInterceptorTest {
 
         interceptor.intercept(request) { _, _, _ -> }
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     // endregion

@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
@@ -39,7 +39,7 @@ internal object WiretapNotificationManager {
     private val socketMessages = mutableMapOf<Long, MutableList<String>>()
 
     // Socket entries for status tracking
-    private val socketEntries = mutableMapOf<Long, SocketLogEntry>()
+    private val socketEntries = mutableMapOf<Long, SocketEntry>()
 
     // Track active socket notification IDs for cleanup
     private val activeSocketNotificationIds = mutableSetOf<Int>()
@@ -67,7 +67,7 @@ internal object WiretapNotificationManager {
         postSummaryIfNeeded(context)
     }
 
-    fun onNewSocketEntry(context: Context, entry: SocketLogEntry) {
+    fun onNewSocketEntry(context: Context, entry: SocketEntry) {
         if (!hasPermission(context)) return
         socketEntries[entry.id] = entry
 
@@ -79,7 +79,7 @@ internal object WiretapNotificationManager {
         postSummaryIfNeeded(context)
     }
 
-    fun onNewSocketMessage(context: Context, entry: SocketLogEntry, message: SocketMessage) {
+    fun onNewSocketMessage(context: Context, entry: SocketEntry, message: SocketMessage) {
         if (!hasPermission(context)) return
         socketEntries[entry.id] = entry
         val messages = socketMessages.getOrPut(entry.id) { mutableListOf() }
@@ -203,7 +203,7 @@ internal object WiretapNotificationManager {
     @SuppressLint("MissingPermission")
     private fun postSocketMessageNotification(
         context: Context,
-        entry: SocketLogEntry,
+        entry: SocketEntry,
         messages: List<String>,
     ) {
         if (!hasPermission(context)) return

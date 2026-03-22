@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.data.db.dao
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.db.WiretapDatabase
@@ -20,7 +20,7 @@ internal class SocketDaoImpl(
 
     private val queries get() = database.wiretapQueries
 
-    override suspend fun insertAndGetId(entry: SocketLogEntry): Long = withContext(Dispatchers.IO) {
+    override suspend fun insertAndGetId(entry: SocketEntry): Long = withContext(Dispatchers.IO) {
         database.transactionWithResult {
             queries.insertSocketLog(
                 url = entry.url,
@@ -34,7 +34,7 @@ internal class SocketDaoImpl(
         }
     }
 
-    override suspend fun insertWithId(entry: SocketLogEntry) {
+    override suspend fun insertWithId(entry: SocketEntry) {
         withContext(Dispatchers.IO) {
             queries.insertSocketLogWithId(
                 id = entry.id,
@@ -50,7 +50,7 @@ internal class SocketDaoImpl(
         }
     }
 
-    override suspend fun update(entry: SocketLogEntry) {
+    override suspend fun update(entry: SocketEntry) {
         withContext(Dispatchers.IO) {
             queries.updateSocketLog(
                 status = entry.status.name,
@@ -84,7 +84,7 @@ internal class SocketDaoImpl(
         }
     }
 
-    override suspend fun getById(id: Long): SocketLogEntry? = withContext(Dispatchers.IO) {
+    override suspend fun getById(id: Long): SocketEntry? = withContext(Dispatchers.IO) {
         queries.getSocketLogById(id).executeAsOneOrNull()?.toDomain()
     }
 
@@ -96,7 +96,7 @@ internal class SocketDaoImpl(
             .map { entities -> entities.map { it.toDomain() } }
     }
 
-    override fun getAll(): Flow<List<SocketLogEntry>> {
+    override fun getAll(): Flow<List<SocketEntry>> {
         return queries.getAllSocketLogs()
             .asFlow()
             .flowOn(Dispatchers.IO)
@@ -108,7 +108,7 @@ internal class SocketDaoImpl(
         query: String,
         limit: Long,
         afterId: Long?,
-    ): List<SocketLogEntry> = withContext(Dispatchers.IO) {
+    ): List<SocketEntry> = withContext(Dispatchers.IO) {
         queries.getSocketLogsPage(query, afterId, limit)
             .executeAsList()
             .map { it.toDomain() }

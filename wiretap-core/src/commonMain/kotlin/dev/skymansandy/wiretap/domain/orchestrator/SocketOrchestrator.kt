@@ -1,27 +1,27 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import kotlinx.coroutines.flow.Flow
 
 interface SocketOrchestrator {
 
-    suspend fun openSocketConnection(entry: SocketLogEntry): Long
+    suspend fun openSocket(entry: SocketEntry): Long
 
-    suspend fun updateSocketConnection(entry: SocketLogEntry)
+    suspend fun updateSocket(entry: SocketEntry)
 
-    suspend fun logSocketMessage(message: SocketMessage)
+    suspend fun logSocketMsg(message: SocketMessage)
 
-    suspend fun getSocketById(id: Long): SocketLogEntry?
+    suspend fun getSocketById(id: Long): SocketEntry?
 
-    fun getSocketByIdFlow(id: Long): Flow<SocketLogEntry?>
+    fun flowSocketById(id: Long): Flow<SocketEntry?>
 
-    fun getSocketMessages(socketId: Long): Flow<List<SocketMessage>>
+    fun flowSocketMessagesById(socketId: Long): Flow<List<SocketMessage>>
 
-    fun getAllSocketLogs(): Flow<List<SocketLogEntry>>
+    fun getAllSockets(): Flow<List<SocketEntry>>
 
-    fun getPagedSocketLogs(query: String): Flow<PagingData<SocketLogEntry>>
+    fun getPagedSockets(query: String): Flow<PagingData<SocketEntry>>
 
-    suspend fun clearSocketLogs()
+    suspend fun clearLogs()
 }

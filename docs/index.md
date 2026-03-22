@@ -131,4 +131,5 @@ Every plugin module has a matching no-op module with identical API surface and z
 |-------|---------|
 | `wiretap-ktor` | `wiretap-ktor-noop` |
 | `wiretap-okhttp` | `wiretap-okhttp-noop` |
-| `wiretap-urlsession` | `wiretap-urlsession-noop` |
+
+For URLSession, use `config.enabled = false` with `#if DEBUG` instead of a separate no-op module.

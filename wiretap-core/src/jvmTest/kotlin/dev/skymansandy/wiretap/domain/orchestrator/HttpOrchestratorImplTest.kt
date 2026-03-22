@@ -36,7 +36,7 @@ class HttpOrchestratorImplTest {
         everySuspend { httpRepository.save(entry) } returns Unit
         every { wiretapLogger.logHttp(entry) } returns Unit
 
-        orchestrator.logEntry(entry)
+        orchestrator.logHttp(entry)
 
         verifySuspend { httpRepository.save(entry) }
         verify { wiretapLogger.logHttp(entry) }
@@ -49,7 +49,7 @@ class HttpOrchestratorImplTest {
         everySuspend { httpRepository.saveAndGetId(entry) } returns expectedId
         every { wiretapLogger.logHttp(entry.copy(id = expectedId)) } returns Unit
 
-        val id = orchestrator.logRequest(entry)
+        val id = orchestrator.logHttpAndGetId(entry)
 
         id shouldBe expectedId
         verifySuspend { httpRepository.saveAndGetId(entry) }
@@ -62,7 +62,7 @@ class HttpOrchestratorImplTest {
         everySuspend { httpRepository.update(entry) } returns Unit
         every { wiretapLogger.logHttp(entry) } returns Unit
 
-        orchestrator.updateEntry(entry)
+        orchestrator.updateHttp(entry)
 
         verifySuspend { httpRepository.update(entry) }
         verify { wiretapLogger.logHttp(entry) }
@@ -73,7 +73,7 @@ class HttpOrchestratorImplTest {
         val entries = listOf(httpLogEntry(id = 1), httpLogEntry(id = 2))
         every { httpRepository.getAll() } returns flowOf(entries)
 
-        orchestrator.getAllLogs().test {
+        orchestrator.getAllHttpLogs().test {
             awaitItem() shouldBe entries
             awaitComplete()
         }
@@ -84,21 +84,21 @@ class HttpOrchestratorImplTest {
         val entry = httpLogEntry(id = 1)
         everySuspend { httpRepository.getById(1L) } returns entry
 
-        orchestrator.getLogById(1L) shouldBe entry
+        orchestrator.getHttpLogById(1L) shouldBe entry
     }
 
     @Test
     fun `getLogById returns null when not found`() = runTest {
         everySuspend { httpRepository.getById(999L) } returns null
 
-        orchestrator.getLogById(999L).shouldBeNull()
+        orchestrator.getHttpLogById(999L).shouldBeNull()
     }
 
     @Test
     fun `deleteLog delegates to repository`() = runTest {
         everySuspend { httpRepository.deleteById(1L) } returns Unit
 
-        orchestrator.deleteLog(1L)
+        orchestrator.deleteHttpLog(1L)
 
         verifySuspend { httpRepository.deleteById(1L) }
     }
@@ -107,7 +107,7 @@ class HttpOrchestratorImplTest {
     fun `clearLogs clears repository`() = runTest {
         everySuspend { httpRepository.clearAll() } returns Unit
 
-        orchestrator.clearLogs()
+        orchestrator.clearHttpLogs()
 
         verifySuspend { httpRepository.clearAll() }
     }
@@ -117,7 +117,7 @@ class HttpOrchestratorImplTest {
         val cutoff = 5000L
         everySuspend { httpRepository.deleteOlderThan(cutoff) } returns Unit
 
-        orchestrator.purgeLogsOlderThan(cutoff)
+        orchestrator.purgeHttpLogsOlderThan(cutoff)
 
         verifySuspend { httpRepository.deleteOlderThan(cutoff) }
     }

@@ -117,8 +117,12 @@ interceptor.intercept(request: request) { data, response, error in
 
 ## Debug vs Release
 
-| Debug | Release |
-|-------|---------|
-| `wiretap-urlsession` | `wiretap-urlsession-noop` |
+Set `config.enabled = false` in release builds to disable logging and rule evaluation. When disabled, requests pass through directly to `NSURLSession`.
 
-The no-op interceptor accepts the same constructor parameters (config is ignored), executes requests directly via `session.dataTaskWithRequest()`, and has no Koin, database, or logging overhead.
+```swift
+#if DEBUG
+config.enabled = true
+#else
+config.enabled = false
+#endif
+```

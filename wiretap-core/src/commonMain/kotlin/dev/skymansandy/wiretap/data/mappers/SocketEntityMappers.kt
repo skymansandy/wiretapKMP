@@ -1,6 +1,6 @@
 package dev.skymansandy.wiretap.data.mappers
 
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.db.SocketLogEntity
 import dev.skymansandy.wiretap.db.SocketMessageEntity
@@ -9,8 +9,8 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 
-internal fun SocketLogEntity.toDomain(): SocketLogEntry {
-    return SocketLogEntry(
+internal fun SocketLogEntity.toDomain(): SocketEntry {
+    return SocketEntry(
         id = id,
         url = url,
         requestHeaders = HeadersSerializerUtil.deserialize(request_headers),

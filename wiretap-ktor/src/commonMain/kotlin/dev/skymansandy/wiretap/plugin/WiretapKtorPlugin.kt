@@ -28,12 +28,14 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
 private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTimestamp")
@@ -66,12 +68,12 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * @see WiretapConfig
  * @see WiretapKtorWebSocketPlugin
  */
-@OptIn(InternalAPI::class)
+@OptIn(InternalAPI::class, ExperimentalAtomicApi::class)
 val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
     val config = pluginConfig
     val deps = WiretapDeps()
-    var sessionInitialized = false
+    val sessionInitialized = AtomicBoolean(false)
 
     onRequest { request, _ ->
         request.attributes.put(RequestTimestampKey, currentTimeMillis())
@@ -81,12 +83,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
     on(Send) { request ->
         if (!config.enabled) return@on proceed(request)
 
-        // AppSession: clear all previous logs once per plugin installation
-        if (!sessionInitialized) {
-            sessionInitialized = true
-            if (config.logRetention == LogRetention.AppSession) {
-                deps.orchestrator.clearLogs()
-            }
+        // Retention cleanup: runs once per plugin installation
+        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+            deps.applyLogRetention(config.logRetention)
         }
 
         // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
@@ -113,16 +112,9 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
 
-        // Days retention: prune old entries before each new capture
-        val retention = config.logRetention
-        if (retention is LogRetention.Days) {
-            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            deps.orchestrator.purgeLogsOlderThan(cutoff)
-        }
-
         // Log request immediately so it appears in the UI (gated by shouldLog)
         val logEntryId = if (config.shouldLog(url, method)) {
-            deps.orchestrator.logRequest(
+            deps.orchestrator.logHttpAndGetId(
                 HttpLogEntry(
                     url = url,
                     method = method,
@@ -170,7 +162,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                             request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                         val durationNs = currentNanoTime() - startNano
                         val mockRespHeaders = action.responseHeaders ?: emptyMap()
-                        deps.orchestrator.updateEntry(
+                        deps.orchestrator.updateHttp(
                             HttpLogEntry(
                                 id = logEntryId,
                                 url = url,
@@ -207,7 +199,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                 val startNano =
                     request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
-                deps.orchestrator.updateEntry(
+                deps.orchestrator.updateHttp(
                     HttpLogEntry(
                         id = logEntryId,
                         url = url,
@@ -234,7 +226,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         // WebSocket upgrade (101) — remove any HTTP log entry; socket plugin handles it
         if (response.status.value == 101) {
-            deps.orchestrator.deleteLog(logEntryId)
+            deps.orchestrator.deleteHttpLog(logEntryId)
             return@onResponse
         }
         val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
@@ -263,7 +255,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
-        deps.orchestrator.updateEntry(
+        deps.orchestrator.updateHttp(
             HttpLogEntry(
                 id = logEntryId,
                 url = url,
@@ -289,4 +281,17 @@ private class WiretapDeps : KoinComponent {
     override fun getKoin(): Koin = WiretapDi.getKoin()
     val orchestrator: WiretapOrchestrator by inject()
     val findMatchingRule: FindMatchingRuleUseCase by inject()
+
+    suspend fun applyLogRetention(logRetention: LogRetention) {
+        when (logRetention) {
+            is LogRetention.AppSession -> orchestrator.clearHttpLogs()
+
+            is LogRetention.Days -> {
+                val cutoff = currentTimeMillis() - logRetention.days * 24L * 60 * 60 * 1000
+                orchestrator.purgeHttpLogsOlderThan(cutoff)
+            }
+
+            else -> Unit
+        }
+    }
 }

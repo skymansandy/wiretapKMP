@@ -40,7 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
@@ -139,7 +139,7 @@ internal fun SocketDetailScreen(
 }
 
 @Composable
-private fun ConnectionInfoHeader(entry: SocketLogEntry) {
+private fun ConnectionInfoHeader(entry: SocketEntry) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -330,7 +330,7 @@ private fun StatusChip(status: SocketStatus) {
 private fun Preview_ConnectionInfoHeader() {
     MaterialTheme {
         ConnectionInfoHeader(
-            entry = SocketLogEntry(
+            entry = SocketEntry(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
                 status = SocketStatus.Open,
@@ -350,7 +350,7 @@ private fun Preview_ConnectionInfoHeader() {
 private fun Preview_ConnectionInfoHeaderClosed() {
     MaterialTheme {
         ConnectionInfoHeader(
-            entry = SocketLogEntry(
+            entry = SocketEntry(
                 id = 2,
                 url = "wss://api.example.com/stream",
                 status = SocketStatus.Closed,

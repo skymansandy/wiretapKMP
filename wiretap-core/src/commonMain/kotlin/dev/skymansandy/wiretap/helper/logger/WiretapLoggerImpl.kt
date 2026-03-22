@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap.helper.logger
 
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
@@ -21,7 +21,7 @@ internal class WiretapLoggerImpl : WiretapLogger {
         println("[Wiretap] ${entry.method} ${entry.url} -> ${entry.responseCode} ($duration) [${entry.source}]$protocol$remote")
     }
 
-    override fun logSocket(entry: SocketLogEntry) {
+    override fun logSocket(entry: SocketEntry) {
         when (entry.status) {
             SocketStatus.Connecting -> println("[Wiretap] WS CONNECTING ${entry.url}")
             SocketStatus.Open -> println("[Wiretap] WS OPEN ${entry.url}")

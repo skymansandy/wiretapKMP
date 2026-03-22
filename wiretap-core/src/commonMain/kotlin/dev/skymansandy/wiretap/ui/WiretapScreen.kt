@@ -220,7 +220,7 @@ private suspend fun restoreRoute(
     val parts = key.split(":")
     return when (parts[0]) {
         "http" -> parts.getOrNull(1)?.toLongOrNull()
-            ?.let { orchestrator.getLogById(it) }
+            ?.let { orchestrator.getHttpLogById(it) }
             ?.let { WiretapRoute.HttpDetail(it) }
 
         "socket" -> parts.getOrNull(1)?.toLongOrNull()
@@ -234,7 +234,7 @@ private suspend fun restoreRoute(
             val existingRule = parts.getOrNull(1)?.toLongOrNull()
                 ?.takeIf { it > 0 }?.let { ruleRepository.getById(it) }
             val prefillLog = parts.getOrNull(2)?.toLongOrNull()
-                ?.takeIf { it > 0 }?.let { orchestrator.getLogById(it) }
+                ?.takeIf { it > 0 }?.let { orchestrator.getHttpLogById(it) }
             WiretapRoute.CreateRule(existingRule, prefillLog)
         }
 

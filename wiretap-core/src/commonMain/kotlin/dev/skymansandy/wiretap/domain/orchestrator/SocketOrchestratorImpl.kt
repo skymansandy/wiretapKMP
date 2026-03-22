@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.SocketLogEntry
+import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import dev.skymansandy.wiretap.helper.launcher.onSocketConnectionLogged
@@ -16,10 +16,9 @@ internal class SocketOrchestratorImpl(
 ) : SocketOrchestrator {
 
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
-    private val activeConnections = mutableMapOf<Long, SocketLogEntry>()
+    private val activeConnections = mutableMapOf<Long, SocketEntry>()
 
-    override suspend fun openSocketConnection(entry: SocketLogEntry): Long {
-
+    override suspend fun openSocket(entry: SocketEntry): Long {
         val id = socketRepository.openConnection(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
@@ -28,8 +27,7 @@ internal class SocketOrchestratorImpl(
         return id
     }
 
-    override suspend fun updateSocketConnection(entry: SocketLogEntry) {
-
+    override suspend fun updateSocket(entry: SocketEntry) {
         socketRepository.updateConnection(entry)
         when (entry.status) {
             dev.skymansandy.wiretap.domain.model.SocketStatus.Closed,
@@ -41,8 +39,7 @@ internal class SocketOrchestratorImpl(
         onSocketConnectionLogged(entry)
     }
 
-    override suspend fun logSocketMessage(message: SocketMessage) {
-
+    override suspend fun logSocketMsg(message: SocketMessage) {
         // If the socket entry was cleared but the connection is still active, re-create it
         val existingEntry = socketRepository.getById(message.socketId)
         if (existingEntry == null) {
@@ -61,20 +58,19 @@ internal class SocketOrchestratorImpl(
         }
     }
 
-    override suspend fun getSocketById(id: Long): SocketLogEntry? = socketRepository.getById(id)
+    override suspend fun getSocketById(id: Long): SocketEntry? = socketRepository.getById(id)
 
-    override fun getSocketByIdFlow(id: Long): Flow<SocketLogEntry?> = socketRepository.getByIdFlow(id)
+    override fun flowSocketById(id: Long): Flow<SocketEntry?> = socketRepository.getByIdFlow(id)
 
-    override fun getSocketMessages(socketId: Long): Flow<List<SocketMessage>> =
+    override fun flowSocketMessagesById(socketId: Long): Flow<List<SocketMessage>> =
         socketRepository.getMessages(socketId)
 
-    override fun getAllSocketLogs(): Flow<List<SocketLogEntry>> = socketRepository.getAll()
+    override fun getAllSockets(): Flow<List<SocketEntry>> = socketRepository.getAll()
 
-    override fun getPagedSocketLogs(query: String): Flow<PagingData<SocketLogEntry>> =
+    override fun getPagedSockets(query: String): Flow<PagingData<SocketEntry>> =
         socketRepository.getPagedConnections(query)
 
-    override suspend fun clearSocketLogs() {
-
+    override suspend fun clearLogs() {
         socketRepository.clearAll()
         onSocketLogsCleared()
     }

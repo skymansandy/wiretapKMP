@@ -53,7 +53,7 @@ client.webSocket("wss://echo.websocket.org") {
 ## How It Works
 
 1. **`WiretapKtorWebSocketPlugin`** hooks into `onResponse` for 101 Switching Protocols responses
-2. Creates a `SocketLogEntry` via the orchestrator with status `Open`
+2. Creates a `SocketEntry` via the orchestrator with status `Open`
 3. Stores the socket ID on request attributes
 4. **`wiretapWrap()`** creates a `WiretapWebSocketSession` that intercepts `send()` and provides `logReceivedFrame()`
 5. Connection close/failure is detected automatically via job completion

@@ -21,7 +21,7 @@ internal class WiretapWebSocket(
     override fun send(text: String): Boolean {
 
         runBlocking {
-            orchestrator.logSocketMessage(
+            orchestrator.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
                     direction = SocketMessageDirection.Sent,
@@ -38,7 +38,7 @@ internal class WiretapWebSocket(
     override fun send(bytes: ByteString): Boolean {
 
         runBlocking {
-            orchestrator.logSocketMessage(
+            orchestrator.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
                     direction = SocketMessageDirection.Sent,

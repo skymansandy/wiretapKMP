@@ -74,4 +74,3 @@ jobs:
           :wiretap-ktor:iosSimulatorArm64Test
           :wiretap-ktor-noop:iosSimulatorArm64Test
           :wiretap-urlsession:iosSimulatorArm64Test
-          :wiretap-urlsession-noop:iosSimulatorArm64Test

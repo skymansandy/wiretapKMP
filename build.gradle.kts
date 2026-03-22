@@ -26,7 +26,6 @@ dependencies {
         "wiretap-okhttp",
         "wiretap-okhttp-noop",
         "wiretap-urlsession",
-        "wiretap-urlsession-noop",
         "wiretap-shake",
     ).forEach { kover(project(":$it")) }
 }
@@ -41,7 +40,6 @@ kover {
                 "wiretap-okhttp",
                 "wiretap-okhttp-noop",
                 "wiretap-urlsession",
-                "wiretap-urlsession-noop",
                 "wiretap-shake",
             )
         }
@@ -58,7 +56,6 @@ val publishableModules = setOf(
     "wiretap-okhttp",
     "wiretap-okhttp-noop",
     "wiretap-urlsession",
-    "wiretap-urlsession-noop",
     "wiretap-shake",
 )
 
@@ -79,7 +76,7 @@ subprojects {
 
         extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
             coordinates(wiretapGroup, name, wiretapVersion)
-            publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+            publishToMavenCentral(automaticRelease = true)
             signAllPublications()
 
             pom {

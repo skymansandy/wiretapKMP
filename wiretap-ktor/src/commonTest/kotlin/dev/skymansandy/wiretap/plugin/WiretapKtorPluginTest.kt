@@ -64,11 +64,11 @@ class WiretapKtorPluginTest {
         loggedRequests.clear()
         updatedEntries.clear()
 
-        everySuspend { orchestrator.logRequest(any()) } returns 1L
-        everySuspend { orchestrator.updateEntry(any()) } returns Unit
-        everySuspend { orchestrator.clearLogs() } returns Unit
-        everySuspend { orchestrator.purgeLogsOlderThan(any()) } returns Unit
-        everySuspend { orchestrator.deleteLog(any()) } returns Unit
+        everySuspend { orchestrator.logHttpAndGetId(any()) } returns 1L
+        everySuspend { orchestrator.updateHttp(any()) } returns Unit
+        everySuspend { orchestrator.clearHttpLogs() } returns Unit
+        everySuspend { orchestrator.purgeHttpLogsOlderThan(any()) } returns Unit
+        everySuspend { orchestrator.deleteHttpLog(any()) } returns Unit
         everySuspend { ruleRepo.getEnabledRules() } returns emptyList()
     }
 
@@ -114,8 +114,8 @@ class WiretapKtorPluginTest {
 
         response.status shouldBe HttpStatusCode.OK
         response.bodyAsText() shouldBe """{"ok":true}"""
-        verifySuspend { orchestrator.logRequest(any()) }
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     @Test
@@ -127,8 +127,8 @@ class WiretapKtorPluginTest {
             setBody("""{"name":"test"}""")
         }
 
-        verifySuspend { orchestrator.logRequest(any()) }
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -246,7 +246,7 @@ class WiretapKtorPluginTest {
             header("Authorization", "Bearer secret-token")
         }
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     @Test
@@ -263,7 +263,7 @@ class WiretapKtorPluginTest {
             header("Accept", "application/json")
         }
 
-        verifySuspend { orchestrator.logRequest(any()) }
+        verifySuspend { orchestrator.logHttpAndGetId(any()) }
     }
 
     // endregion
@@ -278,7 +278,7 @@ class WiretapKtorPluginTest {
 
         client.get("https://example.com/api/test")
 
-        verifySuspend { orchestrator.clearLogs() }
+        verifySuspend { orchestrator.clearHttpLogs() }
     }
 
     @Test
@@ -289,7 +289,7 @@ class WiretapKtorPluginTest {
 
         client.get("https://example.com/api/test")
 
-        verifySuspend { orchestrator.purgeLogsOlderThan(any()) }
+        verifySuspend { orchestrator.purgeHttpLogsOlderThan(any()) }
     }
 
     // endregion
@@ -306,7 +306,7 @@ class WiretapKtorPluginTest {
         val response = client.get("https://example.com/api/missing")
 
         response.status shouldBe HttpStatusCode.NotFound
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     @Test
@@ -320,7 +320,7 @@ class WiretapKtorPluginTest {
         val result = runCatching { client.get("https://example.com/api/test") }
 
         result.isFailure shouldBe true
-        verifySuspend { orchestrator.updateEntry(any()) }
+        verifySuspend { orchestrator.updateHttp(any()) }
     }
 
     // endregion
@@ -340,7 +340,7 @@ class WiretapKtorPluginTest {
 
         client.get("https://example.com/api/stream")
 
-        verifySuspend { orchestrator.deleteLog(any()) }
+        verifySuspend { orchestrator.deleteHttpLog(any()) }
     }
 
     // endregion

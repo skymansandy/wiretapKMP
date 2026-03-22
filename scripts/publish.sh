@@ -12,7 +12,6 @@ ALL_MODULES=(
     "wiretap-okhttp"
     "wiretap-okhttp-noop"
     "wiretap-urlsession"
-    "wiretap-urlsession-noop"
 )
 
 # Modules that support SPM publishing via KMMBridge

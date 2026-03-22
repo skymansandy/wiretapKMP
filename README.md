@@ -83,9 +83,18 @@ dependencies {
 
 #### URLSession (iOS via SPM)
 
+Add the `WiretapURLSession` SPM package, then use `#if DEBUG` to disable in release:
+
 ```swift
-// Debug: wiretap-core + wiretap-urlsession frameworks
-// Release: wiretap-urlsession-noop framework
+#if DEBUG
+let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+    config.enabled = true
+}
+#else
+let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+    config.enabled = false
+}
+#endif
 ```
 
 ## Usage
@@ -136,7 +145,8 @@ Swap dependencies for release builds — no conditional code needed.
 |-------|---------|
 | `wiretap-ktor` | `wiretap-ktor-noop` |
 | `wiretap-okhttp` | `wiretap-okhttp-noop` |
-| `wiretap-urlsession` | `wiretap-urlsession-noop` |
+
+For URLSession, use `config.enabled = false` with `#if DEBUG` (see installation above).
 
 ## Documentation
 
