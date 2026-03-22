@@ -59,6 +59,7 @@ val publishableModules = setOf(
     "wiretap-okhttp-noop",
     "wiretap-urlsession",
     "wiretap-urlsession-noop",
+    "wiretap-shake",
 )
 
 subprojects {
