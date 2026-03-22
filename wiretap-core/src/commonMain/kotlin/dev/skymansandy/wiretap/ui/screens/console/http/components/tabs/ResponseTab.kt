@@ -26,10 +26,13 @@ internal fun ResponseTab(
     entry: HttpLogEntry,
     searchQuery: String = "",
 ) {
+    val body = entry.responseBody
+    val isJson = body != null && looksLikeJson(body)
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .then(if (!isJson) Modifier.verticalScroll(rememberScrollState()) else Modifier),
     ) {
         SectionTitle(
             text = "Headers",
@@ -42,18 +45,17 @@ internal fun ResponseTab(
             searchQuery = searchQuery,
         )
 
-        val body = entry.responseBody
         SectionTitle(
             text = "Body",
             action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
         )
 
-        if (body != null && looksLikeJson(body)) {
-            val editorState = rememberJsonEditorState(initialJson = body)
+        if (isJson) {
+            val editorState = rememberJsonEditorState(initialJson = body!!)
             JsonCMP(
                 state = editorState,
                 searchQuery = searchQuery,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp).weight(1f),
             )
         } else {
             CodeBlock(

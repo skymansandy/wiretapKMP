@@ -24,6 +24,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
@@ -59,6 +60,10 @@ fun WiretapScreen(
             route = newRoute
             savedRouteKey = newRoute?.toSaveKey()
         }
+    }
+
+    PlatformBackHandler(enabled = route != null) {
+        navigateTo(null)
     }
 
     // Restore route after config change (e.g. rotation)
