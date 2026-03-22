@@ -19,18 +19,9 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.label_action
-import dev.skymansandy.wiretap.resources.mock
-import dev.skymansandy.wiretap.resources.mock_latency_hint
-import dev.skymansandy.wiretap.resources.response_body
-import dev.skymansandy.wiretap.resources.response_code_label
-import dev.skymansandy.wiretap.resources.throttle
-import dev.skymansandy.wiretap.resources.throttle_latency_hint
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -57,7 +48,7 @@ internal fun ResponseStep(
     onThrottleInputModeChange: (ThrottleInputMode) -> Unit,
 ) {
     Text(
-        text = stringResource(Res.string.label_action),
+        text = "Action",
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
     )
@@ -68,13 +59,13 @@ internal fun ResponseStep(
         FilterChip(
             selected = action is RuleAction.Mock,
             onClick = { onActionChange(RuleAction.Mock()) },
-            label = { Text(stringResource(Res.string.mock)) },
+            label = { Text("Mock") },
         )
 
         FilterChip(
             selected = action is RuleAction.Throttle,
             onClick = { onActionChange(RuleAction.Throttle()) },
-            label = { Text(stringResource(Res.string.throttle)) },
+            label = { Text("Throttle") },
         )
     }
 
@@ -87,20 +78,20 @@ internal fun ResponseStep(
                 onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
                 throttleInputMode = throttleInputMode,
                 onThrottleInputModeChange = onThrottleInputModeChange,
-                supportingText = stringResource(Res.string.mock_latency_hint),
+                supportingText = "Optional \u2014 adds artificial latency to this mock response",
             )
 
             OutlinedTextField(
                 value = mockResponseCode,
                 onValueChange = onMockResponseCodeChange,
-                label = { Text(stringResource(Res.string.response_code_label)) },
+                label = { Text("Response Code") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
 
             Text(
-                stringResource(Res.string.response_body),
+                "Response Body",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -139,7 +130,7 @@ internal fun ResponseStep(
                 onThrottleDelayMaxMsChange = onThrottleDelayMaxMsChange,
                 throttleInputMode = throttleInputMode,
                 onThrottleInputModeChange = onThrottleInputModeChange,
-                supportingText = stringResource(Res.string.throttle_latency_hint),
+                supportingText = "Adds artificial latency before the real network request",
             )
         }
     }

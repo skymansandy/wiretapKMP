@@ -14,17 +14,11 @@ import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.body
-import dev.skymansandy.wiretap.resources.headers
-import dev.skymansandy.wiretap.resources.no_body
-import dev.skymansandy.wiretap.resources.no_headers
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.CopyBodyButton
 import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.common.SectionTitle
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RequestTab(
@@ -38,19 +32,19 @@ internal fun RequestTab(
             .verticalScroll(rememberScrollState()),
     ) {
         SectionTitle(
-            text = stringResource(Res.string.headers),
+            text = "Headers",
             action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null,
         )
 
         HeadersList(
             headers = entry.requestHeaders,
-            emptyText = stringResource(Res.string.no_headers),
+            emptyText = "No headers",
             searchQuery = searchQuery,
         )
 
         val body = entry.requestBody
         SectionTitle(
-            text = stringResource(Res.string.body),
+            text = "Body",
             action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
         )
 
@@ -63,7 +57,7 @@ internal fun RequestTab(
             )
         } else {
             CodeBlock(
-                text = body ?: stringResource(Res.string.no_body),
+                text = body ?: "No body",
                 modifier = Modifier.padding(16.dp),
                 searchQuery = searchQuery,
             )

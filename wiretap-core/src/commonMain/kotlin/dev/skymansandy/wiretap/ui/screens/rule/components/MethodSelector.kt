@@ -16,10 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.any_method
-import dev.skymansandy.wiretap.resources.http_method
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,10 +33,10 @@ internal fun MethodSelector(
         onExpandedChange = { expanded = it },
     ) {
         OutlinedTextField(
-            value = if (method == "*") stringResource(Res.string.any_method) else method,
+            value = if (method == "*") "Any" else method,
             onValueChange = {},
             readOnly = true,
-            label = { Text(stringResource(Res.string.http_method)) },
+            label = { Text("HTTP Method") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier.fillMaxWidth()
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
@@ -48,7 +44,7 @@ internal fun MethodSelector(
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             methods.forEach { m ->
                 DropdownMenuItem(
-                    text = { Text(if (m == "*") stringResource(Res.string.any_method) else m) },
+                    text = { Text(if (m == "*") "Any" else m) },
                     onClick = {
                         onMethodChange(m)
                         expanded = false

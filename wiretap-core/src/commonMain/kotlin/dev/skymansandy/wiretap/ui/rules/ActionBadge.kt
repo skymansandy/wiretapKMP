@@ -10,10 +10,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.mock
-import dev.skymansandy.wiretap.resources.throttle
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ActionBadge(
@@ -26,8 +22,8 @@ internal fun ActionBadge(
     }
 
     val label = when (action) {
-        is RuleAction.Mock -> stringResource(Res.string.mock)
-        is RuleAction.Throttle -> stringResource(Res.string.throttle)
+        is RuleAction.Mock -> "Mock"
+        is RuleAction.Throttle -> "Throttle"
     }
 
     Surface(

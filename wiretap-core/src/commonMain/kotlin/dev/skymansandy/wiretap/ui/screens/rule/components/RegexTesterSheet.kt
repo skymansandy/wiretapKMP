@@ -27,15 +27,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.close
-import dev.skymansandy.wiretap.resources.invalid_regex
-import dev.skymansandy.wiretap.resources.match_found
-import dev.skymansandy.wiretap.resources.no_match
-import dev.skymansandy.wiretap.resources.regex_tester
 import dev.skymansandy.wiretap.ui.model.testRegex
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RegexTesterSheet(
@@ -54,13 +47,13 @@ internal fun RegexTesterSheet(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                stringResource(Res.string.regex_tester),
+                "Regex Tester",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close))
+                Icon(Icons.Default.Close, contentDescription = "Close")
             }
         }
 
@@ -96,16 +89,14 @@ internal fun RegexTesterSheet(
                 )
                 Column {
                     Text(
-                        text = if (result.matches) stringResource(Res.string.match_found) else stringResource(
-                            Res.string.no_match,
-                        ),
+                        text = if (result.matches) "Match found" else "No match",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (result.matches) WiretapColors.StatusGreen else MaterialTheme.colorScheme.error,
                     )
                     if (result.error != null) {
                         Text(
-                            text = stringResource(Res.string.invalid_regex, result.error),
+                            text = "Invalid regex: ${result.error}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )

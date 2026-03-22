@@ -24,9 +24,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.search_placeholder
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SearchField(
@@ -64,7 +61,7 @@ internal fun SearchField(
                 Box {
                     if (query.isEmpty()) {
                         Text(
-                            stringResource(Res.string.search_placeholder),
+                            "Search\u2026",
                             style = MaterialTheme.typography.bodyLarge,
                             color = LocalContentColor.current.copy(alpha = 0.4f),
                         )

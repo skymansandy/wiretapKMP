@@ -35,17 +35,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.back
-import dev.skymansandy.wiretap.resources.clear_http_logs
-import dev.skymansandy.wiretap.resources.clear_websocket_logs
-import dev.skymansandy.wiretap.resources.close_search
-import dev.skymansandy.wiretap.resources.search
-import dev.skymansandy.wiretap.resources.tab_http
-import dev.skymansandy.wiretap.resources.tab_logs
-import dev.skymansandy.wiretap.resources.tab_rules
-import dev.skymansandy.wiretap.resources.tab_websocket
-import dev.skymansandy.wiretap.resources.wiretap_console
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
@@ -57,7 +46,6 @@ import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion
 import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogList
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +86,7 @@ internal fun WiretapHomeScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text(stringResource(Res.string.wiretap_console))
+                        Text("Wiretap Console")
                     }
                 },
                 navigationIcon = {
@@ -109,27 +97,27 @@ internal fun WiretapHomeScreen(
                             onBack()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     if (isSearchActive) {
                         IconButton(onClick = { viewModel.setSearchActive(false) }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.close_search))
+                            Icon(Icons.Default.Close, contentDescription = "Close search")
                         }
                     } else {
                         IconButton(onClick = { viewModel.setSearchActive(true) }) {
-                            Icon(Icons.Default.Search, contentDescription = stringResource(Res.string.search))
+                            Icon(Icons.Default.Search, contentDescription = "Search")
                         }
                     }
                     if (selectedTab == TAB_HTTP && httpSubTab == HTTP_SUB_TAB_LOGS) {
                         IconButton(onClick = { viewModel.clearHttpLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_http_logs))
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
                         }
                     }
                     if (selectedTab == TAB_WEBSOCKET && socketLogs.isNotEmpty()) {
                         IconButton(onClick = { viewModel.clearSocketLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(Res.string.clear_websocket_logs))
+                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
                         }
                     }
                 },
@@ -142,13 +130,13 @@ internal fun WiretapHomeScreen(
                         selected = selectedTab == TAB_HTTP,
                         onClick = { viewModel.selectTab(TAB_HTTP) },
                         icon = { Icon(Icons.Default.Http, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_http)) },
+                        label = { Text("HTTP") },
                     )
                     NavigationBarItem(
                         selected = selectedTab == TAB_WEBSOCKET,
                         onClick = { viewModel.selectTab(TAB_WEBSOCKET) },
                         icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_websocket)) },
+                        label = { Text("WebSocket") },
                     )
                 }
             }
@@ -167,7 +155,7 @@ internal fun WiretapHomeScreen(
                         Tab(
                             selected = httpSubTab == HTTP_SUB_TAB_LOGS,
                             onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_LOGS) },
-                            text = { Text(stringResource(Res.string.tab_logs)) },
+                            text = { Text("Logs") },
                         )
                         Tab(
                             selected = httpSubTab == HTTP_SUB_TAB_RULES,
@@ -175,7 +163,7 @@ internal fun WiretapHomeScreen(
                                 viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
                                 onNavigate(null)
                             },
-                            text = { Text(stringResource(Res.string.tab_rules)) },
+                            text = { Text("Rules") },
                         )
                     }
 
@@ -220,13 +208,13 @@ internal fun WiretapHomeScreen(
                         selected = selectedTab == TAB_HTTP,
                         onClick = { viewModel.selectTab(TAB_HTTP) },
                         icon = { Icon(Icons.Default.Http, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_http)) },
+                        label = { Text("HTTP") },
                     )
                     NavigationRailItem(
                         selected = selectedTab == TAB_WEBSOCKET,
                         onClick = { viewModel.selectTab(TAB_WEBSOCKET) },
                         icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
-                        label = { Text(stringResource(Res.string.tab_websocket)) },
+                        label = { Text("WebSocket") },
                     )
                 }
                 content(Modifier.weight(1f).fillMaxHeight())

@@ -31,11 +31,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.create_rule_swipe
-import dev.skymansandy.wiretap.resources.view_rule_swipe
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 
 private val RevealWidth = 64.dp
 
@@ -103,8 +99,8 @@ internal fun SwipeableHttpLogItem(
                     color = contentColor,
                     textAlign = TextAlign.Center,
                     text = when {
-                        hasMatchedRule -> stringResource(Res.string.view_rule_swipe)
-                        else -> stringResource(Res.string.create_rule_swipe)
+                        hasMatchedRule -> "View\nRule"
+                        else -> "Create\nRule"
                     },
                 )
             }

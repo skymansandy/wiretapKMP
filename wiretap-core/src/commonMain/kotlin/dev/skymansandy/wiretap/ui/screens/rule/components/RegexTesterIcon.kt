@@ -8,9 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.test_regex
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun RegexTesterIcon(
@@ -23,7 +20,7 @@ internal fun RegexTesterIcon(
     ) {
         Icon(
             Icons.Default.PlayArrow,
-            contentDescription = stringResource(Res.string.test_regex),
+            contentDescription = "Test regex",
             tint = MaterialTheme.colorScheme.primary,
         )
     }

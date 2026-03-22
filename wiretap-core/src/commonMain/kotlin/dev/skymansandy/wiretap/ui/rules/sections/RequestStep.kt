@@ -22,22 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.add_header_condition
-import dev.skymansandy.wiretap.resources.body
-import dev.skymansandy.wiretap.resources.label_key
-import dev.skymansandy.wiretap.resources.label_value
-import dev.skymansandy.wiretap.resources.label_value_regex
-import dev.skymansandy.wiretap.resources.none
-import dev.skymansandy.wiretap.resources.placeholder_authorization
-import dev.skymansandy.wiretap.resources.remove
-import dev.skymansandy.wiretap.resources.section_body
-import dev.skymansandy.wiretap.resources.section_headers
-import dev.skymansandy.wiretap.resources.section_url
-import dev.skymansandy.wiretap.resources.test_body
-import dev.skymansandy.wiretap.resources.test_header_value
-import dev.skymansandy.wiretap.resources.test_url
-import dev.skymansandy.wiretap.resources.url_label_format
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
 import dev.skymansandy.wiretap.ui.model.HeaderEntryMode
@@ -51,7 +35,6 @@ import dev.skymansandy.wiretap.ui.model.urlPlaceholder
 import dev.skymansandy.wiretap.ui.screens.rule.components.MethodSelector
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterIcon
 import dev.skymansandy.wiretap.ui.screens.rule.components.SectionLabel
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +63,7 @@ internal fun RequestStep(
 
     // ── URL ──────────────────────────────────────────────────────────────────
     SectionLabel(
-        title = stringResource(Res.string.section_url),
+        title = "URL",
     )
 
     FlowRow(
@@ -89,7 +72,7 @@ internal fun RequestStep(
         FilterChip(
             selected = urlMode == null,
             onClick = { onUrlModeChange(null) },
-            label = { Text(stringResource(Res.string.none)) },
+            label = { Text("None") },
         )
 
         UrlMatchMode.entries.forEach { mode ->
@@ -101,15 +84,15 @@ internal fun RequestStep(
         }
     }
 
-    val testUrlLabel = stringResource(Res.string.test_url)
-    val testHeaderValueLabel = stringResource(Res.string.test_header_value)
-    val testBodyLabel = stringResource(Res.string.test_body)
+    val testUrlLabel = "Test URL"
+    val testHeaderValueLabel = "Test Header Value"
+    val testBodyLabel = "Test Body"
 
     if (urlMode != null) {
         OutlinedTextField(
             value = urlPattern,
             onValueChange = onUrlPatternChange,
-            label = { Text(stringResource(Res.string.url_label_format, urlMode.label())) },
+            label = { Text("URL ${urlMode.label()}") },
             placeholder = { Text(urlPlaceholder(urlMode)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -125,7 +108,7 @@ internal fun RequestStep(
 
     // ── Headers ───────────────────────────────────────────────────────────────
     SectionLabel(
-        title = stringResource(Res.string.section_headers),
+        title = "Headers",
     )
 
     headerEntries.forEachIndexed { idx, entry ->
@@ -144,13 +127,13 @@ internal fun RequestStep(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(
-            text = stringResource(Res.string.add_header_condition),
+            text = "+ Add Header Condition",
         )
     }
 
     // ── Body ──────────────────────────────────────────────────────────────────
     SectionLabel(
-        title = stringResource(Res.string.section_body),
+        title = "Body",
     )
 
     FlowRow(
@@ -159,7 +142,7 @@ internal fun RequestStep(
         FilterChip(
             selected = bodyMode == null,
             onClick = { onBodyModeChange(null) },
-            label = { Text(stringResource(Res.string.none)) },
+            label = { Text("None") },
         )
 
         BodyMatchMode.entries.forEach { mode ->
@@ -175,7 +158,7 @@ internal fun RequestStep(
         OutlinedTextField(
             value = bodyPattern,
             onValueChange = onBodyPatternChange,
-            label = { Text("${stringResource(Res.string.body)} ${bodyMode.label()}") },
+            label = { Text("Body ${bodyMode.label()}") },
             placeholder = { Text(bodyPlaceholder(bodyMode)) },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3,
@@ -213,8 +196,8 @@ private fun HeaderMatcherItem(
                 OutlinedTextField(
                     value = entry.key,
                     onValueChange = { onUpdate(entry.copy(key = it)) },
-                    label = { Text(stringResource(Res.string.label_key)) },
-                    placeholder = { Text(stringResource(Res.string.placeholder_authorization)) },
+                    label = { Text("Key") },
+                    placeholder = { Text("Authorization") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
@@ -224,10 +207,8 @@ private fun HeaderMatcherItem(
                         onValueChange = { onUpdate(entry.copy(value = it)) },
                         label = {
                             Text(
-                                stringResource(
-                                    if (entry.mode.isRegex()) Res.string.label_value_regex
-                                    else Res.string.label_value,
-                                ),
+                                if (entry.mode.isRegex()) "Value Regex"
+                                else "Value",
                             )
                         },
                         placeholder = { Text(headerValuePlaceholder(entry.mode)) },
@@ -267,7 +248,7 @@ private fun HeaderMatcherItem(
                 IconButton(onClick = onRemove) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = stringResource(Res.string.remove),
+                        contentDescription = "Remove",
                         tint = MaterialTheme.colorScheme.error,
                     )
                 }

@@ -14,10 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.helper.util.copyToClipboard
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.copy
-import dev.skymansandy.wiretap.resources.copy_headers
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun CopyHeadersButton(
@@ -34,13 +30,13 @@ internal fun CopyHeadersButton(
     ) {
         Icon(
             imageVector = Icons.Filled.ContentCopy,
-            contentDescription = stringResource(Res.string.copy_headers),
+            contentDescription = "Copy headers",
             modifier = Modifier.size(14.dp),
         )
 
         Spacer(Modifier.width(4.dp))
 
-        Text(stringResource(Res.string.copy), style = MaterialTheme.typography.labelSmall)
+        Text("Copy", style = MaterialTheme.typography.labelSmall)
     }
 }
 
