@@ -7,11 +7,6 @@ import android.os.Build
 import androidx.startup.Initializer
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
 import dev.skymansandy.wiretap.helper.launcher.getLaunchIntent
-import dev.skymansandy.wiretap.resources.Res
-import dev.skymansandy.wiretap.resources.open_wiretap_console
-import dev.skymansandy.wiretap.resources.wiretap
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
 
 internal class WiretapInitializer : Initializer<Unit> {
 
@@ -25,8 +20,8 @@ internal class WiretapInitializer : Initializer<Unit> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             val shortcutManager = context.getSystemService(ShortcutManager::class.java) ?: return
             val shortcut = ShortcutInfo.Builder(context, "wiretap_inspector")
-                .setShortLabel(runBlocking { getString(Res.string.wiretap) })
-                .setLongLabel(runBlocking { getString(Res.string.open_wiretap_console) })
+                .setShortLabel("Wiretap")
+                .setLongLabel("Open Wiretap Console")
                 .setIntent(getLaunchIntent())
                 .build()
             shortcutManager.dynamicShortcuts = listOf(shortcut)
