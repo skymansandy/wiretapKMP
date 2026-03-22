@@ -263,7 +263,6 @@ internal object WiretapNotificationManager {
             Intent(ACTION_CLEAR_LOGS).setPackage(context.packageName),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-
 }
 
 internal fun wiretapIconResId(context: Context): Int {
