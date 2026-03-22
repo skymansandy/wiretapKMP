@@ -1,7 +1,6 @@
 package dev.skymansandy.wiretap.helper.launcher
 
 import android.Manifest.permission.POST_NOTIFICATIONS
-import android.R
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -161,7 +160,7 @@ internal object WiretapNotificationManager {
 
         val total = recentHttpEntries.size + socketEntries.size
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_dialog_info)
+            .setSmallIcon(wiretapIconResId(context))
             .setContentTitle("Wiretap")
             .setContentText("$total active connections")
             .setOnlyAlertOnce(true)
@@ -189,7 +188,7 @@ internal object WiretapNotificationManager {
         }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_dialog_info)
+            .setSmallIcon(wiretapIconResId(context))
             .setContentTitle("View network traffic")
             .setContentText(formatHttpEntry(recentHttpEntries.last()))
             .setStyle(inboxStyle)
@@ -226,7 +225,7 @@ internal object WiretapNotificationManager {
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_dialog_info)
+            .setSmallIcon(wiretapIconResId(context))
             .setContentTitle(title)
             .setContentText(messages.lastOrNull() ?: "No messages")
             .setStyle(inboxStyle)
@@ -264,4 +263,14 @@ internal object WiretapNotificationManager {
             Intent(ACTION_CLEAR_LOGS).setPackage(context.packageName),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
+
+}
+
+internal fun wiretapIconResId(context: Context): Int {
+    val resId = context.resources.getIdentifier(
+        "ic_wiretap",
+        "drawable",
+        context.packageName,
+    )
+    return if (resId != 0) resId else android.R.drawable.ic_dialog_info
 }
