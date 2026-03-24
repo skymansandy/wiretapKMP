@@ -297,63 +297,72 @@ internal class CreateRuleViewModel(
         conflictingRules.value = emptyList()
     }
 
-    fun saveRule(onSaved: () -> Unit) {
+    fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
-            val resolvedHeaders: Map<String, String>? = when (responseHeadersMode.value) {
-                ResponseHeadersEditMode.KeyValue ->
-                    responseHeaderEntries.value
-                        .filter { e -> e.key.isNotBlank() }
-                        .associate { e -> e.key.trim() to e.value.trim() }
-                        .takeIf { m -> m.isNotEmpty() }
-
-                ResponseHeadersEditMode.BulkEdit ->
-                    if (responseHeadersBulk.value.isNotBlank())
-                        HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
-                            .takeIf { m -> m.isNotEmpty() }
-                    else null
-            }
-            val ruleAction = when (action.value) {
-                is RuleAction.Mock -> RuleAction.Mock(
-                    responseCode = mockResponseCode.value.toIntOrNull() ?: 200,
-                    responseBody = mockResponseBody.value.ifBlank { null },
-                    responseHeaders = resolvedHeaders,
-                    throttleDelayMs = throttleDelayMs.value.toLongOrNull(),
-                    throttleDelayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
-                )
-
-                is RuleAction.Throttle -> RuleAction.Throttle(
-                    delayMs = throttleDelayMs.value.toLongOrNull() ?: 1000L,
-                    delayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
-                )
-            }
-            val rule = WiretapRule(
-                id = existingRuleId ?: 0,
-                method = method.value.trim().ifBlank { "*" },
-                urlMatcher = when (urlMode.value) {
-                    UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
-                    UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.value.trim())
-                    UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.value.trim())
-                    null -> null
-                },
-                headerMatchers = headerEntries.value.mapNotNull { entry -> entry.toDomain() },
-                bodyMatcher = when (bodyMode.value) {
-                    BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.value.trim())
-                    BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.value.trim())
-                    BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.value.trim())
-                    null -> null
-                },
-                action = ruleAction,
-                enabled = existingEnabled ?: true,
-                createdAt = existingCreatedAt ?: currentTimeMillis(),
-            )
+            val rule = buildRuleFromForm()
             val conflicts = findConflictingRules(rule)
             if (conflicts.isNotEmpty()) {
                 conflictingRules.value = conflicts
                 showConflictDialog.value = true
             } else {
-                if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
-                onSaved()
+                if (isEditing) {
+                    ruleRepository.updateRule(rule)
+                    onSaved(rule)
+                } else {
+                    ruleRepository.addRule(rule)
+                    onSaved(null)
+                }
             }
         }
+    }
+
+    private fun buildRuleFromForm(): WiretapRule {
+        val resolvedHeaders: Map<String, String>? = when (responseHeadersMode.value) {
+            ResponseHeadersEditMode.KeyValue ->
+                responseHeaderEntries.value
+                    .filter { e -> e.key.isNotBlank() }
+                    .associate { e -> e.key.trim() to e.value.trim() }
+                    .takeIf { m -> m.isNotEmpty() }
+
+            ResponseHeadersEditMode.BulkEdit ->
+                if (responseHeadersBulk.value.isNotBlank())
+                    HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
+                        .takeIf { m -> m.isNotEmpty() }
+                else null
+        }
+        val ruleAction = when (action.value) {
+            is RuleAction.Mock -> RuleAction.Mock(
+                responseCode = mockResponseCode.value.toIntOrNull() ?: 200,
+                responseBody = mockResponseBody.value.ifBlank { null },
+                responseHeaders = resolvedHeaders,
+                throttleDelayMs = throttleDelayMs.value.toLongOrNull(),
+                throttleDelayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+            )
+
+            is RuleAction.Throttle -> RuleAction.Throttle(
+                delayMs = throttleDelayMs.value.toLongOrNull() ?: 1000L,
+                delayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+            )
+        }
+        return WiretapRule(
+            id = existingRuleId ?: 0,
+            method = method.value.trim().ifBlank { "*" },
+            urlMatcher = when (urlMode.value) {
+                UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
+                UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.value.trim())
+                UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.value.trim())
+                null -> null
+            },
+            headerMatchers = headerEntries.value.mapNotNull { entry -> entry.toDomain() },
+            bodyMatcher = when (bodyMode.value) {
+                BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.value.trim())
+                BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.value.trim())
+                BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.value.trim())
+                null -> null
+            },
+            action = ruleAction,
+            enabled = existingEnabled ?: true,
+            createdAt = existingCreatedAt ?: currentTimeMillis(),
+        )
     }
 }

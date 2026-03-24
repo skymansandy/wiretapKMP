@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,12 +25,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,7 +60,6 @@ internal fun WiretapHomeScreen(
     onNavigate: (WiretapRoute?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
     val isWideScreen = LocalWideScreen.current
     val scope = rememberCoroutineScope()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
@@ -67,6 +70,7 @@ internal fun WiretapHomeScreen(
     val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
     val lazyItems = viewModel.pagedLogs.collectAsLazyPagingItems()
     val searchFocusRequester = remember { FocusRequester() }
+    var showClearConfirmation by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -77,50 +81,17 @@ internal fun WiretapHomeScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        SearchField(
-                            query = searchQuery,
-                            onQueryChange = { viewModel.updateSearchQuery(it) },
-                            focusRequester = searchFocusRequester,
-                        )
-                    } else {
-                        Text("Wiretap Console")
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (isSearchActive) {
-                            viewModel.setSearchActive(false)
-                        } else {
-                            onBack()
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    if (isSearchActive) {
-                        IconButton(onClick = { viewModel.setSearchActive(false) }) {
-                            Icon(Icons.Default.Close, contentDescription = "Close search")
-                        }
-                    } else {
-                        IconButton(onClick = { viewModel.setSearchActive(true) }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
-                        }
-                    }
-                    if (selectedTab == TAB_HTTP && httpSubTab == HTTP_SUB_TAB_LOGS) {
-                        IconButton(onClick = { viewModel.clearHttpLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
-                        }
-                    }
-                    if (selectedTab == TAB_WEBSOCKET && socketLogs.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.clearSocketLogs() }) {
-                            Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
-                        }
-                    }
-                },
+            WiretapTopBar(
+                isSearchActive = isSearchActive,
+                searchQuery = searchQuery,
+                searchFocusRequester = searchFocusRequester,
+                showClearHttpLogs = selectedTab == TAB_HTTP && httpSubTab == HTTP_SUB_TAB_LOGS && lazyItems.itemCount > 0,
+                showClearSocketLogs = selectedTab == TAB_WEBSOCKET && socketLogs.isNotEmpty(),
+                onSearchQueryChange = { viewModel.updateSearchQuery(it) },
+                onSearchActiveChange = { viewModel.setSearchActive(it) },
+                onBack = onBack,
+                onClearHttpLogs = { showClearConfirmation = { viewModel.clearHttpLogs() } },
+                onClearSocketLogs = { showClearConfirmation = { viewModel.clearSocketLogs() } },
             )
         },
         bottomBar = {
@@ -223,4 +194,99 @@ internal fun WiretapHomeScreen(
             content(Modifier.fillMaxSize().padding(padding))
         }
     }
+
+    showClearConfirmation?.let { onConfirm ->
+        ClearLogsConfirmationDialog(
+            onConfirm = {
+                onConfirm()
+                showClearConfirmation = null
+            },
+            onDismiss = { showClearConfirmation = null },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WiretapTopBar(
+    isSearchActive: Boolean,
+    searchQuery: String,
+    searchFocusRequester: FocusRequester,
+    showClearHttpLogs: Boolean,
+    showClearSocketLogs: Boolean,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchActiveChange: (Boolean) -> Unit,
+    onBack: () -> Unit,
+    onClearHttpLogs: () -> Unit,
+    onClearSocketLogs: () -> Unit,
+) {
+
+    TopAppBar(
+        title = {
+            if (isSearchActive) {
+                SearchField(
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    focusRequester = searchFocusRequester,
+                )
+            } else {
+                Text("Wiretap Console")
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = {
+                if (isSearchActive) {
+                    onSearchActiveChange(false)
+                } else {
+                    onBack()
+                }
+            }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+        },
+        actions = {
+            if (isSearchActive) {
+                IconButton(onClick = { onSearchActiveChange(false) }) {
+                    Icon(Icons.Default.Close, contentDescription = "Close search")
+                }
+            } else {
+                IconButton(onClick = { onSearchActiveChange(true) }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search")
+                }
+            }
+            if (showClearHttpLogs) {
+                IconButton(onClick = onClearHttpLogs) {
+                    Icon(Icons.Default.DeleteSweep, contentDescription = "Clear HTTP logs")
+                }
+            }
+            if (showClearSocketLogs) {
+                IconButton(onClick = onClearSocketLogs) {
+                    Icon(Icons.Default.DeleteSweep, contentDescription = "Clear WebSocket logs")
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun ClearLogsConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Clear logs") },
+        text = { Text("Are you sure you want to clear all logs?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Clear")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
 }

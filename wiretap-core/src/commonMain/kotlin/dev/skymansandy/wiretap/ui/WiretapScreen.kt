@@ -201,8 +201,21 @@ fun WiretapScreen(
                             CreateRuleScreen(
                                 viewModel = vm,
                                 ruleRepository = ruleRepository,
-                                onBack = { navigateTo(null) },
-                                onSaved = { navigateTo(null) },
+                                onBack = {
+                                    val existing = current.existingRule
+                                    if (existing != null) {
+                                        navigateTo(WiretapRoute.RuleDetail(existing))
+                                    } else {
+                                        navigateTo(null)
+                                    }
+                                },
+                                onSaved = { savedRule ->
+                                    if (savedRule != null) {
+                                        navigateTo(WiretapRoute.RuleDetail(savedRule))
+                                    } else {
+                                        navigateTo(null)
+                                    }
+                                },
                                 onEditConflictingRule = { rule -> navigateTo(WiretapRoute.CreateRule(existingRule = rule)) },
                             )
                         }
