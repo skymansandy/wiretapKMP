@@ -179,6 +179,10 @@ internal class CreateRuleViewModel(
         step.value++
     }
 
+    fun resetStep() {
+        step.value = 1
+    }
+
     fun prevStep() {
         step.value--
     }

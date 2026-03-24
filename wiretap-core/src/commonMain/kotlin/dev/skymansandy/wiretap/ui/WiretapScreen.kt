@@ -202,6 +202,7 @@ fun WiretapScreen(
                                 viewModel = vm,
                                 ruleRepository = ruleRepository,
                                 onBack = {
+                                    vm.resetStep()
                                     val existing = current.existingRule
                                     if (existing != null) {
                                         navigateTo(WiretapRoute.RuleDetail(existing))
