@@ -36,7 +36,7 @@ internal fun RequestTab(
     var headersExpanded by remember { mutableStateOf(true) }
 
     Column(
-        modifier = modifier.then(if (!isJson) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+        modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
         SectionTitle(
             text = "Headers",

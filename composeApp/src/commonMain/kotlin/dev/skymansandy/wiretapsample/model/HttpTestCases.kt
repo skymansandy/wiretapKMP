@@ -17,6 +17,7 @@ sealed class HttpTestCase {
         val method: HttpMethod = HttpMethod.GET,
         val body: String? = null,
         val contentType: String? = null,
+        val headers: Map<String, String> = emptyMap(),
     ) : HttpTestCase()
 
     data class Timeout(
@@ -87,6 +88,32 @@ val httpTestCases = listOf(
         method = HttpMethod.POST,
         body = """{"title":"Wiretap Test","body":"Hello from Wiretap!","userId":1}""",
         contentType = "application/json",
+    ),
+    HttpTestCase.Request(
+        label = "GET /headers",
+        statusPrefix = "GET /headers (custom)",
+        url = "https://httpbin.org/headers",
+        category = ActionCategory.Success,
+        headers = mapOf(
+            "X-Wiretap-Debug" to "true",
+            "X-Request-Source" to "WiretapSampleApp",
+            "X-Correlation-Id" to "abc-123-def-456",
+            "Accept-Language" to "en-US,en;q=0.9",
+        ),
+    ),
+    HttpTestCase.Request(
+        label = "POST /anything",
+        statusPrefix = "POST /anything (headers+body)",
+        url = "https://httpbin.org/anything",
+        category = ActionCategory.Success,
+        method = HttpMethod.POST,
+        body = """{"event":"purchase","item":"Wiretap Pro","quantity":3,"metadata":{"source":"sample-app","version":"1.0"}}""",
+        contentType = "application/json",
+        headers = mapOf(
+            "X-Api-Key" to "sample-key-12345",
+            "X-Idempotency-Key" to "idem-99887766",
+            "X-Custom-Trace" to "trace-aabbccdd",
+        ),
     ),
     HttpTestCase.Request(
         label = "301 Redirect",

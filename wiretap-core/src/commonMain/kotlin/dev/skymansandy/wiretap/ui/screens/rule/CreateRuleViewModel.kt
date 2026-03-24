@@ -13,6 +13,7 @@ import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
+import dev.skymansandy.wiretap.ui.model.HeaderEntryMode
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
@@ -54,7 +55,7 @@ internal class CreateRuleViewModel(
     val urlMode: StateFlow<UrlMatchMode?>
         field = MutableStateFlow(
             existingRule?.toUrlMode()
-                ?: if (prefillFromLog != null) UrlMatchMode.Contains else null,
+                ?: if (prefillFromLog != null) UrlMatchMode.Exact else null,
         )
 
     val urlPattern: StateFlow<String>
@@ -62,14 +63,23 @@ internal class CreateRuleViewModel(
 
     val headerEntries: StateFlow<List<HeaderEntry>>
         field = MutableStateFlow(
-            existingRule?.headerMatchers?.map { it.toEntry() } ?: emptyList(),
+            existingRule?.headerMatchers?.map { it.toEntry() }
+                ?: prefillFromLog?.requestHeaders?.map { (k, v) ->
+                    HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                }
+                ?: emptyList(),
         )
 
     val bodyMode: StateFlow<BodyMatchMode?>
-        field = MutableStateFlow(existingRule?.toBodyMode())
+        field = MutableStateFlow(
+            existingRule?.toBodyMode()
+                ?: if (prefillFromLog?.requestBody != null) BodyMatchMode.Exact else null,
+        )
 
     val bodyPattern: StateFlow<String>
-        field = MutableStateFlow(existingRule?.bodyMatcher?.pattern ?: "")
+        field = MutableStateFlow(
+            existingRule?.bodyMatcher?.pattern ?: prefillFromLog?.requestBody ?: "",
+        )
 
     // Response state
     private val existingMock = existingRule?.action as? RuleAction.Mock

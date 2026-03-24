@@ -33,10 +33,13 @@ val ktorHttpActions: List<KtorApiAction> = httpTestCases.map { case ->
         when (case) {
             is HttpTestCase.Request -> {
                 val response = when (case.method) {
-                    HttpMethod.GET -> client.get(case.url)
+                    HttpMethod.GET -> client.get(case.url) {
+                        case.headers.forEach { (k, v) -> header(k, v) }
+                    }
                     HttpMethod.POST -> client.post(case.url) {
                         case.contentType?.let { header("Content-Type", it) }
                         case.body?.let { setBody(it) }
+                        case.headers.forEach { (k, v) -> header(k, v) }
                     }
                 }
                 onStatus(formatResponse(response, response.bodyAsText()))

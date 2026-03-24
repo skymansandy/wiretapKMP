@@ -36,7 +36,7 @@ internal fun ResponseTab(
     var headersExpanded by remember { mutableStateOf(true) }
 
     Column(
-        modifier = modifier.then(if (!isJson) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+        modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
         SectionTitle(
             text = "Headers",
@@ -61,7 +61,7 @@ internal fun ResponseTab(
         if (isJson) {
             val editorState = rememberJsonEditorState(initialJson = body)
             JsonCMP(
-                modifier = Modifier.padding(8.dp).weight(1f),
+                modifier = Modifier.padding(8.dp),
                 state = editorState,
                 searchQuery = searchQuery,
             )
