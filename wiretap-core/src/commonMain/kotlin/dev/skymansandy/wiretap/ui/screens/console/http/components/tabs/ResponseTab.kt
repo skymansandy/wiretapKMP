@@ -1,12 +1,16 @@
 package dev.skymansandy.wiretap.ui.screens.console.http.components.tabs
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,21 +33,25 @@ internal fun ResponseTab(
     val body = entry.responseBody
     val isJson = body != null && looksLikeJson(body)
 
+    var headersExpanded by remember { mutableStateOf(true) }
+
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .then(if (!isJson) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+        modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
         SectionTitle(
             text = "Headers",
             action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null,
+            expanded = headersExpanded,
+            onToggleExpand = { headersExpanded = !headersExpanded },
         )
 
-        HeadersList(
-            headers = entry.responseHeaders,
-            emptyText = "No headers",
-            searchQuery = searchQuery,
-        )
+        AnimatedVisibility(visible = headersExpanded) {
+            HeadersList(
+                headers = entry.responseHeaders,
+                emptyText = "No headers",
+                searchQuery = searchQuery,
+            )
+        }
 
         SectionTitle(
             text = "Body",
@@ -51,16 +59,16 @@ internal fun ResponseTab(
         )
 
         if (isJson) {
-            val editorState = rememberJsonEditorState(initialJson = body!!)
+            val editorState = rememberJsonEditorState(initialJson = body)
             JsonCMP(
+                modifier = Modifier.padding(8.dp),
                 state = editorState,
                 searchQuery = searchQuery,
-                modifier = Modifier.padding(8.dp).weight(1f),
             )
         } else {
             CodeBlock(
-                text = body ?: "No body",
                 modifier = Modifier.padding(16.dp),
+                text = body ?: "No body",
                 searchQuery = searchQuery,
             )
         }

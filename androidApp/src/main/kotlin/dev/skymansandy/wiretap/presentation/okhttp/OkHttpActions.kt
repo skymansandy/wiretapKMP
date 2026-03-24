@@ -5,12 +5,17 @@ import dev.skymansandy.wiretapsample.model.ActionCategory
 import dev.skymansandy.wiretapsample.model.HttpMethod
 import dev.skymansandy.wiretapsample.model.HttpTestCase
 import dev.skymansandy.wiretapsample.model.httpTestCases
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun createOkHttpClient(): OkHttpClient =
     OkHttpClient.Builder()
@@ -20,7 +25,7 @@ internal fun createOkHttpClient(): OkHttpClient =
 internal data class OkHttpApiAction(
     val label: String,
     val category: ActionCategory,
-    val action: (OkHttpClient, (String) -> Unit) -> Unit,
+    val action: suspend (OkHttpClient, (String) -> Unit) -> Unit,
 )
 
 private fun Response.format(): String =
@@ -64,17 +69,62 @@ internal val okHttpActions: List<OkHttpApiAction> = httpTestCases.map { case ->
                     .url(case.url)
                     .build()
                 val call = client.newCall(request)
-                val cancelThread = Thread {
-                    Thread.sleep(case.cancelAfterMs)
-                    call.cancel()
-                }.apply { isDaemon = true }
-                cancelThread.start()
-                try {
-                    call.execute()
-                } catch (_: Exception) {
-                    // expected cancellation
+                coroutineScope {
+                    launch {
+                        delay(case.cancelAfterMs)
+                        call.cancel()
+                    }
+                    launch(Dispatchers.IO) {
+                        try {
+                            call.execute()
+                        } catch (_: Exception) {
+                            // expected cancellation
+                        }
+                    }
                 }
                 onStatus("Request cancelled!")
+            }
+
+            is HttpTestCase.Burst -> {
+                coroutineScope {
+                    for (i in 1..case.count) {
+                        launch(Dispatchers.IO) {
+                            val request = Request.Builder()
+                                .url("${case.url}$i")
+                                .build()
+                            try {
+                                val response = client.newCall(request).execute()
+                                onStatus("Burst $i/${case.count}: HTTP ${response.code}")
+                            } catch (_: Exception) {
+                                // ignored
+                            }
+                        }
+                        if (i < case.count) delay(case.intervalMs)
+                    }
+                }
+            }
+
+            is HttpTestCase.RapidCancel -> {
+                coroutineScope {
+                    var previousCall: okhttp3.Call? = null
+                    for (i in 1..case.count) {
+                        delay(10.milliseconds)
+                        previousCall?.cancel()
+                        val request = Request.Builder()
+                            .url("${case.url}$i")
+                            .build()
+                        val call = client.newCall(request)
+                        previousCall = call
+                        launch(Dispatchers.IO) {
+                            try {
+                                val response = call.execute()
+                                onStatus("Request $i/${case.count}: HTTP ${response.code}")
+                            } catch (_: Exception) {
+                                // expected cancellation
+                            }
+                        }
+                    }
+                }
             }
         }
     }

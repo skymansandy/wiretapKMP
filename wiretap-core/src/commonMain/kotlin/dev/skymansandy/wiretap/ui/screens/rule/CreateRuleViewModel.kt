@@ -13,6 +13,7 @@ import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
+import dev.skymansandy.wiretap.ui.model.HeaderEntryMode
 import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
 import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 import dev.skymansandy.wiretap.ui.model.ThrottleInputMode
@@ -54,7 +55,7 @@ internal class CreateRuleViewModel(
     val urlMode: StateFlow<UrlMatchMode?>
         field = MutableStateFlow(
             existingRule?.toUrlMode()
-                ?: if (prefillFromLog != null) UrlMatchMode.Contains else null,
+                ?: if (prefillFromLog != null) UrlMatchMode.Exact else null,
         )
 
     val urlPattern: StateFlow<String>
@@ -62,14 +63,23 @@ internal class CreateRuleViewModel(
 
     val headerEntries: StateFlow<List<HeaderEntry>>
         field = MutableStateFlow(
-            existingRule?.headerMatchers?.map { it.toEntry() } ?: emptyList(),
+            existingRule?.headerMatchers?.map { it.toEntry() }
+                ?: prefillFromLog?.requestHeaders?.map { (k, v) ->
+                    HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                }
+                ?: emptyList(),
         )
 
     val bodyMode: StateFlow<BodyMatchMode?>
-        field = MutableStateFlow(existingRule?.toBodyMode())
+        field = MutableStateFlow(
+            existingRule?.toBodyMode()
+                ?: if (prefillFromLog?.requestBody != null) BodyMatchMode.Exact else null,
+        )
 
     val bodyPattern: StateFlow<String>
-        field = MutableStateFlow(existingRule?.bodyMatcher?.pattern ?: "")
+        field = MutableStateFlow(
+            existingRule?.bodyMatcher?.pattern ?: prefillFromLog?.requestBody ?: "",
+        )
 
     // Response state
     private val existingMock = existingRule?.action as? RuleAction.Mock
@@ -167,6 +177,10 @@ internal class CreateRuleViewModel(
 
     fun nextStep() {
         step.value++
+    }
+
+    fun resetStep() {
+        step.value = 1
     }
 
     fun prevStep() {
@@ -287,63 +301,72 @@ internal class CreateRuleViewModel(
         conflictingRules.value = emptyList()
     }
 
-    fun saveRule(onSaved: () -> Unit) {
+    fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
-            val resolvedHeaders: Map<String, String>? = when (responseHeadersMode.value) {
-                ResponseHeadersEditMode.KeyValue ->
-                    responseHeaderEntries.value
-                        .filter { e -> e.key.isNotBlank() }
-                        .associate { e -> e.key.trim() to e.value.trim() }
-                        .takeIf { m -> m.isNotEmpty() }
-
-                ResponseHeadersEditMode.BulkEdit ->
-                    if (responseHeadersBulk.value.isNotBlank())
-                        HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
-                            .takeIf { m -> m.isNotEmpty() }
-                    else null
-            }
-            val ruleAction = when (action.value) {
-                is RuleAction.Mock -> RuleAction.Mock(
-                    responseCode = mockResponseCode.value.toIntOrNull() ?: 200,
-                    responseBody = mockResponseBody.value.ifBlank { null },
-                    responseHeaders = resolvedHeaders,
-                    throttleDelayMs = throttleDelayMs.value.toLongOrNull(),
-                    throttleDelayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
-                )
-
-                is RuleAction.Throttle -> RuleAction.Throttle(
-                    delayMs = throttleDelayMs.value.toLongOrNull() ?: 1000L,
-                    delayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
-                )
-            }
-            val rule = WiretapRule(
-                id = existingRuleId ?: 0,
-                method = method.value.trim().ifBlank { "*" },
-                urlMatcher = when (urlMode.value) {
-                    UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
-                    UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.value.trim())
-                    UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.value.trim())
-                    null -> null
-                },
-                headerMatchers = headerEntries.value.mapNotNull { entry -> entry.toDomain() },
-                bodyMatcher = when (bodyMode.value) {
-                    BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.value.trim())
-                    BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.value.trim())
-                    BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.value.trim())
-                    null -> null
-                },
-                action = ruleAction,
-                enabled = existingEnabled ?: true,
-                createdAt = existingCreatedAt ?: currentTimeMillis(),
-            )
+            val rule = buildRuleFromForm()
             val conflicts = findConflictingRules(rule)
             if (conflicts.isNotEmpty()) {
                 conflictingRules.value = conflicts
                 showConflictDialog.value = true
             } else {
-                if (isEditing) ruleRepository.updateRule(rule) else ruleRepository.addRule(rule)
-                onSaved()
+                if (isEditing) {
+                    ruleRepository.updateRule(rule)
+                    onSaved(rule)
+                } else {
+                    ruleRepository.addRule(rule)
+                    onSaved(null)
+                }
             }
         }
+    }
+
+    private fun buildRuleFromForm(): WiretapRule {
+        val resolvedHeaders: Map<String, String>? = when (responseHeadersMode.value) {
+            ResponseHeadersEditMode.KeyValue ->
+                responseHeaderEntries.value
+                    .filter { e -> e.key.isNotBlank() }
+                    .associate { e -> e.key.trim() to e.value.trim() }
+                    .takeIf { m -> m.isNotEmpty() }
+
+            ResponseHeadersEditMode.BulkEdit ->
+                if (responseHeadersBulk.value.isNotBlank())
+                    HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
+                        .takeIf { m -> m.isNotEmpty() }
+                else null
+        }
+        val ruleAction = when (action.value) {
+            is RuleAction.Mock -> RuleAction.Mock(
+                responseCode = mockResponseCode.value.toIntOrNull() ?: 200,
+                responseBody = mockResponseBody.value.ifBlank { null },
+                responseHeaders = resolvedHeaders,
+                throttleDelayMs = throttleDelayMs.value.toLongOrNull(),
+                throttleDelayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+            )
+
+            is RuleAction.Throttle -> RuleAction.Throttle(
+                delayMs = throttleDelayMs.value.toLongOrNull() ?: 1000L,
+                delayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+            )
+        }
+        return WiretapRule(
+            id = existingRuleId ?: 0,
+            method = method.value.trim().ifBlank { "*" },
+            urlMatcher = when (urlMode.value) {
+                UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
+                UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.value.trim())
+                UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.value.trim())
+                null -> null
+            },
+            headerMatchers = headerEntries.value.mapNotNull { entry -> entry.toDomain() },
+            bodyMatcher = when (bodyMode.value) {
+                BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.value.trim())
+                BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.value.trim())
+                BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.value.trim())
+                null -> null
+            },
+            action = ruleAction,
+            enabled = existingEnabled ?: true,
+            createdAt = existingCreatedAt ?: currentTimeMillis(),
+        )
     }
 }

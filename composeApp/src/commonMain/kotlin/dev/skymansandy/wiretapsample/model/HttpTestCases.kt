@@ -17,6 +17,7 @@ sealed class HttpTestCase {
         val method: HttpMethod = HttpMethod.GET,
         val body: String? = null,
         val contentType: String? = null,
+        val headers: Map<String, String> = emptyMap(),
     ) : HttpTestCase()
 
     data class Timeout(
@@ -33,6 +34,23 @@ sealed class HttpTestCase {
         override val url: String,
         override val category: ActionCategory = ActionCategory.Cancel,
         val cancelAfterMs: Long,
+    ) : HttpTestCase()
+
+    data class Burst(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
+        val intervalMs: Long,
+    ) : HttpTestCase()
+
+    data class RapidCancel(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
     ) : HttpTestCase()
 }
 
@@ -72,6 +90,32 @@ val httpTestCases = listOf(
         contentType = "application/json",
     ),
     HttpTestCase.Request(
+        label = "GET /headers",
+        statusPrefix = "GET /headers (custom)",
+        url = "https://httpbin.org/headers",
+        category = ActionCategory.Success,
+        headers = mapOf(
+            "X-Wiretap-Debug" to "true",
+            "X-Request-Source" to "WiretapSampleApp",
+            "X-Correlation-Id" to "abc-123-def-456",
+            "Accept-Language" to "en-US,en;q=0.9",
+        ),
+    ),
+    HttpTestCase.Request(
+        label = "POST /anything",
+        statusPrefix = "POST /anything (headers+body)",
+        url = "https://httpbin.org/anything",
+        category = ActionCategory.Success,
+        method = HttpMethod.POST,
+        body = """{"event":"purchase","item":"Wiretap Pro","quantity":3,"metadata":{"source":"sample-app","version":"1.0"}}""",
+        contentType = "application/json",
+        headers = mapOf(
+            "X-Api-Key" to "sample-key-12345",
+            "X-Idempotency-Key" to "idem-99887766",
+            "X-Custom-Trace" to "trace-aabbccdd",
+        ),
+    ),
+    HttpTestCase.Request(
         label = "301 Redirect",
         statusPrefix = "GET /redirect/1",
         url = "https://httpbin.org/redirect/1",
@@ -100,5 +144,18 @@ val httpTestCases = listOf(
         statusPrefix = "Starting request for cancellation",
         url = "https://httpbin.org/delay/10",
         cancelAfterMs = 1000,
+    ),
+    HttpTestCase.Burst(
+        label = "4 reqs @ 4s interval",
+        statusPrefix = "Burst: 4 requests at 4s intervals",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 4,
+        intervalMs = 4000,
+    ),
+    HttpTestCase.RapidCancel(
+        label = "10 reqs, cancel prev",
+        statusPrefix = "Rapid cancel: 10 requests, only last completes",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 10,
     ),
 )

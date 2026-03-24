@@ -1,24 +1,33 @@
 package dev.skymansandy.wiretap.ui.rules.sections
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -173,7 +182,7 @@ internal fun RequestStep(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun HeaderMatcherItem(
     entry: HeaderEntry,
@@ -186,13 +195,53 @@ private fun HeaderMatcherItem(
         shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        androidx.compose.foundation.layout.Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
 
-            // Key / Value row (50 / 50)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Row 1: Mode dropdown + Key + Remove
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                var expanded by remember { mutableStateOf(false) }
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                    modifier = Modifier.width(130.dp),
+                ) {
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        HeaderEntryMode.entries.forEach { mode ->
+                            DropdownMenuItem(
+                                text = { Text(mode.label()) },
+                                onClick = {
+                                    onUpdate(
+                                        entry.copy(
+                                            mode = mode,
+                                            value = if (!mode.hasValue()) "" else entry.value,
+                                        ),
+                                    )
+                                    expanded = false
+                                },
+                            )
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = entry.mode.label(),
+                        onValueChange = {},
+                        readOnly = true,
+                        singleLine = true,
+                        label = { Text("Match") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                    )
+                }
+
                 OutlinedTextField(
                     value = entry.key,
                     onValueChange = { onUpdate(entry.copy(key = it)) },
@@ -201,50 +250,7 @@ private fun HeaderMatcherItem(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
-                if (entry.mode.hasValue()) {
-                    OutlinedTextField(
-                        value = entry.value,
-                        onValueChange = { onUpdate(entry.copy(value = it)) },
-                        label = {
-                            Text(
-                                if (entry.mode.isRegex()) "Value Regex"
-                                else "Value",
-                            )
-                        },
-                        placeholder = { Text(headerValuePlaceholder(entry.mode)) },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        trailingIcon = if (entry.mode.isRegex()) {
-                            { RegexTesterIcon { onOpenRegexTester(entry.value) } }
-                        } else null,
-                    )
-                } else {
-                    // Placeholder to keep key at 50% width
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
 
-            // Mode chips + remove button
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FlowRow(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    HeaderEntryMode.entries.forEach { mode ->
-                        FilterChip(
-                            selected = entry.mode == mode,
-                            onClick = {
-                                onUpdate(
-                                    entry.copy(
-                                        mode = mode,
-                                        value = if (!mode.hasValue()) "" else entry.value,
-                                    ),
-                                )
-                            },
-                            label = { Text(mode.label()) },
-                        )
-                    }
-                }
                 IconButton(onClick = onRemove) {
                     Icon(
                         Icons.Default.Close,
@@ -252,6 +258,26 @@ private fun HeaderMatcherItem(
                         tint = MaterialTheme.colorScheme.error,
                     )
                 }
+            }
+
+            // Row 2: Value field (only when mode needs a value)
+            if (entry.mode.hasValue()) {
+                OutlinedTextField(
+                    value = entry.value,
+                    onValueChange = { onUpdate(entry.copy(value = it)) },
+                    label = {
+                        Text(
+                            if (entry.mode.isRegex()) "Value Regex"
+                            else "Value",
+                        )
+                    },
+                    placeholder = { Text(headerValuePlaceholder(entry.mode)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    trailingIcon = if (entry.mode.isRegex()) {
+                        { RegexTesterIcon { onOpenRegexTester(entry.value) } }
+                    } else null,
+                )
             }
         }
     }

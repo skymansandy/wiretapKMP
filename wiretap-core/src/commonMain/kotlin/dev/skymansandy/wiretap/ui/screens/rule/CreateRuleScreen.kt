@@ -49,7 +49,7 @@ internal fun CreateRuleScreen(
     viewModel: CreateRuleViewModel,
     ruleRepository: RuleRepository,
     onBack: () -> Unit,
-    onSaved: () -> Unit,
+    onSaved: (WiretapRule?) -> Unit,
     onEditConflictingRule: ((WiretapRule) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {

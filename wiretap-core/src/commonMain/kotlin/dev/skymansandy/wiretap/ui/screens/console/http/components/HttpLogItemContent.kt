@@ -78,7 +78,7 @@ internal fun HttpLogItemContent(
                     entry.responseCode == -1 -> "!!!"
                     else -> "ERR"
                 },
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = statusColor,
                 modifier = Modifier.width(44.dp),
@@ -116,7 +116,13 @@ internal fun HttpLogItemContent(
                         text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodySmall,
                         color = WiretapColors.SecureHost,
+                        modifier = Modifier.weight(1f),
+                        overflow = TextOverflow.Ellipsis,
                     )
+
+                    if (entry.source != ResponseSource.Network) {
+                        SourceChip(source = entry.source)
+                    }
                 }
 
                 Spacer(
@@ -124,15 +130,10 @@ internal fun HttpLogItemContent(
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
-                        text = formatTime(entry.timestamp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-
                     Text(
                         text = "${entry.durationMs} ms",
                         style = MaterialTheme.typography.labelSmall,
@@ -147,9 +148,11 @@ internal fun HttpLogItemContent(
                         )
                     }
 
-                    if (entry.source != ResponseSource.Network) {
-                        SourceChip(source = entry.source)
-                    }
+                    Text(
+                        text = formatTime(entry.timestamp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }

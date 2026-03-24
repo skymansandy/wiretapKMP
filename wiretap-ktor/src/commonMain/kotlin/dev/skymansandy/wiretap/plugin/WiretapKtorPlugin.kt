@@ -30,7 +30,9 @@ import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -113,17 +115,21 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
             request.attributes.put(MatchedRuleKey, matchingRule)
         }
 
-        // Log request immediately so it appears in the UI (gated by shouldLog)
+        // Log request immediately so it appears in the UI (gated by shouldLog).
+        // NonCancellable ensures the save completes and returns the ID even if the
+        // coroutine is cancelled mid-flight, preventing orphaned "..." entries.
         val logEntryId = if (config.shouldLog(url, method)) {
-            deps.orchestrator.logHttpAndGetId(
-                HttpLogEntry(
-                    url = url,
-                    method = method,
-                    requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
+            withContext(NonCancellable) {
+                deps.orchestrator.logHttpAndGetId(
+                    HttpLogEntry(
+                        url = url,
+                        method = method,
+                        requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
         } else {
             -1L
         }
@@ -202,22 +208,26 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                 val startNano =
                     request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
-                deps.orchestrator.updateHttp(
-                    HttpLogEntry(
-                        id = logEntryId,
-                        url = url,
-                        method = method,
-                        requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
-                        responseCode = if (e is CancellationException) -1 else 0,
-                        responseHeaders = emptyMap(),
-                        responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                        durationMs = durationNs / 1_000_000,
-                        durationNs = durationNs,
-                        source = ResponseSource.Network,
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+                // NonCancellable ensures the DB update completes even when
+                // the coroutine is cancelled, so the entry moves from "..." to "!!!".
+                withContext(NonCancellable) {
+                    deps.orchestrator.updateHttp(
+                        HttpLogEntry(
+                            id = logEntryId,
+                            url = url,
+                            method = method,
+                            requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                            requestBody = requestBody,
+                            responseCode = if (e is CancellationException) -1 else 0,
+                            responseHeaders = emptyMap(),
+                            responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                            durationMs = durationNs / 1_000_000,
+                            durationNs = durationNs,
+                            source = ResponseSource.Network,
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
             throw e
         }

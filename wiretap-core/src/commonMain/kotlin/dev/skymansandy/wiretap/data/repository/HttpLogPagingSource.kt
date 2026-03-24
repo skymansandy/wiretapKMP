@@ -16,8 +16,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
+private const val PAGE_SIZE = 20
 internal val defaultPagingConfig = PagingConfig(
-    pageSize = 20,
+    pageSize = PAGE_SIZE,
+    prefetchDistance = 3 * PAGE_SIZE,
     enablePlaceholders = false,
 )
 

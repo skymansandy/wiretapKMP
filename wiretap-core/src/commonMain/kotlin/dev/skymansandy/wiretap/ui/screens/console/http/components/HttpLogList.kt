@@ -39,108 +39,134 @@ internal fun HttpLogList(
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val isAtTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+
+    var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
+    var revealedItemId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(lazyItems.itemCount) {
+        if (lazyItems.itemCount > lastItemCount && isAtTop) {
+            scope.launch { listState.scrollToItem(0) }
+        }
+        lastItemCount = lazyItems.itemCount
+    }
+
+    LaunchedEffect(revealedItemId) {
+        if (revealedItemId != null) {
+            delay(3000)
+            revealedItemId = null
+        }
+    }
+
+    val isEmpty = lazyItems.itemCount == 0
+
     when (lazyItems.loadState.refresh) {
-        is LoadStateLoading -> {
-            Box(
-                modifier = modifier,
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
+        is LoadStateLoading if isEmpty -> {
+            CenteredBox(modifier) { CircularProgressIndicator() }
         }
 
-        is LoadStateNotLoading if lazyItems.itemCount == 0 -> {
-            Box(
-                modifier = modifier,
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "No HTTP logs yet",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+        is LoadStateNotLoading if isEmpty -> {
+            CenteredBox(modifier) { StatusText("No HTTP logs yet") }
         }
 
-        is LoadStateError -> {
-            Box(
-                modifier = modifier,
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "Failed to load logs",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+        is LoadStateError if isEmpty -> {
+            CenteredBox(modifier) { StatusText("Failed to load logs") }
         }
 
         else -> {
-            val listState = rememberLazyListState()
-            val scope = rememberCoroutineScope()
-            val isAtTop by remember {
-                derivedStateOf {
-                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-                }
-            }
-
-            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
-            var revealedItemId by remember { mutableStateOf<String?>(null) }
-
-            LaunchedEffect(lazyItems.itemCount) {
-                if (lazyItems.itemCount > lastItemCount && isAtTop) {
-                    scope.launch { listState.scrollToItem(0) }
-                }
-                lastItemCount = lazyItems.itemCount
-            }
-
-            LaunchedEffect(revealedItemId) {
-                if (revealedItemId != null) {
-                    delay(3000)
-                    revealedItemId = null
-                }
-            }
-
-            LazyColumn(
+            HttpLogColumn(
                 modifier = modifier,
-                state = listState,
-            ) {
-                items(
-                    count = lazyItems.itemCount,
-                    key = lazyItems.itemKey { it.id },
-                ) { index ->
-                    val entry = lazyItems[index] ?: return@items
-                    val itemKey = "http_${entry.id}"
-                    SwipeableHttpLogItem(
-                        entry = entry,
-                        searchQuery = searchQuery,
-                        isRevealed = revealedItemId == itemKey,
-                        onReveal = { revealedItemId = itemKey },
-                        onCollapse = { if (revealedItemId == itemKey) revealedItemId = null },
-                        onClick = {
-                            revealedItemId = null
-                            onHttpClick(entry)
-                        },
-                        onCreateRule = {
-                            revealedItemId = null
-                            onCreateRule(entry)
-                        },
-                        onViewRule = {
-                            revealedItemId = null
-                            entry.matchedRuleId?.let(onViewRule)
-                        },
-                    )
-                }
+                listState = listState,
+                lazyItems = lazyItems,
+                searchQuery = searchQuery,
+                revealedItemId = revealedItemId,
+                onRevealedItemIdChange = { revealedItemId = it },
+                onHttpClick = onHttpClick,
+                onCreateRule = onCreateRule,
+                onViewRule = onViewRule,
+            )
+        }
+    }
+}
 
-                if (lazyItems.loadState.append is LoadStateLoading) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                    }
+@Composable
+private fun CenteredBox(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+        content = { content() },
+    )
+}
+
+@Composable
+private fun StatusText(text: String) {
+
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyLarge,
+    )
+}
+
+@Composable
+private fun HttpLogColumn(
+    modifier: Modifier,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    lazyItems: LazyPagingItems<HttpLogEntry>,
+    searchQuery: String,
+    revealedItemId: String?,
+    onRevealedItemIdChange: (String?) -> Unit,
+    onHttpClick: (HttpLogEntry) -> Unit,
+    onCreateRule: (HttpLogEntry) -> Unit,
+    onViewRule: (Long) -> Unit,
+) {
+
+    LazyColumn(
+        modifier = modifier,
+        state = listState,
+    ) {
+        items(
+            count = lazyItems.itemCount,
+            key = lazyItems.itemKey { it.id },
+        ) { index ->
+            val entry = lazyItems[index] ?: return@items
+            val itemKey = "http_${entry.id}"
+            SwipeableHttpLogItem(
+                entry = entry,
+                searchQuery = searchQuery,
+                isRevealed = revealedItemId == itemKey,
+                onReveal = { onRevealedItemIdChange(itemKey) },
+                onCollapse = { if (revealedItemId == itemKey) onRevealedItemIdChange(null) },
+                onClick = {
+                    onRevealedItemIdChange(null)
+                    onHttpClick(entry)
+                },
+                onCreateRule = {
+                    onRevealedItemIdChange(null)
+                    onCreateRule(entry)
+                },
+                onViewRule = {
+                    onRevealedItemIdChange(null)
+                    entry.matchedRuleId?.let(onViewRule)
+                },
+            )
+        }
+
+        if (lazyItems.loadState.append is LoadStateLoading) {
+            item {
+                CenteredBox(Modifier.fillMaxWidth().padding(16.dp)) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                    )
                 }
             }
         }

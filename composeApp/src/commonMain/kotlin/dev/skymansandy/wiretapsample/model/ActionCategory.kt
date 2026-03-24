@@ -7,4 +7,5 @@ enum class ActionCategory {
     ServerError,
     Timeout,
     Cancel,
+    Batch,
 }
