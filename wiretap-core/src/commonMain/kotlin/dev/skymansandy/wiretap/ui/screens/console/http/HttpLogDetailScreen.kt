@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -28,10 +30,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +52,7 @@ import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewT
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +62,7 @@ internal fun HttpLogDetailScreen(
     onViewRule: ((ruleId: Long) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
@@ -68,6 +71,10 @@ internal fun HttpLogDetailScreen(
         "Request",
         "Response",
     )
+    val pagerState = rememberPagerState(
+        pageCount = { tabs.size },
+    )
+    val selectedTab = pagerState.currentPage
     val supportsSearch = selectedTab != 0
 
     LaunchedEffect(selectedTab) {
@@ -102,11 +109,25 @@ internal fun HttpLogDetailScreen(
                             focusRequester = searchFocusRequester,
                         )
                     } else {
-                        Text(
-                            text = "${entry.method} ${entry.url}",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Column {
+                            Text(
+                                text = entry.method + " " + when {
+                                    entry.isInProgress -> "..."
+                                    entry.responseCode > 0 -> entry.responseCode.toString()
+                                    entry.responseCode == -1 -> "!!!"
+                                    else -> "ERR"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = entry.url,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
@@ -170,12 +191,20 @@ internal fun HttpLogDetailScreen(
             )
         },
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
             TabRow(selectedTabIndex = selectedTab) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTab == index,
-                        onClick = { selectedTab = index },
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(index)
+                            }
+                        },
                         text = { Text(title) },
                     )
                 }
@@ -185,10 +214,28 @@ internal fun HttpLogDetailScreen(
                 RuleMatchBanner(entry.source, entry.matchedRuleId, onViewRule)
             }
 
-            when (selectedTab) {
-                0 -> OverviewTab(modifier = Modifier.weight(1f), entry = entry)
-                1 -> RequestTab(modifier = Modifier.weight(1f), entry = entry, searchQuery = debouncedQuery)
-                2 -> ResponseTab(modifier = Modifier.weight(1f), entry = entry, searchQuery = debouncedQuery)
+            HorizontalPager(
+                modifier = Modifier.weight(1f),
+                state = pagerState,
+            ) { page ->
+                when (page) {
+                    0 -> OverviewTab(
+                        modifier = Modifier.fillMaxSize(),
+                        entry = entry,
+                    )
+
+                    1 -> RequestTab(
+                        modifier = Modifier.fillMaxSize(),
+                        entry = entry,
+                        searchQuery = debouncedQuery,
+                    )
+
+                    2 -> ResponseTab(
+                        modifier = Modifier.fillMaxSize(),
+                        entry = entry,
+                        searchQuery = debouncedQuery,
+                    )
+                }
             }
         }
     }
@@ -209,11 +256,13 @@ private fun RuleMatchBanner(
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             label = "Mocked by rule"
         }
+
         ResponseSource.Throttle -> {
             bgColor = MaterialTheme.colorScheme.tertiaryContainer
             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             label = "Throttled by rule"
         }
+
         ResponseSource.Network -> return
     }
     val clickable = matchedRuleId != null && onViewRule != null
