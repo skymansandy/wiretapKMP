@@ -146,63 +146,68 @@ fun WiretapScreen(
                     }
                 }
             } else {
-                when (val current = route) {
-                    is WiretapRoute.SocketDetail -> {
-                        val vm = viewModel(key = "socket_${current.socketId}") {
-                            SocketDetailViewModel(current.socketId, orchestrator)
-                        }
-                        SocketDetailScreen(
-                            viewModel = vm,
-                            onBack = { navigateTo(null) },
-                        )
-                    }
-
-                    is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
-                        entry = current.entry,
-                        onBack = { navigateTo(null) },
-                        onViewRule = { ruleId ->
-                            scope.launch {
-                                val rule = ruleRepository.getById(ruleId)
-                                if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                            }
-                        },
-                    )
-
-                    is WiretapRoute.RuleDetail -> {
-                        val vm = viewModel(key = "rule_detail_${current.rule.id}") {
-                            RuleDetailViewModel(current.rule.id, current.rule.enabled, ruleRepository)
-                        }
-                        RuleDetailScreen(
-                            rule = current.rule,
-                            viewModel = vm,
-                            onBack = { navigateTo(null) },
-                            onDeleted = { navigateTo(null) },
-                            onEditClick = { navigateTo(WiretapRoute.CreateRule(existingRule = current.rule)) },
-                        )
-                    }
-
-                    is WiretapRoute.CreateRule -> {
-                        val vm = viewModel(
-                            key = "create_rule_${current.existingRule?.id}_${current.prefillFromLog?.id}",
-                        ) {
-                            CreateRuleViewModel(ruleRepository, findConflictingRules, current.existingRule, current.prefillFromLog)
-                        }
-                        CreateRuleScreen(
-                            viewModel = vm,
-                            ruleRepository = ruleRepository,
-                            onBack = { navigateTo(null) },
-                            onSaved = { navigateTo(null) },
-                            onEditConflictingRule = { rule -> navigateTo(WiretapRoute.CreateRule(existingRule = rule)) },
-                        )
-                    }
-
-                    null -> {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Keep home screen always in composition to preserve scroll state
+                    if (route == null || route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail) {
                         WiretapHomeScreen(
                             viewModel = homeVm,
                             ruleRepository = ruleRepository,
                             onBack = onBack,
                             onNavigate = { navigateTo(it) },
                         )
+                    }
+
+                    when (val current = route) {
+                        is WiretapRoute.SocketDetail -> {
+                            val vm = viewModel(key = "socket_${current.socketId}") {
+                                SocketDetailViewModel(current.socketId, orchestrator)
+                            }
+                            SocketDetailScreen(
+                                viewModel = vm,
+                                onBack = { navigateTo(null) },
+                            )
+                        }
+
+                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
+                            entry = current.entry,
+                            onBack = { navigateTo(null) },
+                            onViewRule = { ruleId ->
+                                scope.launch {
+                                    val rule = ruleRepository.getById(ruleId)
+                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                }
+                            },
+                        )
+
+                        is WiretapRoute.RuleDetail -> {
+                            val vm = viewModel(key = "rule_detail_${current.rule.id}") {
+                                RuleDetailViewModel(current.rule.id, current.rule.enabled, ruleRepository)
+                            }
+                            RuleDetailScreen(
+                                rule = current.rule,
+                                viewModel = vm,
+                                onBack = { navigateTo(null) },
+                                onDeleted = { navigateTo(null) },
+                                onEditClick = { navigateTo(WiretapRoute.CreateRule(existingRule = current.rule)) },
+                            )
+                        }
+
+                        is WiretapRoute.CreateRule -> {
+                            val vm = viewModel(
+                                key = "create_rule_${current.existingRule?.id}_${current.prefillFromLog?.id}",
+                            ) {
+                                CreateRuleViewModel(ruleRepository, findConflictingRules, current.existingRule, current.prefillFromLog)
+                            }
+                            CreateRuleScreen(
+                                viewModel = vm,
+                                ruleRepository = ruleRepository,
+                                onBack = { navigateTo(null) },
+                                onSaved = { navigateTo(null) },
+                                onEditConflictingRule = { rule -> navigateTo(WiretapRoute.CreateRule(existingRule = rule)) },
+                            )
+                        }
+
+                        null -> {}
                     }
                 }
             }

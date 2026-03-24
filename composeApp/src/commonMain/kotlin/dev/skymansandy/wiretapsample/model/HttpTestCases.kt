@@ -34,6 +34,23 @@ sealed class HttpTestCase {
         override val category: ActionCategory = ActionCategory.Cancel,
         val cancelAfterMs: Long,
     ) : HttpTestCase()
+
+    data class Burst(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
+        val intervalMs: Long,
+    ) : HttpTestCase()
+
+    data class RapidCancel(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
+    ) : HttpTestCase()
 }
 
 @Suppress("MaxLineLength")
@@ -100,5 +117,18 @@ val httpTestCases = listOf(
         statusPrefix = "Starting request for cancellation",
         url = "https://httpbin.org/delay/10",
         cancelAfterMs = 1000,
+    ),
+    HttpTestCase.Burst(
+        label = "4 reqs @ 4s interval",
+        statusPrefix = "Burst: 4 requests at 4s intervals",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 4,
+        intervalMs = 4000,
+    ),
+    HttpTestCase.RapidCancel(
+        label = "10 reqs, cancel prev",
+        statusPrefix = "Rapid cancel: 10 requests, only last completes",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 10,
     ),
 )

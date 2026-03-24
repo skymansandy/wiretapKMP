@@ -39,8 +39,33 @@ internal fun HttpLogList(
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
-    when (lazyItems.loadState.refresh) {
-        is LoadStateLoading -> {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val isAtTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+
+    var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
+    var revealedItemId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(lazyItems.itemCount) {
+        if (lazyItems.itemCount > lastItemCount && isAtTop) {
+            scope.launch { listState.scrollToItem(0) }
+        }
+        lastItemCount = lazyItems.itemCount
+    }
+
+    LaunchedEffect(revealedItemId) {
+        if (revealedItemId != null) {
+            delay(3000)
+            revealedItemId = null
+        }
+    }
+
+    when {
+        lazyItems.loadState.refresh is LoadStateLoading && lazyItems.itemCount == 0 -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center,
@@ -49,7 +74,7 @@ internal fun HttpLogList(
             }
         }
 
-        is LoadStateNotLoading if lazyItems.itemCount == 0 -> {
+        lazyItems.loadState.refresh is LoadStateNotLoading && lazyItems.itemCount == 0 -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center,
@@ -61,7 +86,7 @@ internal fun HttpLogList(
             }
         }
 
-        is LoadStateError -> {
+        lazyItems.loadState.refresh is LoadStateError && lazyItems.itemCount == 0 -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center,
@@ -74,31 +99,6 @@ internal fun HttpLogList(
         }
 
         else -> {
-            val listState = rememberLazyListState()
-            val scope = rememberCoroutineScope()
-            val isAtTop by remember {
-                derivedStateOf {
-                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-                }
-            }
-
-            var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
-            var revealedItemId by remember { mutableStateOf<String?>(null) }
-
-            LaunchedEffect(lazyItems.itemCount) {
-                if (lazyItems.itemCount > lastItemCount && isAtTop) {
-                    scope.launch { listState.scrollToItem(0) }
-                }
-                lastItemCount = lazyItems.itemCount
-            }
-
-            LaunchedEffect(revealedItemId) {
-                if (revealedItemId != null) {
-                    delay(3000)
-                    revealedItemId = null
-                }
-            }
-
             LazyColumn(
                 modifier = modifier,
                 state = listState,

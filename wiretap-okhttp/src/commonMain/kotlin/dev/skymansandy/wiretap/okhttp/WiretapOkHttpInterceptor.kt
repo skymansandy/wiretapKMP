@@ -11,7 +11,9 @@ import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
@@ -102,17 +104,21 @@ class WiretapOkHttpInterceptor(
             orchestrator.purgeHttpLogsOlderThan(cutoff)
         }
 
-        // Log request immediately so it appears in the UI (gated by shouldLog)
+        // Log request immediately so it appears in the UI (gated by shouldLog).
+        // NonCancellable ensures the save completes and returns the ID even if the
+        // coroutine is cancelled mid-flight, preventing orphaned "..." entries.
         val logEntryId = if (config.shouldLog(url, method)) {
-            orchestrator.logHttpAndGetId(
-                HttpLogEntry(
-                    url = url,
-                    method = method,
-                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
+            withContext(NonCancellable) {
+                orchestrator.logHttpAndGetId(
+                    HttpLogEntry(
+                        url = url,
+                        method = method,
+                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
         } else {
             -1L
         }
@@ -167,22 +173,24 @@ class WiretapOkHttpInterceptor(
             if (logEntryId >= 0) {
                 val durationNs = currentNanoTime() - startNano
                 val isCancelled = e is java.io.IOException && e.message == "Canceled"
-                orchestrator.updateHttp(
-                    HttpLogEntry(
-                        id = logEntryId,
-                        url = url,
-                        method = method,
-                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
-                        responseCode = if (isCancelled) -1 else 0,
-                        responseHeaders = emptyMap(),
-                        responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                        durationMs = (currentNanoTime() - startNano) / 1_000_000,
-                        durationNs = currentNanoTime() - startNano,
-                        source = ResponseSource.Network,
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+                withContext(NonCancellable) {
+                    orchestrator.updateHttp(
+                        HttpLogEntry(
+                            id = logEntryId,
+                            url = url,
+                            method = method,
+                            requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                            requestBody = requestBody,
+                            responseCode = if (isCancelled) -1 else 0,
+                            responseHeaders = emptyMap(),
+                            responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                            durationMs = (currentNanoTime() - startNano) / 1_000_000,
+                            durationNs = currentNanoTime() - startNano,
+                            source = ResponseSource.Network,
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
             throw e
         }

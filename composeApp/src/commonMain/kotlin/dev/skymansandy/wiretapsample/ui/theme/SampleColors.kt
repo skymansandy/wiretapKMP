@@ -9,6 +9,7 @@ val ColorClientError = Color(0xFFE65100)
 val ColorServerError = Color(0xFFC62828)
 val ColorTimeout = Color(0xFF616161)
 val ColorCancel = Color(0xFF616161)
+val ColorBatch = Color(0xFF00695C)
 val ColorWsSent = Color(0xFF4527A0)
 
 val actionColor = mapOf(
@@ -18,4 +19,5 @@ val actionColor = mapOf(
     ActionCategory.ServerError to ColorServerError,
     ActionCategory.Timeout to ColorTimeout,
     ActionCategory.Cancel to ColorCancel,
+    ActionCategory.Batch to ColorBatch,
 )
