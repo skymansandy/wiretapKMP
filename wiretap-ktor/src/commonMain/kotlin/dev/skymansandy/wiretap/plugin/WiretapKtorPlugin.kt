@@ -15,8 +15,6 @@ import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 import io.ktor.client.request.HttpResponseData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
@@ -32,7 +30,9 @@ import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
