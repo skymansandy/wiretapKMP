@@ -188,6 +188,7 @@ internal fun WiretapHomeScreen(
                         HTTP_SUB_TAB_LOGS -> HttpLogList(
                             lazyItems = lazyItems,
                             searchQuery = searchQuery,
+                            onDismissSearch = { viewModel.setSearchActive(false) },
                             onHttpClick = { onNavigate(WiretapRoute.HttpDetail(it)) },
                             onCreateRule = { onNavigate(WiretapRoute.CreateRule(prefillFromLog = it)) },
                             onViewRule = { ruleId ->
@@ -212,6 +213,7 @@ internal fun WiretapHomeScreen(
                 TAB_WEBSOCKET -> SocketLogList(
                     socketLogs = socketLogs,
                     searchQuery = searchQuery,
+                    onDismissSearch = { viewModel.setSearchActive(false) },
                     onSocketClick = { onNavigate(WiretapRoute.SocketDetail(it.id)) },
                     modifier = contentModifier,
                 )

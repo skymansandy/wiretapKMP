@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "e8fa97eb728d35d14e993c95dc7492eb",
+    "identityHash": "8a89b4822cd32aed66c64ede618fd26e",
     "entities": [
       {
         "tableName": "HttpLogEntity",
@@ -124,13 +124,22 @@
         },
         "indices": [
           {
-            "name": "idx_network_log_timestamp",
+            "name": "idx_http_log_timestamp",
             "unique": false,
             "columnNames": [
               "timestamp"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `idx_network_log_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_http_log_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "idx_http_log_response_code",
+            "unique": false,
+            "columnNames": [
+              "response_code"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_http_log_response_code` ON `${TABLE_NAME}` (`response_code`)"
           }
         ]
       },
@@ -226,7 +235,18 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "idx_rule_enabled",
+            "unique": false,
+            "columnNames": [
+              "enabled"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_rule_enabled` ON `${TABLE_NAME}` (`enabled`)"
+          }
+        ]
       },
       {
         "tableName": "SocketLogEntity",
@@ -314,7 +334,27 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "idx_socket_log_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_socket_log_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "idx_socket_log_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_socket_log_status` ON `${TABLE_NAME}` (`status`)"
+          }
+        ]
       },
       {
         "tableName": "SocketMessageEntity",
@@ -397,7 +437,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e8fa97eb728d35d14e993c95dc7492eb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8a89b4822cd32aed66c64ede618fd26e')"
     ]
   }
 }

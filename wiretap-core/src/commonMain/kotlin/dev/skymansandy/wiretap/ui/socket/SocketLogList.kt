@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ internal fun SocketLogList(
     modifier: Modifier = Modifier,
     socketLogs: List<SocketEntry>,
     searchQuery: String,
+    onDismissSearch: () -> Unit,
     onSocketClick: (SocketEntry) -> Unit,
 ) {
     if (socketLogs.isEmpty()) {
@@ -56,8 +58,10 @@ internal fun SocketLogList(
     } else {
         val listState = rememberLazyListState()
         val scope = rememberCoroutineScope()
-        val isAtTop = remember(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        val isAtTop by remember {
+            derivedStateOf {
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+            }
         }
         var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
 
@@ -76,7 +80,10 @@ internal fun SocketLogList(
                 SocketLogItemContent(
                     entry = socketLogs[index],
                     searchQuery = searchQuery,
-                    onClick = { onSocketClick(socketLogs[index]) },
+                    onClick = {
+                        onDismissSearch()
+                        onSocketClick(socketLogs[index])
+                    },
                 )
             }
         }

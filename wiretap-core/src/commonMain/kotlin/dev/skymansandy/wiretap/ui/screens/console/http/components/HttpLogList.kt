@@ -36,6 +36,7 @@ internal fun HttpLogList(
     modifier: Modifier = Modifier,
     lazyItems: LazyPagingItems<HttpLogEntry>,
     searchQuery: String,
+    onDismissSearch: () -> Unit,
     onHttpClick: (HttpLogEntry) -> Unit,
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
@@ -88,6 +89,7 @@ internal fun HttpLogList(
                 searchQuery = searchQuery,
                 revealedItemId = revealedItemId,
                 onRevealedItemIdChange = { revealedItemId = it },
+                onDismissSearch = onDismissSearch,
                 onHttpClick = onHttpClick,
                 onCreateRule = onCreateRule,
                 onViewRule = onViewRule,
@@ -126,10 +128,12 @@ private fun HttpLogColumn(
     searchQuery: String,
     revealedItemId: String?,
     onRevealedItemIdChange: (String?) -> Unit,
+    onDismissSearch: () -> Unit,
     onHttpClick: (HttpLogEntry) -> Unit,
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
+
     LazyColumn(
         modifier = modifier.clipToBounds(),
         state = listState,
@@ -147,6 +151,7 @@ private fun HttpLogColumn(
                 onReveal = { onRevealedItemIdChange(itemKey) },
                 onCollapse = { if (revealedItemId == itemKey) onRevealedItemIdChange(null) },
                 onClick = {
+                    onDismissSearch()
                     onRevealedItemIdChange(null)
                     onHttpClick(entry)
                 },
