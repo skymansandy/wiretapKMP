@@ -93,7 +93,7 @@ internal class WiretapHomeViewModel(
     }
 
     fun clearSocketLogs() {
-        viewModelScope.launch { orchestrator.clearHttpLogs() }
+        viewModelScope.launch { orchestrator.clearLogs() }
     }
 
     suspend fun getRuleById(id: Long): WiretapRule? {

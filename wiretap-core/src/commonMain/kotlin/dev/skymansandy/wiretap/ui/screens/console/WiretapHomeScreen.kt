@@ -17,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -82,6 +83,7 @@ internal fun WiretapHomeScreen(
         modifier = modifier,
         topBar = {
             WiretapTopBar(
+                title = if (selectedTab == TAB_HTTP) "HTTP Console" else "WebSocket Console",
                 isSearchActive = isSearchActive,
                 searchQuery = searchQuery,
                 searchFocusRequester = searchFocusRequester,
@@ -209,6 +211,7 @@ internal fun WiretapHomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WiretapTopBar(
+    title: String,
     isSearchActive: Boolean,
     searchQuery: String,
     searchFocusRequester: FocusRequester,
@@ -230,7 +233,7 @@ private fun WiretapTopBar(
                     focusRequester = searchFocusRequester,
                 )
             } else {
-                Text("Wiretap Console")
+                Text(title)
             }
         },
         navigationIcon = {
@@ -280,7 +283,7 @@ private fun ClearLogsConfirmationDialog(
         text = { Text("Are you sure you want to clear all logs?") },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Clear")
+                Text("Clear", color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {

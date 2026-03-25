@@ -2,8 +2,13 @@ package dev.skymansandy.wiretap.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -106,7 +111,13 @@ fun WiretapScreen(
             val isTwoPaneRoute = route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail
 
             if (isWideScreen && isTwoPaneRoute) {
-                Row(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+                        ),
+                ) {
 
                     WiretapHomeScreen(
                         viewModel = homeVm,

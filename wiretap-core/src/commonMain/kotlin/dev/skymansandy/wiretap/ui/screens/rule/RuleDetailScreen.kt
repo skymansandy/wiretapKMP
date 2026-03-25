@@ -69,7 +69,7 @@ internal fun RuleDetailScreen(
             text = { Text("Are you sure you want to delete this rule?") },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmDelete(onDeleted) }) {
-                    Text("Delete")
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
