@@ -66,7 +66,11 @@ UPDATE HttpLogEntity SET
 WHERE id = ?;
 
 getAllNetworkLogs:
-SELECT * FROM HttpLogEntity ORDER BY timestamp DESC;
+SELECT id, url, method, request_headers, response_code, response_headers,
+    COALESCE(LENGTH(response_body), 0) AS response_body_size,
+    duration_ms, source, timestamp, matched_rule_id, protocol, remote_address,
+    tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry
+FROM HttpLogEntity ORDER BY timestamp DESC;
 
 getNetworkLogById:
 SELECT * FROM HttpLogEntity WHERE id = ?;
@@ -84,7 +88,11 @@ closeStaleHttpLogs:
 UPDATE HttpLogEntity SET response_code = 0 WHERE response_code = -2;
 
 getNetworkLogsPage:
-SELECT * FROM HttpLogEntity
+SELECT id, url, method, request_headers, response_code, response_headers,
+    COALESCE(LENGTH(response_body), 0) AS response_body_size,
+    duration_ms, source, timestamp, matched_rule_id, protocol, remote_address,
+    tls_protocol, cipher_suite, certificate_cn, issuer_cn, certificate_expiry
+FROM HttpLogEntity
 WHERE (url LIKE '%' || :query || '%'
    OR method LIKE '%' || :query || '%'
    OR CAST(response_code AS TEXT) LIKE '%' || :query || '%')

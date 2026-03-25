@@ -97,7 +97,7 @@ internal class HttpDaoImpl(
             .asFlow()
             .flowOn(Dispatchers.IO)
             .mapToList(Dispatchers.Default)
-            .map { entities -> entities.map { it.toDomain() } }
+            .map { rows -> rows.map { it.toDomain() } }
     }
 
     override suspend fun getPage(

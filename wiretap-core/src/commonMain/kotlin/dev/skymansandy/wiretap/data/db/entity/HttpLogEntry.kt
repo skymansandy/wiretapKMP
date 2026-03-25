@@ -20,6 +20,7 @@ data class HttpLogEntry(
     val responseCode: Int = RESPONSE_CODE_IN_PROGRESS,
     val responseHeaders: Map<String, String> = emptyMap(),
     val responseBody: String? = null,
+    val responseBodySize: Long = 0,
     val durationMs: Long = 0,
     val durationNs: Long = 0,
     val source: ResponseSource = ResponseSource.Network,
