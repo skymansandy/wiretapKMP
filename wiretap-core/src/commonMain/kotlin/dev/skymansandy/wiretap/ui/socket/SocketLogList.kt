@@ -102,7 +102,7 @@ private fun SocketLogItemContent(
     val host = withoutScheme.substringBefore("/").substringBefore("?")
     val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
 
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

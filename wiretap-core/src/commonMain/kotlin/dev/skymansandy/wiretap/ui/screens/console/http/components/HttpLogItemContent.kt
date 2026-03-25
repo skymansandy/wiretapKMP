@@ -61,7 +61,7 @@ internal fun HttpLogItemContent(
     }
 
     Column(
-        modifier = modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = modifier.background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -78,7 +78,7 @@ internal fun HttpLogItemContent(
                     entry.responseCode == -1 -> "!!!"
                     else -> "ERR"
                 },
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = statusColor,
                 modifier = Modifier.width(44.dp),
@@ -89,7 +89,7 @@ internal fun HttpLogItemContent(
             ) {
                 Text(
                     text = highlightText("${entry.method} $path", searchQuery),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = statusColor,
                     maxLines = 3,
@@ -115,7 +115,7 @@ internal fun HttpLogItemContent(
 
                     Text(
                         text = highlightText(host, searchQuery),
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = statusColor,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis,
