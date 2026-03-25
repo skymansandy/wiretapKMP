@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.data.repository
 import app.cash.paging.Pager
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.room.dao.HttpRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
@@ -13,24 +13,24 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
 internal class HttpRepositoryImpl(
-    private val httpRoomDao: HttpRoomDao,
+    private val httpLogsDao: HttpLogsDao,
 ) : HttpRepository {
 
     private val invalidationSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     override suspend fun save(entry: HttpLogEntry) {
-        httpRoomDao.insert(entry.toRoomEntity())
+        httpLogsDao.insert(entry.toRoomEntity())
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun saveAndGetId(entry: HttpLogEntry): Long {
-        val id = httpRoomDao.insert(entry.toRoomEntity())
+        val id = httpLogsDao.insert(entry.toRoomEntity())
         invalidationSignal.tryEmit(Unit)
         return id
     }
 
     override suspend fun update(entry: HttpLogEntry) {
-        httpRoomDao.update(
+        httpLogsDao.update(
             responseCode = entry.responseCode.toLong(),
             responseHeaders = HeadersSerializerUtil.serialize(entry.responseHeaders),
             responseBody = entry.responseBody,
@@ -50,37 +50,37 @@ internal class HttpRepositoryImpl(
     }
 
     override fun getAll(): Flow<List<HttpLogEntry>> =
-        httpRoomDao.getAllNetworkLogs().map { rows -> rows.map { it.toDomain() } }
+        httpLogsDao.getAllNetworkLogs().map { rows -> rows.map { it.toDomain() } }
 
     override fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>> =
         Pager(config = defaultPagingConfig) {
             HttpLogPagingSource(
-                roomDao = httpRoomDao,
+                roomDao = httpLogsDao,
                 query = query,
                 invalidationSignal = invalidationSignal,
             )
         }.flow
 
     override suspend fun getById(id: Long): HttpLogEntry? =
-        httpRoomDao.getById(id)?.toDomain()
+        httpLogsDao.getById(id)?.toDomain()
 
     override suspend fun deleteById(id: Long) {
-        httpRoomDao.deleteById(id)
+        httpLogsDao.deleteById(id)
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun deleteOlderThan(timestamp: Long) {
-        httpRoomDao.deleteOlderThan(timestamp)
+        httpLogsDao.deleteOlderThan(timestamp)
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun clearAll() {
-        httpRoomDao.deleteAll()
+        httpLogsDao.deleteAll()
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun markCancelledIfInProgress(id: Long) {
-        httpRoomDao.markCancelledIfInProgress(id)
+        httpLogsDao.markCancelledIfInProgress(id)
         invalidationSignal.tryEmit(Unit)
     }
 }

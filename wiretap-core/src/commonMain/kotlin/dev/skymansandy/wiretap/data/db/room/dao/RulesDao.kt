@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Suppress("LongParameterList")
 @Dao
-internal interface RuleRoomDao {
+internal interface RulesDao {
 
     @Insert
     suspend fun insert(entity: RuleEntity)

@@ -7,7 +7,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
-import dev.skymansandy.wiretap.data.db.room.dao.RuleRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.RulesDao
 import dev.skymansandy.wiretap.data.db.room.entity.RuleEntity
 import dev.skymansandy.wiretap.toRoomEntity
 import dev.skymansandy.wiretap.wiretapRule
@@ -22,28 +22,28 @@ import kotlin.test.Test
 
 class RuleRepositoryImplTest {
 
-    private lateinit var ruleRoomDao: RuleRoomDao
+    private lateinit var rulesDao: RulesDao
     private lateinit var repository: RuleRepositoryImpl
 
     @BeforeTest
     fun setup() {
-        ruleRoomDao = mock<RuleRoomDao>()
-        repository = RuleRepositoryImpl(ruleRoomDao)
+        rulesDao = mock<RulesDao>()
+        repository = RuleRepositoryImpl(rulesDao)
     }
 
     @Test
     fun `addRule delegates to dao`() = runTest {
-        everySuspend { ruleRoomDao.insert(any<RuleEntity>()) } returns Unit
+        everySuspend { rulesDao.insert(any<RuleEntity>()) } returns Unit
 
         repository.addRule(wiretapRule())
 
-        verifySuspend { ruleRoomDao.insert(any<RuleEntity>()) }
+        verifySuspend { rulesDao.insert(any<RuleEntity>()) }
     }
 
     @Test
     fun `updateRule delegates to dao`() = runTest {
         everySuspend {
-            ruleRoomDao.update(
+            rulesDao.update(
                 method = any(),
                 urlMatcherType = any(),
                 urlPattern = any(),
@@ -64,7 +64,7 @@ class RuleRepositoryImplTest {
         repository.updateRule(wiretapRule(id = 5))
 
         verifySuspend {
-            ruleRoomDao.update(
+            rulesDao.update(
                 method = any(),
                 urlMatcherType = any(),
                 urlPattern = any(),
@@ -86,7 +86,7 @@ class RuleRepositoryImplTest {
     @Test
     fun `getAll returns flow from dao`() = runTest {
         val roomEntities = listOf(wiretapRule(id = 1).toRoomEntity(), wiretapRule(id = 2).toRoomEntity())
-        every { ruleRoomDao.getAll() } returns flowOf(roomEntities)
+        every { rulesDao.getAll() } returns flowOf(roomEntities)
 
         repository.getAll().test {
             awaitItem() shouldHaveSize 2
@@ -97,7 +97,7 @@ class RuleRepositoryImplTest {
     @Test
     fun `search returns flow from dao`() = runTest {
         val roomEntities = listOf(wiretapRule(id = 1).toRoomEntity())
-        every { ruleRoomDao.search("test") } returns flowOf(roomEntities)
+        every { rulesDao.search("test") } returns flowOf(roomEntities)
 
         repository.search("test").test {
             awaitItem() shouldHaveSize 1
@@ -107,7 +107,7 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `search returns empty flow when no matches`() = runTest {
-        every { ruleRoomDao.search("nonexistent") } returns flowOf(emptyList())
+        every { rulesDao.search("nonexistent") } returns flowOf(emptyList())
 
         repository.search("nonexistent").test {
             awaitItem().shouldBeEmpty()
@@ -117,7 +117,7 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `getById returns rule from dao`() = runTest {
-        everySuspend { ruleRoomDao.getById(1L) } returns wiretapRule(id = 1).toRoomEntity()
+        everySuspend { rulesDao.getById(1L) } returns wiretapRule(id = 1).toRoomEntity()
 
         val result = repository.getById(1L)
         result?.id shouldBe 1L
@@ -125,14 +125,14 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `getById returns null when not found`() = runTest {
-        everySuspend { ruleRoomDao.getById(999L) } returns null
+        everySuspend { rulesDao.getById(999L) } returns null
 
         repository.getById(999L).shouldBeNull()
     }
 
     @Test
     fun `getEnabledRules delegates to dao`() = runTest {
-        everySuspend { ruleRoomDao.getEnabledRules() } returns listOf(wiretapRule(id = 1).toRoomEntity())
+        everySuspend { rulesDao.getEnabledRules() } returns listOf(wiretapRule(id = 1).toRoomEntity())
 
         val result = repository.getEnabledRules()
         result shouldHaveSize 1
@@ -141,28 +141,28 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `setEnabled delegates to dao`() = runTest {
-        everySuspend { ruleRoomDao.updateEnabled(enabled = 0L, id = 1L) } returns Unit
+        everySuspend { rulesDao.updateEnabled(enabled = 0L, id = 1L) } returns Unit
 
         repository.setEnabled(1L, false)
 
-        verifySuspend { ruleRoomDao.updateEnabled(enabled = 0L, id = 1L) }
+        verifySuspend { rulesDao.updateEnabled(enabled = 0L, id = 1L) }
     }
 
     @Test
     fun `deleteById delegates to dao`() = runTest {
-        everySuspend { ruleRoomDao.deleteById(1L) } returns Unit
+        everySuspend { rulesDao.deleteById(1L) } returns Unit
 
         repository.deleteById(1L)
 
-        verifySuspend { ruleRoomDao.deleteById(1L) }
+        verifySuspend { rulesDao.deleteById(1L) }
     }
 
     @Test
     fun `deleteAll delegates to dao`() = runTest {
-        everySuspend { ruleRoomDao.deleteAll() } returns Unit
+        everySuspend { rulesDao.deleteAll() } returns Unit
 
         repository.deleteAll()
 
-        verifySuspend { ruleRoomDao.deleteAll() }
+        verifySuspend { rulesDao.deleteAll() }
     }
 }

@@ -7,7 +7,7 @@ import app.cash.paging.PagingSourceLoadResultError
 import app.cash.paging.PagingSourceLoadResultPage
 import app.cash.paging.PagingState
 import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.room.dao.SocketRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 internal class SocketLogPagingSource(
-    private val roomDao: SocketRoomDao,
+    private val roomDao: SocketLogsDao,
     private val query: String,
     invalidationSignal: SharedFlow<Unit>,
 ) : PagingSource<Long, SocketEntry>() {

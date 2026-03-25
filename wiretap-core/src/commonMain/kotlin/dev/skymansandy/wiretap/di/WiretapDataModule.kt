@@ -32,14 +32,14 @@ val wiretapDataModule = module {
     }
 
     single<HttpRepository> {
-        HttpRepositoryImpl(httpRoomDao = get<WiretapRoomDatabase>().httpRoomDao())
+        HttpRepositoryImpl(httpLogsDao = get<WiretapRoomDatabase>().httpRoomDao())
     }
 
     single<RuleRepository> {
-        RuleRepositoryImpl(ruleRoomDao = get<WiretapRoomDatabase>().ruleRoomDao())
+        RuleRepositoryImpl(rulesDao = get<WiretapRoomDatabase>().ruleRoomDao())
     }
 
     single<SocketRepository> {
-        SocketRepositoryImpl(socketRoomDao = get<WiretapRoomDatabase>().socketRoomDao())
+        SocketRepositoryImpl(socketLogsDao = get<WiretapRoomDatabase>().socketRoomDao())
     }
 }

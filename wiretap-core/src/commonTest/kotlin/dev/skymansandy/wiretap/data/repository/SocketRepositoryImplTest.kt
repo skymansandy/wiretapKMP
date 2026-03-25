@@ -7,7 +7,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
-import dev.skymansandy.wiretap.data.db.room.dao.SocketRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.SocketLogEntity
 import dev.skymansandy.wiretap.data.db.room.entity.SocketMessageEntity
 import dev.skymansandy.wiretap.socketLogEntry
@@ -22,18 +22,18 @@ import kotlin.test.Test
 
 class SocketRepositoryImplTest {
 
-    private lateinit var socketRoomDao: SocketRoomDao
+    private lateinit var socketLogsDao: SocketLogsDao
     private lateinit var repository: SocketRepositoryImpl
 
     @BeforeTest
     fun setup() {
-        socketRoomDao = mock<SocketRoomDao>()
-        repository = SocketRepositoryImpl(socketRoomDao)
+        socketLogsDao = mock<SocketLogsDao>()
+        repository = SocketRepositoryImpl(socketLogsDao)
     }
 
     @Test
     fun `openConnection returns id from dao`() = runTest {
-        everySuspend { socketRoomDao.insertSocketLog(any<SocketLogEntity>()) } returns 10L
+        everySuspend { socketLogsDao.insertSocketLog(any<SocketLogEntity>()) } returns 10L
 
         val id = repository.openConnection(socketLogEntry())
 
@@ -42,17 +42,17 @@ class SocketRepositoryImplTest {
 
     @Test
     fun `reopenConnection delegates to dao`() = runTest {
-        everySuspend { socketRoomDao.insertSocketLogWithId(any<SocketLogEntity>()) } returns Unit
+        everySuspend { socketLogsDao.insertSocketLogWithId(any<SocketLogEntity>()) } returns Unit
 
         repository.reopenConnection(socketLogEntry(id = 10))
 
-        verifySuspend { socketRoomDao.insertSocketLogWithId(any<SocketLogEntity>()) }
+        verifySuspend { socketLogsDao.insertSocketLogWithId(any<SocketLogEntity>()) }
     }
 
     @Test
     fun `updateConnection delegates to dao`() = runTest {
         everySuspend {
-            socketRoomDao.updateSocketLog(
+            socketLogsDao.updateSocketLog(
                 status = any(),
                 closeCode = any(),
                 closeReason = any(),
@@ -67,7 +67,7 @@ class SocketRepositoryImplTest {
         repository.updateConnection(socketLogEntry(id = 10))
 
         verifySuspend {
-            socketRoomDao.updateSocketLog(
+            socketLogsDao.updateSocketLog(
                 status = any(),
                 closeCode = any(),
                 closeReason = any(),
@@ -82,18 +82,18 @@ class SocketRepositoryImplTest {
 
     @Test
     fun `logMessage inserts message and increments count`() = runTest {
-        everySuspend { socketRoomDao.insertSocketMessage(any<SocketMessageEntity>()) } returns Unit
-        everySuspend { socketRoomDao.incrementSocketMessageCount(10L) } returns Unit
+        everySuspend { socketLogsDao.insertSocketMessage(any<SocketMessageEntity>()) } returns Unit
+        everySuspend { socketLogsDao.incrementSocketMessageCount(10L) } returns Unit
 
         repository.logMessage(socketMessage(socketId = 10))
 
-        verifySuspend { socketRoomDao.insertSocketMessage(any<SocketMessageEntity>()) }
-        verifySuspend { socketRoomDao.incrementSocketMessageCount(10L) }
+        verifySuspend { socketLogsDao.insertSocketMessage(any<SocketMessageEntity>()) }
+        verifySuspend { socketLogsDao.incrementSocketMessageCount(10L) }
     }
 
     @Test
     fun `getById returns entry from dao`() = runTest {
-        everySuspend { socketRoomDao.getSocketLogById(10L) } returns socketLogEntry(id = 10).toRoomEntity()
+        everySuspend { socketLogsDao.getSocketLogById(10L) } returns socketLogEntry(id = 10).toRoomEntity()
 
         val result = repository.getById(10L)
         result?.id shouldBe 10L
@@ -101,7 +101,7 @@ class SocketRepositoryImplTest {
 
     @Test
     fun `getById returns null when not found`() = runTest {
-        everySuspend { socketRoomDao.getSocketLogById(999L) } returns null
+        everySuspend { socketLogsDao.getSocketLogById(999L) } returns null
 
         repository.getById(999L).shouldBeNull()
     }
@@ -109,7 +109,7 @@ class SocketRepositoryImplTest {
     @Test
     fun `getMessages returns flow from dao`() = runTest {
         val roomMessages = listOf(socketMessage(id = 1).toRoomEntity(), socketMessage(id = 2).toRoomEntity())
-        every { socketRoomDao.getSocketMessagesBySocketId(10L) } returns flowOf(roomMessages)
+        every { socketLogsDao.getSocketMessagesBySocketId(10L) } returns flowOf(roomMessages)
 
         repository.getMessages(10L).test {
             val items = awaitItem()
@@ -122,7 +122,7 @@ class SocketRepositoryImplTest {
     @Test
     fun `getAll returns flow from dao`() = runTest {
         val roomEntities = listOf(socketLogEntry(id = 1).toRoomEntity(), socketLogEntry(id = 2).toRoomEntity())
-        every { socketRoomDao.getAllSocketLogs() } returns flowOf(roomEntities)
+        every { socketLogsDao.getAllSocketLogs() } returns flowOf(roomEntities)
 
         repository.getAll().test {
             val items = awaitItem()
@@ -134,31 +134,31 @@ class SocketRepositoryImplTest {
 
     @Test
     fun `clearAll delegates to dao`() = runTest {
-        everySuspend { socketRoomDao.deleteAllSocketMessages() } returns Unit
-        everySuspend { socketRoomDao.deleteAllSocketLogs() } returns Unit
+        everySuspend { socketLogsDao.deleteAllSocketMessages() } returns Unit
+        everySuspend { socketLogsDao.deleteAllSocketLogs() } returns Unit
 
         repository.clearAll()
 
-        verifySuspend { socketRoomDao.deleteAllSocketMessages() }
-        verifySuspend { socketRoomDao.deleteAllSocketLogs() }
+        verifySuspend { socketLogsDao.deleteAllSocketMessages() }
+        verifySuspend { socketLogsDao.deleteAllSocketLogs() }
     }
 
     @Test
     fun `clearClosed delegates to dao`() = runTest {
-        everySuspend { socketRoomDao.deleteClosedSocketMessages() } returns Unit
-        everySuspend { socketRoomDao.deleteClosedSocketLogs() } returns Unit
+        everySuspend { socketLogsDao.deleteClosedSocketMessages() } returns Unit
+        everySuspend { socketLogsDao.deleteClosedSocketLogs() } returns Unit
 
         repository.clearClosed()
 
-        verifySuspend { socketRoomDao.deleteClosedSocketMessages() }
-        verifySuspend { socketRoomDao.deleteClosedSocketLogs() }
+        verifySuspend { socketLogsDao.deleteClosedSocketMessages() }
+        verifySuspend { socketLogsDao.deleteClosedSocketLogs() }
     }
 
     @Test
     fun `getByIdFlow emits initial value and updates on invalidation`() = runTest {
-        everySuspend { socketRoomDao.getSocketLogById(10L) } returns socketLogEntry(id = 10).toRoomEntity()
+        everySuspend { socketLogsDao.getSocketLogById(10L) } returns socketLogEntry(id = 10).toRoomEntity()
         everySuspend {
-            socketRoomDao.updateSocketLog(
+            socketLogsDao.updateSocketLog(
                 status = any(),
                 closeCode = any(),
                 closeReason = any(),

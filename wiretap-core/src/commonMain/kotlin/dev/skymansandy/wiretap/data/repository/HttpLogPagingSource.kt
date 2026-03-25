@@ -8,7 +8,7 @@ import app.cash.paging.PagingSourceLoadResultError
 import app.cash.paging.PagingSourceLoadResultPage
 import app.cash.paging.PagingState
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.room.dao.HttpRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,7 @@ internal val defaultPagingConfig = PagingConfig(
 )
 
 internal class HttpLogPagingSource(
-    private val roomDao: HttpRoomDao,
+    private val roomDao: HttpLogsDao,
     private val query: String,
     invalidationSignal: SharedFlow<Unit>,
 ) : PagingSource<Long, HttpLogEntry>() {

@@ -4,7 +4,7 @@ import app.cash.paging.Pager
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
-import dev.skymansandy.wiretap.data.db.room.dao.SocketRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.SocketLogEntity
 import dev.skymansandy.wiretap.data.db.room.entity.SocketMessageEntity
 import dev.skymansandy.wiretap.data.mappers.toDomain
@@ -16,24 +16,24 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
 internal class SocketRepositoryImpl(
-    private val socketRoomDao: SocketRoomDao,
+    private val socketLogsDao: SocketLogsDao,
 ) : SocketRepository {
 
     internal val invalidationSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     override suspend fun openConnection(entry: SocketEntry): Long {
-        val id = socketRoomDao.insertSocketLog(entry.toRoomEntity())
+        val id = socketLogsDao.insertSocketLog(entry.toRoomEntity())
         invalidationSignal.tryEmit(Unit)
         return id
     }
 
     override suspend fun reopenConnection(entry: SocketEntry) {
-        socketRoomDao.insertSocketLogWithId(entry.toRoomEntity())
+        socketLogsDao.insertSocketLogWithId(entry.toRoomEntity())
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun updateConnection(entry: SocketEntry) {
-        socketRoomDao.updateSocketLog(
+        socketLogsDao.updateSocketLog(
             status = entry.status.name,
             closeCode = entry.closeCode?.toLong(),
             closeReason = entry.closeReason,
@@ -47,7 +47,7 @@ internal class SocketRepositoryImpl(
     }
 
     override suspend fun logMessage(message: SocketMessage) {
-        socketRoomDao.insertSocketMessage(
+        socketLogsDao.insertSocketMessage(
             SocketMessageEntity(
                 socketId = message.socketId,
                 direction = message.direction.name,
@@ -57,44 +57,44 @@ internal class SocketRepositoryImpl(
                 timestamp = message.timestamp,
             ),
         )
-        socketRoomDao.incrementSocketMessageCount(message.socketId)
+        socketLogsDao.incrementSocketMessageCount(message.socketId)
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun getById(id: Long): SocketEntry? =
-        socketRoomDao.getSocketLogById(id)?.toDomain()
+        socketLogsDao.getSocketLogById(id)?.toDomain()
 
     override fun getByIdFlow(id: Long): Flow<SocketEntry?> =
         invalidationSignal
             .onStart { emit(Unit) }
-            .map { socketRoomDao.getSocketLogById(id)?.toDomain() }
+            .map { socketLogsDao.getSocketLogById(id)?.toDomain() }
 
     override fun getMessages(socketId: Long): Flow<List<SocketMessage>> =
-        socketRoomDao.getSocketMessagesBySocketId(socketId)
+        socketLogsDao.getSocketMessagesBySocketId(socketId)
             .map { entities -> entities.map { it.toDomain() } }
 
     override fun getAll(): Flow<List<SocketEntry>> =
-        socketRoomDao.getAllSocketLogs()
+        socketLogsDao.getAllSocketLogs()
             .map { entities -> entities.map { it.toDomain() } }
 
     override fun getPagedConnections(query: String): Flow<PagingData<SocketEntry>> =
         Pager(config = defaultPagingConfig) {
             SocketLogPagingSource(
-                roomDao = socketRoomDao,
+                roomDao = socketLogsDao,
                 query = query,
                 invalidationSignal = invalidationSignal,
             )
         }.flow
 
     override suspend fun clearAll() {
-        socketRoomDao.deleteAllSocketMessages()
-        socketRoomDao.deleteAllSocketLogs()
+        socketLogsDao.deleteAllSocketMessages()
+        socketLogsDao.deleteAllSocketLogs()
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun clearClosed() {
-        socketRoomDao.deleteClosedSocketMessages()
-        socketRoomDao.deleteClosedSocketLogs()
+        socketLogsDao.deleteClosedSocketMessages()
+        socketLogsDao.deleteClosedSocketLogs()
         invalidationSignal.tryEmit(Unit)
     }
 }

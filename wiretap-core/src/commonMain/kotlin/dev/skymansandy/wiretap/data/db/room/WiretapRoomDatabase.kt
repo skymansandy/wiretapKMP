@@ -4,9 +4,9 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
-import dev.skymansandy.wiretap.data.db.room.dao.HttpRoomDao
-import dev.skymansandy.wiretap.data.db.room.dao.RuleRoomDao
-import dev.skymansandy.wiretap.data.db.room.dao.SocketRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
+import dev.skymansandy.wiretap.data.db.room.dao.RulesDao
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.data.db.room.entity.RuleEntity
 import dev.skymansandy.wiretap.data.db.room.entity.SocketLogEntity
@@ -25,11 +25,11 @@ import dev.skymansandy.wiretap.data.db.room.entity.SocketMessageEntity
 @ConstructedBy(WiretapDatabaseConstructor::class)
 internal abstract class WiretapRoomDatabase : RoomDatabase() {
 
-    abstract fun httpRoomDao(): HttpRoomDao
+    abstract fun httpRoomDao(): HttpLogsDao
 
-    abstract fun ruleRoomDao(): RuleRoomDao
+    abstract fun ruleRoomDao(): RulesDao
 
-    abstract fun socketRoomDao(): SocketRoomDao
+    abstract fun socketRoomDao(): SocketLogsDao
 }
 
 @Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA")

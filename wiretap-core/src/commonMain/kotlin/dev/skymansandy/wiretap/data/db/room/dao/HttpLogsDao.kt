@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Suppress("LongParameterList")
 @Dao
-internal interface HttpRoomDao {
+internal interface HttpLogsDao {
 
     @Insert
     suspend fun insert(entity: HttpLogEntity): Long

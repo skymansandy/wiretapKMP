@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Suppress("LongParameterList")
 @Dao
-internal interface SocketRoomDao {
+internal interface SocketLogsDao {
 
     @Insert
     suspend fun insertSocketLog(entity: SocketLogEntity): Long

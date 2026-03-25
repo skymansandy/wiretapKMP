@@ -7,7 +7,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
-import dev.skymansandy.wiretap.data.db.room.dao.HttpRoomDao
+import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.httpLogEntry
 import dev.skymansandy.wiretap.toHttpLogListProjection
@@ -21,27 +21,27 @@ import kotlin.test.Test
 
 class HttpRepositoryImplTest {
 
-    private lateinit var httpRoomDao: HttpRoomDao
+    private lateinit var httpLogsDao: HttpLogsDao
     private lateinit var repository: HttpRepositoryImpl
 
     @BeforeTest
     fun setup() {
-        httpRoomDao = mock<HttpRoomDao>()
-        repository = HttpRepositoryImpl(httpRoomDao)
+        httpLogsDao = mock<HttpLogsDao>()
+        repository = HttpRepositoryImpl(httpLogsDao)
     }
 
     @Test
     fun `save delegates to dao`() = runTest {
-        everySuspend { httpRoomDao.insert(any<HttpLogEntity>()) } returns 1L
+        everySuspend { httpLogsDao.insert(any<HttpLogEntity>()) } returns 1L
 
         repository.save(httpLogEntry())
 
-        verifySuspend { httpRoomDao.insert(any<HttpLogEntity>()) }
+        verifySuspend { httpLogsDao.insert(any<HttpLogEntity>()) }
     }
 
     @Test
     fun `saveAndGetId returns id from dao`() = runTest {
-        everySuspend { httpRoomDao.insert(any<HttpLogEntity>()) } returns 42L
+        everySuspend { httpLogsDao.insert(any<HttpLogEntity>()) } returns 42L
 
         val id = repository.saveAndGetId(httpLogEntry())
 
@@ -51,7 +51,7 @@ class HttpRepositoryImplTest {
     @Test
     fun `update delegates to dao`() = runTest {
         everySuspend {
-            httpRoomDao.update(
+            httpLogsDao.update(
                 responseCode = any(),
                 responseHeaders = any(),
                 responseBody = any(),
@@ -72,7 +72,7 @@ class HttpRepositoryImplTest {
         repository.update(httpLogEntry(id = 5))
 
         verifySuspend {
-            httpRoomDao.update(
+            httpLogsDao.update(
                 responseCode = any(),
                 responseHeaders = any(),
                 responseBody = any(),
@@ -97,7 +97,7 @@ class HttpRepositoryImplTest {
             httpLogEntry(id = 1).toHttpLogListProjection(),
             httpLogEntry(id = 2).toHttpLogListProjection(),
         )
-        every { httpRoomDao.getAllNetworkLogs() } returns flowOf(projections)
+        every { httpLogsDao.getAllNetworkLogs() } returns flowOf(projections)
 
         repository.getAll().test {
             val items = awaitItem()
@@ -110,7 +110,7 @@ class HttpRepositoryImplTest {
     @Test
     fun `getById returns entry from dao`() = runTest {
         val roomEntity = httpLogEntry(id = 1).toRoomEntity()
-        everySuspend { httpRoomDao.getById(1L) } returns roomEntity
+        everySuspend { httpLogsDao.getById(1L) } returns roomEntity
 
         val result = repository.getById(1L)
         result?.id shouldBe 1L
@@ -118,36 +118,36 @@ class HttpRepositoryImplTest {
 
     @Test
     fun `getById returns null when not found`() = runTest {
-        everySuspend { httpRoomDao.getById(999L) } returns null
+        everySuspend { httpLogsDao.getById(999L) } returns null
 
         repository.getById(999L).shouldBeNull()
     }
 
     @Test
     fun `deleteById delegates to dao`() = runTest {
-        everySuspend { httpRoomDao.deleteById(1L) } returns Unit
+        everySuspend { httpLogsDao.deleteById(1L) } returns Unit
 
         repository.deleteById(1L)
 
-        verifySuspend { httpRoomDao.deleteById(1L) }
+        verifySuspend { httpLogsDao.deleteById(1L) }
     }
 
     @Test
     fun `deleteOlderThan delegates to dao`() = runTest {
         val timestamp = 5000L
-        everySuspend { httpRoomDao.deleteOlderThan(timestamp) } returns Unit
+        everySuspend { httpLogsDao.deleteOlderThan(timestamp) } returns Unit
 
         repository.deleteOlderThan(timestamp)
 
-        verifySuspend { httpRoomDao.deleteOlderThan(timestamp) }
+        verifySuspend { httpLogsDao.deleteOlderThan(timestamp) }
     }
 
     @Test
     fun `clearAll delegates to dao`() = runTest {
-        everySuspend { httpRoomDao.deleteAll() } returns Unit
+        everySuspend { httpLogsDao.deleteAll() } returns Unit
 
         repository.clearAll()
 
-        verifySuspend { httpRoomDao.deleteAll() }
+        verifySuspend { httpLogsDao.deleteAll() }
     }
 }
