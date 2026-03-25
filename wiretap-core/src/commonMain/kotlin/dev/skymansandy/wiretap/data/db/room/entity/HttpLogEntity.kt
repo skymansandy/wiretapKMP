@@ -12,6 +12,10 @@ import androidx.room.PrimaryKey
             value = ["timestamp"],
             name = "idx_http_log_timestamp",
         ),
+        Index(
+            value = ["response_code"],
+            name = "idx_http_log_response_code",
+        ),
     ],
 )
 internal data class HttpLogEntity(

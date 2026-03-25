@@ -2,10 +2,21 @@ package dev.skymansandy.wiretap.data.db.room.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "SocketLogEntity",
+    indices = [
+        Index(
+            value = ["timestamp"],
+            name = "idx_socket_log_timestamp",
+        ),
+        Index(
+            value = ["status"],
+            name = "idx_socket_log_status",
+        ),
+    ],
 )
 internal data class SocketLogEntity(
     @PrimaryKey(autoGenerate = true)

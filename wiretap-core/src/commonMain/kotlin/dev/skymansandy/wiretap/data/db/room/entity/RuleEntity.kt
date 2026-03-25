@@ -2,9 +2,18 @@ package dev.skymansandy.wiretap.data.db.room.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "RuleEntity")
+@Entity(
+    tableName = "RuleEntity",
+    indices = [
+        Index(
+            value = ["enabled"],
+            name = "idx_rule_enabled",
+        ),
+    ],
+)
 internal data class RuleEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
