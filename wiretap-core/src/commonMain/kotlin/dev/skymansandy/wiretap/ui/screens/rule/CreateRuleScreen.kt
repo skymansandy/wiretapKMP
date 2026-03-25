@@ -289,7 +289,7 @@ private fun ConflictDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Discard")
+                Text("Go Back")
             }
         },
     )
