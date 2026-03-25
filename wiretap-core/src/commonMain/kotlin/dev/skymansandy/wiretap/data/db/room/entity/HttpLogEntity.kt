@@ -7,12 +7,20 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "HttpLogEntity",
-    indices = [Index(value = ["timestamp"], name = "idx_network_log_timestamp")],
+    indices = [
+        Index(
+            value = ["timestamp"],
+            name = "idx_http_log_timestamp",
+        ),
+    ],
 )
 internal data class HttpLogEntity(
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
     val id: Long = 0,
+    @ColumnInfo(name = "url")
     val url: String,
+    @ColumnInfo(name = "method")
     val method: String,
     @ColumnInfo(name = "request_headers", defaultValue = "")
     val requestHeaders: String = "",
@@ -26,11 +34,13 @@ internal data class HttpLogEntity(
     val responseBody: String? = null,
     @ColumnInfo(name = "duration_ms")
     val durationMs: Long,
-    @ColumnInfo(defaultValue = "Network")
+    @ColumnInfo(name = "source", defaultValue = "Network")
     val source: String = "Network",
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long,
     @ColumnInfo(name = "matched_rule_id")
     val matchedRuleId: Long? = null,
+    @ColumnInfo(name = "protocol")
     val protocol: String? = null,
     @ColumnInfo(name = "remote_address")
     val remoteAddress: String? = null,

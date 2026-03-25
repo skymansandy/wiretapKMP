@@ -8,7 +8,11 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "SocketMessageEntity",
-    indices = [Index(value = ["socket_id"])],
+    indices = [
+        Index(
+            value = ["socket_id"],
+        ),
+    ],
     foreignKeys = [
         ForeignKey(
             entity = SocketLogEntity::class,
@@ -20,14 +24,18 @@ import androidx.room.PrimaryKey
 )
 internal data class SocketMessageEntity(
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
     val id: Long = 0,
     @ColumnInfo(name = "socket_id")
     val socketId: Long,
+    @ColumnInfo(name = "direction")
     val direction: String,
     @ColumnInfo(name = "content_type")
     val contentType: String,
+    @ColumnInfo(name = "content")
     val content: String,
     @ColumnInfo(name = "byte_count")
     val byteCount: Long,
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long,
 )

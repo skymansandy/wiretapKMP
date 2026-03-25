@@ -7,8 +7,9 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "RuleEntity")
 internal data class RuleEntity(
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id")
     val id: Long = 0,
-    @ColumnInfo(defaultValue = "*")
+    @ColumnInfo(name = "method", defaultValue = "*")
     val method: String = "*",
     @ColumnInfo(name = "url_matcher_type")
     val urlMatcherType: String? = null,
@@ -20,6 +21,7 @@ internal data class RuleEntity(
     val bodyMatcherType: String? = null,
     @ColumnInfo(name = "body_pattern")
     val bodyPattern: String? = null,
+    @ColumnInfo(name = "action")
     val action: String,
     @ColumnInfo(name = "mock_response_code")
     val mockResponseCode: Long? = null,
@@ -31,7 +33,7 @@ internal data class RuleEntity(
     val throttleDelayMs: Long? = null,
     @ColumnInfo(name = "throttle_delay_max_ms")
     val throttleDelayMaxMs: Long? = null,
-    @ColumnInfo(defaultValue = "1")
+    @ColumnInfo(name = "enabled", defaultValue = "1")
     val enabled: Long = 1,
     @ColumnInfo(name = "created_at")
     val createdAt: Long,

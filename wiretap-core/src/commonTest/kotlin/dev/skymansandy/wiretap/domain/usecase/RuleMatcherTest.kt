@@ -325,6 +325,79 @@ class RuleMatcherTest {
 
     // endregion
 
+    // region headerMatchersOverlap
+
+    @Test
+    fun `headerMatchersOverlap - empty lists always overlap`() {
+        RuleMatcher.headerMatchersOverlap(emptyList(), emptyList()).shouldBeTrue()
+        RuleMatcher.headerMatchersOverlap(
+            emptyList(),
+            listOf(HeaderMatcher.KeyExists("X-Key")),
+        ).shouldBeTrue()
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.KeyExists("X-Key")),
+            emptyList(),
+        ).shouldBeTrue()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - same key exact values match`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+            listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+        ).shouldBeTrue()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - same key different exact values do not overlap`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+            listOf(HeaderMatcher.ValueExact("Content-Type", "text/plain")),
+        ).shouldBeFalse()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - different keys always overlap`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+            listOf(HeaderMatcher.ValueExact("Accept", "text/plain")),
+        ).shouldBeTrue()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - keyExists overlaps with value matcher on same key`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.KeyExists("Authorization")),
+            listOf(HeaderMatcher.ValueExact("Authorization", "Bearer token")),
+        ).shouldBeTrue()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - contains vs exact overlap when exact contains pattern`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueContains("Accept", "json")),
+            listOf(HeaderMatcher.ValueExact("Accept", "application/json")),
+        ).shouldBeTrue()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - contains vs exact no overlap when exact does not contain pattern`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueContains("Accept", "xml")),
+            listOf(HeaderMatcher.ValueExact("Accept", "application/json")),
+        ).shouldBeFalse()
+    }
+
+    @Test
+    fun `headerMatchersOverlap - case insensitive key matching`() {
+        RuleMatcher.headerMatchersOverlap(
+            listOf(HeaderMatcher.ValueExact("content-type", "application/json")),
+            listOf(HeaderMatcher.ValueExact("Content-Type", "text/plain")),
+        ).shouldBeFalse()
+    }
+
+    // endregion
+
     // region rulesOverlap
 
     @Test
@@ -348,6 +421,36 @@ class RuleMatcherTest {
         val a = wiretapRule(method = "GET", urlMatcher = UrlMatcher.Exact("https://a.com"))
         val b = wiretapRule(method = "GET", urlMatcher = UrlMatcher.Exact("https://b.com"))
         RuleMatcher.rulesOverlap(a, b).shouldBeFalse()
+    }
+
+    @Test
+    fun `rulesOverlap - different headers do not overlap`() {
+        val a = wiretapRule(
+            method = "GET",
+            urlMatcher = UrlMatcher.Contains("api.com"),
+            headerMatchers = listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+        )
+        val b = wiretapRule(
+            method = "GET",
+            urlMatcher = UrlMatcher.Contains("api.com"),
+            headerMatchers = listOf(HeaderMatcher.ValueExact("Content-Type", "text/plain")),
+        )
+        RuleMatcher.rulesOverlap(a, b).shouldBeFalse()
+    }
+
+    @Test
+    fun `rulesOverlap - same headers overlap`() {
+        val a = wiretapRule(
+            method = "GET",
+            urlMatcher = UrlMatcher.Contains("api.com"),
+            headerMatchers = listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+        )
+        val b = wiretapRule(
+            method = "GET",
+            urlMatcher = UrlMatcher.Contains("api.com"),
+            headerMatchers = listOf(HeaderMatcher.ValueExact("Content-Type", "application/json")),
+        )
+        RuleMatcher.rulesOverlap(a, b).shouldBeTrue()
     }
 
     // endregion

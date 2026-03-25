@@ -75,19 +75,65 @@ internal object RuleMatcher {
     fun urlMatchersOverlap(a: UrlMatcher?, b: UrlMatcher?): Boolean {
         // If either has no URL matcher, it matches all URLs → overlap possible
         if (a == null || b == null) return true
-        return when {
-            a is UrlMatcher.Exact && b is UrlMatcher.Exact ->
+
+        return when (a) {
+            is UrlMatcher.Exact if b is UrlMatcher.Exact ->
                 a.pattern.equals(b.pattern, ignoreCase = true)
 
-            a is UrlMatcher.Contains && b is UrlMatcher.Contains ->
-                a.pattern.contains(b.pattern, ignoreCase = true) ||
-                    b.pattern.contains(a.pattern, ignoreCase = true)
+            // Any two Contains patterns can co-exist in a single URL, so always overlap
+            is UrlMatcher.Contains if b is UrlMatcher.Contains -> true
 
-            a is UrlMatcher.Exact && b is UrlMatcher.Contains ->
+            is UrlMatcher.Exact if b is UrlMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true)
 
-            a is UrlMatcher.Contains && b is UrlMatcher.Exact ->
+            is UrlMatcher.Contains if b is UrlMatcher.Exact ->
                 b.pattern.contains(a.pattern, ignoreCase = true)
+            // Regex vs anything: conservatively assume overlap
+            else -> true
+        }
+    }
+
+    fun headerMatchersOverlap(a: List<HeaderMatcher>, b: List<HeaderMatcher>): Boolean {
+        // If either side has no header matchers it matches all headers → overlap possible
+        if (a.isEmpty() || b.isEmpty()) return true
+
+        // Group matchers by key (case-insensitive).
+        // For each key present in BOTH rules, check whether the matchers are compatible.
+        val aByKey = a.groupBy { it.key.lowercase() }
+        val bByKey = b.groupBy { it.key.lowercase() }
+
+        val sharedKeys = aByKey.keys.intersect(bByKey.keys)
+        // Keys only in one side don't prevent overlap (a request can have any headers).
+        // But shared keys must have compatible matchers.
+        return sharedKeys.all { key ->
+            val aMatchers = aByKey.getValue(key)
+            val bMatchers = bByKey.getValue(key)
+            aMatchers.all { am ->
+                bMatchers.all { bm ->
+                    singleHeaderMatchersOverlap(am, bm)
+                }
+            }
+        }
+    }
+
+    private fun singleHeaderMatchersOverlap(a: HeaderMatcher, b: HeaderMatcher): Boolean {
+        // KeyExists overlaps with everything (it only checks presence)
+        if (a is HeaderMatcher.KeyExists || b is HeaderMatcher.KeyExists) return true
+
+        return when {
+            a is HeaderMatcher.ValueExact && b is HeaderMatcher.ValueExact ->
+                a.value.equals(b.value, ignoreCase = true)
+
+            a is HeaderMatcher.ValueContains && b is HeaderMatcher.ValueContains ->
+                a.value.contains(b.value, ignoreCase = true) ||
+                    b.value.contains(a.value, ignoreCase = true)
+
+            a is HeaderMatcher.ValueExact && b is HeaderMatcher.ValueContains ->
+                a.value.contains(b.value, ignoreCase = true)
+
+            a is HeaderMatcher.ValueContains && b is HeaderMatcher.ValueExact ->
+                b.value.contains(a.value, ignoreCase = true)
+
             // Regex vs anything: conservatively assume overlap
             else -> true
         }
@@ -99,9 +145,8 @@ internal object RuleMatcher {
             a is BodyMatcher.Exact && b is BodyMatcher.Exact ->
                 a.pattern.equals(b.pattern, ignoreCase = true)
 
-            a is BodyMatcher.Contains && b is BodyMatcher.Contains ->
-                a.pattern.contains(b.pattern, ignoreCase = true) ||
-                    b.pattern.contains(a.pattern, ignoreCase = true)
+            // Any two Contains patterns can co-exist in a single body, so always overlap
+            a is BodyMatcher.Contains && b is BodyMatcher.Contains -> true
 
             a is BodyMatcher.Exact && b is BodyMatcher.Contains ->
                 a.pattern.contains(b.pattern, ignoreCase = true)
@@ -119,6 +164,7 @@ internal object RuleMatcher {
     fun rulesOverlap(a: WiretapRule, b: WiretapRule): Boolean {
         if (!methodsOverlap(a.method, b.method)) return false
         if (!urlMatchersOverlap(a.urlMatcher, b.urlMatcher)) return false
+        if (!headerMatchersOverlap(a.headerMatchers, b.headerMatchers)) return false
         if (!bodyMatchersOverlap(a.bodyMatcher, b.bodyMatcher)) return false
         return true
     }

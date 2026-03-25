@@ -3,8 +3,11 @@ package dev.skymansandy.wiretap.data.db.room.entity
 import androidx.room.ColumnInfo
 
 internal data class HttpLogListProjection(
+    @ColumnInfo(name = "id")
     val id: Long,
+    @ColumnInfo(name = "url")
     val url: String,
+    @ColumnInfo(name = "method")
     val method: String,
     @ColumnInfo(name = "request_headers")
     val requestHeaders: String,
@@ -16,10 +19,13 @@ internal data class HttpLogListProjection(
     val responseBodySize: Long,
     @ColumnInfo(name = "duration_ms")
     val durationMs: Long,
+    @ColumnInfo(name = "source")
     val source: String,
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long,
     @ColumnInfo(name = "matched_rule_id")
     val matchedRuleId: Long?,
+    @ColumnInfo(name = "protocol")
     val protocol: String?,
     @ColumnInfo(name = "remote_address")
     val remoteAddress: String?,

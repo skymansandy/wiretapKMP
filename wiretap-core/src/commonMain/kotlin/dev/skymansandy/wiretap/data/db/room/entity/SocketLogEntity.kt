@@ -4,10 +4,13 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "SocketLogEntity")
+@Entity(
+    tableName = "SocketLogEntity",
+)
 internal data class SocketLogEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    @ColumnInfo(name = "url")
     val url: String,
     @ColumnInfo(name = "request_headers", defaultValue = "")
     val requestHeaders: String = "",
@@ -21,9 +24,11 @@ internal data class SocketLogEntity(
     val failureMessage: String? = null,
     @ColumnInfo(name = "message_count", defaultValue = "0")
     val messageCount: Long = 0,
+    @ColumnInfo(name = "timestamp")
     val timestamp: Long,
     @ColumnInfo(name = "closed_at")
     val closedAt: Long? = null,
+    @ColumnInfo(name = "protocol")
     val protocol: String? = null,
     @ColumnInfo(name = "remote_address")
     val remoteAddress: String? = null,
