@@ -4,9 +4,12 @@ import app.cash.turbine.test
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
-import dev.skymansandy.wiretap.data.db.dao.RuleDao
+import dev.skymansandy.wiretap.data.db.room.dao.RulesDao
+import dev.skymansandy.wiretap.data.db.room.entity.RuleEntity
+import dev.skymansandy.wiretap.toRoomEntity
 import dev.skymansandy.wiretap.wiretapRule
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -19,39 +22,71 @@ import kotlin.test.Test
 
 class RuleRepositoryImplTest {
 
-    private lateinit var ruleDao: RuleDao
+    private lateinit var rulesDao: RulesDao
     private lateinit var repository: RuleRepositoryImpl
 
     @BeforeTest
     fun setup() {
-        ruleDao = mock<RuleDao>()
-        repository = RuleRepositoryImpl(ruleDao)
+        rulesDao = mock<RulesDao>()
+        repository = RuleRepositoryImpl(rulesDao)
     }
 
     @Test
     fun `addRule delegates to dao`() = runTest {
-        val rule = wiretapRule()
-        everySuspend { ruleDao.insert(rule) } returns Unit
+        everySuspend { rulesDao.insert(any<RuleEntity>()) } returns Unit
 
-        repository.addRule(rule)
+        repository.addRule(wiretapRule())
 
-        verifySuspend { ruleDao.insert(rule) }
+        verifySuspend { rulesDao.insert(any<RuleEntity>()) }
     }
 
     @Test
     fun `updateRule delegates to dao`() = runTest {
-        val rule = wiretapRule(id = 5)
-        everySuspend { ruleDao.update(rule) } returns Unit
+        everySuspend {
+            rulesDao.update(
+                method = any(),
+                urlMatcherType = any(),
+                urlPattern = any(),
+                headerMatchers = any(),
+                bodyMatcherType = any(),
+                bodyPattern = any(),
+                action = any(),
+                mockResponseCode = any(),
+                mockResponseBody = any(),
+                mockResponseHeaders = any(),
+                throttleDelayMs = any(),
+                throttleDelayMaxMs = any(),
+                enabled = any(),
+                id = any(),
+            )
+        } returns Unit
 
-        repository.updateRule(rule)
+        repository.updateRule(wiretapRule(id = 5))
 
-        verifySuspend { ruleDao.update(rule) }
+        verifySuspend {
+            rulesDao.update(
+                method = any(),
+                urlMatcherType = any(),
+                urlPattern = any(),
+                headerMatchers = any(),
+                bodyMatcherType = any(),
+                bodyPattern = any(),
+                action = any(),
+                mockResponseCode = any(),
+                mockResponseBody = any(),
+                mockResponseHeaders = any(),
+                throttleDelayMs = any(),
+                throttleDelayMaxMs = any(),
+                enabled = any(),
+                id = any(),
+            )
+        }
     }
 
     @Test
     fun `getAll returns flow from dao`() = runTest {
-        val rules = listOf(wiretapRule(id = 1), wiretapRule(id = 2))
-        every { ruleDao.getAll() } returns flowOf(rules)
+        val roomEntities = listOf(wiretapRule(id = 1).toRoomEntity(), wiretapRule(id = 2).toRoomEntity())
+        every { rulesDao.getAll() } returns flowOf(roomEntities)
 
         repository.getAll().test {
             awaitItem() shouldHaveSize 2
@@ -61,8 +96,8 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `search returns flow from dao`() = runTest {
-        val rules = listOf(wiretapRule(id = 1))
-        every { ruleDao.search("test") } returns flowOf(rules)
+        val roomEntities = listOf(wiretapRule(id = 1).toRoomEntity())
+        every { rulesDao.search("test") } returns flowOf(roomEntities)
 
         repository.search("test").test {
             awaitItem() shouldHaveSize 1
@@ -72,7 +107,7 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `search returns empty flow when no matches`() = runTest {
-        every { ruleDao.search("nonexistent") } returns flowOf(emptyList())
+        every { rulesDao.search("nonexistent") } returns flowOf(emptyList())
 
         repository.search("nonexistent").test {
             awaitItem().shouldBeEmpty()
@@ -82,51 +117,52 @@ class RuleRepositoryImplTest {
 
     @Test
     fun `getById returns rule from dao`() = runTest {
-        val rule = wiretapRule(id = 1)
-        everySuspend { ruleDao.getById(1L) } returns rule
+        everySuspend { rulesDao.getById(1L) } returns wiretapRule(id = 1).toRoomEntity()
 
-        repository.getById(1L) shouldBe rule
+        val result = repository.getById(1L)
+        result?.id shouldBe 1L
     }
 
     @Test
     fun `getById returns null when not found`() = runTest {
-        everySuspend { ruleDao.getById(999L) } returns null
+        everySuspend { rulesDao.getById(999L) } returns null
 
         repository.getById(999L).shouldBeNull()
     }
 
     @Test
     fun `getEnabledRules delegates to dao`() = runTest {
-        val rules = listOf(wiretapRule(id = 1, enabled = true))
-        everySuspend { ruleDao.getEnabledRules() } returns rules
+        everySuspend { rulesDao.getEnabledRules() } returns listOf(wiretapRule(id = 1).toRoomEntity())
 
-        repository.getEnabledRules() shouldBe rules
+        val result = repository.getEnabledRules()
+        result shouldHaveSize 1
+        result[0].id shouldBe 1L
     }
 
     @Test
     fun `setEnabled delegates to dao`() = runTest {
-        everySuspend { ruleDao.updateEnabled(1L, false) } returns Unit
+        everySuspend { rulesDao.updateEnabled(enabled = 0L, id = 1L) } returns Unit
 
         repository.setEnabled(1L, false)
 
-        verifySuspend { ruleDao.updateEnabled(1L, false) }
+        verifySuspend { rulesDao.updateEnabled(enabled = 0L, id = 1L) }
     }
 
     @Test
     fun `deleteById delegates to dao`() = runTest {
-        everySuspend { ruleDao.deleteById(1L) } returns Unit
+        everySuspend { rulesDao.deleteById(1L) } returns Unit
 
         repository.deleteById(1L)
 
-        verifySuspend { ruleDao.deleteById(1L) }
+        verifySuspend { rulesDao.deleteById(1L) }
     }
 
     @Test
     fun `deleteAll delegates to dao`() = runTest {
-        everySuspend { ruleDao.deleteAll() } returns Unit
+        everySuspend { rulesDao.deleteAll() } returns Unit
 
         repository.deleteAll()
 
-        verifySuspend { ruleDao.deleteAll() }
+        verifySuspend { rulesDao.deleteAll() }
     }
 }

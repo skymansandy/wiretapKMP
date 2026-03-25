@@ -30,7 +30,7 @@ internal fun OverviewTab(
                 add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
                 add("Source" to entry.source.name)
                 add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
-                add("Response Size" to formatSize(entry.responseBody?.encodeToByteArray()?.size?.toLong()))
+                add("Response Size" to formatSize(entry.responseBodySize))
                 entry.protocol?.let { add("HTTP Version" to it) }
                 entry.remoteAddress?.let { add("Remote Address" to it) }
                 entry.tlsProtocol?.let { add("TLS Protocol" to it) }

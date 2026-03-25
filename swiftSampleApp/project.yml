@@ -27,7 +27,6 @@ targets:
         SWIFT_VERSION: "5.9"
         OTHER_LDFLAGS:
           - "-ObjC"
-          - "-lsqlite3"
     dependencies:
       - package: WiretapURLSession
     preBuildScripts:

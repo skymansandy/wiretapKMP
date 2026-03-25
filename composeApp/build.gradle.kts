@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-    alias(libs.plugins.sqldelight)
+
 }
 
 kotlin {
@@ -36,7 +36,6 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.sqldelight.android.driver)
             implementation(libs.ktor.client.android)
         }
         commonMain.dependencies {
@@ -50,8 +49,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             compileOnly(projects.wiretapKtor)
             implementation(libs.material.icons.extended)
-            implementation(libs.sqldelight.runtime)
-            implementation(libs.sqldelight.coroutines)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
@@ -65,23 +62,12 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation(libs.sqldelight.sqlite.driver)
             implementation(libs.ktor.client.java)
             implementation(projects.wiretapKtor)
         }
         iosMain.dependencies {
-            implementation(libs.sqldelight.native.driver)
             implementation(libs.ktor.client.darwin)
             implementation(projects.wiretapKtor)
-        }
-    }
-}
-
-sqldelight {
-    databases {
-        create("WiretapDb") {
-            packageName.set("dev.skymansandy.wiretapsample.db")
-            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
         }
     }
 }

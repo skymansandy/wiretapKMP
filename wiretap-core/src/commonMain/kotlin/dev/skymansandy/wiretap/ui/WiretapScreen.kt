@@ -2,14 +2,20 @@ package dev.skymansandy.wiretap.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -118,18 +124,30 @@ fun WiretapScreen(
 
                     VerticalDivider(modifier = Modifier.fillMaxHeight())
 
-                    when (val current = route) {
-                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
-                            entry = current.entry,
-                            onBack = { navigateTo(null) },
-                            onViewRule = { ruleId ->
-                                scope.launch {
-                                    val rule = ruleRepository.getById(ruleId)
-                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                }
-                            },
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                    val detailModifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .consumeWindowInsets(
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
                         )
+
+                    when (val current = route) {
+                        is WiretapRoute.HttpDetail -> {
+                            val fullEntry by produceState(current.entry, current.entry.id) {
+                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
+                            }
+                            HttpLogDetailScreen(
+                                entry = fullEntry,
+                                onBack = { navigateTo(null) },
+                                onViewRule = { ruleId ->
+                                    scope.launch {
+                                        val rule = ruleRepository.getById(ruleId)
+                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                    }
+                                },
+                                modifier = detailModifier,
+                            )
+                        }
 
                         is WiretapRoute.SocketDetail -> {
                             val vm = viewModel(key = "socket_${current.socketId}") {
@@ -138,7 +156,7 @@ fun WiretapScreen(
                             SocketDetailScreen(
                                 viewModel = vm,
                                 onBack = { navigateTo(null) },
-                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                modifier = detailModifier,
                             )
                         }
 
@@ -168,16 +186,21 @@ fun WiretapScreen(
                             )
                         }
 
-                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
-                            entry = current.entry,
-                            onBack = { navigateTo(null) },
-                            onViewRule = { ruleId ->
-                                scope.launch {
-                                    val rule = ruleRepository.getById(ruleId)
-                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                }
-                            },
-                        )
+                        is WiretapRoute.HttpDetail -> {
+                            val fullEntry by produceState(current.entry, current.entry.id) {
+                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
+                            }
+                            HttpLogDetailScreen(
+                                entry = fullEntry,
+                                onBack = { navigateTo(null) },
+                                onViewRule = { ruleId ->
+                                    scope.launch {
+                                        val rule = ruleRepository.getById(ruleId)
+                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                    }
+                                },
+                            )
+                        }
 
                         is WiretapRoute.RuleDetail -> {
                             val vm = viewModel(key = "rule_detail_${current.rule.id}") {

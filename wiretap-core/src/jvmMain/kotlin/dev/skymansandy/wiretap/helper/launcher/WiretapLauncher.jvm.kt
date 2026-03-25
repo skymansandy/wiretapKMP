@@ -1,8 +1,8 @@
 package dev.skymansandy.wiretap.helper.launcher
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.awt.ComposePanel
 import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
@@ -17,7 +17,7 @@ actual fun startWiretap() {
 
             val composePanel = ComposePanel()
             composePanel.setContent {
-                MaterialTheme {
+                WiretapTheme {
                     WiretapScreen(
                         onBack = {
                             dispose()

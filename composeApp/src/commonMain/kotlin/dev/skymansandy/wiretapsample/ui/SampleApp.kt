@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,11 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,19 +26,25 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +56,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.helper.launcher.enableWiretapLauncher
+import dev.skymansandy.wiretapsample.model.ActionCategory
 import dev.skymansandy.wiretapsample.model.HttpSampleActions
+import dev.skymansandy.wiretapsample.model.SampleAction
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.TabItem
 import dev.skymansandy.wiretapsample.model.WsSampleActions
@@ -70,11 +78,12 @@ import dev.skymansandy.wiretapsample.resources.tab_websocket
 import dev.skymansandy.wiretapsample.resources.type_message
 import dev.skymansandy.wiretapsample.resources.websocket_title
 import dev.skymansandy.wiretapsample.ui.scaffold.LandscapeLayout
+import dev.skymansandy.wiretapsample.ui.scaffold.LocalWideScreen
 import dev.skymansandy.wiretapsample.ui.scaffold.PortraitLayout
 import dev.skymansandy.wiretapsample.ui.theme.ColorServerError
 import dev.skymansandy.wiretapsample.ui.theme.ColorSuccess
 import dev.skymansandy.wiretapsample.ui.theme.ColorWsSent
-import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -83,28 +92,28 @@ fun SampleApp(
     httpActions: HttpSampleActions,
     wsActions: WsSampleActions,
 ) {
-
     LaunchedEffect(Unit) {
         enableWiretapLauncher()
     }
 
-    WiretapTheme {
-        var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-        val tabs = listOf(
-            TabItem(
-                icon = Icons.Default.Http,
-                label = stringResource(Res.string.tab_http),
-            ),
-            TabItem(
-                icon = Icons.Default.Wifi,
-                label = stringResource(Res.string.tab_websocket),
-            ),
-        )
+    val tabs = listOf(
+        TabItem(
+            icon = Icons.Default.Http,
+            label = stringResource(Res.string.tab_http),
+        ),
+        TabItem(
+            icon = Icons.Default.Wifi,
+            label = stringResource(Res.string.tab_websocket),
+        ),
+    )
 
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val isLandscape = maxWidth > maxHeight
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isLandscape = maxWidth > maxHeight
+        val isWideScreen = maxWidth > 600.dp
 
+        CompositionLocalProvider(LocalWideScreen provides isWideScreen) {
             if (isLandscape) {
                 LandscapeLayout(
                     title = title,
@@ -164,6 +173,7 @@ private fun HttpTab(
 
     val statusLog by httpActions.statusLog.collectAsStateWithLifecycle()
     val readyText = stringResource(Res.string.status_ready)
+    val isWideScreen = LocalWideScreen.current
 
     Column(
         modifier = modifier
@@ -179,68 +189,117 @@ private fun HttpTab(
             style = MaterialTheme.typography.titleMedium,
         )
 
-        BoxWithConstraints(modifier = Modifier.weight(1f)) {
-            val isWide = maxWidth > 600.dp
-
-            if (isWide) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    ActionButtonGrid(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        httpActions = httpActions,
-                    )
-                    StatusWindow(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        statusLog = statusLog.ifEmpty { readyText },
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    StatusWindow(
-                        modifier = Modifier.weight(1f),
-                        statusLog = statusLog.ifEmpty { readyText },
-                    )
-                    ActionButtonGrid(httpActions = httpActions)
-                }
+        if (isWideScreen) {
+            Row(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ActionButtonGrid(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    httpActions = httpActions,
+                )
+                StatusWindow(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    statusLog = statusLog.ifEmpty { readyText },
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                StatusWindow(
+                    modifier = Modifier.weight(1f),
+                    statusLog = statusLog.ifEmpty { readyText },
+                )
+                ActionButtonGrid(
+                    modifier = Modifier.weight(1f),
+                    httpActions = httpActions,
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActionButtonGrid(
     httpActions: HttpSampleActions,
     modifier: Modifier = Modifier,
 ) {
 
-    LazyVerticalGrid(
-        modifier = modifier,
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 8.dp),
-    ) {
-        itemsIndexed(httpActions.actions) { index, action ->
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
-                onClick = { httpActions.executeAction(index) },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = action.color),
-            ) {
-                Text(
-                    text = action.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+    val groups = remember(httpActions.actions) { groupActions(httpActions.actions) }
+    val pagerState = rememberPagerState { groups.size }
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = modifier) {
+
+        SecondaryTabRow(selectedTabIndex = pagerState.currentPage) {
+            groups.forEachIndexed { index, group ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = { Text(group.title) },
                 )
             }
         }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+        ) { page ->
+
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+
+                groups[page].actions.forEach { (index, action) ->
+                    OutlinedButton(
+                        onClick = { httpActions.executeAction(index) },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = action.color),
+                    ) {
+                        Text(
+                            text = action.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
     }
+}
+
+private data class ActionGroup(
+    val title: String,
+    val actions: List<Pair<Int, SampleAction>>,
+)
+
+private fun groupActions(actions: List<SampleAction>): List<ActionGroup> {
+    return actions.mapIndexed { index, action -> index to action }
+        .groupBy { (_, action) ->
+            when (action.category) {
+                ActionCategory.Success -> "Success"
+                ActionCategory.Redirect,
+                ActionCategory.ClientError,
+                ActionCategory.ServerError,
+                -> "!Success"
+
+                ActionCategory.Timeout,
+                ActionCategory.Cancel,
+                -> "Timeouts"
+
+                ActionCategory.Batch -> "Burst"
+            }
+        }
+        .map { (title, items) -> ActionGroup(title, items) }
 }
 
 @Composable
@@ -314,122 +373,232 @@ private fun WsTab(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    val isWideScreen = LocalWideScreen.current
 
-        Text(
-            text = stringResource(Res.string.websocket_title),
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            wsActions.servers.forEachIndexed { index, (_, label) ->
-                OutlinedButton(
-                    onClick = { wsActions.selectServer(index) },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = when (selectedServerIndex) {
-                            index -> MaterialTheme.colorScheme.primaryContainer
-                            else -> Color.Transparent
-                        },
-                    ),
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
-
+    if (isWideScreen) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 
-            OutlinedButton(
-                onClick = { wsActions.toggleConnection() },
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (isConnected) ColorServerError else ColorSuccess,
-                ),
-                enabled = !isConnecting,
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+
                 Text(
-                    text = when {
-                        isConnecting -> stringResource(Res.string.connecting)
-                        isConnected -> stringResource(Res.string.disconnect)
-                        else -> stringResource(Res.string.connect)
+                    text = stringResource(Res.string.websocket_title),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                WsServerSelector(
+                    wsActions = wsActions,
+                    selectedServerIndex = selectedServerIndex,
+                )
+
+                WsConnectionControl(
+                    wsActions = wsActions,
+                    isConnected = isConnected,
+                    isConnecting = isConnecting,
+                )
+
+                WsMessageInput(
+                    messageText = messageText,
+                    onMessageTextChange = { messageText = it },
+                    isConnected = isConnected,
+                    onSend = {
+                        val text = messageText.trim()
+                        if (text.isNotEmpty() && isConnected) {
+                            messageText = ""
+                            wsActions.sendMessage(text)
+                        }
                     },
-                    fontWeight = FontWeight.Bold,
                 )
             }
 
-            if (isConnected) {
-                Text(
-                    text = stringResource(Res.string.connected),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = ColorSuccess,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                listState = listState,
+                messageLog = wsActions.messageLog,
+            )
         }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(wsActions.messageLog) { entry ->
-                WsMessageItem(entry)
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 
-            OutlinedTextField(
-                value = messageText,
-                onValueChange = { messageText = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(Res.string.type_message)) },
-                singleLine = true,
-                enabled = isConnected,
+            Text(
+                text = stringResource(Res.string.websocket_title),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
             )
 
-            IconButton(
-                onClick = {
+            WsServerSelector(
+                wsActions = wsActions,
+                selectedServerIndex = selectedServerIndex,
+            )
+
+            WsConnectionControl(
+                wsActions = wsActions,
+                isConnected = isConnected,
+                isConnecting = isConnecting,
+            )
+
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                listState = listState,
+                messageLog = wsActions.messageLog,
+            )
+
+            WsMessageInput(
+                messageText = messageText,
+                onMessageTextChange = { messageText = it },
+                isConnected = isConnected,
+                onSend = {
                     val text = messageText.trim()
                     if (text.isNotEmpty() && isConnected) {
                         messageText = ""
                         wsActions.sendMessage(text)
                     }
                 },
-                enabled = isConnected && messageText.isNotBlank(),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    contentDescription = stringResource(Res.string.send),
-                    tint = when {
-                        isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WsServerSelector(
+    wsActions: WsSampleActions,
+    selectedServerIndex: Int,
+) {
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        wsActions.servers.forEachIndexed { index, (_, label) ->
+            OutlinedButton(
+                onClick = { wsActions.selectServer(index) },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = when (selectedServerIndex) {
+                        index -> MaterialTheme.colorScheme.primaryContainer
+                        else -> Color.Transparent
                     },
+                ),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun WsConnectionControl(
+    wsActions: WsSampleActions,
+    isConnected: Boolean,
+    isConnecting: Boolean,
+) {
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+
+        OutlinedButton(
+            onClick = { wsActions.toggleConnection() },
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (isConnected) ColorServerError else ColorSuccess,
+            ),
+            enabled = !isConnecting,
+        ) {
+            Text(
+                text = when {
+                    isConnecting -> stringResource(Res.string.connecting)
+                    isConnected -> stringResource(Res.string.disconnect)
+                    else -> stringResource(Res.string.connect)
+                },
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        if (isConnected) {
+            Text(
+                text = stringResource(Res.string.connected),
+                style = MaterialTheme.typography.labelMedium,
+                color = ColorSuccess,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WsMessageLog(
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    messageLog: List<SampleMessage>,
+    modifier: Modifier = Modifier,
+) {
+
+    LazyColumn(
+        state = listState,
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(messageLog) { entry ->
+            WsMessageItem(entry)
+        }
+    }
+}
+
+@Composable
+private fun WsMessageInput(
+    messageText: String,
+    onMessageTextChange: (String) -> Unit,
+    isConnected: Boolean,
+    onSend: () -> Unit,
+) {
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+
+        OutlinedTextField(
+            value = messageText,
+            onValueChange = onMessageTextChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(stringResource(Res.string.type_message)) },
+            singleLine = true,
+            enabled = isConnected,
+        )
+
+        IconButton(
+            onClick = onSend,
+            enabled = isConnected && messageText.isNotBlank(),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.Send,
+                contentDescription = stringResource(Res.string.send),
+                tint = when {
+                    isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                },
+            )
         }
     }
 }

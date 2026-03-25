@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dev.skymansandy.wiretap.di.okHttpSampleModule
 import dev.skymansandy.wiretapsample.ui.SampleApp
+import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.dsl.koinApplication
@@ -21,11 +22,13 @@ internal class OkHttpSampleActivity : ComponentActivity() {
                     modules(okHttpSampleModule)
                 },
             ) {
-                SampleApp(
-                    title = "OkHttp Sample",
-                    httpActions = koinViewModel<OkHttpViewModel>(),
-                    wsActions = koinViewModel<OkHttpWsViewModel>(),
-                )
+                WiretapTheme {
+                    SampleApp(
+                        title = "OkHttp Sample",
+                        httpActions = koinViewModel<OkHttpViewModel>(),
+                        wsActions = koinViewModel<OkHttpWsViewModel>(),
+                    )
+                }
             }
         }
     }

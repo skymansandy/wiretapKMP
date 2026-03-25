@@ -52,4 +52,8 @@ internal class HttpOrchestratorImpl(
     override suspend fun purgeHttpLogsOlderThan(cutoffMs: Long) {
         httpRepository.deleteOlderThan(cutoffMs)
     }
+
+    override suspend fun markHttpCancelledIfInProgress(id: Long) {
+        httpRepository.markCancelledIfInProgress(id)
+    }
 }

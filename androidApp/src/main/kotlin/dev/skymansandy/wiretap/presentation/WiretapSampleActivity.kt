@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import dev.skymansandy.wiretap.presentation.ktor.KtorSampleActivity
 import dev.skymansandy.wiretap.presentation.okhttp.OkHttpSampleActivity
+import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 
 internal class WiretapSampleActivity : ComponentActivity() {
 
@@ -37,7 +38,7 @@ internal class WiretapSampleActivity : ComponentActivity() {
         requestNotificationPermission()
         enableEdgeToEdge()
         setContent {
-            MaterialTheme {
+            WiretapTheme {
                 Scaffold { padding ->
                     Column(
                         modifier = Modifier

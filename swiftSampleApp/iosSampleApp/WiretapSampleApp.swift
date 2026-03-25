@@ -5,7 +5,7 @@ import WiretapURLSession
 struct WiretapSampleApp: App {
     
     init() {
-        WiretapLauncher_iosKt.enableLaunchTool()
+        WiretapLauncher_iosKt.enableWiretapLauncher()
     }
 
     var body: some Scene {

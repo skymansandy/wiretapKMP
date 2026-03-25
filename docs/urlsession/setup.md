@@ -52,9 +52,6 @@ Add the WiretapKMP SPM package via its GitHub repository URL, then link the `Wir
           - package: WiretapURLSession
     ```
 
-!!! warning "Linker Flag Required"
-    Add `-lsqlite3` to **Other Linker Flags** in your Xcode target's Build Settings. WiretapKMP uses SQLite for log storage, and the iOS framework requires this system library to be linked.
-
 ## Create the Interceptor
 
 ```swift
@@ -67,14 +64,14 @@ let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
     }
     config.headerAction = { key in
         if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-            return HeaderAction.Mask(mask: "***")
+            return HeaderActionMask(mask: "***")
         }
         if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-            return HeaderAction.Skip.shared
+            return HeaderActionSkip.shared
         }
-        return HeaderAction.Keep.shared
+        return HeaderActionKeep.shared
     }
-    config.logRetention = LogRetention.Days(days: 7)
+    config.logRetention = LogRetentionDays(days: 7)
 }
 ```
 
@@ -99,8 +96,8 @@ struct MyApp: App {
 |----------|-----------|---------|-------------|
 | `enabled` | `Bool` | `true` | Master switch — `false` disables all logging |
 | `shouldLog` | `(String, String) -> KotlinBoolean` | logs all | Filter which requests to capture |
-| `headerAction` | `(String) -> HeaderAction` | `Keep` | Control how headers are logged |
-| `logRetention` | `LogRetention` | `Forever` | How long to keep log entries |
+| `headerAction` | `(String) -> HeaderAction` | `HeaderActionKeep` | Control how headers are logged |
+| `logRetention` | `LogRetention` | `LogRetentionForever` | How long to keep log entries |
 
 ### `enabled`
 
@@ -124,22 +121,22 @@ config.shouldLog = { url, method in
 ```swift
 config.headerAction = { key in
     if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-        return HeaderAction.Mask(mask: "***")
+        return HeaderActionMask(mask: "***")
     }
     if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-        return HeaderAction.Skip.shared
+        return HeaderActionSkip.shared
     }
-    return HeaderAction.Keep.shared
+    return HeaderActionKeep.shared
 }
 ```
 
 !!! note "Swift Singletons"
-    `Keep` and `Skip` are Kotlin objects — access them via `.shared` in Swift. `Mask` is a data class and is constructed normally.
+    `HeaderActionKeep` and `HeaderActionSkip` are Kotlin objects — access them via `.shared` in Swift. `HeaderActionMask` is a data class and is constructed normally.
 
 ### `logRetention`
 
 ```swift
-config.logRetention = LogRetention.Forever.shared
-config.logRetention = LogRetention.AppSession.shared
-config.logRetention = LogRetention.Days(days: 7)
+config.logRetention = LogRetentionForever.shared
+config.logRetention = LogRetentionAppSession.shared
+config.logRetention = LogRetentionDays(days: 7)
 ```

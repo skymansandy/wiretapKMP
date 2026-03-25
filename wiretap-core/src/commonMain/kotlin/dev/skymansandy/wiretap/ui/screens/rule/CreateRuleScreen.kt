@@ -25,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -36,6 +37,7 @@ import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
@@ -55,6 +57,10 @@ internal fun CreateRuleScreen(
 ) {
     val scope = rememberCoroutineScope()
     val step by viewModel.step.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.resetStep()
+    }
 
     // Request state
     val method by viewModel.method.collectAsStateWithLifecycle()
@@ -103,6 +109,10 @@ internal fun CreateRuleScreen(
         }
     }
 
+    PlatformBackHandler(enabled = step > 1) {
+        viewModel.prevStep()
+    }
+
     if (showConflictDialog && conflictingRules.isNotEmpty()) {
         ConflictDialog(
             conflictingRules = conflictingRules,
@@ -118,7 +128,13 @@ internal fun CreateRuleScreen(
             TopAppBar(
                 title = { Text(if (viewModel.isEditing) "Edit Rule" else "Create Rule") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (step > 1) {
+                            viewModel.prevStep()
+                        } else {
+                            onBack()
+                        }
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -273,7 +289,7 @@ private fun ConflictDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Discard")
+                Text("Go Back")
             }
         },
     )

@@ -20,6 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
@@ -35,6 +36,7 @@ internal fun HttpLogList(
     modifier: Modifier = Modifier,
     lazyItems: LazyPagingItems<HttpLogEntry>,
     searchQuery: String,
+    onDismissSearch: () -> Unit,
     onHttpClick: (HttpLogEntry) -> Unit,
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
@@ -87,6 +89,7 @@ internal fun HttpLogList(
                 searchQuery = searchQuery,
                 revealedItemId = revealedItemId,
                 onRevealedItemIdChange = { revealedItemId = it },
+                onDismissSearch = onDismissSearch,
                 onHttpClick = onHttpClick,
                 onCreateRule = onCreateRule,
                 onViewRule = onViewRule,
@@ -125,13 +128,14 @@ private fun HttpLogColumn(
     searchQuery: String,
     revealedItemId: String?,
     onRevealedItemIdChange: (String?) -> Unit,
+    onDismissSearch: () -> Unit,
     onHttpClick: (HttpLogEntry) -> Unit,
     onCreateRule: (HttpLogEntry) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
 
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.clipToBounds(),
         state = listState,
     ) {
         items(
@@ -147,6 +151,7 @@ private fun HttpLogColumn(
                 onReveal = { onRevealedItemIdChange(itemKey) },
                 onCollapse = { if (revealedItemId == itemKey) onRevealedItemIdChange(null) },
                 onClick = {
+                    onDismissSearch()
                     onRevealedItemIdChange(null)
                     onHttpClick(entry)
                 },

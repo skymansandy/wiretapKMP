@@ -1,0 +1,29 @@
+public final class dev/skymansandy/wiretap/Wiretap {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/Wiretap;
+	public final fun getKoinModule ()Lorg/koin/core/module/Module;
+}
+
+public final class dev/skymansandy/wiretap/di/WiretapModuleKt {
+	public static final fun getWiretapModule ()Lorg/koin/core/module/Module;
+}
+
+public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpInterceptor : okhttp3/Interceptor {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun intercept (Lokhttp3/Interceptor$Chain;)Lokhttp3/Response;
+}
+
+public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListener : okhttp3/WebSocketListener {
+	public static final field $stable I
+	public fun <init> (Lokhttp3/WebSocketListener;)V
+	public fun onClosed (Lokhttp3/WebSocket;ILjava/lang/String;)V
+	public fun onClosing (Lokhttp3/WebSocket;ILjava/lang/String;)V
+	public fun onFailure (Lokhttp3/WebSocket;Ljava/lang/Throwable;Lokhttp3/Response;)V
+	public fun onMessage (Lokhttp3/WebSocket;Ljava/lang/String;)V
+	public fun onMessage (Lokhttp3/WebSocket;Lokio/ByteString;)V
+	public fun onOpen (Lokhttp3/WebSocket;Lokhttp3/Response;)V
+}
+

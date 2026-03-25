@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dev.skymansandy.wiretapsample.App
+import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
 
 internal class KtorSampleActivity : ComponentActivity() {
 
@@ -12,7 +13,9 @@ internal class KtorSampleActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            App(title = "Ktor Sample")
+            WiretapTheme {
+                App(title = "Ktor Sample")
+            }
         }
     }
 }

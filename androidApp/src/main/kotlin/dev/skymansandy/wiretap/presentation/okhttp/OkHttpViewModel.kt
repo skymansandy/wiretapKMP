@@ -20,7 +20,7 @@ internal class OkHttpViewModel(
     override val statusLog: StateFlow<String> = _statusLog.asStateFlow()
 
     override val actions: List<SampleAction> = okHttpActions.map {
-        SampleAction(it.label, actionColor.getValue(it.category))
+        SampleAction(it.label, actionColor.getValue(it.category), it.category)
     }
 
     override fun executeAction(index: Int) {

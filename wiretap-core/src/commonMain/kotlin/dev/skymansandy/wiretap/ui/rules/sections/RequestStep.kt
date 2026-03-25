@@ -196,8 +196,10 @@ private fun HeaderMatcherItem(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .padding(top = 4.dp, bottom = 8.dp),
         ) {
 
             // Row 1: Mode dropdown + Key + Remove

@@ -1,11 +1,19 @@
 package dev.skymansandy.wiretap.ui.screens.console
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -17,11 +25,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -36,6 +46,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
@@ -71,6 +85,24 @@ internal fun WiretapHomeScreen(
     val lazyItems = viewModel.pagedLogs.collectAsLazyPagingItems()
     val searchFocusRequester = remember { FocusRequester() }
     var showClearConfirmation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var isSubTabVisible by remember { mutableStateOf(true) }
+    val subTabScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -1f) {
+                    isSubTabVisible = false
+                } else if (available.y > 1f) {
+                    isSubTabVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    // Reset tab visibility when switching tabs
+    LaunchedEffect(selectedTab, httpSubTab) {
+        isSubTabVisible = true
+    }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -80,8 +112,16 @@ internal fun WiretapHomeScreen(
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = if (isWideScreen) {
+            ScaffoldDefaults.contentWindowInsets.exclude(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+            )
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
         topBar = {
             WiretapTopBar(
+                title = if (selectedTab == TAB_HTTP) "HTTP Console" else "WebSocket Console",
                 isSearchActive = isSearchActive,
                 searchQuery = searchQuery,
                 searchFocusRequester = searchFocusRequester,
@@ -116,32 +156,39 @@ internal fun WiretapHomeScreen(
         val content: @Composable (Modifier) -> Unit = { contentModifier ->
             when (selectedTab) {
                 TAB_HTTP -> Column(
-                    modifier = contentModifier,
+                    modifier = contentModifier.nestedScroll(subTabScrollConnection),
                 ) {
 
-                    SecondaryTabRow(
-                        selectedTabIndex = httpSubTab,
-                        modifier = Modifier.fillMaxWidth(),
+                    AnimatedVisibility(
+                        visible = isSubTabVisible,
+                        enter = expandVertically(),
+                        exit = shrinkVertically(),
                     ) {
-                        Tab(
-                            selected = httpSubTab == HTTP_SUB_TAB_LOGS,
-                            onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_LOGS) },
-                            text = { Text("Logs") },
-                        )
-                        Tab(
-                            selected = httpSubTab == HTTP_SUB_TAB_RULES,
-                            onClick = {
-                                viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
-                                onNavigate(null)
-                            },
-                            text = { Text("Rules") },
-                        )
+                        SecondaryTabRow(
+                            selectedTabIndex = httpSubTab,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Tab(
+                                selected = httpSubTab == HTTP_SUB_TAB_LOGS,
+                                onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_LOGS) },
+                                text = { Text("Logs") },
+                            )
+                            Tab(
+                                selected = httpSubTab == HTTP_SUB_TAB_RULES,
+                                onClick = {
+                                    viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
+                                    onNavigate(null)
+                                },
+                                text = { Text("Rules") },
+                            )
+                        }
                     }
 
                     when (httpSubTab) {
                         HTTP_SUB_TAB_LOGS -> HttpLogList(
                             lazyItems = lazyItems,
                             searchQuery = searchQuery,
+                            onDismissSearch = { viewModel.setSearchActive(false) },
                             onHttpClick = { onNavigate(WiretapRoute.HttpDetail(it)) },
                             onCreateRule = { onNavigate(WiretapRoute.CreateRule(prefillFromLog = it)) },
                             onViewRule = { ruleId ->
@@ -166,6 +213,7 @@ internal fun WiretapHomeScreen(
                 TAB_WEBSOCKET -> SocketLogList(
                     socketLogs = socketLogs,
                     searchQuery = searchQuery,
+                    onDismissSearch = { viewModel.setSearchActive(false) },
                     onSocketClick = { onNavigate(WiretapRoute.SocketDetail(it.id)) },
                     modifier = contentModifier,
                 )
@@ -209,6 +257,7 @@ internal fun WiretapHomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WiretapTopBar(
+    title: String,
     isSearchActive: Boolean,
     searchQuery: String,
     searchFocusRequester: FocusRequester,
@@ -230,7 +279,7 @@ private fun WiretapTopBar(
                     focusRequester = searchFocusRequester,
                 )
             } else {
-                Text("Wiretap Console")
+                Text(title)
             }
         },
         navigationIcon = {
@@ -280,7 +329,7 @@ private fun ClearLogsConfirmationDialog(
         text = { Text("Are you sure you want to clear all logs?") },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Clear")
+                Text("Clear", color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {

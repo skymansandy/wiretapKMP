@@ -40,7 +40,7 @@ internal fun HttpLogItemContent(
 ) {
     val statusColor = when {
         entry.isInProgress -> WiretapColors.StatusBlue
-        entry.responseCode in 200..299 -> WiretapColors.StatusGreen
+        entry.responseCode in 200..299 -> androidx.compose.ui.graphics.Color.White
         entry.responseCode in 300..399 -> WiretapColors.StatusBlue
         entry.responseCode in 400..499 -> WiretapColors.StatusAmber
         entry.responseCode >= 500 -> WiretapColors.StatusRed
@@ -52,7 +52,7 @@ internal fun HttpLogItemContent(
     val host = withoutScheme.substringBefore("/").substringBefore("?")
     val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
 
-    val responseBytes = entry.responseBody?.encodeToByteArray()?.size ?: 0
+    val responseBytes = entry.responseBodySize
     val formattedSize = when {
         responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
         responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
@@ -61,7 +61,7 @@ internal fun HttpLogItemContent(
     }
 
     Column(
-        modifier = modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = modifier.background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -78,7 +78,7 @@ internal fun HttpLogItemContent(
                     entry.responseCode == -1 -> "!!!"
                     else -> "ERR"
                 },
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = statusColor,
                 modifier = Modifier.width(44.dp),
@@ -89,8 +89,9 @@ internal fun HttpLogItemContent(
             ) {
                 Text(
                     text = highlightText("${entry.method} $path", searchQuery),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
+                    color = statusColor,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -114,8 +115,8 @@ internal fun HttpLogItemContent(
 
                     Text(
                         text = highlightText(host, searchQuery),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = WiretapColors.SecureHost,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = statusColor,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis,
                     )
