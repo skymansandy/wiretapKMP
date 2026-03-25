@@ -36,6 +36,7 @@ import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +78,7 @@ import dev.skymansandy.wiretapsample.resources.tab_websocket
 import dev.skymansandy.wiretapsample.resources.type_message
 import dev.skymansandy.wiretapsample.resources.websocket_title
 import dev.skymansandy.wiretapsample.ui.scaffold.LandscapeLayout
+import dev.skymansandy.wiretapsample.ui.scaffold.LocalWideScreen
 import dev.skymansandy.wiretapsample.ui.scaffold.PortraitLayout
 import dev.skymansandy.wiretapsample.ui.theme.ColorServerError
 import dev.skymansandy.wiretapsample.ui.theme.ColorSuccess
@@ -93,7 +96,7 @@ fun SampleApp(
         enableWiretapLauncher()
     }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
     val tabs = listOf(
         TabItem(
@@ -108,37 +111,40 @@ fun SampleApp(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val isLandscape = maxWidth > maxHeight
+        val isWideScreen = maxWidth > 600.dp
 
-        if (isLandscape) {
-            LandscapeLayout(
-                title = title,
-                tabs = tabs,
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                content = { modifier ->
-                    TabContent(
-                        modifier = modifier,
-                        selectedTab = selectedTab,
-                        httpActions = httpActions,
-                        wsActions = wsActions,
-                    )
-                },
-            )
-        } else {
-            PortraitLayout(
-                title = title,
-                tabs = tabs,
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                content = { modifier ->
-                    TabContent(
-                        modifier = modifier,
-                        selectedTab = selectedTab,
-                        httpActions = httpActions,
-                        wsActions = wsActions,
-                    )
-                },
-            )
+        CompositionLocalProvider(LocalWideScreen provides isWideScreen) {
+            if (isLandscape) {
+                LandscapeLayout(
+                    title = title,
+                    tabs = tabs,
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                    content = { modifier ->
+                        TabContent(
+                            modifier = modifier,
+                            selectedTab = selectedTab,
+                            httpActions = httpActions,
+                            wsActions = wsActions,
+                        )
+                    },
+                )
+            } else {
+                PortraitLayout(
+                    title = title,
+                    tabs = tabs,
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it },
+                    content = { modifier ->
+                        TabContent(
+                            modifier = modifier,
+                            selectedTab = selectedTab,
+                            httpActions = httpActions,
+                            wsActions = wsActions,
+                        )
+                    },
+                )
+            }
         }
     }
 }
@@ -167,6 +173,7 @@ private fun HttpTab(
 
     val statusLog by httpActions.statusLog.collectAsStateWithLifecycle()
     val readyText = stringResource(Res.string.status_ready)
+    val isWideScreen = LocalWideScreen.current
 
     Column(
         modifier = modifier
@@ -182,37 +189,33 @@ private fun HttpTab(
             style = MaterialTheme.typography.titleMedium,
         )
 
-        BoxWithConstraints(modifier = Modifier.weight(1f)) {
-            val isWide = maxWidth > 600.dp
-
-            if (isWide) {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    ActionButtonGrid(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        httpActions = httpActions,
-                    )
-                    StatusWindow(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        statusLog = statusLog.ifEmpty { readyText },
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    StatusWindow(
-                        modifier = Modifier.weight(1f),
-                        statusLog = statusLog.ifEmpty { readyText },
-                    )
-                    ActionButtonGrid(
-                        modifier = Modifier.weight(1f),
-                        httpActions = httpActions,
-                    )
-                }
+        if (isWideScreen) {
+            Row(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ActionButtonGrid(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    httpActions = httpActions,
+                )
+                StatusWindow(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    statusLog = statusLog.ifEmpty { readyText },
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                StatusWindow(
+                    modifier = Modifier.weight(1f),
+                    statusLog = statusLog.ifEmpty { readyText },
+                )
+                ActionButtonGrid(
+                    modifier = Modifier.weight(1f),
+                    httpActions = httpActions,
+                )
             }
         }
     }
@@ -370,122 +373,232 @@ private fun WsTab(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    val isWideScreen = LocalWideScreen.current
 
-        Text(
-            text = stringResource(Res.string.websocket_title),
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            wsActions.servers.forEachIndexed { index, (_, label) ->
-                OutlinedButton(
-                    onClick = { wsActions.selectServer(index) },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = when (selectedServerIndex) {
-                            index -> MaterialTheme.colorScheme.primaryContainer
-                            else -> Color.Transparent
-                        },
-                    ),
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
-
+    if (isWideScreen) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 
-            OutlinedButton(
-                onClick = { wsActions.toggleConnection() },
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = if (isConnected) ColorServerError else ColorSuccess,
-                ),
-                enabled = !isConnecting,
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+
                 Text(
-                    text = when {
-                        isConnecting -> stringResource(Res.string.connecting)
-                        isConnected -> stringResource(Res.string.disconnect)
-                        else -> stringResource(Res.string.connect)
+                    text = stringResource(Res.string.websocket_title),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                WsServerSelector(
+                    wsActions = wsActions,
+                    selectedServerIndex = selectedServerIndex,
+                )
+
+                WsConnectionControl(
+                    wsActions = wsActions,
+                    isConnected = isConnected,
+                    isConnecting = isConnecting,
+                )
+
+                WsMessageInput(
+                    messageText = messageText,
+                    onMessageTextChange = { messageText = it },
+                    isConnected = isConnected,
+                    onSend = {
+                        val text = messageText.trim()
+                        if (text.isNotEmpty() && isConnected) {
+                            messageText = ""
+                            wsActions.sendMessage(text)
+                        }
                     },
-                    fontWeight = FontWeight.Bold,
                 )
             }
 
-            if (isConnected) {
-                Text(
-                    text = stringResource(Res.string.connected),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = ColorSuccess,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                listState = listState,
+                messageLog = wsActions.messageLog,
+            )
         }
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            items(wsActions.messageLog) { entry ->
-                WsMessageItem(entry)
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 
-            OutlinedTextField(
-                value = messageText,
-                onValueChange = { messageText = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text(stringResource(Res.string.type_message)) },
-                singleLine = true,
-                enabled = isConnected,
+            Text(
+                text = stringResource(Res.string.websocket_title),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
             )
 
-            IconButton(
-                onClick = {
+            WsServerSelector(
+                wsActions = wsActions,
+                selectedServerIndex = selectedServerIndex,
+            )
+
+            WsConnectionControl(
+                wsActions = wsActions,
+                isConnected = isConnected,
+                isConnecting = isConnecting,
+            )
+
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                listState = listState,
+                messageLog = wsActions.messageLog,
+            )
+
+            WsMessageInput(
+                messageText = messageText,
+                onMessageTextChange = { messageText = it },
+                isConnected = isConnected,
+                onSend = {
                     val text = messageText.trim()
                     if (text.isNotEmpty() && isConnected) {
                         messageText = ""
                         wsActions.sendMessage(text)
                     }
                 },
-                enabled = isConnected && messageText.isNotBlank(),
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    contentDescription = stringResource(Res.string.send),
-                    tint = when {
-                        isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WsServerSelector(
+    wsActions: WsSampleActions,
+    selectedServerIndex: Int,
+) {
+
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        wsActions.servers.forEachIndexed { index, (_, label) ->
+            OutlinedButton(
+                onClick = { wsActions.selectServer(index) },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = when (selectedServerIndex) {
+                        index -> MaterialTheme.colorScheme.primaryContainer
+                        else -> Color.Transparent
                     },
+                ),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun WsConnectionControl(
+    wsActions: WsSampleActions,
+    isConnected: Boolean,
+    isConnecting: Boolean,
+) {
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+
+        OutlinedButton(
+            onClick = { wsActions.toggleConnection() },
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (isConnected) ColorServerError else ColorSuccess,
+            ),
+            enabled = !isConnecting,
+        ) {
+            Text(
+                text = when {
+                    isConnecting -> stringResource(Res.string.connecting)
+                    isConnected -> stringResource(Res.string.disconnect)
+                    else -> stringResource(Res.string.connect)
+                },
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        if (isConnected) {
+            Text(
+                text = stringResource(Res.string.connected),
+                style = MaterialTheme.typography.labelMedium,
+                color = ColorSuccess,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WsMessageLog(
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    messageLog: List<SampleMessage>,
+    modifier: Modifier = Modifier,
+) {
+
+    LazyColumn(
+        state = listState,
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(messageLog) { entry ->
+            WsMessageItem(entry)
+        }
+    }
+}
+
+@Composable
+private fun WsMessageInput(
+    messageText: String,
+    onMessageTextChange: (String) -> Unit,
+    isConnected: Boolean,
+    onSend: () -> Unit,
+) {
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+
+        OutlinedTextField(
+            value = messageText,
+            onValueChange = onMessageTextChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text(stringResource(Res.string.type_message)) },
+            singleLine = true,
+            enabled = isConnected,
+        )
+
+        IconButton(
+            onClick = onSend,
+            enabled = isConnected && messageText.isNotBlank(),
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.Send,
+                contentDescription = stringResource(Res.string.send),
+                tint = when {
+                    isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                },
+            )
         }
     }
 }

@@ -4,11 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -111,13 +111,7 @@ fun WiretapScreen(
             val isTwoPaneRoute = route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail
 
             if (isWideScreen && isTwoPaneRoute) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(
-                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
-                        ),
-                ) {
+                Row(modifier = Modifier.fillMaxSize()) {
 
                     WiretapHomeScreen(
                         viewModel = homeVm,
@@ -129,6 +123,13 @@ fun WiretapScreen(
 
                     VerticalDivider(modifier = Modifier.fillMaxHeight())
 
+                    val detailModifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .consumeWindowInsets(
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+                        )
+
                     when (val current = route) {
                         is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
                             entry = current.entry,
@@ -139,7 +140,7 @@ fun WiretapScreen(
                                     if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
                                 }
                             },
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            modifier = detailModifier,
                         )
 
                         is WiretapRoute.SocketDetail -> {
@@ -149,7 +150,7 @@ fun WiretapScreen(
                             SocketDetailScreen(
                                 viewModel = vm,
                                 onBack = { navigateTo(null) },
-                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                modifier = detailModifier,
                             )
                         }
 

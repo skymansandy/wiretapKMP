@@ -5,10 +5,15 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -26,6 +31,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -106,6 +112,13 @@ internal fun WiretapHomeScreen(
 
     Scaffold(
         modifier = modifier,
+        contentWindowInsets = if (isWideScreen) {
+            ScaffoldDefaults.contentWindowInsets.exclude(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+            )
+        } else {
+            ScaffoldDefaults.contentWindowInsets
+        },
         topBar = {
             WiretapTopBar(
                 title = if (selectedTab == TAB_HTTP) "HTTP Console" else "WebSocket Console",
