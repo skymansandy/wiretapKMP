@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 data class SampleAction(
     val label: String,
     val color: Color,
+    val category: ActionCategory,
 )
 
 data class SampleMessage(

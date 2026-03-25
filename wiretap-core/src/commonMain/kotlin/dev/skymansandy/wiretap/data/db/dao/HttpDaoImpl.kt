@@ -132,4 +132,10 @@ internal class HttpDaoImpl(
             queries.deleteNetworkLogsOlderThan(timestamp)
         }
     }
+
+    override suspend fun markCancelledIfInProgress(id: Long) {
+        withContext(Dispatchers.IO) {
+            queries.markHttpCancelledIfInProgress(id)
+        }
+    }
 }

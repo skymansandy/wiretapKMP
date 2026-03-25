@@ -32,6 +32,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
@@ -135,6 +136,18 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         }
         if (logEntryId >= 0) {
             request.attributes.put(LogEntryIdKey, logEntryId)
+
+            // Safety net: if the coroutine is cancelled after proceed() returns
+            // but before onResponse fires, mark the entry as cancelled.
+            // The conditional SQL only updates entries still at -2 (in-progress),
+            // so it won't overwrite a legitimate response logged by onResponse.
+            coroutineContext[Job]?.invokeOnCompletion { cause ->
+                if (cause != null) {
+                    runBlocking {
+                        deps.orchestrator.markHttpCancelledIfInProgress(logEntryId)
+                    }
+                }
+            }
         }
 
         try {
@@ -268,24 +281,28 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
-        deps.orchestrator.updateHttp(
-            HttpLogEntry(
-                id = logEntryId,
-                url = url,
-                method = method,
-                requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                requestBody = null,
-                responseCode = response.status.value,
-                responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
-                responseBody = responseBody,
-                durationMs = durationMs,
-                durationNs = durationNs,
-                source = source,
-                timestamp = currentTimeMillis(),
-                matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
-                protocol = protocol,
-            ),
-        )
+        // NonCancellable ensures the DB update completes even when
+        // the coroutine is cancelled mid-response, so the entry doesn't stay stuck at "...".
+        withContext(NonCancellable) {
+            deps.orchestrator.updateHttp(
+                HttpLogEntry(
+                    id = logEntryId,
+                    url = url,
+                    method = method,
+                    requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                    requestBody = null,
+                    responseCode = response.status.value,
+                    responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
+                    responseBody = responseBody,
+                    durationMs = durationMs,
+                    durationNs = durationNs,
+                    source = source,
+                    timestamp = currentTimeMillis(),
+                    matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
+                    protocol = protocol,
+                ),
+            )
+        }
     }
 }
 

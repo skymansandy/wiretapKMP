@@ -23,4 +23,6 @@ interface HttpOrchestrator {
     suspend fun clearHttpLogs()
 
     suspend fun purgeHttpLogsOlderThan(cutoffMs: Long)
+
+    suspend fun markHttpCancelledIfInProgress(id: Long)
 }

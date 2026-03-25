@@ -23,4 +23,6 @@ interface HttpRepository {
     suspend fun deleteOlderThan(timestamp: Long)
 
     suspend fun clearAll()
+
+    suspend fun markCancelledIfInProgress(id: Long)
 }

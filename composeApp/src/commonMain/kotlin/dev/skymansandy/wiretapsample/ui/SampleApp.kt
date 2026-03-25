@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -13,11 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,11 +26,14 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +54,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.helper.launcher.enableWiretapLauncher
+import dev.skymansandy.wiretapsample.model.ActionCategory
 import dev.skymansandy.wiretapsample.model.HttpSampleActions
+import dev.skymansandy.wiretapsample.model.SampleAction
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.TabItem
 import dev.skymansandy.wiretapsample.model.WsSampleActions
@@ -74,7 +80,7 @@ import dev.skymansandy.wiretapsample.ui.scaffold.PortraitLayout
 import dev.skymansandy.wiretapsample.ui.theme.ColorServerError
 import dev.skymansandy.wiretapsample.ui.theme.ColorSuccess
 import dev.skymansandy.wiretapsample.ui.theme.ColorWsSent
-import dev.skymansandy.wiretapsample.ui.theme.WiretapTheme
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -83,59 +89,56 @@ fun SampleApp(
     httpActions: HttpSampleActions,
     wsActions: WsSampleActions,
 ) {
-
     LaunchedEffect(Unit) {
         enableWiretapLauncher()
     }
 
-    WiretapTheme {
-        var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(0) }
 
-        val tabs = listOf(
-            TabItem(
-                icon = Icons.Default.Http,
-                label = stringResource(Res.string.tab_http),
-            ),
-            TabItem(
-                icon = Icons.Default.Wifi,
-                label = stringResource(Res.string.tab_websocket),
-            ),
-        )
+    val tabs = listOf(
+        TabItem(
+            icon = Icons.Default.Http,
+            label = stringResource(Res.string.tab_http),
+        ),
+        TabItem(
+            icon = Icons.Default.Wifi,
+            label = stringResource(Res.string.tab_websocket),
+        ),
+    )
 
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val isLandscape = maxWidth > maxHeight
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isLandscape = maxWidth > maxHeight
 
-            if (isLandscape) {
-                LandscapeLayout(
-                    title = title,
-                    tabs = tabs,
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    content = { modifier ->
-                        TabContent(
-                            modifier = modifier,
-                            selectedTab = selectedTab,
-                            httpActions = httpActions,
-                            wsActions = wsActions,
-                        )
-                    },
-                )
-            } else {
-                PortraitLayout(
-                    title = title,
-                    tabs = tabs,
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    content = { modifier ->
-                        TabContent(
-                            modifier = modifier,
-                            selectedTab = selectedTab,
-                            httpActions = httpActions,
-                            wsActions = wsActions,
-                        )
-                    },
-                )
-            }
+        if (isLandscape) {
+            LandscapeLayout(
+                title = title,
+                tabs = tabs,
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
+                content = { modifier ->
+                    TabContent(
+                        modifier = modifier,
+                        selectedTab = selectedTab,
+                        httpActions = httpActions,
+                        wsActions = wsActions,
+                    )
+                },
+            )
+        } else {
+            PortraitLayout(
+                title = title,
+                tabs = tabs,
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it },
+                content = { modifier ->
+                    TabContent(
+                        modifier = modifier,
+                        selectedTab = selectedTab,
+                        httpActions = httpActions,
+                        wsActions = wsActions,
+                    )
+                },
+            )
         }
     }
 }
@@ -205,42 +208,95 @@ private fun HttpTab(
                         modifier = Modifier.weight(1f),
                         statusLog = statusLog.ifEmpty { readyText },
                     )
-                    ActionButtonGrid(httpActions = httpActions)
+                    ActionButtonGrid(
+                        modifier = Modifier.weight(1f),
+                        httpActions = httpActions,
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActionButtonGrid(
     httpActions: HttpSampleActions,
     modifier: Modifier = Modifier,
 ) {
 
-    LazyVerticalGrid(
-        modifier = modifier,
-        columns = GridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 8.dp),
-    ) {
-        itemsIndexed(httpActions.actions) { index, action ->
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
-                onClick = { httpActions.executeAction(index) },
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = action.color),
-            ) {
-                Text(
-                    text = action.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
+    val groups = remember(httpActions.actions) { groupActions(httpActions.actions) }
+    val pagerState = rememberPagerState { groups.size }
+    val scope = rememberCoroutineScope()
+
+    Column(modifier = modifier) {
+
+        SecondaryTabRow(selectedTabIndex = pagerState.currentPage) {
+            groups.forEachIndexed { index, group ->
+                Tab(
+                    selected = pagerState.currentPage == index,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                    text = { Text(group.title) },
                 )
             }
         }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+        ) { page ->
+
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+
+                groups[page].actions.forEach { (index, action) ->
+                    OutlinedButton(
+                        onClick = { httpActions.executeAction(index) },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = action.color),
+                    ) {
+                        Text(
+                            text = action.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
+                }
+            }
+        }
     }
+}
+
+private data class ActionGroup(
+    val title: String,
+    val actions: List<Pair<Int, SampleAction>>,
+)
+
+private fun groupActions(actions: List<SampleAction>): List<ActionGroup> {
+    return actions.mapIndexed { index, action -> index to action }
+        .groupBy { (_, action) ->
+            when (action.category) {
+                ActionCategory.Success -> "Success"
+                ActionCategory.Redirect,
+                ActionCategory.ClientError,
+                ActionCategory.ServerError,
+                -> "!Success"
+
+                ActionCategory.Timeout,
+                ActionCategory.Cancel,
+                -> "Timeouts"
+
+                ActionCategory.Batch -> "Burst"
+            }
+        }
+        .map { (title, items) -> ActionGroup(title, items) }
 }
 
 @Composable

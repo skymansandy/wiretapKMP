@@ -1,5 +1,8 @@
 package dev.skymansandy.wiretap.ui.screens.console
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -37,6 +40,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
@@ -72,6 +79,24 @@ internal fun WiretapHomeScreen(
     val lazyItems = viewModel.pagedLogs.collectAsLazyPagingItems()
     val searchFocusRequester = remember { FocusRequester() }
     var showClearConfirmation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var isSubTabVisible by remember { mutableStateOf(true) }
+    val subTabScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (available.y < -1f) {
+                    isSubTabVisible = false
+                } else if (available.y > 1f) {
+                    isSubTabVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    // Reset tab visibility when switching tabs
+    LaunchedEffect(selectedTab, httpSubTab) {
+        isSubTabVisible = true
+    }
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -118,26 +143,32 @@ internal fun WiretapHomeScreen(
         val content: @Composable (Modifier) -> Unit = { contentModifier ->
             when (selectedTab) {
                 TAB_HTTP -> Column(
-                    modifier = contentModifier,
+                    modifier = contentModifier.nestedScroll(subTabScrollConnection),
                 ) {
 
-                    SecondaryTabRow(
-                        selectedTabIndex = httpSubTab,
-                        modifier = Modifier.fillMaxWidth(),
+                    AnimatedVisibility(
+                        visible = isSubTabVisible,
+                        enter = expandVertically(),
+                        exit = shrinkVertically(),
                     ) {
-                        Tab(
-                            selected = httpSubTab == HTTP_SUB_TAB_LOGS,
-                            onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_LOGS) },
-                            text = { Text("Logs") },
-                        )
-                        Tab(
-                            selected = httpSubTab == HTTP_SUB_TAB_RULES,
-                            onClick = {
-                                viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
-                                onNavigate(null)
-                            },
-                            text = { Text("Rules") },
-                        )
+                        SecondaryTabRow(
+                            selectedTabIndex = httpSubTab,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Tab(
+                                selected = httpSubTab == HTTP_SUB_TAB_LOGS,
+                                onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_LOGS) },
+                                text = { Text("Logs") },
+                            )
+                            Tab(
+                                selected = httpSubTab == HTTP_SUB_TAB_RULES,
+                                onClick = {
+                                    viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
+                                    onNavigate(null)
+                                },
+                                text = { Text("Rules") },
+                            )
+                        }
                     }
 
                     when (httpSubTab) {

@@ -23,7 +23,7 @@ class KtorSampleViewModel(
     override val statusLog: StateFlow<String> = _statusLog.asStateFlow()
 
     override val actions: List<SampleAction> = ktorHttpActions.map {
-        SampleAction(it.label, actionColor.getValue(it.category))
+        SampleAction(it.label, actionColor.getValue(it.category), it.category)
     }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, _ -> }

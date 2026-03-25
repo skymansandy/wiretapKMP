@@ -22,4 +22,6 @@ internal interface HttpDao {
     suspend fun deleteById(id: Long)
 
     suspend fun deleteOlderThan(timestamp: Long)
+
+    suspend fun markCancelledIfInProgress(id: Long)
 }

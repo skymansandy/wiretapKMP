@@ -58,4 +58,9 @@ internal class HttpRepositoryImpl(
         httpDao.deleteAll()
         invalidationSignal.tryEmit(Unit)
     }
+
+    override suspend fun markCancelledIfInProgress(id: Long) {
+        httpDao.markCancelledIfInProgress(id)
+        invalidationSignal.tryEmit(Unit)
+    }
 }
