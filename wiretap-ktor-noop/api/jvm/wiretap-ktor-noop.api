@@ -1,0 +1,19 @@
+public final class dev/skymansandy/wiretap/Wiretap {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/Wiretap;
+	public final fun getKoinModule ()Lorg/koin/core/module/Module;
+	public final fun getKtorPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class dev/skymansandy/wiretap/di/WiretapModuleKt {
+	public static final fun getWiretapModule ()Lorg/koin/core/module/Module;
+}
+
+public final class dev/skymansandy/wiretap/plugin/WiretapKtorPluginKt {
+	public static final fun getWiretapKtorPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class dev/skymansandy/wiretap/plugin/WiretapKtorWebSocketPluginKt {
+	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+

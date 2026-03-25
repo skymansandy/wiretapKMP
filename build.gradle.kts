@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.kover)
     alias(libs.plugins.mavenPublish) apply false
+    alias(libs.plugins.bcv) apply false
 }
 
 dependencies {
@@ -67,6 +68,7 @@ subprojects {
         val wiretapVersion = findProperty("wiretap.version") as String
 
         apply(plugin = "com.vanniktech.maven.publish")
+        apply(plugin = "org.jetbrains.kotlinx.binary-compatibility-validator")
 
         afterEvaluate {
             tasks.withType<Sign>().configureEach {

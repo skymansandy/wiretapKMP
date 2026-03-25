@@ -36,6 +36,7 @@ composeBom = "2026.03.00"
 mokkery = "3.3.0"
 kover = "0.9.7"
 mavenPublish = "0.36.0"
+bcv = "0.17.0"
 kotest = "6.1.7"
 turbine = "1.2.1"
 jsonCmp = "1.0.0-beta2"
@@ -117,3 +118,4 @@ swiftklib = { id = "io.github.ttypic.swiftklib", version.ref = "swiftklib" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
