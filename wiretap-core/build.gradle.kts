@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.androidLint)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-    alias(libs.plugins.sqldelight)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
     alias(libs.plugins.skie)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kover)
@@ -56,8 +57,8 @@ kotlin {
                 api(libs.koin.compose)
                 api(libs.kotlinx.coroutines.core)
 
-                api(libs.sqldelight.runtime)
-                implementation(libs.sqldelight.coroutines)
+                implementation(libs.room.runtime)
+                implementation(libs.sqlite.bundled)
                 implementation(libs.compose.runtime)
                 implementation(libs.compose.foundation)
                 implementation(libs.compose.material3)
@@ -83,7 +84,6 @@ kotlin {
 
         androidMain {
             dependencies {
-                implementation(libs.sqldelight.android.driver)
                 implementation(libs.androidx.startup.runtime)
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.core.ktx)
@@ -104,13 +104,8 @@ kotlin {
 
         iosMain {
             dependencies {
-                implementation(libs.sqldelight.native.driver)
                 api(projects.wiretapShake)
             }
-        }
-
-        jvmMain.dependencies {
-            implementation(libs.sqldelight.sqlite.driver)
         }
     }
 }
@@ -130,11 +125,13 @@ gradle.taskGraph.whenReady {
     }
 }
 
-sqldelight {
-    databases {
-        create("WiretapDatabase") {
-            packageName.set("dev.skymansandy.wiretap.db")
-            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
-        }
-    }
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
+dependencies {
+    add("kspAndroid", libs.room.compiler)
+    add("kspIosArm64", libs.room.compiler)
+    add("kspIosSimulatorArm64", libs.room.compiler)
+    add("kspJvm", libs.room.compiler)
 }

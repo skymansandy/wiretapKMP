@@ -7,8 +7,9 @@ import app.cash.paging.PagingSourceLoadResult
 import app.cash.paging.PagingSourceLoadResultError
 import app.cash.paging.PagingSourceLoadResultPage
 import app.cash.paging.PagingState
-import dev.skymansandy.wiretap.data.db.dao.HttpDao
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.data.db.room.dao.HttpRoomDao
+import dev.skymansandy.wiretap.data.mappers.toDomain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,7 +25,7 @@ internal val defaultPagingConfig = PagingConfig(
 )
 
 internal class HttpLogPagingSource(
-    private val dao: HttpDao,
+    private val roomDao: HttpRoomDao,
     private val query: String,
     invalidationSignal: SharedFlow<Unit>,
 ) : PagingSource<Long, HttpLogEntry>() {
@@ -46,7 +47,8 @@ internal class HttpLogPagingSource(
     override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, HttpLogEntry> {
         val afterId = params.key
         return try {
-            val items = dao.getPage(query, params.loadSize.toLong(), afterId)
+            val items = roomDao.getPage(query, afterId, params.loadSize.toLong())
+                .map { it.toDomain() }
             PagingSourceLoadResultPage(
                 data = items,
                 prevKey = null, // newest-first; no back-paging needed

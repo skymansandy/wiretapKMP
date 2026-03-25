@@ -15,6 +15,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -131,17 +132,22 @@ fun WiretapScreen(
                         )
 
                     when (val current = route) {
-                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
-                            entry = current.entry,
-                            onBack = { navigateTo(null) },
-                            onViewRule = { ruleId ->
-                                scope.launch {
-                                    val rule = ruleRepository.getById(ruleId)
-                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                }
-                            },
-                            modifier = detailModifier,
-                        )
+                        is WiretapRoute.HttpDetail -> {
+                            val fullEntry by produceState(current.entry, current.entry.id) {
+                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
+                            }
+                            HttpLogDetailScreen(
+                                entry = fullEntry,
+                                onBack = { navigateTo(null) },
+                                onViewRule = { ruleId ->
+                                    scope.launch {
+                                        val rule = ruleRepository.getById(ruleId)
+                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                    }
+                                },
+                                modifier = detailModifier,
+                            )
+                        }
 
                         is WiretapRoute.SocketDetail -> {
                             val vm = viewModel(key = "socket_${current.socketId}") {
@@ -180,16 +186,21 @@ fun WiretapScreen(
                             )
                         }
 
-                        is WiretapRoute.HttpDetail -> HttpLogDetailScreen(
-                            entry = current.entry,
-                            onBack = { navigateTo(null) },
-                            onViewRule = { ruleId ->
-                                scope.launch {
-                                    val rule = ruleRepository.getById(ruleId)
-                                    if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                }
-                            },
-                        )
+                        is WiretapRoute.HttpDetail -> {
+                            val fullEntry by produceState(current.entry, current.entry.id) {
+                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
+                            }
+                            HttpLogDetailScreen(
+                                entry = fullEntry,
+                                onBack = { navigateTo(null) },
+                                onViewRule = { ruleId ->
+                                    scope.launch {
+                                        val rule = ruleRepository.getById(ruleId)
+                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
+                                    }
+                                },
+                            )
+                        }
 
                         is WiretapRoute.RuleDetail -> {
                             val vm = viewModel(key = "rule_detail_${current.rule.id}") {

@@ -23,9 +23,9 @@ iOS URLSession interceptor with full logging and rule support.
 ```swift
 let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
     config.enabled = true
-    config.logRetention = LogRetention.Days(days: 7)
+    config.logRetention = LogRetentionDays(days: 7)
     config.shouldLog = { url, method in KotlinBoolean(value: true) }
-    config.headerAction = { key in HeaderAction.Keep.shared }
+    config.headerAction = { key in HeaderActionKeep.shared }
 }
 ```
 

@@ -18,10 +18,6 @@ kotlin {
             baseName = "WiretapURLSession"
             isStatic = true
             export(projects.wiretapCore)
-            linkerOpts("-lsqlite3")
-        }
-        iosTarget.binaries.all {
-            linkerOpts("-lsqlite3")
         }
     }
 

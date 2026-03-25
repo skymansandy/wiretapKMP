@@ -1,17 +1,11 @@
 package dev.skymansandy.wiretap.di
 
-import app.cash.sqldelight.db.SqlDriver
-import dev.skymansandy.wiretap.data.db.dao.HttpDao
-import dev.skymansandy.wiretap.data.db.dao.HttpDaoImpl
-import dev.skymansandy.wiretap.data.db.dao.RuleDao
-import dev.skymansandy.wiretap.data.db.dao.RuleDaoImpl
-import dev.skymansandy.wiretap.data.db.dao.SocketDao
-import dev.skymansandy.wiretap.data.db.dao.SocketDaoImpl
-import dev.skymansandy.wiretap.data.db.driver.DriverFactory
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import dev.skymansandy.wiretap.data.db.room.WiretapRoomDatabase
+import dev.skymansandy.wiretap.data.db.room.createWiretapDatabaseBuilder
 import dev.skymansandy.wiretap.data.repository.HttpRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.RuleRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.SocketRepositoryImpl
-import dev.skymansandy.wiretap.db.WiretapDatabase
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
@@ -23,40 +17,29 @@ import org.koin.dsl.module
 
 val wiretapDataModule = module {
 
-    single<SqlDriver> {
-        DriverFactory().createDriver()
-    }
-
-    single<WiretapDatabase> {
-        WiretapDatabase(driver = get()).also { db ->
-            CoroutineScope(Dispatchers.IO).launch {
-                db.wiretapQueries.closeStaleHttpLogs()
-                db.wiretapQueries.closeStaleSocketLogs()
+    single<WiretapRoomDatabase> {
+        createWiretapDatabaseBuilder()
+            .fallbackToDestructiveMigration(true)
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
+            .build()
+            .also { db ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    db.httpRoomDao().closeStaleHttpLogs()
+                    db.socketRoomDao().closeStaleSocketLogs()
+                }
             }
-        }
-    }
-
-    single<HttpDao> {
-        HttpDaoImpl(database = get())
-    }
-
-    single<RuleDao> {
-        RuleDaoImpl(database = get())
-    }
-
-    single<SocketDao> {
-        SocketDaoImpl(database = get())
     }
 
     single<HttpRepository> {
-        HttpRepositoryImpl(httpDao = get())
+        HttpRepositoryImpl(httpRoomDao = get<WiretapRoomDatabase>().httpRoomDao())
     }
 
     single<RuleRepository> {
-        RuleRepositoryImpl(ruleDao = get())
+        RuleRepositoryImpl(ruleRoomDao = get<WiretapRoomDatabase>().ruleRoomDao())
     }
 
     single<SocketRepository> {
-        SocketRepositoryImpl(socketDao = get())
+        SocketRepositoryImpl(socketRoomDao = get<WiretapRoomDatabase>().socketRoomDao())
     }
 }

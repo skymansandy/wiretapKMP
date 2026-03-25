@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap.data.mappers
 
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.db.RuleEntity
+import dev.skymansandy.wiretap.data.db.room.entity.RuleEntity
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.MatcherType
 import dev.skymansandy.wiretap.domain.model.RuleAction
@@ -13,8 +13,8 @@ internal fun RuleEntity.toDomain(): WiretapRule {
     return WiretapRule(
         id = id,
         method = method,
-        urlMatcher = url_matcher_type?.let { type ->
-            url_pattern?.let { pattern ->
+        urlMatcher = urlMatcherType?.let { type ->
+            urlPattern?.let { pattern ->
                 when (MatcherType.valueOf(type)) {
                     MatcherType.Exact -> UrlMatcher.Exact(pattern)
                     MatcherType.Contains -> UrlMatcher.Contains(pattern)
@@ -22,9 +22,9 @@ internal fun RuleEntity.toDomain(): WiretapRule {
                 }
             }
         },
-        headerMatchers = header_matchers?.let { HeaderMatcherSerializer.deserialize(it) } ?: emptyList(),
-        bodyMatcher = body_matcher_type?.let { type ->
-            body_pattern?.let { pattern ->
+        headerMatchers = headerMatchers?.let { HeaderMatcherSerializer.deserialize(it) } ?: emptyList(),
+        bodyMatcher = bodyMatcherType?.let { type ->
+            bodyPattern?.let { pattern ->
                 when (MatcherType.valueOf(type)) {
                     MatcherType.Exact -> BodyMatcher.Exact(pattern)
                     MatcherType.Contains -> BodyMatcher.Contains(pattern)
@@ -34,19 +34,19 @@ internal fun RuleEntity.toDomain(): WiretapRule {
         },
         action = when (RuleAction.Type.valueOf(action)) {
             RuleAction.Type.Mock -> RuleAction.Mock(
-                responseCode = mock_response_code?.toInt() ?: 200,
-                responseBody = mock_response_body,
-                responseHeaders = mock_response_headers?.let { HeadersSerializerUtil.deserialize(it) },
-                throttleDelayMs = throttle_delay_ms,
-                throttleDelayMaxMs = throttle_delay_max_ms,
+                responseCode = mockResponseCode?.toInt() ?: 200,
+                responseBody = mockResponseBody,
+                responseHeaders = mockResponseHeaders?.let { HeadersSerializerUtil.deserialize(it) },
+                throttleDelayMs = throttleDelayMs,
+                throttleDelayMaxMs = throttleDelayMaxMs,
             )
 
             RuleAction.Type.Throttle -> RuleAction.Throttle(
-                delayMs = throttle_delay_ms ?: 0L,
-                delayMaxMs = throttle_delay_max_ms,
+                delayMs = throttleDelayMs ?: 0L,
+                delayMaxMs = throttleDelayMaxMs,
             )
         },
         enabled = enabled == 1L,
-        createdAt = created_at,
+        createdAt = createdAt,
     )
 }
