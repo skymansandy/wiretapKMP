@@ -14,16 +14,23 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+private const val MAX_BODY_DISPLAY_LENGTH = 16_384
+
 private fun formatResponse(response: HttpResponse, body: String): String {
 
     val headers = response.headers.entries().joinToString("\n") { (key, values) ->
         "$key: ${values.joinToString(", ")}"
     }
+    val truncatedBody = if (body.length > MAX_BODY_DISPLAY_LENGTH) {
+        body.take(MAX_BODY_DISPLAY_LENGTH) + "\n\n… (truncated ${body.length - MAX_BODY_DISPLAY_LENGTH} chars)"
+    } else {
+        body
+    }
     return buildString {
         appendLine("HTTP ${response.status.value} ${response.status.description}")
         appendLine(headers)
         appendLine()
-        append(body)
+        append(truncatedBody)
     }
 }
 
