@@ -19,7 +19,6 @@ internal class WiretapWebSocket(
 ) : WebSocket by delegate {
 
     override fun send(text: String): Boolean {
-
         runBlocking {
             orchestrator.logSocketMsg(
                 SocketMessage(
@@ -36,7 +35,6 @@ internal class WiretapWebSocket(
     }
 
     override fun send(bytes: ByteString): Boolean {
-
         runBlocking {
             orchestrator.logSocketMsg(
                 SocketMessage(

@@ -10,6 +10,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.util.AttributeKey
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readBytes
@@ -22,6 +23,8 @@ import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.concurrent.Volatile
+
+private val WiretapSocketIdKey = AttributeKey<Long>("WiretapSocketId")
 
 /**
  * Ktor client plugin that intercepts WebSocket sessions to log
@@ -52,7 +55,7 @@ val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
         val requestHeaders = response.call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
 
-        val socketId = deps.orchestrator.openSocket(
+        val socketId = deps.orchestrator.createSocket(
             SocketEntry(
                 url = url,
                 requestHeaders = requestHeaders,
@@ -66,8 +69,6 @@ val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
         response.call.request.attributes.put(WiretapSocketIdKey, socketId)
     }
 }
-
-internal val WiretapSocketIdKey = io.ktor.util.AttributeKey<Long>("WiretapSocketId")
 
 /**
  * Extension to wrap a Ktor [DefaultClientWebSocketSession] for Wiretap logging.
@@ -90,7 +91,7 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
         val url = call.request.url.toString().toWebSocketUrl()
         val requestHeaders = call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
-        deps.orchestrator.openSocket(
+        deps.orchestrator.createSocket(
             SocketEntry(
                 url = url,
                 requestHeaders = requestHeaders,
@@ -99,6 +100,7 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
             ),
         )
     }
+
     return WiretapWebSocketSession(this, actualSocketId, deps.orchestrator)
 }
 
@@ -113,7 +115,6 @@ class WiretapWebSocketSession internal constructor(
     private val socketId: Long,
     private val orchestrator: WiretapOrchestrator,
 ) {
-
     val incoming get() = delegate.incoming
 
     @Volatile
@@ -127,6 +128,7 @@ class WiretapWebSocketSession internal constructor(
     private fun installAutoClose() {
         delegate.coroutineContext[Job]?.invokeOnCompletion { cause ->
             if (statusUpdated) return@invokeOnCompletion
+
             statusUpdated = true
             val url = delegate.call.request.url.toString().toWebSocketUrl()
             runBlocking {
@@ -142,7 +144,7 @@ class WiretapWebSocketSession internal constructor(
                         ),
                     )
                 } else {
-                    val closeReason = try { delegate.closeReason.getCompleted() } catch (_: Exception) { null }
+                    val closeReason = runCatching { delegate.closeReason.getCompleted() }.getOrNull()
                     orchestrator.updateSocket(
                         SocketEntry(
                             id = socketId,
@@ -174,6 +176,7 @@ class WiretapWebSocketSession internal constructor(
                     ),
                 )
             }
+
             is Frame.Binary -> {
                 val bytes = frame.readBytes()
                 orchestrator.logSocketMsg(
@@ -187,8 +190,11 @@ class WiretapWebSocketSession internal constructor(
                     ),
                 )
             }
-            else -> { /* pass through */ }
+
+            /* pass through */
+            else -> Unit
         }
+
         delegate.send(frame)
     }
 
@@ -207,6 +213,7 @@ class WiretapWebSocketSession internal constructor(
                     ),
                 )
             }
+
             is Frame.Binary -> {
                 val bytes = frame.readBytes()
                 orchestrator.logSocketMsg(
@@ -220,17 +227,18 @@ class WiretapWebSocketSession internal constructor(
                     ),
                 )
             }
-            else -> { /* ignore Ping/Pong/Close frames for logging */ }
+
+            /* ignore Ping/Pong/Close frames for logging */
+            else -> Unit
         }
     }
 
     suspend fun close() {
-
         statusUpdated = true
-        val url = delegate.call.request.url.toString()
-            .replaceFirst("http://", "ws://")
-            .replaceFirst("https://", "wss://")
+
+        val url = delegate.call.request.url.toString().toWebSocketUrl()
         val closeReason = try { delegate.closeReason.await() } catch (_: Exception) { null }
+
         orchestrator.updateSocket(
             SocketEntry(
                 id = socketId,
@@ -242,15 +250,15 @@ class WiretapWebSocketSession internal constructor(
                 timestamp = currentTimeMillis(),
             ),
         )
+
         delegate.close()
     }
 
     suspend fun markFailed(error: String) {
-
         statusUpdated = true
-        val url = delegate.call.request.url.toString()
-            .replaceFirst("http://", "ws://")
-            .replaceFirst("https://", "wss://")
+
+        val url = delegate.call.request.url.toString().toWebSocketUrl()
+
         orchestrator.updateSocket(
             SocketEntry(
                 id = socketId,
@@ -264,11 +272,10 @@ class WiretapWebSocketSession internal constructor(
     }
 
     suspend fun markClosed(code: Short? = null, reason: String? = null) {
-
         statusUpdated = true
-        val url = delegate.call.request.url.toString()
-            .replaceFirst("http://", "ws://")
-            .replaceFirst("https://", "wss://")
+
+        val url = delegate.call.request.url.toString().toWebSocketUrl()
+
         orchestrator.updateSocket(
             SocketEntry(
                 id = socketId,
@@ -290,5 +297,6 @@ private fun String.toWebSocketUrl(): String =
 private class WsPluginDeps : KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
+
     val orchestrator: WiretapOrchestrator by inject()
 }

@@ -33,14 +33,16 @@ class WiretapOkHttpWebSocketListener(
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
     private val orchestrator: WiretapOrchestrator by inject()
+
     private var socketId: Long = -1
+    private val isSocketActive
+        get() = socketId >= 0
 
     override fun onOpen(webSocket: WebSocket, response: Response) = runBlocking {
-
         val url = webSocket.request().url.toString()
         val reqHeaders = webSocket.request().headers.toMap()
 
-        socketId = orchestrator.openSocket(
+        socketId = orchestrator.createSocket(
             SocketEntry(
                 url = url,
                 requestHeaders = reqHeaders,
@@ -55,8 +57,7 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) = runBlocking {
-
-        if (socketId >= 0) {
+        if (isSocketActive) {
             orchestrator.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
@@ -68,12 +69,12 @@ class WiretapOkHttpWebSocketListener(
                 ),
             )
         }
+
         delegate.onMessage(webSocket, text)
     }
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) = runBlocking {
-
-        if (socketId >= 0) {
+        if (isSocketActive) {
             orchestrator.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
@@ -85,11 +86,12 @@ class WiretapOkHttpWebSocketListener(
                 ),
             )
         }
+
         delegate.onMessage(webSocket, bytes)
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) = runBlocking {
-        if (socketId >= 0) {
+        if (isSocketActive) {
             orchestrator.updateSocket(
                 SocketEntry(
                     id = socketId,
@@ -101,11 +103,12 @@ class WiretapOkHttpWebSocketListener(
                 ),
             )
         }
+
         delegate.onClosing(webSocket, code, reason)
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) = runBlocking {
-        if (socketId >= 0) {
+        if (isSocketActive) {
             orchestrator.updateSocket(
                 SocketEntry(
                     id = socketId,
@@ -123,7 +126,7 @@ class WiretapOkHttpWebSocketListener(
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = runBlocking {
-        if (socketId >= 0) {
+        if (isSocketActive) {
             orchestrator.updateSocket(
                 SocketEntry(
                     id = socketId,
@@ -135,6 +138,7 @@ class WiretapOkHttpWebSocketListener(
                 ),
             )
         }
+
         delegate.onFailure(webSocket, t, response)
     }
 }

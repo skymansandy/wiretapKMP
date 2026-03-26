@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
@@ -46,21 +45,23 @@ import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RuleDetailScreen(
-    rule: WiretapRule,
     viewModel: RuleDetailViewModel,
-    onBack: () -> Unit,
-    onDeleted: () -> Unit,
-    onEditClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val navigator = LocalWiretapNavigator.current
+    val rule by viewModel.rule.collectAsStateWithLifecycle()
     val showDeleteConfirm by viewModel.showDeleteConfirm.collectAsStateWithLifecycle()
     val enabled by viewModel.enabled.collectAsStateWithLifecycle()
+
+    val currentRule = rule ?: return
 
     if (showDeleteConfirm) {
         AlertDialog(
@@ -68,7 +69,7 @@ internal fun RuleDetailScreen(
             title = { Text("Delete Rule") },
             text = { Text("Are you sure you want to delete this rule?") },
             confirmButton = {
-                TextButton(onClick = { viewModel.confirmDelete(onDeleted) }) {
+                TextButton(onClick = { viewModel.confirmDelete { navigator.pop() } }) {
                     Text("Delete", color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -84,12 +85,16 @@ internal fun RuleDetailScreen(
             TopAppBar(
                 title = { Text("Rule Details") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { navigator.pop() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = onEditClick) {
+                    IconButton(onClick = {
+                        navigator.navigateTo(
+                            WiretapScreen.CreateRuleScreen(existingRuleId = currentRule.id),
+                        )
+                    }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit rule")
                     }
                     IconButton(onClick = { viewModel.requestDelete() }) {
@@ -137,11 +142,11 @@ internal fun RuleDetailScreen(
             NaturalLanguageRow(
                 label = "Method",
                 verb = "is",
-                value = if (rule.method == "*") "Any" else rule.method,
+                value = if (currentRule.method == "*") "Any" else currentRule.method,
             )
 
             // URL matcher
-            rule.urlMatcher?.let { matcher ->
+            currentRule.urlMatcher?.let { matcher ->
                 Spacer(Modifier.height(6.dp))
                 NaturalLanguageRow(
                     label = "URL",
@@ -151,10 +156,10 @@ internal fun RuleDetailScreen(
             }
 
             // Header matchers
-            if (rule.headerMatchers.isNotEmpty()) {
+            if (currentRule.headerMatchers.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
                 NaturalLanguageRow(label = "Headers", verb = "", value = "")
-                rule.headerMatchers.forEach { matcher ->
+                currentRule.headerMatchers.forEach { matcher ->
                     Spacer(Modifier.height(4.dp))
                     HeaderMatcherNaturalLanguage(
                         matcher = matcher,
@@ -164,7 +169,7 @@ internal fun RuleDetailScreen(
             }
 
             // Body matcher
-            rule.bodyMatcher?.let { matcher ->
+            currentRule.bodyMatcher?.let { matcher ->
                 Spacer(Modifier.height(6.dp))
                 NaturalLanguageRow(
                     label = "Body",
@@ -186,12 +191,12 @@ internal fun RuleDetailScreen(
                     color = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.width(8.dp))
-                ActionBadge(action = rule.action)
+                ActionBadge(action = currentRule.action)
             }
 
             Spacer(Modifier.height(12.dp))
 
-            when (val action = rule.action) {
+            when (val action = currentRule.action) {
                 is RuleAction.Mock -> {
                     DetailRow("Response Code", action.responseCode.toString())
 

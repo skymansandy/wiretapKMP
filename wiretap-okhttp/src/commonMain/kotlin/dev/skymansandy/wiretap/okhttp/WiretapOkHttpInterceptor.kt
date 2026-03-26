@@ -13,6 +13,8 @@ import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -22,6 +24,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.io.IOException
 import java.security.cert.X509Certificate
 
 /**
@@ -52,25 +55,31 @@ class WiretapOkHttpInterceptor(
     private val orchestrator: WiretapOrchestrator by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
-    @Volatile private var sessionInitialized = false
+    @Volatile
+    private var sessionInitialized = false
+    private val lock = Mutex()
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun intercept(chain: Interceptor.Chain): Response = runBlocking {
 
-        if (!config.enabled) return@runBlocking chain.proceed(chain.request())
+        if (!config.enabled) {
+            return@runBlocking chain.proceed(chain.request())
+        }
 
         // AppSession: clear all previous logs once at first interception
         if (!sessionInitialized) {
-            val shouldClear = synchronized(this@WiretapOkHttpInterceptor) {
+            lock.withLock {
                 if (!sessionInitialized) {
                     sessionInitialized = true
-                    config.logRetention == LogRetention.AppSession
-                } else {
-                    false
+                    when (val retention = config.logRetention) {
+                        LogRetention.Forever -> Unit
+                        LogRetention.AppSession -> orchestrator.clearHttpLogs()
+                        is LogRetention.Days -> {
+                            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
+                            orchestrator.purgeHttpLogsOlderThan(cutoff)
+                        }
+                    }
                 }
-            }
-            if (shouldClear) {
-                orchestrator.clearHttpLogs()
             }
         }
 
@@ -97,16 +106,9 @@ class WiretapOkHttpInterceptor(
 
         val matchingRule = findMatchingRule(url, method, reqHeaders, requestBody)
 
-        // Days retention: prune old entries before each new capture
-        val retention = config.logRetention
-        if (retention is LogRetention.Days) {
-            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            orchestrator.purgeHttpLogsOlderThan(cutoff)
-        }
-
         // Log request immediately so it appears in the UI (gated by shouldLog).
         // NonCancellable ensures the save completes and returns the ID even if the
-        // coroutine is cancelled mid-flight, preventing orphaned "..." entries.
+        // coroutine is canceled mid-flight, preventing orphaned "..." entries.
         val logEntryId = if (config.shouldLog(url, method)) {
             withContext(NonCancellable) {
                 orchestrator.logHttpAndGetId(
@@ -125,7 +127,6 @@ class WiretapOkHttpInterceptor(
 
         if (matchingRule?.action is RuleAction.Mock) {
             val mock = matchingRule.action as RuleAction.Mock
-            val durationNs = currentNanoTime() - startNano
             val body = (mock.responseBody ?: "")
                 .toResponseBody("application/json; charset=utf-8".toMediaType())
             val mockResponse = Response.Builder()
@@ -139,6 +140,7 @@ class WiretapOkHttpInterceptor(
 
             if (logEntryId >= 0) {
                 val mockRespHeaders = mockResponse.headers.toMap()
+                val durationNs = currentNanoTime() - startNano
                 orchestrator.updateHttp(
                     HttpLogEntry(
                         id = logEntryId,
@@ -156,6 +158,7 @@ class WiretapOkHttpInterceptor(
                     ),
                 )
             }
+
             return@runBlocking mockResponse
         }
 
@@ -171,9 +174,9 @@ class WiretapOkHttpInterceptor(
             chain.proceed(request)
         } catch (e: Exception) {
             if (logEntryId >= 0) {
-                val durationNs = currentNanoTime() - startNano
-                val isCancelled = e is java.io.IOException && e.message == "Canceled"
+                val isCancelled = e is IOException && e.message == "Canceled"
                 withContext(NonCancellable) {
+                    val durationNs = currentNanoTime() - startNano
                     orchestrator.updateHttp(
                         HttpLogEntry(
                             id = logEntryId,
@@ -184,8 +187,8 @@ class WiretapOkHttpInterceptor(
                             responseCode = if (isCancelled) -1 else 0,
                             responseHeaders = emptyMap(),
                             responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                            durationMs = (currentNanoTime() - startNano) / 1_000_000,
-                            durationNs = currentNanoTime() - startNano,
+                            durationMs = durationNs / 1_000_000,
+                            durationNs = durationNs,
                             source = ResponseSource.Network,
                             timestamp = currentTimeMillis(),
                         ),
@@ -225,6 +228,7 @@ class WiretapOkHttpInterceptor(
         } catch (_: Exception) {
             null
         }
+
         val certificateCn = peerCert?.subjectX500Principal?.name
             ?.split(",")
             ?.firstOrNull { it.trimStart().startsWith("CN=") }

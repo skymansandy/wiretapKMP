@@ -38,8 +38,10 @@ import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
 import kotlinx.coroutines.flow.flowOf
@@ -50,11 +52,9 @@ import kotlinx.coroutines.launch
 internal fun CreateRuleScreen(
     viewModel: CreateRuleViewModel,
     ruleRepository: RuleRepository,
-    onBack: () -> Unit,
-    onSaved: (WiretapRule?) -> Unit,
-    onEditConflictingRule: ((WiretapRule) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val navigator = LocalWiretapNavigator.current
     val scope = rememberCoroutineScope()
     val step by viewModel.step.collectAsStateWithLifecycle()
 
@@ -117,7 +117,11 @@ internal fun CreateRuleScreen(
         ConflictDialog(
             conflictingRules = conflictingRules,
             ruleRepository = ruleRepository,
-            onEditConflictingRule = onEditConflictingRule,
+            onEditConflictingRule = { conflictRule ->
+                navigator.replaceTop(
+                    WiretapScreen.CreateRuleScreen(existingRuleId = conflictRule.id),
+                )
+            },
             onDismiss = { viewModel.dismissConflictDialog() },
         )
     }
@@ -132,7 +136,8 @@ internal fun CreateRuleScreen(
                         if (step > 1) {
                             viewModel.prevStep()
                         } else {
-                            onBack()
+                            viewModel.resetStep()
+                            navigator.pop()
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -225,7 +230,15 @@ internal fun CreateRuleScreen(
                     }
                 } else {
                     Button(
-                        onClick = { viewModel.saveRule(onSaved) },
+                        onClick = {
+                            viewModel.saveRule { savedRule ->
+                                if (savedRule != null) {
+                                    navigator.replaceTop(WiretapScreen.RuleDetailScreen(savedRule.id))
+                                } else {
+                                    navigator.pop()
+                                }
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                     ) {
                         Text("Save Rule")

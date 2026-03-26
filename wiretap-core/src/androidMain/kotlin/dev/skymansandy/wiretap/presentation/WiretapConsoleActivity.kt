@@ -10,26 +10,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.ui.WiretapConsole
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 
 class WiretapConsoleActivity : ComponentActivity() {
 
-    private var initialSocketId by mutableStateOf<Long?>(null)
+    private var deepLinkScreen by mutableStateOf<WiretapScreen?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initialSocketId = extractSocketId(intent)
+        deepLinkScreen = parseDeepLinkScreen(intent)
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         setContent {
             WiretapTheme {
-                WiretapScreen(
+                WiretapConsole(
                     onBack = { finish() },
-                    initialSocketId = initialSocketId,
-                    onInitialSocketConsumed = { initialSocketId = null },
+                    deepLinkScreen = deepLinkScreen,
+                    onDeepLinkConsumed = { deepLinkScreen = null },
                 )
             }
         }
@@ -37,11 +38,12 @@ class WiretapConsoleActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        extractSocketId(intent)?.let { initialSocketId = it }
+        parseDeepLinkScreen(intent)?.let { deepLinkScreen = it }
     }
 
-    private fun extractSocketId(intent: Intent?): Long? {
-        val id = intent?.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L) ?: -1L
-        return if (id > 0) id else null
+    private fun parseDeepLinkScreen(intent: Intent?): WiretapScreen? {
+        val socketId = intent?.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L) ?: -1L
+        if (socketId > 0) return WiretapScreen.SocketDetailScreen(socketId)
+        return null
     }
 }

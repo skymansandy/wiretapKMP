@@ -1,0 +1,190 @@
+package dev.skymansandy.wiretap.ui
+
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.SinglePaneSceneStrategy
+import androidx.navigation3.ui.NavDisplay
+import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.navigation.screenSerializersModule
+import dev.skymansandy.wiretap.ui.common.LocalWideScreen
+import dev.skymansandy.wiretap.ui.navigation.BackStackNavigator
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen.CreateRuleScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HomeScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HttpDetailScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen.RuleDetailScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen.SocketDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
+import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
+import dev.skymansandy.wiretap.ui.screens.console.http.HttpLogDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.http.HttpLogDetailViewModel
+import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailScreen
+import dev.skymansandy.wiretap.ui.screens.console.socket.SocketDetailViewModel
+import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleScreen
+import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleViewModel
+import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailScreen
+import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailViewModel
+
+private val WIDE_SCREEN_BREAKPOINT = 600.dp
+
+/**
+ * Builds the synthetic back stack for deep-link navigation following the Nav3 recipe pattern.
+ * When a deep-link target is provided, the back stack is pre-populated with
+ * `[HomeScreen, target]` so that pressing Back returns to the home screen.
+ */
+private fun buildSyntheticBackStack(
+    deepLinkScreen: WiretapScreen? = null,
+): Array<NavKey> = buildList<NavKey> {
+    add(HomeScreen)
+    if (deepLinkScreen != null) add(deepLinkScreen)
+}.toTypedArray()
+
+@Composable
+internal fun WiretapConsole(
+    onBack: () -> Unit,
+    orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
+    ruleRepository: RuleRepository = WiretapDi.ruleRepository,
+    findConflictingRules: FindConflictingRulesUseCase = WiretapDi.findConflictingRules,
+    deepLinkScreen: WiretapScreen? = null,
+    onDeepLinkConsumed: () -> Unit = {},
+) {
+    // Nav3 deep-link recipe: initialise the back stack with a synthetic stack
+    // that includes the deep-link destination, so Back navigates naturally.
+    val initialKeys = remember { buildSyntheticBackStack(deepLinkScreen) }
+    val backStack = rememberNavBackStack(screenSerializersModule, *initialKeys)
+    val navigator = remember(backStack) { BackStackNavigator(backStack) }
+    val density = LocalDensity.current
+    var isWideScreen by rememberSaveable { mutableStateOf(false) }
+
+    val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
+
+    val sceneStrategy = remember(isWideScreen) {
+        WiretapListDetailSceneStrategy(isWideScreen).then(SinglePaneSceneStrategy())
+    }
+
+    // Sync home tab when navigating to a detail route
+    val lastKey = backStack.lastOrNull()
+    LaunchedEffect(lastKey) {
+        when (lastKey) {
+            is SocketDetailScreen -> homeVm.selectTab(WiretapHomeViewModel.TAB_WEBSOCKET)
+            is HttpDetailScreen -> homeVm.selectTab(WiretapHomeViewModel.TAB_HTTP)
+            else -> {}
+        }
+    }
+
+    // Handle subsequent deep-links (e.g. onNewIntent) after the initial composition
+    LaunchedEffect(deepLinkScreen) {
+        if (deepLinkScreen != null && backStack.lastOrNull() != deepLinkScreen) {
+            navigator.navigateToDetail(deepLinkScreen)
+            onDeepLinkConsumed()
+        }
+    }
+
+    CompositionLocalProvider(
+        LocalWideScreen provides isWideScreen,
+        LocalWiretapNavigator provides navigator,
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { size ->
+                    isWideScreen = with(density) { size.width.toDp() } >= WIDE_SCREEN_BREAKPOINT
+                },
+        ) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = { navigator.pop() },
+                sceneStrategy = sceneStrategy,
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+                entryProvider = entryProvider {
+                    entry<HomeScreen>(
+                        metadata = listPane(),
+                    ) {
+                        WiretapHomeScreen(
+                            viewModel = homeVm,
+                            ruleRepository = ruleRepository,
+                            onBack = onBack,
+                        )
+                    }
+
+                    entry<HttpDetailScreen>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val vm = viewModel {
+                            HttpLogDetailViewModel(key.entryId, orchestrator)
+                        }
+                        val entry by vm.entry.collectAsStateWithLifecycle()
+                        entry?.let {
+                            HttpLogDetailScreen(entry = it)
+                        }
+                    }
+
+                    entry<SocketDetailScreen>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val vm = viewModel {
+                            SocketDetailViewModel(key.socketId, orchestrator)
+                        }
+                        SocketDetailScreen(viewModel = vm)
+                    }
+
+                    entry<RuleDetailScreen>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val vm = viewModel {
+                            RuleDetailViewModel(key.ruleId, ruleRepository)
+                        }
+                        RuleDetailScreen(viewModel = vm)
+                    }
+
+                    entry<CreateRuleScreen>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val vm = viewModel {
+                            CreateRuleViewModel(
+                                existingRuleId = key.existingRuleId,
+                                prefillFromLogId = key.prefillFromLogId,
+                                ruleRepository = ruleRepository,
+                                orchestrator = orchestrator,
+                                findConflictingRules = findConflictingRules,
+                            )
+                        }
+                        val loaded by vm.loaded.collectAsStateWithLifecycle()
+                        if (loaded) {
+                            CreateRuleScreen(
+                                viewModel = vm,
+                                ruleRepository = ruleRepository,
+                            )
+                        }
+                    }
+                },
+            )
+        }
+    }
+}
