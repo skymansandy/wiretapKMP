@@ -1,18 +1,26 @@
 package dev.skymansandy.wiretap.ui.screens
 
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.Serializable
 
-internal sealed interface WiretapRoute {
+@Serializable
+internal sealed interface WiretapRoute : NavKey {
 
+    @Serializable
+    data object Home : WiretapRoute
+
+    @Serializable
+    data class HttpDetail(val entryId: Long) : WiretapRoute
+
+    @Serializable
     data class SocketDetail(val socketId: Long) : WiretapRoute
 
-    data class HttpDetail(val entry: HttpLogEntry) : WiretapRoute
+    @Serializable
+    data class RuleDetail(val ruleId: Long) : WiretapRoute
 
-    data class RuleDetail(val rule: WiretapRule) : WiretapRoute
-
+    @Serializable
     data class CreateRule(
-        val existingRule: WiretapRule? = null,
-        val prefillFromLog: HttpLogEntry? = null,
+        val existingRuleId: Long = 0L,
+        val prefillFromLogId: Long = 0L,
     ) : WiretapRoute
 }

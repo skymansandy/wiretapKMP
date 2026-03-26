@@ -13,6 +13,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.IconCompat
 import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.entity.SocketMessage
@@ -29,6 +30,7 @@ internal object WiretapNotificationManager {
     private const val SOCKET_NOTIFICATION_ID_BASE = 10000
     private const val MAX_ENTRIES = 6
     private const val MAX_SOCKET_MESSAGES = 6
+    private val notificationIcon by lazy { IconCompat.createWithBitmap(WiretapIconFactory.createNotificationBitmap()) }
 
     internal const val ACTION_CLEAR_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_LOGS"
     internal const val EXTRA_SOCKET_ID = "wiretap_socket_id"
@@ -160,7 +162,7 @@ internal object WiretapNotificationManager {
 
         val total = recentHttpEntries.size + socketEntries.size
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(wiretapIconResId(context))
+            .setSmallIcon(notificationIcon)
             .setContentTitle("Wiretap")
             .setContentText("$total active connections")
             .setOnlyAlertOnce(true)
@@ -188,7 +190,7 @@ internal object WiretapNotificationManager {
         }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(wiretapIconResId(context))
+            .setSmallIcon(notificationIcon)
             .setContentTitle("View network traffic")
             .setContentText(formatHttpEntry(recentHttpEntries.last()))
             .setStyle(inboxStyle)
@@ -225,7 +227,7 @@ internal object WiretapNotificationManager {
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(wiretapIconResId(context))
+            .setSmallIcon(notificationIcon)
             .setContentTitle(title)
             .setContentText(messages.lastOrNull() ?: "No messages")
             .setStyle(inboxStyle)
@@ -263,13 +265,4 @@ internal object WiretapNotificationManager {
             Intent(ACTION_CLEAR_LOGS).setPackage(context.packageName),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-}
-
-internal fun wiretapIconResId(context: Context): Int {
-    val resId = context.resources.getIdentifier(
-        "ic_wiretap",
-        "drawable",
-        context.packageName,
-    )
-    return if (resId != 0) resId else android.R.drawable.ic_dialog_info
 }

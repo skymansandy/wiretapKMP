@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
     alias(libs.plugins.skie)
+    alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kover)
 }
@@ -70,6 +71,8 @@ kotlin {
                 implementation(libs.androidx.lifecycle.runtimeCompose)
                 implementation(libs.cashapp.paging.common)
                 implementation(libs.cashapp.paging.compose)
+                implementation(libs.navigation3.ui)
+                implementation(libs.kotlinx.serialization.core)
             }
         }
 

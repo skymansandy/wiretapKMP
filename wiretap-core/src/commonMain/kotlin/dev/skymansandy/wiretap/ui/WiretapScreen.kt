@@ -1,15 +1,16 @@
 package dev.skymansandy.wiretap.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -17,7 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -25,12 +25,20 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.scene.Scene
+import androidx.navigation3.scene.SinglePaneSceneStrategy
+import androidx.navigation3.ui.NavDisplay
+import androidx.savedstate.serialization.SavedStateConfiguration
+import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
-import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.screens.WiretapRoute
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel
@@ -41,12 +49,41 @@ import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.screens.rule.CreateRuleViewModel
 import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailScreen
 import dev.skymansandy.wiretap.ui.screens.rule.RuleDetailViewModel
-import kotlinx.coroutines.launch
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 private val WIDE_SCREEN_BREAKPOINT = 600.dp
 
+private val savedStateConfig = SavedStateConfiguration {
+    serializersModule = SerializersModule {
+        polymorphic(NavKey::class) {
+            subclass(WiretapRoute.Home::class, WiretapRoute.Home.serializer())
+            subclass(WiretapRoute.HttpDetail::class, WiretapRoute.HttpDetail.serializer())
+            subclass(WiretapRoute.SocketDetail::class, WiretapRoute.SocketDetail.serializer())
+            subclass(WiretapRoute.RuleDetail::class, WiretapRoute.RuleDetail.serializer())
+            subclass(WiretapRoute.CreateRule::class, WiretapRoute.CreateRule.serializer())
+        }
+    }
+}
+
+private fun AnimatedContentTransitionScope<Scene<NavKey>>.forwardTransition(): ContentTransform =
+    if (targetState is WiretapListDetailScene || initialState is WiretapListDetailScene) {
+        fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+    } else {
+        slideInHorizontally(spring()) { it } togetherWith
+            slideOutHorizontally(spring()) { -it }
+    }
+
+private fun AnimatedContentTransitionScope<Scene<NavKey>>.popTransition(): ContentTransform =
+    if (targetState is WiretapListDetailScene || initialState is WiretapListDetailScene) {
+        fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+    } else {
+        slideInHorizontally(spring()) { -it } togetherWith
+            slideOutHorizontally(spring()) { it }
+    }
+
 @Composable
-@Suppress("CyclomaticComplexMethod")
 fun WiretapScreen(
     onBack: () -> Unit,
     orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
@@ -55,36 +92,31 @@ fun WiretapScreen(
     initialSocketId: Long? = null,
     onInitialSocketConsumed: () -> Unit = {},
 ) {
-    var savedRouteKey by rememberSaveable { mutableStateOf<String?>(null) }
-    var route by remember { mutableStateOf<WiretapRoute?>(null) }
-    val scope = rememberCoroutineScope()
+    val backStack = rememberNavBackStack(savedStateConfig, WiretapRoute.Home)
     val density = LocalDensity.current
-    var isWideScreen by remember { mutableStateOf(false) }
+    var isWideScreen by rememberSaveable { mutableStateOf(false) }
 
-    val navigateTo = remember(orchestrator, ruleRepository) {
-        { newRoute: WiretapRoute? ->
-            route = newRoute
-            savedRouteKey = newRoute?.toSaveKey()
+    val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
+
+    val sceneStrategy = remember(isWideScreen) {
+        WiretapListDetailSceneStrategy(isWideScreen).then(SinglePaneSceneStrategy())
+    }
+
+    // Sync home tab when navigating to a detail route
+    val lastKey = backStack.lastOrNull()
+    LaunchedEffect(lastKey) {
+        when (lastKey) {
+            is WiretapRoute.SocketDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_WEBSOCKET)
+            is WiretapRoute.HttpDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_HTTP)
+            else -> {}
         }
-    }
-
-    PlatformBackHandler(enabled = route != null) {
-        navigateTo(null)
-    }
-
-    // Restore route after config change (e.g. rotation)
-    LaunchedEffect(Unit) {
-        val key = savedRouteKey ?: return@LaunchedEffect
-        if (route != null) return@LaunchedEffect
-
-        val restored = restoreRoute(key, orchestrator, ruleRepository)
-        if (restored != null) route = restored
     }
 
     // Handle deep-link to socket detail
     LaunchedEffect(initialSocketId) {
         if (initialSocketId != null) {
-            navigateTo(WiretapRoute.SocketDetail(initialSocketId))
+            backStack.removeAll { it !is WiretapRoute.Home }
+            backStack.add(WiretapRoute.SocketDetail(initialSocketId))
             onInitialSocketConsumed()
         }
     }
@@ -97,194 +129,154 @@ fun WiretapScreen(
                     isWideScreen = with(density) { size.width.toDp() } >= WIDE_SCREEN_BREAKPOINT
                 },
         ) {
-
-            val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
-
-            // Sync home tab when navigating to a detail route
-            LaunchedEffect(route) {
-                when (route) {
-                    is WiretapRoute.SocketDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_WEBSOCKET)
-                    is WiretapRoute.HttpDetail -> homeVm.selectTab(WiretapHomeViewModel.TAB_HTTP)
-                    else -> {}
-                }
-            }
-
-            val isTwoPaneRoute = route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail
-
-            if (isWideScreen && isTwoPaneRoute) {
-                Row(modifier = Modifier.fillMaxSize()) {
-
-                    WiretapHomeScreen(
-                        viewModel = homeVm,
-                        ruleRepository = ruleRepository,
-                        onBack = onBack,
-                        onNavigate = { navigateTo(it) },
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                    )
-
-                    VerticalDivider(modifier = Modifier.fillMaxHeight())
-
-                    val detailModifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .consumeWindowInsets(
-                            WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
-                        )
-
-                    when (val current = route) {
-                        is WiretapRoute.HttpDetail -> {
-                            val fullEntry by produceState(current.entry, current.entry.id) {
-                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
-                            }
-                            HttpLogDetailScreen(
-                                entry = fullEntry,
-                                onBack = { navigateTo(null) },
-                                onViewRule = { ruleId ->
-                                    scope.launch {
-                                        val rule = ruleRepository.getById(ruleId)
-                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                    }
-                                },
-                                modifier = detailModifier,
-                            )
-                        }
-
-                        is WiretapRoute.SocketDetail -> {
-                            val vm = viewModel(key = "socket_${current.socketId}") {
-                                SocketDetailViewModel(current.socketId, orchestrator)
-                            }
-                            SocketDetailScreen(
-                                viewModel = vm,
-                                onBack = { navigateTo(null) },
-                                modifier = detailModifier,
-                            )
-                        }
-
-                        else -> {}
-                    }
-                }
-            } else {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    // Keep home screen always in composition to preserve scroll state
-                    if (route == null || route is WiretapRoute.HttpDetail || route is WiretapRoute.SocketDetail) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = { backStack.removeLastOrNull() },
+                sceneStrategy = sceneStrategy,
+                transitionSpec = { forwardTransition() },
+                popTransitionSpec = { popTransition() },
+                predictivePopTransitionSpec = { _ -> popTransition() },
+                entryProvider = entryProvider {
+                    entry<WiretapRoute.Home>(
+                        metadata = listPane(),
+                    ) {
                         WiretapHomeScreen(
                             viewModel = homeVm,
                             ruleRepository = ruleRepository,
                             onBack = onBack,
-                            onNavigate = { navigateTo(it) },
+                            onNavigate = { route ->
+                                if (route != null) {
+                                    backStack.removeAll { it !is WiretapRoute.Home }
+                                    backStack.add(route)
+                                } else {
+                                    backStack.removeAll { it !is WiretapRoute.Home }
+                                }
+                            },
                         )
                     }
 
-                    when (val current = route) {
-                        is WiretapRoute.SocketDetail -> {
-                            val vm = viewModel(key = "socket_${current.socketId}") {
-                                SocketDetailViewModel(current.socketId, orchestrator)
-                            }
-                            SocketDetailScreen(
-                                viewModel = vm,
-                                onBack = { navigateTo(null) },
-                            )
+                    entry<WiretapRoute.HttpDetail>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val fullEntry: HttpLogEntry? by produceState<HttpLogEntry?>(null, key.entryId) {
+                            value = orchestrator.getHttpLogById(key.entryId)
                         }
-
-                        is WiretapRoute.HttpDetail -> {
-                            val fullEntry by produceState(current.entry, current.entry.id) {
-                                orchestrator.getHttpLogById(current.entry.id)?.let { value = it }
-                            }
+                        fullEntry?.let { entry ->
                             HttpLogDetailScreen(
-                                entry = fullEntry,
-                                onBack = { navigateTo(null) },
+                                entry = entry,
+                                onBack = { backStack.removeLastOrNull() },
                                 onViewRule = { ruleId ->
-                                    scope.launch {
-                                        val rule = ruleRepository.getById(ruleId)
-                                        if (rule != null) navigateTo(WiretapRoute.RuleDetail(rule))
-                                    }
+                                    backStack.add(WiretapRoute.RuleDetail(ruleId))
                                 },
                             )
                         }
+                    }
 
-                        is WiretapRoute.RuleDetail -> {
-                            val vm = viewModel(key = "rule_detail_${current.rule.id}") {
-                                RuleDetailViewModel(current.rule.id, current.rule.enabled, ruleRepository)
+                    entry<WiretapRoute.SocketDetail>(
+                        metadata = detailPane(),
+                    ) { key ->
+                        val vm = viewModel(key = "socket_${key.socketId}") {
+                            SocketDetailViewModel(key.socketId, orchestrator)
+                        }
+                        SocketDetailScreen(
+                            viewModel = vm,
+                            onBack = { backStack.removeLastOrNull() },
+                        )
+                    }
+
+                    entry<WiretapRoute.RuleDetail> { key ->
+                        val rule: WiretapRule? by produceState<WiretapRule?>(null, key.ruleId) {
+                            value = ruleRepository.getById(key.ruleId)
+                        }
+                        rule?.let { r ->
+                            val vm = viewModel(key = "rule_detail_${key.ruleId}") {
+                                RuleDetailViewModel(r.id, r.enabled, ruleRepository)
                             }
                             RuleDetailScreen(
-                                rule = current.rule,
+                                rule = r,
                                 viewModel = vm,
-                                onBack = { navigateTo(null) },
-                                onDeleted = { navigateTo(null) },
-                                onEditClick = { navigateTo(WiretapRoute.CreateRule(existingRule = current.rule)) },
+                                onBack = { backStack.removeLastOrNull() },
+                                onDeleted = { backStack.removeLastOrNull() },
+                                onEditClick = {
+                                    backStack.add(
+                                        WiretapRoute.CreateRule(existingRuleId = r.id),
+                                    )
+                                },
                             )
                         }
-
-                        is WiretapRoute.CreateRule -> {
-                            val vm = viewModel(
-                                key = "create_rule_${current.existingRule?.id}_${current.prefillFromLog?.id}",
-                            ) {
-                                CreateRuleViewModel(ruleRepository, findConflictingRules, current.existingRule, current.prefillFromLog)
-                            }
-                            CreateRuleScreen(
-                                viewModel = vm,
-                                ruleRepository = ruleRepository,
-                                onBack = {
-                                    vm.resetStep()
-                                    val existing = current.existingRule
-                                    if (existing != null) {
-                                        navigateTo(WiretapRoute.RuleDetail(existing))
-                                    } else {
-                                        navigateTo(null)
-                                    }
-                                },
-                                onSaved = { savedRule ->
-                                    if (savedRule != null) {
-                                        navigateTo(WiretapRoute.RuleDetail(savedRule))
-                                    } else {
-                                        navigateTo(null)
-                                    }
-                                },
-                                onEditConflictingRule = { rule -> navigateTo(WiretapRoute.CreateRule(existingRule = rule)) },
-                            )
-                        }
-
-                        null -> {}
                     }
-                }
-            }
+
+                    entry<WiretapRoute.CreateRule> { key ->
+                        CreateRuleEntry(
+                            key = key,
+                            backStack = backStack,
+                            ruleRepository = ruleRepository,
+                            orchestrator = orchestrator,
+                            findConflictingRules = findConflictingRules,
+                        )
+                    }
+                },
+            )
         }
     }
 }
 
-private fun WiretapRoute.toSaveKey(): String = when (this) {
-    is WiretapRoute.HttpDetail -> "http:${entry.id}"
-    is WiretapRoute.SocketDetail -> "socket:$socketId"
-    is WiretapRoute.RuleDetail -> "rule:${rule.id}"
-    is WiretapRoute.CreateRule -> "create:${existingRule?.id ?: 0}:${prefillFromLog?.id ?: 0}"
-}
-
-private suspend fun restoreRoute(
-    key: String,
-    orchestrator: WiretapOrchestrator,
+@Composable
+private fun CreateRuleEntry(
+    key: WiretapRoute.CreateRule,
+    backStack: MutableList<NavKey>,
     ruleRepository: RuleRepository,
-): WiretapRoute? {
-    val parts = key.split(":")
-    return when (parts[0]) {
-        "http" -> parts.getOrNull(1)?.toLongOrNull()
-            ?.let { orchestrator.getHttpLogById(it) }
-            ?.let { WiretapRoute.HttpDetail(it) }
+    orchestrator: WiretapOrchestrator,
+    findConflictingRules: FindConflictingRulesUseCase,
+) {
+    var existingRule: WiretapRule? by remember { mutableStateOf(null) }
+    var prefillLog: HttpLogEntry? by remember { mutableStateOf(null) }
+    var loaded by remember { mutableStateOf(false) }
 
-        "socket" -> parts.getOrNull(1)?.toLongOrNull()
-            ?.let { WiretapRoute.SocketDetail(it) }
-
-        "rule" -> parts.getOrNull(1)?.toLongOrNull()
-            ?.let { ruleRepository.getById(it) }
-            ?.let { WiretapRoute.RuleDetail(it) }
-
-        "create" -> {
-            val existingRule = parts.getOrNull(1)?.toLongOrNull()
-                ?.takeIf { it > 0 }?.let { ruleRepository.getById(it) }
-            val prefillLog = parts.getOrNull(2)?.toLongOrNull()
-                ?.takeIf { it > 0 }?.let { orchestrator.getHttpLogById(it) }
-            WiretapRoute.CreateRule(existingRule, prefillLog)
+    LaunchedEffect(key) {
+        existingRule = if (key.existingRuleId > 0) {
+            ruleRepository.getById(key.existingRuleId)
+        } else {
+            null
         }
+        prefillLog = if (key.prefillFromLogId > 0) {
+            orchestrator.getHttpLogById(key.prefillFromLogId)
+        } else {
+            null
+        }
+        loaded = true
+    }
 
-        else -> null
+    if (loaded) {
+        val vm = viewModel(
+            key = "create_rule_${key.existingRuleId}_${key.prefillFromLogId}",
+        ) {
+            CreateRuleViewModel(
+                ruleRepository,
+                findConflictingRules,
+                existingRule,
+                prefillLog,
+            )
+        }
+        CreateRuleScreen(
+            viewModel = vm,
+            ruleRepository = ruleRepository,
+            onBack = {
+                vm.resetStep()
+                backStack.removeLastOrNull()
+            },
+            onSaved = { savedRule ->
+                backStack.removeLastOrNull()
+                if (savedRule != null) {
+                    backStack.add(WiretapRoute.RuleDetail(savedRule.id))
+                }
+            },
+            onEditConflictingRule = { conflictRule ->
+                backStack.removeLastOrNull()
+                backStack.add(
+                    WiretapRoute.CreateRule(existingRuleId = conflictRule.id),
+                )
+            },
+        )
     }
 }

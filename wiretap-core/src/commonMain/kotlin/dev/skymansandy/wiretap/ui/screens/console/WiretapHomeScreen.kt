@@ -42,7 +42,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -63,7 +62,6 @@ import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.TAB_WEBSOCKET
 import dev.skymansandy.wiretap.ui.screens.console.http.components.HttpLogList
 import dev.skymansandy.wiretap.ui.socket.SocketLogList
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +73,6 @@ internal fun WiretapHomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val isWideScreen = LocalWideScreen.current
-    val scope = rememberCoroutineScope()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val httpSubTab by viewModel.httpSubTab.collectAsStateWithLifecycle()
     val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
@@ -189,21 +186,16 @@ internal fun WiretapHomeScreen(
                             lazyItems = lazyItems,
                             searchQuery = searchQuery,
                             onDismissSearch = { viewModel.setSearchActive(false) },
-                            onHttpClick = { onNavigate(WiretapRoute.HttpDetail(it)) },
-                            onCreateRule = { onNavigate(WiretapRoute.CreateRule(prefillFromLog = it)) },
-                            onViewRule = { ruleId ->
-                                scope.launch {
-                                    val rule = viewModel.getRuleById(ruleId)
-                                    if (rule != null) onNavigate(WiretapRoute.RuleDetail(rule))
-                                }
-                            },
+                            onHttpClick = { onNavigate(WiretapRoute.HttpDetail(it.id)) },
+                            onCreateRule = { onNavigate(WiretapRoute.CreateRule(prefillFromLogId = it.id)) },
+                            onViewRule = { ruleId -> onNavigate(WiretapRoute.RuleDetail(ruleId)) },
                             modifier = Modifier.fillMaxSize(),
                         )
 
                         HTTP_SUB_TAB_RULES -> RulesListScreen(
                             ruleRepository = ruleRepository,
                             searchQuery = debouncedQuery,
-                            onRuleClick = { onNavigate(WiretapRoute.RuleDetail(it)) },
+                            onRuleClick = { onNavigate(WiretapRoute.RuleDetail(it.id)) },
                             onCreateClick = { onNavigate(WiretapRoute.CreateRule()) },
                             modifier = Modifier.fillMaxSize(),
                         )
