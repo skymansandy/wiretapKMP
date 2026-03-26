@@ -71,7 +71,7 @@ internal fun WiretapConsole(
     deepLinkScreen: WiretapScreen? = null,
     onDeepLinkConsumed: () -> Unit = {},
 ) {
-    // Nav3 deep-link recipe: initialise the back stack with a synthetic stack
+    // Nav3 deep-link recipe: initialize the back stack with a synthetic stack
     // that includes the deep-link destination, so Back navigates naturally.
     val initialKeys = remember { buildSyntheticBackStack(deepLinkScreen) }
     val backStack = rememberNavBackStack(screenSerializersModule, *initialKeys)
