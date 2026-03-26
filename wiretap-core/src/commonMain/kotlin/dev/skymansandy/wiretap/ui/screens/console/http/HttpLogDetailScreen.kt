@@ -48,6 +48,9 @@ import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareNetworkLog
 import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.navigation.PreviewWithNavigator
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab
@@ -58,10 +61,9 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun HttpLogDetailScreen(
     entry: HttpLogEntry,
-    onBack: () -> Unit,
-    onViewRule: ((ruleId: Long) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val navigator = LocalWiretapNavigator.current
     val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
@@ -136,7 +138,7 @@ internal fun HttpLogDetailScreen(
                             isSearchActive = false
                             searchQuery = ""
                         } else {
-                            onBack()
+                            navigator.pop()
                         }
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -211,7 +213,13 @@ internal fun HttpLogDetailScreen(
             }
 
             if (entry.source != ResponseSource.Network) {
-                RuleMatchBanner(entry.source, entry.matchedRuleId, onViewRule)
+                RuleMatchBanner(
+                    source = entry.source,
+                    matchedRuleId = entry.matchedRuleId,
+                    onViewRule = { ruleId ->
+                        navigator.navigateTo(WiretapScreen.RuleDetailScreen(ruleId))
+                    },
+                )
             }
 
             HorizontalPager(
@@ -297,7 +305,7 @@ private fun RuleMatchBanner(
 @Preview
 @Composable
 private fun Preview_HttpLogDetailScreen() {
-    MaterialTheme {
+    PreviewWithNavigator {
         HttpLogDetailScreen(
             entry = HttpLogEntry(
                 id = 1,
@@ -315,7 +323,6 @@ private fun Preview_HttpLogDetailScreen() {
                 durationMs = 142,
                 timestamp = 1710850000000,
             ),
-            onBack = {},
         )
     }
 }
@@ -323,7 +330,7 @@ private fun Preview_HttpLogDetailScreen() {
 @Preview
 @Composable
 private fun Preview_HttpLogDetailScreenMocked() {
-    MaterialTheme {
+    PreviewWithNavigator {
         HttpLogDetailScreen(
             entry = HttpLogEntry(
                 id = 2,
@@ -336,8 +343,6 @@ private fun Preview_HttpLogDetailScreenMocked() {
                 matchedRuleId = 1,
                 responseBody = """{"id":456,"name":"Mock User"}""",
             ),
-            onBack = {},
-            onViewRule = {},
         )
     }
 }

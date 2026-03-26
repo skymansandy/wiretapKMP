@@ -54,8 +54,9 @@ import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapRoute
+import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.HTTP_SUB_TAB_LOGS
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.HTTP_SUB_TAB_RULES
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.TAB_HTTP
@@ -69,9 +70,9 @@ internal fun WiretapHomeScreen(
     viewModel: WiretapHomeViewModel,
     ruleRepository: RuleRepository,
     onBack: () -> Unit,
-    onNavigate: (WiretapRoute?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val navigator = LocalWiretapNavigator.current
     val isWideScreen = LocalWideScreen.current
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val httpSubTab by viewModel.httpSubTab.collectAsStateWithLifecycle()
@@ -155,7 +156,6 @@ internal fun WiretapHomeScreen(
                 TAB_HTTP -> Column(
                     modifier = contentModifier.nestedScroll(subTabScrollConnection),
                 ) {
-
                     AnimatedVisibility(
                         visible = isSubTabVisible,
                         enter = expandVertically(),
@@ -174,7 +174,7 @@ internal fun WiretapHomeScreen(
                                 selected = httpSubTab == HTTP_SUB_TAB_RULES,
                                 onClick = {
                                     viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
-                                    onNavigate(null)
+                                    navigator.clearDetailPanes()
                                 },
                                 text = { Text("Rules") },
                             )
@@ -186,17 +186,17 @@ internal fun WiretapHomeScreen(
                             lazyItems = lazyItems,
                             searchQuery = searchQuery,
                             onDismissSearch = { viewModel.setSearchActive(false) },
-                            onHttpClick = { onNavigate(WiretapRoute.HttpDetail(it.id)) },
-                            onCreateRule = { onNavigate(WiretapRoute.CreateRule(prefillFromLogId = it.id)) },
-                            onViewRule = { ruleId -> onNavigate(WiretapRoute.RuleDetail(ruleId)) },
+                            onHttpClick = { navigator.navigateToDetail(WiretapScreen.HttpDetailScreen(it.id)) },
+                            onCreateRule = { navigator.navigateToDetail(WiretapScreen.CreateRuleScreen(prefillFromLogId = it.id)) },
+                            onViewRule = { ruleId -> navigator.navigateToDetail(WiretapScreen.RuleDetailScreen(ruleId)) },
                             modifier = Modifier.fillMaxSize(),
                         )
 
                         HTTP_SUB_TAB_RULES -> RulesListScreen(
                             ruleRepository = ruleRepository,
                             searchQuery = debouncedQuery,
-                            onRuleClick = { onNavigate(WiretapRoute.RuleDetail(it.id)) },
-                            onCreateClick = { onNavigate(WiretapRoute.CreateRule()) },
+                            onRuleClick = { navigator.navigateToDetail(WiretapScreen.RuleDetailScreen(it.id)) },
+                            onCreateClick = { navigator.navigateToDetail(WiretapScreen.CreateRuleScreen()) },
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -206,7 +206,7 @@ internal fun WiretapHomeScreen(
                     socketLogs = socketLogs,
                     searchQuery = searchQuery,
                     onDismissSearch = { viewModel.setSearchActive(false) },
-                    onSocketClick = { onNavigate(WiretapRoute.SocketDetail(it.id)) },
+                    onSocketClick = { navigator.navigateToDetail(WiretapScreen.SocketDetailScreen(it.id)) },
                     modifier = contentModifier,
                 )
             }

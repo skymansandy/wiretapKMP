@@ -7,10 +7,9 @@
             buildForRunning = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DB620C48CF4EF02A9FE7106D"
-               BuildableName = "WiretapSwiftSample.app"
+               BuildableName = "WiretapSwiftSample"
                BlueprintName = "WiretapSwiftSample"
-               ReferencedContainer = "container:../../iosSampleApp/WiretapSwiftSample.xcodeproj">
+               ReferencedContainer = "container:WiretapSwiftSample.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -22,10 +21,9 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DB620C48CF4EF02A9FE7106D"
-            BuildableName = "WiretapSwiftSample.app"
+            BuildableName = "WiretapSwiftSample"
             BlueprintName = "WiretapSwiftSample"
-            ReferencedContainer = "container:../../iosSampleApp/WiretapSwiftSample.xcodeproj">
+            ReferencedContainer = "container:WiretapSwiftSample.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <LocationScenarioReference

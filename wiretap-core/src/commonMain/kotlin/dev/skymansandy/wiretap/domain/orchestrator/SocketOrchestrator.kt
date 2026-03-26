@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface SocketOrchestrator {
 
-    suspend fun openSocket(entry: SocketEntry): Long
+    suspend fun createSocket(entry: SocketEntry): Long
 
     suspend fun updateSocket(entry: SocketEntry)
 

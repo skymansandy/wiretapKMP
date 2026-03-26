@@ -2,11 +2,11 @@ package dev.skymansandy.wiretap.ui.screens.rule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
@@ -33,16 +33,20 @@ import kotlinx.coroutines.launch
 
 @Suppress("TooManyFunctions")
 internal class CreateRuleViewModel(
+    private val existingRuleId: Long,
+    private val prefillFromLogId: Long,
     private val ruleRepository: RuleRepository,
+    private val orchestrator: WiretapOrchestrator,
     private val findConflictingRules: FindConflictingRulesUseCase,
-    existingRule: WiretapRule?,
-    prefillFromLog: HttpLogEntry?,
 ) : ViewModel() {
 
-    val isEditing = existingRule != null
-    private val existingRuleId = existingRule?.id
-    private val existingCreatedAt = existingRule?.createdAt
-    private val existingEnabled = existingRule?.enabled
+    val isEditing = existingRuleId > 0
+    private var loadedRuleId: Long? = null
+    private var loadedCreatedAt: Long? = null
+    private var loadedEnabled: Boolean? = null
+
+    val loaded: StateFlow<Boolean>
+        field = MutableStateFlow(false)
 
     // Step
     val step: StateFlow<Int>
@@ -50,92 +54,50 @@ internal class CreateRuleViewModel(
 
     // Request state
     val method: StateFlow<String>
-        field = MutableStateFlow(existingRule?.method ?: prefillFromLog?.method ?: "*")
+        field = MutableStateFlow("*")
 
     val urlMode: StateFlow<UrlMatchMode?>
-        field = MutableStateFlow(
-            existingRule?.toUrlMode()
-                ?: if (prefillFromLog != null) UrlMatchMode.Exact else null,
-        )
+        field = MutableStateFlow(null)
 
     val urlPattern: StateFlow<String>
-        field = MutableStateFlow(existingRule?.urlMatcher?.pattern ?: prefillFromLog?.url ?: "")
+        field = MutableStateFlow("")
 
     val headerEntries: StateFlow<List<HeaderEntry>>
-        field = MutableStateFlow(
-            existingRule?.headerMatchers?.map { it.toEntry() }
-                ?: prefillFromLog?.requestHeaders?.map { (k, v) ->
-                    HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
-                }
-                ?: emptyList(),
-        )
+        field = MutableStateFlow(emptyList())
 
     val bodyMode: StateFlow<BodyMatchMode?>
-        field = MutableStateFlow(
-            existingRule?.toBodyMode()
-                ?: if (prefillFromLog?.requestBody != null) BodyMatchMode.Exact else null,
-        )
+        field = MutableStateFlow(null)
 
     val bodyPattern: StateFlow<String>
-        field = MutableStateFlow(
-            existingRule?.bodyMatcher?.pattern ?: prefillFromLog?.requestBody ?: "",
-        )
+        field = MutableStateFlow("")
 
     // Response state
-    private val existingMock = existingRule?.action as? RuleAction.Mock
-    private val existingThrottle = existingRule?.action as? RuleAction.Throttle
-
     val action: StateFlow<RuleAction>
-        field = MutableStateFlow(existingRule?.action ?: RuleAction.Mock())
+        field = MutableStateFlow<RuleAction>(RuleAction.Mock())
 
     val mockResponseCode: StateFlow<String>
-        field = MutableStateFlow(existingMock?.responseCode?.toString() ?: "200")
+        field = MutableStateFlow("200")
 
     val mockResponseBody: StateFlow<String>
-        field = MutableStateFlow(existingMock?.responseBody ?: "")
+        field = MutableStateFlow("")
 
     val responseHeaderEntries: StateFlow<List<ResponseHeaderEntry>>
-        field = MutableStateFlow(
-            existingMock?.responseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) }
-                ?: emptyList(),
-        )
+        field = MutableStateFlow(emptyList())
 
     val responseHeadersBulk: StateFlow<String>
-        field = MutableStateFlow(
-            existingMock?.responseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: "",
-        )
+        field = MutableStateFlow("")
 
     val responseHeadersMode: StateFlow<ResponseHeadersEditMode>
         field = MutableStateFlow(ResponseHeadersEditMode.KeyValue)
 
     val throttleDelayMs: StateFlow<String>
-        field = MutableStateFlow(
-            (existingMock?.throttleDelayMs ?: existingThrottle?.delayMs)?.toString() ?: "",
-        )
+        field = MutableStateFlow("")
 
     val throttleDelayMaxMs: StateFlow<String>
-        field = MutableStateFlow(
-            (existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs)?.toString() ?: "",
-        )
+        field = MutableStateFlow("")
 
     val throttleInputMode: StateFlow<ThrottleInputMode>
-        field = MutableStateFlow(
-            run {
-                val existingDelayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
-                val existingDelayMaxMs =
-                    existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
-                when {
-                    existingDelayMs == null ||
-                        (existingDelayMs == 0L && existingDelayMaxMs.let { it == null || it == 0L }) ->
-                        ThrottleInputMode.None
-                    ThrottleProfile.entries.any {
-                        it.delayMinMs == existingDelayMs && it.delayMaxMs == existingDelayMaxMs
-                    } -> ThrottleInputMode.Profile
-
-                    else -> ThrottleInputMode.Manual
-                }
-            },
-        )
+        field = MutableStateFlow(ThrottleInputMode.None)
 
     // Regex tester
     val regexTesterPattern: StateFlow<String>
@@ -174,6 +136,66 @@ internal class CreateRuleViewModel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false,
     )
+
+    init {
+        viewModelScope.launch {
+            val existingRule = if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
+            val prefillFromLog = if (prefillFromLogId > 0) orchestrator.getHttpLogById(prefillFromLogId) else null
+
+            if (existingRule != null) {
+                loadedRuleId = existingRule.id
+                loadedCreatedAt = existingRule.createdAt
+                loadedEnabled = existingRule.enabled
+
+                method.value = existingRule.method
+                urlMode.value = existingRule.toUrlMode()
+                urlPattern.value = existingRule.urlMatcher?.pattern ?: ""
+                headerEntries.value = existingRule.headerMatchers.map { it.toEntry() }
+                bodyMode.value = existingRule.toBodyMode()
+                bodyPattern.value = existingRule.bodyMatcher?.pattern ?: ""
+                action.value = existingRule.action
+
+                val existingMock = existingRule.action as? RuleAction.Mock
+                val existingThrottle = existingRule.action as? RuleAction.Throttle
+                mockResponseCode.value = existingMock?.responseCode?.toString() ?: "200"
+                mockResponseBody.value = existingMock?.responseBody ?: ""
+                responseHeaderEntries.value =
+                    existingMock?.responseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) }
+                        ?: emptyList()
+                responseHeadersBulk.value =
+                    existingMock?.responseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: ""
+                throttleDelayMs.value =
+                    (existingMock?.throttleDelayMs ?: existingThrottle?.delayMs)?.toString() ?: ""
+                throttleDelayMaxMs.value =
+                    (existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs)?.toString() ?: ""
+
+                val delayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
+                val delayMaxMs = existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
+                throttleInputMode.value = when {
+                    delayMs == null ||
+                        (delayMs == 0L && delayMaxMs.let { it == null || it == 0L }) ->
+                        ThrottleInputMode.None
+                    ThrottleProfile.entries.any {
+                        it.delayMinMs == delayMs && it.delayMaxMs == delayMaxMs
+                    } -> ThrottleInputMode.Profile
+                    else -> ThrottleInputMode.Manual
+                }
+            } else if (prefillFromLog != null) {
+                method.value = prefillFromLog.method
+                urlMode.value = UrlMatchMode.Exact
+                urlPattern.value = prefillFromLog.url
+                headerEntries.value = prefillFromLog.requestHeaders?.map { (k, v) ->
+                    HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                } ?: emptyList()
+                if (prefillFromLog.requestBody != null) {
+                    bodyMode.value = BodyMatchMode.Exact
+                    bodyPattern.value = prefillFromLog.requestBody
+                }
+            }
+
+            loaded.value = true
+        }
+    }
 
     fun nextStep() {
         step.value++
@@ -349,7 +371,7 @@ internal class CreateRuleViewModel(
             )
         }
         return WiretapRule(
-            id = existingRuleId ?: 0,
+            id = loadedRuleId ?: 0,
             method = method.value.trim().ifBlank { "*" },
             urlMatcher = when (urlMode.value) {
                 UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
@@ -365,8 +387,8 @@ internal class CreateRuleViewModel(
                 null -> null
             },
             action = ruleAction,
-            enabled = existingEnabled ?: true,
-            createdAt = existingCreatedAt ?: currentTimeMillis(),
+            enabled = loadedEnabled ?: true,
+            createdAt = loadedCreatedAt ?: currentTimeMillis(),
         )
     }
 }

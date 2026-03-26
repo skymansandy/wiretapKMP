@@ -52,7 +52,7 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * Supports mock and throttle rules — matching requests can return fake responses
  * or be delayed before reaching the network.
  *
- * Install in your [HttpClient] configuration:
+ * Install in your [io.ktor.client.HttpClient] configuration:
  * ```kotlin
  * HttpClient {
  *     install(WiretapKtorPlugin) {
@@ -88,7 +88,14 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         // Retention cleanup: runs once per plugin installation
         if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
-            deps.applyLogRetention(config.logRetention)
+            when (val logRetention = config.logRetention) {
+                LogRetention.Forever -> Unit
+                is LogRetention.AppSession -> deps.orchestrator.clearHttpLogs()
+                is LogRetention.Days -> {
+                    val cutoff = currentTimeMillis() - logRetention.days * 24L * 60 * 60 * 1000
+                    deps.orchestrator.purgeHttpLogsOlderThan(cutoff)
+                }
+            }
         }
 
         // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
@@ -118,7 +125,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
         // Log request immediately so it appears in the UI (gated by shouldLog).
         // NonCancellable ensures the save completes and returns the ID even if the
-        // coroutine is cancelled mid-flight, preventing orphaned "..." entries.
+        // coroutine is canceled mid-flight, preventing orphaned entries.
         val logEntryId = if (config.shouldLog(url, method)) {
             withContext(NonCancellable) {
                 deps.orchestrator.logHttpAndGetId(
@@ -134,11 +141,12 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         } else {
             -1L
         }
+
         if (logEntryId >= 0) {
             request.attributes.put(LogEntryIdKey, logEntryId)
 
             // Safety net: if the coroutine is cancelled after proceed() returns
-            // but before onResponse fires, mark the entry as cancelled.
+            // but before onResponse fires, mark the entry as canceled.
             // The conditional SQL only updates entries still at -2 (in-progress),
             // so it won't overwrite a legitimate response logged by onResponse.
             coroutineContext[Job]?.invokeOnCompletion { cause ->
@@ -178,9 +186,8 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     )
 
                     if (logEntryId >= 0) {
-                        val startNano =
-                            request.attributes.getOrNull(RequestNanoTimestampKey)
-                                ?: currentNanoTime()
+                        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey)
+                            ?: currentNanoTime()
                         val durationNs = currentNanoTime() - startNano
                         val mockRespHeaders = action.responseHeaders ?: emptyMap()
                         deps.orchestrator.updateHttp(
@@ -222,7 +229,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
                     request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
                 val durationNs = currentNanoTime() - startNano
                 // NonCancellable ensures the DB update completes even when
-                // the coroutine is cancelled, so the entry moves from "..." to "!!!".
+                // the coroutine is canceled, so the entry moves from "..." to "!!!".
                 withContext(NonCancellable) {
                     deps.orchestrator.updateHttp(
                         HttpLogEntry(
@@ -255,13 +262,13 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
             deps.orchestrator.deleteHttpLog(logEntryId)
             return@onResponse
         }
+
         val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 
         val url = request.url.toString()
         val method = request.method.value
-
         val requestHeaders = request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
         val responseHeaders = response.headers.entries()
@@ -282,7 +289,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
 
         // NonCancellable ensures the DB update completes even when
-        // the coroutine is cancelled mid-response, so the entry doesn't stay stuck at "...".
+        // the coroutine is canceled mid-response, so the entry doesn't stay stuck at "...".
         withContext(NonCancellable) {
             deps.orchestrator.updateHttp(
                 HttpLogEntry(
@@ -309,19 +316,7 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 private class WiretapDeps : KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
+
     val orchestrator: WiretapOrchestrator by inject()
     val findMatchingRule: FindMatchingRuleUseCase by inject()
-
-    suspend fun applyLogRetention(logRetention: LogRetention) {
-        when (logRetention) {
-            is LogRetention.AppSession -> orchestrator.clearHttpLogs()
-
-            is LogRetention.Days -> {
-                val cutoff = currentTimeMillis() - logRetention.days * 24L * 60 * 60 * 1000
-                orchestrator.purgeHttpLogsOlderThan(cutoff)
-            }
-
-            else -> Unit
-        }
-    }
 }

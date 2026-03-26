@@ -18,7 +18,7 @@ internal class SocketOrchestratorImpl(
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
     private val activeConnections = mutableMapOf<Long, SocketEntry>()
 
-    override suspend fun openSocket(entry: SocketEntry): Long {
+    override suspend fun createSocket(entry: SocketEntry): Long {
         val id = socketRepository.openConnection(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId

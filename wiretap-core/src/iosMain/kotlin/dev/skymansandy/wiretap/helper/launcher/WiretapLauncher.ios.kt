@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.helper.launcher
 
 import androidx.compose.ui.window.ComposeUIViewController
 import dev.skymansandy.wiretap.shake.ShakeDetector
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.ui.WiretapConsole
 import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import platform.UIKit.UIApplication
 import platform.UIKit.UIModalPresentationFullScreen
@@ -17,7 +17,7 @@ private var wiretapViewControllerInstance: UIViewController? = null
 fun WiretapViewController(): UIViewController {
     return ComposeUIViewController {
         WiretapTheme {
-            WiretapScreen(
+            WiretapConsole(
                 onBack = {
                     wiretapViewControllerInstance = null
                     getTopMostViewController()?.dismissViewControllerAnimated(

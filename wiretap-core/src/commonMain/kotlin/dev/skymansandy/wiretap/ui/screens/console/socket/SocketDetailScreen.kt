@@ -47,15 +47,16 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocketDetailScreen(
     viewModel: SocketDetailViewModel,
-    onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val navigator = LocalWiretapNavigator.current
     val initialEntry by viewModel.initialEntry.collectAsStateWithLifecycle()
     val liveEntry by viewModel.liveEntry.collectAsStateWithLifecycle()
     val entry = liveEntry ?: initialEntry
@@ -98,7 +99,7 @@ internal fun SocketDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { navigator.pop() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
