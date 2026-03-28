@@ -18,6 +18,7 @@ HttpClient {
         shouldLog = { url, method -> true }
         headerAction = { key -> HeaderAction.Keep }
         logRetention = LogRetention.Forever
+        maxContentLength = 100 * 1024
     }
 }
 ```
@@ -83,6 +84,7 @@ class WiretapConfig {
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }
     var logRetention: LogRetention = LogRetention.Forever
+    var maxContentLength: Int = MAX_CONTENT_LENGTH  // 500 * 1024
 }
 ```
 

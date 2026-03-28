@@ -28,6 +28,7 @@ let session = WiretapURLSession { config in
     config.enabled = false
     #endif
     config.logRetention = LogRetentionDays(days: 7)
+    config.maxContentLength = 100 * 1024
     config.shouldLog = { url, method in KotlinBoolean(value: true) }
     config.headerAction = { key in HeaderActionKeep.shared }
 }

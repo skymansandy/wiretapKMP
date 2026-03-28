@@ -80,6 +80,7 @@ let session = WiretapURLSession(configuration: .default) { config in
     config.shouldLog = { _, _ in
         return KotlinBoolean(value: true)
     }
+    config.maxContentLength = 100 * 1024
 }
 ```
 
@@ -126,6 +127,7 @@ timeoutSession.intercept(request: request) { data, response, error in
 | `shouldLog`    | `(url, method) -> Boolean`   | `{ _, _ -> true }`   | Filter which requests are logged.                                                     |
 | `headerAction` | `(key) -> HeaderAction`      | `{ HeaderAction.Keep }` | Per-header control: `Keep`, `Skip`, or `Mask(mask)`.                               |
 | `logRetention` | `LogRetention`               | `Forever`            | `Forever`, `AppSession` (clear on init), or `Days(n)` (auto-prune).                  |
+| `maxContentLength`  | `Int`                        | `512000` (500 KB)    | Max characters for request/response bodies. Truncated before DB write. `0` disables body logging. |
 
 ## 🎭 Mock & Throttle Rules
 

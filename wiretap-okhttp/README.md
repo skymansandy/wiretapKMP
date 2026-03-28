@@ -71,6 +71,9 @@ val client = OkHttpClient.Builder()
 
         // Auto-prune logs older than 7 days
         logRetention = LogRetention.Days(7)
+
+        // Truncate bodies larger than 100 KB
+        maxContentLength = 100 * 1024
     })
     .build()
 ```
@@ -83,6 +86,7 @@ val client = OkHttpClient.Builder()
 | `shouldLog`    | `(url, method) -> Boolean`   | `{ _, _ -> true }`   | Filter which requests are logged. Requests that don't match still respect mock/throttle rules.    |
 | `headerAction` | `(key) -> HeaderAction`      | `{ HeaderAction.Keep }` | Per-header control: `Keep`, `Skip`, or `Mask(mask)`.                                          |
 | `logRetention` | `LogRetention`               | `Forever`            | `Forever`, `AppSession` (clear on init), or `Days(n)` (auto-prune).                             |
+| `maxContentLength`  | `Int`                        | `512000` (500 KB)    | Max characters for request/response bodies. Truncated before DB write. `0` disables body logging. |
 
 ### 🎭 Mock & Throttle Rules
 
