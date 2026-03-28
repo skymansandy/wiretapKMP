@@ -28,7 +28,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.formatOneDecimal
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.ui.common.highlightText
+import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @Composable

@@ -2,6 +2,7 @@ package dev.skymansandy.wiretap.ui.screens.console.http.components.tabs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +24,7 @@ internal fun OverviewTab(
             .verticalScroll(rememberScrollState()),
     ) {
         KeyValueTable(
+            modifier = Modifier.fillMaxWidth(),
             rows = buildList {
                 add("URL" to entry.url)
                 add("Method" to entry.method)

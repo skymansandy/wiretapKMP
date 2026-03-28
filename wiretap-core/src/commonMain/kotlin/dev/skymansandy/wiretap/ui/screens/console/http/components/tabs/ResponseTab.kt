@@ -2,6 +2,7 @@ package dev.skymansandy.wiretap.ui.screens.console.http.components.tabs
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,6 +40,7 @@ internal fun ResponseTab(
         modifier = modifier.verticalScroll(rememberScrollState()),
     ) {
         SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
             text = "Headers",
             action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null,
             expanded = headersExpanded,
@@ -54,6 +56,7 @@ internal fun ResponseTab(
         }
 
         SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
             text = "Body",
             action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
         )
@@ -67,7 +70,7 @@ internal fun ResponseTab(
             )
         } else {
             CodeBlock(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 text = body ?: "No body",
                 searchQuery = searchQuery,
             )

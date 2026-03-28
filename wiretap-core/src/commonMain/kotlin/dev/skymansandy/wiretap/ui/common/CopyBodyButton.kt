@@ -47,6 +47,8 @@ internal fun CopyBodyButton(
 @Composable
 private fun Preview_CopyBodyButton() {
     MaterialTheme {
-        CopyBodyButton(body = """{"name":"John"}""")
+        CopyBodyButton(
+            body = """{"name":"John"}""",
+        )
     }
 }

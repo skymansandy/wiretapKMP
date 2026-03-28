@@ -45,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -258,14 +259,13 @@ private fun WiretapTopBar(
     onClearHttpLogs: () -> Unit,
     onClearSocketLogs: () -> Unit,
 ) {
-
     TopAppBar(
         title = {
             if (isSearchActive) {
                 SearchField(
+                    modifier = Modifier.focusRequester(searchFocusRequester),
                     query = searchQuery,
                     onQueryChange = onSearchQueryChange,
-                    focusRequester = searchFocusRequester,
                 )
             } else {
                 Text(title)

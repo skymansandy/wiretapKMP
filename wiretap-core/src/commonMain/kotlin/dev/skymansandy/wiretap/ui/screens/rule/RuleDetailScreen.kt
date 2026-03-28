@@ -218,8 +218,8 @@ internal fun RuleDetailScreen(
                             )
                         } else {
                             CodeBlock(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                                 text = action.responseBody,
-                                modifier = Modifier.padding(vertical = 4.dp),
                             )
                         }
                     }

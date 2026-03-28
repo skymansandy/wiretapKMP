@@ -41,7 +41,7 @@ import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.ui.common.highlightText
+import dev.skymansandy.wiretap.helper.util.highlightText
 import kotlinx.coroutines.launch
 
 @Composable

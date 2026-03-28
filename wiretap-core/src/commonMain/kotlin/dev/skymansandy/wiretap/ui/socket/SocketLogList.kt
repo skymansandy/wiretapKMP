@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.ui.common.highlightText
+import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
 

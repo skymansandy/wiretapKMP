@@ -9,7 +9,7 @@ import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 @Composable
 internal fun PreviewWithNavigator(content: @Composable () -> Unit) {
     MaterialTheme {
-        CompositionLocalProvider(LocalWiretapNavigator provides WiretapNavigator.Companion.NoOp) {
+        CompositionLocalProvider(LocalWiretapNavigator provides WiretapNavigator.NoOp) {
             content()
         }
     }
