@@ -40,7 +40,6 @@ import dev.skymansandy.wiretap.ui.model.bodyPlaceholder
 import dev.skymansandy.wiretap.ui.model.hasValue
 import dev.skymansandy.wiretap.ui.model.headerValuePlaceholder
 import dev.skymansandy.wiretap.ui.model.isRegex
-import dev.skymansandy.wiretap.ui.model.label
 import dev.skymansandy.wiretap.ui.model.urlPlaceholder
 import dev.skymansandy.wiretap.ui.screens.rules.components.MethodSelector
 import dev.skymansandy.wiretap.ui.screens.rules.components.RegexTesterIcon
@@ -53,7 +52,6 @@ internal fun RequestStep(
     modifier: Modifier = Modifier,
     viewModel: CreateRuleViewModel,
 ) {
-
     val state by viewModel.requestState.collectAsStateWithLifecycle()
     val method = state.method
     val urlMode = state.urlMode
@@ -89,7 +87,7 @@ internal fun RequestStep(
                 FilterChip(
                     selected = urlMode == mode,
                     onClick = { viewModel.updateUrlMode(mode) },
-                    label = { Text(mode.label()) },
+                    label = { Text(mode.label) },
                 )
             }
         }
@@ -102,12 +100,12 @@ internal fun RequestStep(
             OutlinedTextField(
                 value = urlPattern,
                 onValueChange = { viewModel.updateUrlPattern(it) },
-                label = { Text("URL ${urlMode!!.label()}") },
-                placeholder = { Text(urlPlaceholder(urlMode!!)) },
+                label = { Text("URL ${urlMode.label}") },
+                placeholder = { Text(urlPlaceholder(urlMode)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 trailingIcon = when {
-                    urlMode!!.isRegex() -> {
+                    urlMode.isRegex() -> {
                         { RegexTesterIcon { viewModel.openRegexTester(urlPattern, testUrlLabel) } }
                     }
 
@@ -159,7 +157,7 @@ internal fun RequestStep(
                 FilterChip(
                     selected = bodyMode == mode,
                     onClick = { viewModel.updateBodyMode(mode) },
-                    label = { Text(mode.label()) },
+                    label = { Text(mode.label) },
                 )
             }
         }
@@ -168,12 +166,12 @@ internal fun RequestStep(
             OutlinedTextField(
                 value = bodyPattern,
                 onValueChange = { viewModel.updateBodyPattern(it) },
-                label = { Text("Body ${bodyMode!!.label()}") },
-                placeholder = { Text(bodyPlaceholder(bodyMode!!)) },
+                label = { Text("Body ${bodyMode.label}") },
+                placeholder = { Text(bodyPlaceholder(bodyMode)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 trailingIcon = when {
-                    bodyMode!!.isRegex() -> {
+                    bodyMode.isRegex() -> {
                         { RegexTesterIcon { viewModel.openRegexTester(bodyPattern, testBodyLabel) } }
                     }
 
@@ -203,7 +201,6 @@ private fun HeaderMatcherItem(
                 .padding(horizontal = 8.dp)
                 .padding(top = 4.dp, bottom = 8.dp),
         ) {
-
             // Row 1: Mode dropdown + Key + Remove
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -221,7 +218,7 @@ private fun HeaderMatcherItem(
                     ) {
                         HeaderEntryMode.entries.forEach { mode ->
                             DropdownMenuItem(
-                                text = { Text(mode.label()) },
+                                text = { Text(mode.label) },
                                 onClick = {
                                     onUpdate(
                                         entry.copy(
@@ -236,7 +233,7 @@ private fun HeaderMatcherItem(
                     }
 
                     OutlinedTextField(
-                        value = entry.mode.label(),
+                        value = entry.mode.label,
                         onValueChange = {},
                         readOnly = true,
                         singleLine = true,

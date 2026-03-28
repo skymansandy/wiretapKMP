@@ -4,7 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,9 +27,12 @@ internal fun WiretapTopBar(
     searchQuery: String,
     searchFocusRequester: FocusRequester,
     showClearAction: Boolean,
+    showFilterAction: Boolean = false,
+    activeFilterCount: Int = 0,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
     onBack: () -> Unit,
+    onFilter: () -> Unit = {},
     onClear: () -> Unit,
 ) {
     TopAppBar(
@@ -70,6 +76,23 @@ internal fun WiretapTopBar(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
                     )
+                }
+            }
+            if (showFilterAction) {
+                IconButton(onClick = onFilter) {
+                    if (activeFilterCount > 0) {
+                        BadgedBox(badge = { Badge { Text("$activeFilterCount") } }) {
+                            Icon(
+                                imageVector = Icons.Default.FilterList,
+                                contentDescription = "Filter",
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = "Filter",
+                        )
+                    }
                 }
             }
             if (showClearAction) {

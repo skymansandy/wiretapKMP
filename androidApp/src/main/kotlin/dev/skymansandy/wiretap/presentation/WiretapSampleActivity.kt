@@ -54,7 +54,6 @@ internal class WiretapSampleActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-
                         Text(
                             text = "Wiretap Sample",
                             style = MaterialTheme.typography.headlineMedium,

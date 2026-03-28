@@ -17,16 +17,19 @@ sealed interface UrlMatcher {
 
     /** Matches when the request URL equals [pattern] exactly (case-insensitive). */
     data class Exact(override val pattern: String) : UrlMatcher {
+
         override val type = MatcherType.Exact
     }
 
     /** Matches when the request URL contains [pattern] as a substring (case-insensitive). */
     data class Contains(override val pattern: String) : UrlMatcher {
+
         override val type = MatcherType.Contains
     }
 
     /** Matches when the request URL matches [pattern] as a regular expression. */
     data class Regex(override val pattern: String) : UrlMatcher {
+
         override val type = MatcherType.Regex
     }
 }

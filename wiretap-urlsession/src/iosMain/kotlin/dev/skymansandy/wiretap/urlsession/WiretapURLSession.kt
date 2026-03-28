@@ -40,6 +40,7 @@ class WiretapURLSession(
     configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
     configure: WiretapConfig.() -> Unit = {},
 ) {
+
     private val session: NSURLSession = NSURLSession.sessionWithConfiguration(
         configuration,
         null,

@@ -34,5 +34,6 @@ internal abstract class WiretapRoomDatabase : RoomDatabase() {
 
 @Suppress("NO_ACTUAL_FOR_EXPECT", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA")
 internal expect object WiretapDatabaseConstructor : RoomDatabaseConstructor<WiretapRoomDatabase> {
+
     override fun initialize(): WiretapRoomDatabase
 }

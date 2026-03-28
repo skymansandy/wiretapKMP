@@ -17,6 +17,7 @@ data class SocketConnection(
     val remoteAddress: String? = null,
     val historyCleared: Boolean = false,
 ) {
+
     val statusColor = when (status) {
         SocketStatus.Connecting -> WiretapColors.StatusBlue
         SocketStatus.Open -> WiretapColors.StatusGreen

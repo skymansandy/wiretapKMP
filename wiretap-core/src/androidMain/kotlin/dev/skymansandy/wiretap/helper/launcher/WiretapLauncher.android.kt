@@ -14,6 +14,7 @@ actual fun launchWiretapConsole() {
 internal fun getLaunchIntent(): Intent {
     val context = WiretapContextProvider.context
     return Intent(context, WiretapConsoleActivity::class.java).apply {
+
         action = Intent.ACTION_VIEW
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }

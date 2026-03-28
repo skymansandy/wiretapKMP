@@ -159,29 +159,7 @@ private fun RuleItem(
                 )
             }
 
-            when (val action = rule.action) {
-                is RuleAction.Mock -> {
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        text = "Response: ${action.responseCode}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                is RuleAction.Throttle -> {
-                    Spacer(Modifier.height(2.dp))
-                    val delayText =
-                        if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
-                            "Delay: ${action.delayMs}\u2013${action.delayMaxMs} ms"
-                        else "Delay: ${action.delayMs} ms"
-                    Text(
-                        text = delayText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            RuleActionDetail(action = rule.action)
         }
 
         Switch(
@@ -193,6 +171,26 @@ private fun RuleItem(
 
     HorizontalDivider()
 }
+
+@Composable
+private fun RuleActionDetail(action: RuleAction) {
+    val text = when (action) {
+        is RuleAction.Mock -> "Response: ${action.responseCode}"
+        is RuleAction.Throttle -> "Delay: ${formatDelayRange(action.delayMs, action.delayMaxMs)}"
+        is RuleAction.MockAndThrottle ->
+            "Response: ${action.responseCode} \u00b7 Delay: ${formatDelayRange(action.delayMs, action.delayMaxMs)}"
+    }
+    Spacer(Modifier.height(2.dp))
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+private fun formatDelayRange(delayMs: Long, delayMaxMs: Long?): String =
+    if (delayMaxMs != null && delayMaxMs != delayMs) "${delayMs}\u2013$delayMaxMs ms"
+    else "$delayMs ms"
 
 @Composable
 private fun MatcherBadge(

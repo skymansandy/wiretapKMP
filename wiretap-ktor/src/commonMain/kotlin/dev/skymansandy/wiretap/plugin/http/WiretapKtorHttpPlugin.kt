@@ -73,7 +73,6 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  */
 @OptIn(InternalAPI::class, ExperimentalAtomicApi::class)
 val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
-
     val config = pluginConfig
     val deps = WiretapDeps()
     val sessionInitialized = AtomicBoolean(false)
@@ -168,55 +167,25 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
         try {
             when (val action = matchingRule?.action) {
                 is RuleAction.Mock -> {
-                    action.throttleDelayMs?.let { minDelay ->
-                        val maxDelay = action.throttleDelayMaxMs ?: minDelay
-                        delay(if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay)
-                    }
-
-                    val statusCode = HttpStatusCode.fromValue(action.responseCode)
-                    val mockHeaders = Headers.build {
-                        action.responseHeaders?.forEach { (k, v) -> append(k, v) }
-                    }
-                    val responseBody =
-                        action.responseBody?.encodeToByteArray() ?: ByteArray(0)
-                    val call = HttpClientCall(
-                        client = client,
-                        requestData = request.build(),
-                        responseData = HttpResponseData(
-                            statusCode = statusCode,
-                            requestTime = GMTDate(),
-                            headers = mockHeaders,
-                            version = HttpProtocolVersion.HTTP_1_1,
-                            body = ByteReadChannel(responseBody),
-                            callContext = coroutineContext + Job(),
-                        ),
+                    buildMockCall(
+                        action.responseCode, action.responseHeaders, action.responseBody,
+                        ResponseSource.Mock, logEntryId, url, method,
+                        requestHeaders, requestBody, request, matchingRule, config, deps, client,
                     )
+                }
 
-                    if (logEntryId >= 0) {
-                        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey)
-                            ?: currentNanoTime()
-                        val durationNs = currentNanoTime() - startNano
-                        val mockRespHeaders = action.responseHeaders ?: emptyMap()
-                        deps.httpLogManager.updateHttp(
-                            HttpLog(
-                                id = logEntryId,
-                                url = url,
-                                method = method,
-                                requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                                requestBody = requestBody,
-                                responseCode = statusCode.value,
-                                responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                                responseBody = action.responseBody,
-                                durationMs = durationNs / 1_000_000,
-                                durationNs = durationNs,
-                                source = ResponseSource.Mock,
-                                timestamp = currentTimeMillis(),
-                                matchedRuleId = matchingRule.id,
-                            ),
-                        )
-                    }
+                is RuleAction.MockAndThrottle -> {
+                    val minDelay = action.delayMs
+                    val maxDelay = action.delayMaxMs ?: minDelay
+                    val delayMs =
+                        if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
+                    if (delayMs > 0) delay(delayMs)
 
-                    call
+                    buildMockCall(
+                        action.responseCode, action.responseHeaders, action.responseBody,
+                        ResponseSource.MockAndThrottle, logEntryId, url, method,
+                        requestHeaders, requestBody, request, matchingRule, config, deps, client,
+                    )
                 }
 
                 is RuleAction.Throttle -> {
@@ -290,6 +259,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
         val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
             is RuleAction.Mock -> ResponseSource.Mock
             is RuleAction.Throttle -> ResponseSource.Throttle
+            is RuleAction.MockAndThrottle -> ResponseSource.MockAndThrottle
             else -> ResponseSource.Network
         }
 
@@ -326,4 +296,67 @@ private class WiretapDeps : KoinComponent {
 
     val httpLogManager: HttpLogManager by inject()
     val findMatchingRule: FindMatchingRuleUseCase by inject()
+}
+
+@Suppress("LongParameterList")
+@OptIn(InternalAPI::class)
+private suspend fun buildMockCall(
+    responseCode: Int,
+    responseHeaders: Map<String, String>?,
+    responseBody: String?,
+    source: ResponseSource,
+    logEntryId: Long,
+    url: String,
+    method: String,
+    requestHeaders: Map<String, String>,
+    requestBody: String?,
+    request: io.ktor.client.request.HttpRequestBuilder,
+    matchingRule: WiretapRule,
+    config: WiretapConfig,
+    deps: WiretapDeps,
+    httpClient: io.ktor.client.HttpClient,
+): HttpClientCall {
+    val statusCode = HttpStatusCode.fromValue(responseCode)
+    val mockHeaders = Headers.build {
+        responseHeaders?.forEach { (k, v) -> append(k, v) }
+    }
+    val body = responseBody?.encodeToByteArray() ?: ByteArray(0)
+    val call = HttpClientCall(
+        client = httpClient,
+        requestData = request.build(),
+        responseData = HttpResponseData(
+            statusCode = statusCode,
+            requestTime = GMTDate(),
+            headers = mockHeaders,
+            version = HttpProtocolVersion.HTTP_1_1,
+            body = ByteReadChannel(body),
+            callContext = kotlin.coroutines.coroutineContext + Job(),
+        ),
+    )
+
+    if (logEntryId >= 0) {
+        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey)
+            ?: currentNanoTime()
+        val durationNs = currentNanoTime() - startNano
+        val mockRespHeaders = responseHeaders ?: emptyMap()
+        deps.httpLogManager.updateHttp(
+            HttpLog(
+                id = logEntryId,
+                url = url,
+                method = method,
+                requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                requestBody = requestBody,
+                responseCode = statusCode.value,
+                responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
+                responseBody = responseBody,
+                durationMs = durationNs / 1_000_000,
+                durationNs = durationNs,
+                source = source,
+                timestamp = currentTimeMillis(),
+                matchedRuleId = matchingRule.id,
+            ),
+        )
+    }
+
+    return call
 }

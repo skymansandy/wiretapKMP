@@ -15,7 +15,9 @@ internal interface WiretapNavigator {
     fun replaceTop(screen: WiretapScreen)
 
     companion object {
+
         val NoOp = object : WiretapNavigator {
+
             override fun push(screen: WiretapScreen) = Unit
             override fun pushDetailPane(screen: WiretapScreen) = Unit
             override fun clearDetailPane() = Unit

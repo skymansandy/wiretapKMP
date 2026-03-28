@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 class FindConflictingRulesUseCase internal constructor(
     private val ruleRepository: RuleRepository,
 ) {
+
     suspend operator fun invoke(other: WiretapRule): List<WiretapRule> {
         return ruleRepository.flowAll().first()
             .filter { existing ->

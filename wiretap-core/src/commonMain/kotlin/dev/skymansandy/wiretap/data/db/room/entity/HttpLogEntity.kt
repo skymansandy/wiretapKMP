@@ -16,6 +16,14 @@ import androidx.room.PrimaryKey
             value = ["response_code"],
             name = "idx_http_log_response_code",
         ),
+        Index(
+            value = ["method"],
+            name = "idx_http_log_method",
+        ),
+        Index(
+            value = ["source"],
+            name = "idx_http_log_source",
+        ),
     ],
 )
 internal data class HttpLogEntity(

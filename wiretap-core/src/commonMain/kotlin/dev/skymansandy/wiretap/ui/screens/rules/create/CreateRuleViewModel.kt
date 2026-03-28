@@ -76,7 +76,7 @@ internal class CreateRuleViewModel(
         field = MutableStateFlow(false)
 
     // Validation
-    val canProceed: StateFlow<Boolean> = requestState.map { req ->
+    val canProceedToResponse: StateFlow<Boolean> = requestState.map { req ->
         val urlValid = req.urlMode == null || req.urlPattern.isNotBlank()
         val headersValid = req.headerEntries.all { e ->
             e.key.isNotBlank() && (!e.mode.hasValue() || e.value.isNotBlank())
@@ -89,6 +89,20 @@ internal class CreateRuleViewModel(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = false,
+    )
+
+    val canSaveRule: StateFlow<Boolean> = responseState.map { res ->
+        when (res.action) {
+            is RuleAction.Mock, is RuleAction.MockAndThrottle -> {
+                val code = res.mockResponseCode.toIntOrNull()
+                code != null && code in 100..599
+            }
+            is RuleAction.Throttle -> true
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = true,
     )
 
     init {
@@ -114,16 +128,27 @@ internal class CreateRuleViewModel(
 
                 val existingMock = existingRule.action as? RuleAction.Mock
                 val existingThrottle = existingRule.action as? RuleAction.Throttle
-                val delayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
-                val delayMaxMs = existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
+                val existingMockAndThrottle = existingRule.action as? RuleAction.MockAndThrottle
+
+                val mockCode = existingMock?.responseCode
+                    ?: existingMockAndThrottle?.responseCode
+                val mockBody = existingMock?.responseBody
+                    ?: existingMockAndThrottle?.responseBody
+                val mockHeaders = existingMock?.responseHeaders
+                    ?: existingMockAndThrottle?.responseHeaders
+
+                val delayMs = existingThrottle?.delayMs
+                    ?: existingMockAndThrottle?.delayMs
+                val delayMaxMs = existingThrottle?.delayMaxMs
+                    ?: existingMockAndThrottle?.delayMaxMs
 
                 responseState.value = ResponseStepState(
                     action = existingRule.action,
-                    mockResponseCode = existingMock?.responseCode?.toString() ?: "200",
-                    mockResponseBody = existingMock?.responseBody ?: "",
-                    responseHeaderEntries = existingMock?.responseHeaders?.entries
+                    mockResponseCode = mockCode?.toString() ?: "200",
+                    mockResponseBody = mockBody ?: "",
+                    responseHeaderEntries = mockHeaders?.entries
                         ?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
-                    responseHeadersBulk = existingMock?.responseHeaders
+                    responseHeadersBulk = mockHeaders
                         ?.let { HeadersSerializerUtil.serialize(it) } ?: "",
                     throttleDelayMs = delayMs?.toString() ?: "",
                     throttleDelayMaxMs = delayMaxMs?.toString() ?: "",
@@ -362,11 +387,17 @@ internal class CreateRuleViewModel(
                 responseCode = res.mockResponseCode.toIntOrNull() ?: 200,
                 responseBody = res.mockResponseBody.ifBlank { null },
                 responseHeaders = resolvedHeaders,
-                throttleDelayMs = res.throttleDelayMs.toLongOrNull(),
-                throttleDelayMaxMs = res.throttleDelayMaxMs.toLongOrNull(),
             )
 
             is RuleAction.Throttle -> RuleAction.Throttle(
+                delayMs = res.throttleDelayMs.toLongOrNull() ?: 1000L,
+                delayMaxMs = res.throttleDelayMaxMs.toLongOrNull(),
+            )
+
+            is RuleAction.MockAndThrottle -> RuleAction.MockAndThrottle(
+                responseCode = res.mockResponseCode.toIntOrNull() ?: 200,
+                responseBody = res.mockResponseBody.ifBlank { null },
+                responseHeaders = resolvedHeaders,
                 delayMs = res.throttleDelayMs.toLongOrNull() ?: 1000L,
                 delayMaxMs = res.throttleDelayMaxMs.toLongOrNull(),
             )

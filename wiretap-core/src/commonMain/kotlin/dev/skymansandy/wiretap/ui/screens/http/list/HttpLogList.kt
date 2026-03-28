@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.ui.screens.http.list
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LoaderView
@@ -39,6 +41,7 @@ import kotlin.time.Duration.Companion.seconds
 internal fun HttpLogList(
     modifier: Modifier = Modifier,
     viewModel: HttpLogListViewModel,
+    filter: HttpLogFilter,
     searchQuery: String,
     onDismissSearch: () -> Unit,
 ) {
@@ -71,41 +74,44 @@ internal fun HttpLogList(
 
     val isEmpty = lazyItems.itemCount == 0
 
-    when (lazyItems.loadState.refresh) {
-        is LoadStateLoading if isEmpty -> {
-            LoaderView(modifier)
-        }
+    Column(modifier = modifier) {
+        when (lazyItems.loadState.refresh) {
+            is LoadStateLoading if isEmpty -> {
+                LoaderView(Modifier.fillMaxSize())
+            }
 
-        is LoadStateNotLoading if isEmpty -> {
-            StatusText(
-                modifier = modifier,
-                text = when {
-                    searchQuery.isBlank() -> "No results found"
-                    else -> "No HTTP logs yet"
-                },
-            )
-        }
+            is LoadStateNotLoading if isEmpty -> {
+                StatusText(
+                    modifier = Modifier.fillMaxSize(),
+                    text = when {
+                        filter.isActive -> "No results match filters"
+                        searchQuery.isNotBlank() -> "No results found"
+                        else -> "No HTTP logs yet"
+                    },
+                )
+            }
 
-        is LoadStateError if isEmpty -> {
-            StatusText(
-                modifier = modifier,
-                text = "Failed to load logs",
-            )
-        }
+            is LoadStateError if isEmpty -> {
+                StatusText(
+                    modifier = Modifier.fillMaxSize(),
+                    text = "Failed to load logs",
+                )
+            }
 
-        else -> ScrollToTopButton(
-            listState = listState,
-            modifier = modifier,
-        ) {
-            HttpLogListView(
+            else -> ScrollToTopButton(
                 modifier = Modifier.fillMaxSize(),
                 listState = listState,
-                lazyItems = lazyItems,
-                searchQuery = searchQuery,
-                revealedItemId = revealedItemId,
-                onRevealedItemIdChange = { revealedItemId = it },
-                onDismissSearch = onDismissSearch,
-            )
+            ) {
+                HttpLogListView(
+                    modifier = Modifier.fillMaxSize(),
+                    listState = listState,
+                    lazyItems = lazyItems,
+                    searchQuery = searchQuery,
+                    revealedItemId = revealedItemId,
+                    onRevealedItemIdChange = { revealedItemId = it },
+                    onDismissSearch = onDismissSearch,
+                )
+            }
         }
     }
 }

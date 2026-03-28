@@ -210,58 +210,17 @@ internal fun RuleDetailScreenView(
 
             when (val action = currentRule.action) {
                 is RuleAction.Mock -> {
-                    DetailRow("Response Code", action.responseCode.toString())
-
-                    if (!action.responseBody.isNullOrBlank()) {
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "Response Body", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        if (looksLikeJson(action.responseBody)) {
-                            val editorState = rememberJsonEditorState(initialJson = action.responseBody)
-                            JsonCMP(
-                                state = editorState,
-                                modifier = Modifier
-                                    .padding(vertical = 4.dp)
-                                    .fillMaxWidth()
-                                    .defaultMinSize(minHeight = 100.dp),
-                            )
-                        } else {
-                            CodeBlock(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                text = action.responseBody,
-                            )
-                        }
-                    }
-
-                    if (!action.responseHeaders.isNullOrEmpty()) {
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            "Response Headers", style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        HeadersList(headers = action.responseHeaders, emptyText = "No headers")
-                    }
-
-                    action.throttleDelayMs?.let { delay ->
-                        Spacer(Modifier.height(12.dp))
-                        val delayText =
-                            if (action.throttleDelayMaxMs != null && action.throttleDelayMaxMs != delay)
-                                "$delay–${action.throttleDelayMaxMs} ms"
-                            else "$delay ms"
-                        DetailRow("Throttle Delay", delayText)
-                    }
+                    MockResponseDetail(action.responseCode, action.responseBody, action.responseHeaders)
                 }
 
                 is RuleAction.Throttle -> {
-                    val delayText =
-                        if (action.delayMaxMs != null && action.delayMaxMs != action.delayMs)
-                            "${action.delayMs}–${action.delayMaxMs} ms"
-                        else "${action.delayMs} ms"
-                    DetailRow("Delay", delayText)
+                    ThrottleDelayDetail(action.delayMs, action.delayMaxMs)
+                }
+
+                is RuleAction.MockAndThrottle -> {
+                    ThrottleDelayDetail(action.delayMs, action.delayMaxMs)
+                    Spacer(Modifier.height(12.dp))
+                    MockResponseDetail(action.responseCode, action.responseBody, action.responseHeaders)
                 }
             }
         }
@@ -275,7 +234,6 @@ private fun NaturalLanguageRow(
     value: String,
     modifier: Modifier = Modifier,
 ) {
-
     Text(
         text = buildAnnotatedString {
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(label) }
@@ -297,7 +255,6 @@ private fun HeaderMatcherNaturalLanguage(
     matcher: HeaderMatcher,
     modifier: Modifier = Modifier,
 ) {
-
     when (matcher) {
         is HeaderMatcher.KeyExists ->
             NaturalLanguageRow(label = matcher.key, verb = "exists", value = "", modifier = modifier)
@@ -318,7 +275,6 @@ private fun DetailRow(
     label: String,
     value: String,
 ) {
-
     Column {
         Text(
             label,
@@ -328,6 +284,61 @@ private fun DetailRow(
         Spacer(Modifier.height(2.dp))
         Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }
+}
+
+@Composable
+private fun MockResponseDetail(
+    responseCode: Int,
+    responseBody: String?,
+    responseHeaders: Map<String, String>?,
+) {
+    DetailRow("Response Code", responseCode.toString())
+
+    if (!responseBody.isNullOrBlank()) {
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "Response Body", style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        if (looksLikeJson(responseBody)) {
+            val editorState = rememberJsonEditorState(initialJson = responseBody)
+            JsonCMP(
+                state = editorState,
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 100.dp),
+            )
+        } else {
+            CodeBlock(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                text = responseBody,
+            )
+        }
+    }
+
+    if (!responseHeaders.isNullOrEmpty()) {
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "Response Headers", style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        HeadersList(headers = responseHeaders, emptyText = "No headers")
+    }
+}
+
+@Composable
+private fun ThrottleDelayDetail(
+    delayMs: Long,
+    delayMaxMs: Long?,
+) {
+    val delayText =
+        if (delayMaxMs != null && delayMaxMs != delayMs)
+            "$delayMs–$delayMaxMs ms"
+        else "$delayMs ms"
+    DetailRow("Delay", delayText)
 }
 
 private fun urlMatcherVerb(matcher: UrlMatcher) = when (matcher) {

@@ -38,6 +38,12 @@ internal fun RuleMatchBanner(
             label = "Throttled by rule"
         }
 
+        ResponseSource.MockAndThrottle -> {
+            bgColor = MaterialTheme.colorScheme.errorContainer
+            contentColor = MaterialTheme.colorScheme.onErrorContainer
+            label = "Mocked + throttled by rule"
+        }
+
         ResponseSource.Network -> return
     }
 

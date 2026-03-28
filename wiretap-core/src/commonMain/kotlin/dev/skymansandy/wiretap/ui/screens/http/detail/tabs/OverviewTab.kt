@@ -30,7 +30,7 @@ internal fun OverviewTab(
                     add("Method" to entry.method)
                     add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
                     add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
-                    add("Source" to entry.source.name)
+                    add("Source" to entry.source.label)
                     add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
                     add("Response Size" to formatSize(entry.responseBodySize))
                     entry.protocol?.let { add("HTTP Version" to it) }

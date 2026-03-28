@@ -2,6 +2,7 @@ package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.launcher.onClearHttpLogs
 import dev.skymansandy.wiretap.helper.launcher.onNewHttpLog
@@ -15,8 +16,12 @@ internal class HttpLogManagerImpl(
 
     override fun flowHttpLogs(): Flow<List<HttpLog>> = httpRepository.flowAll()
 
-    override fun flowPagedHttpLogsForSearchQuery(query: String): Flow<PagingData<HttpLog>> =
-        httpRepository.flowPagesLogs(query)
+    override fun flowDistinctHosts(): Flow<List<String>> = httpRepository.flowDistinctHosts()
+
+    override fun flowPagedHttpLogsForSearchQuery(
+        query: String,
+        filter: HttpLogFilter,
+    ): Flow<PagingData<HttpLog>> = httpRepository.flowPagesLogs(query, filter)
 
     override fun flowHttpLogById(id: Long): Flow<HttpLog?> = httpRepository.flowById(id)
 

@@ -61,6 +61,7 @@ internal class OkHttpWsViewModel(
 
         val request = Request.Builder().url(wsUrl).build()
         val listener: WebSocketListener = object : WebSocketListener() {
+
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 viewModelScope.launch(Dispatchers.Main) {
                     _isConnecting.value = false

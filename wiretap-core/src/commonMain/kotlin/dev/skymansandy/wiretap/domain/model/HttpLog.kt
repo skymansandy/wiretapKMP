@@ -36,6 +36,7 @@ data class HttpLog(
     val issuerCn: String? = null,
     val certificateExpiry: String? = null,
 ) {
+
     val isInProgress: Boolean = responseCode == RESPONSE_CODE_IN_PROGRESS
 
     val statusText: String = when {
@@ -46,7 +47,7 @@ data class HttpLog(
     }
 
     val statusColor: Color = when {
-        isInProgress -> WiretapColors.StatusBlue
+        isInProgress -> WiretapColors.StatusGray
         responseCode in 200..299 -> Color.White
         responseCode in 300..399 -> WiretapColors.StatusBlue
         responseCode in 400..499 -> WiretapColors.StatusAmber
@@ -55,6 +56,7 @@ data class HttpLog(
     }
 
     companion object {
+
         const val RESPONSE_CODE_IN_PROGRESS = -2
     }
 }

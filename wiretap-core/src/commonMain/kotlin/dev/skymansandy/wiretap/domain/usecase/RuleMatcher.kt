@@ -17,7 +17,6 @@ internal object RuleMatcher {
         headers: Map<String, String>,
         body: String?,
     ): Boolean {
-
         if (rule.urlMatcher == null && rule.headerMatchers.isEmpty() && rule.bodyMatcher == null) return false
 
         rule.urlMatcher?.let { if (!matchesUrl(it, url)) return false }
@@ -34,7 +33,6 @@ internal object RuleMatcher {
     }
 
     fun matchesHeader(matcher: HeaderMatcher, headers: Map<String, String>): Boolean {
-
         val value by lazy { headers.headerValue(matcher.key) }
         return when (matcher) {
             is HeaderMatcher.KeyExists -> headers.keys.any { it.equals(matcher.key, ignoreCase = true) }
@@ -54,13 +52,11 @@ internal object RuleMatcher {
         a == "*" || b == "*" || a.equals(b, ignoreCase = true)
 
     fun urlMatchersOverlap(a: UrlMatcher?, b: UrlMatcher?): Boolean {
-
         if (a == null || b == null) return true
         return patternsOverlap(a.type, a.pattern, b.type, b.pattern)
     }
 
     fun headerMatchersOverlap(a: List<HeaderMatcher>, b: List<HeaderMatcher>): Boolean {
-
         if (a.isEmpty() || b.isEmpty()) return true
 
         val aByKey = a.groupBy { it.key.lowercase() }
@@ -74,7 +70,6 @@ internal object RuleMatcher {
     }
 
     fun bodyMatchersOverlap(a: BodyMatcher?, b: BodyMatcher?): Boolean {
-
         if (a == null || b == null) return true
         return patternsOverlap(a.type, a.pattern, b.type, b.pattern)
     }
@@ -97,7 +92,6 @@ internal object RuleMatcher {
         bType: MatcherType,
         bPattern: String,
     ): Boolean = when {
-
         aType == MatcherType.Regex || bType == MatcherType.Regex -> true
 
         aType == MatcherType.Exact && bType == MatcherType.Exact ->
@@ -115,7 +109,6 @@ internal object RuleMatcher {
     }
 
     private fun singleHeaderMatchersOverlap(a: HeaderMatcher, b: HeaderMatcher): Boolean {
-
         if (a is HeaderMatcher.KeyExists || b is HeaderMatcher.KeyExists) return true
         return patternsOverlap(a.matcherType(), a.valuePattern(), b.matcherType(), b.valuePattern())
     }

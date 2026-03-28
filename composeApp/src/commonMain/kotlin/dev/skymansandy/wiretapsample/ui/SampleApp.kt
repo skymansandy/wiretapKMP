@@ -156,7 +156,6 @@ private fun TabContent(
     httpActions: HttpSampleActions,
     wsActions: WsSampleActions,
 ) {
-
     when (selectedTab) {
         0 -> HttpTab(modifier = modifier, httpActions = httpActions)
         1 -> WsTab(modifier = modifier, wsActions = wsActions)
@@ -170,7 +169,6 @@ private fun HttpTab(
     httpActions: HttpSampleActions,
     modifier: Modifier = Modifier,
 ) {
-
     val statusLog by httpActions.statusLog.collectAsStateWithLifecycle()
     val readyText = stringResource(Res.string.status_ready)
     val isWideScreen = LocalWideScreen.current
@@ -181,7 +179,6 @@ private fun HttpTab(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-
         Text(
             text = stringResource(Res.string.http_requests),
             modifier = Modifier.fillMaxWidth(),
@@ -227,13 +224,11 @@ private fun ActionButtonGrid(
     httpActions: HttpSampleActions,
     modifier: Modifier = Modifier,
 ) {
-
     val groups = remember(httpActions.actions) { groupActions(httpActions.actions) }
     val pagerState = rememberPagerState { groups.size }
     val scope = rememberCoroutineScope()
 
     Column(modifier = modifier) {
-
         SecondaryTabRow(selectedTabIndex = pagerState.currentPage) {
             groups.forEachIndexed { index, group ->
                 Tab(
@@ -257,7 +252,6 @@ private fun ActionButtonGrid(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-
                 groups[page].actions.forEach { (index, action) ->
                     OutlinedButton(
                         onClick = { httpActions.executeAction(index) },
@@ -307,7 +301,6 @@ private fun StatusWindow(
     statusLog: String,
     modifier: Modifier = Modifier,
 ) {
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -325,7 +318,6 @@ private fun StatusWindow(
                 .verticalScroll(scrollState)
                 .padding(12.dp),
         ) {
-
             Text(
                 text = stringResource(Res.string.status_label),
                 style = MaterialTheme.typography.labelSmall,
@@ -352,7 +344,6 @@ private fun WsTab(
     wsActions: WsSampleActions,
     modifier: Modifier = Modifier,
 ) {
-
     val isConnected by wsActions.isConnected.collectAsStateWithLifecycle()
     val isConnecting by wsActions.isConnecting.collectAsStateWithLifecycle()
     val selectedServerIndex by wsActions.selectedServerIndex.collectAsStateWithLifecycle()
@@ -382,12 +373,10 @@ private fun WsTab(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-
             Column(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-
                 Text(
                     text = stringResource(Res.string.websocket_title),
                     modifier = Modifier.fillMaxWidth(),
@@ -434,7 +423,6 @@ private fun WsTab(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-
             Text(
                 text = stringResource(Res.string.websocket_title),
                 modifier = Modifier.fillMaxWidth(),
@@ -481,7 +469,6 @@ private fun WsServerSelector(
     wsActions: WsSampleActions,
     selectedServerIndex: Int,
 ) {
-
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         wsActions.servers.forEachIndexed { index, (_, label) ->
             OutlinedButton(
@@ -509,12 +496,10 @@ private fun WsConnectionControl(
     isConnected: Boolean,
     isConnecting: Boolean,
 ) {
-
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-
         OutlinedButton(
             onClick = { wsActions.toggleConnection() },
             colors = ButtonDefaults.outlinedButtonColors(
@@ -549,7 +534,6 @@ private fun WsMessageLog(
     messageLog: List<SampleMessage>,
     modifier: Modifier = Modifier,
 ) {
-
     LazyColumn(
         state = listState,
         modifier = modifier
@@ -571,13 +555,11 @@ private fun WsMessageInput(
     isConnected: Boolean,
     onSend: () -> Unit,
 ) {
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-
         OutlinedTextField(
             value = messageText,
             onValueChange = onMessageTextChange,
@@ -605,7 +587,6 @@ private fun WsMessageInput(
 
 @Composable
 private fun WsMessageItem(entry: SampleMessage) {
-
     val (bgColor, textColor, alignment) = when (entry.type) {
         SampleMessage.MessageType.Sent -> Triple(
             ColorWsSent.copy(alpha = 0.15f),
@@ -645,7 +626,6 @@ private fun WsMessageItem(entry: SampleMessage) {
                     .background(bgColor, RoundedCornerShape(8.dp))
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
-
                 Text(
                     text = if (entry.type == SampleMessage.MessageType.Sent) {
                         stringResource(Res.string.sent_indicator)

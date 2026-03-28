@@ -46,7 +46,6 @@ import dev.skymansandy.wiretap.ui.screens.rules.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rules.components.StepIndicator
 import dev.skymansandy.wiretap.ui.screens.rules.create.step.request.RequestStep
 import dev.skymansandy.wiretap.ui.screens.rules.create.step.response.ResponseStep
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -85,7 +84,8 @@ internal fun CreateRuleScreenView(
     val showConflictDialog by viewModel.showConflictDialog.collectAsStateWithLifecycle()
 
     // Validation
-    val canProceed by viewModel.canProceed.collectAsStateWithLifecycle()
+    val canProceedToResponse by viewModel.canProceedToResponse.collectAsStateWithLifecycle()
+    val canSaveRule by viewModel.canSaveRule.collectAsStateWithLifecycle()
 
     val testInputLabel = "Test Input"
 
@@ -188,7 +188,7 @@ internal fun CreateRuleScreenView(
                 if (step < 2) {
                     Button(
                         onClick = { viewModel.nextStep() },
-                        enabled = canProceed,
+                        enabled = canProceedToResponse,
                         modifier = Modifier.weight(1f),
                     ) {
                         Text("Next: Response")
@@ -204,6 +204,7 @@ internal fun CreateRuleScreenView(
                                 }
                             }
                         },
+                        enabled = canSaveRule,
                         modifier = Modifier.weight(1f),
                     ) {
                         Text("Save Rule")
@@ -292,7 +293,7 @@ private fun Preview_ConflictDialogSingle() {
                     enabled = true,
                 ),
             ),
-            ruleRepository = NoOpRuleRepository,
+            ruleRepository = RuleRepository.NoOp,
             onEditConflictingRule = {},
             onDismiss = {},
         )
@@ -320,21 +321,9 @@ private fun Preview_ConflictDialogMultiple() {
                     enabled = true,
                 ),
             ),
-            ruleRepository = NoOpRuleRepository,
+            ruleRepository = RuleRepository.NoOp,
             onEditConflictingRule = {},
             onDismiss = {},
         )
     }
-}
-
-private object NoOpRuleRepository : RuleRepository {
-    override fun flowAll() = flowOf(emptyList<WiretapRule>())
-    override fun flowForQuery(query: String) = flowOf(emptyList<WiretapRule>())
-    override suspend fun getById(id: Long) = null
-    override suspend fun getEnabledRules() = emptyList<WiretapRule>()
-    override suspend fun addRule(rule: WiretapRule) {}
-    override suspend fun updateRule(rule: WiretapRule) {}
-    override suspend fun deleteById(id: Long) {}
-    override suspend fun deleteAll() {}
-    override suspend fun setEnabled(id: Long, enabled: Boolean) {}
 }

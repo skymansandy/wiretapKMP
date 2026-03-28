@@ -74,7 +74,6 @@ class WiretapOkHttpInterceptor(
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun intercept(chain: Interceptor.Chain): Response = runBlocking {
-
         if (!config.enabled) {
             return@runBlocking chain.proceed(chain.request())
         }
@@ -123,17 +122,45 @@ class WiretapOkHttpInterceptor(
             -1L
         }
 
-        if (matchingRule?.action is RuleAction.Mock) {
-            val mock = matchingRule.action as RuleAction.Mock
-            val body = (mock.responseBody ?: "")
+        if (matchingRule?.action is RuleAction.Mock || matchingRule?.action is RuleAction.MockAndThrottle) {
+            val responseCode: Int
+            val mockBody: String?
+            val mockHeaders: Map<String, String>?
+            val source: ResponseSource
+
+            when (val action = matchingRule.action) {
+                is RuleAction.Mock -> {
+                    responseCode = action.responseCode
+                    mockBody = action.responseBody
+                    mockHeaders = action.responseHeaders
+                    source = ResponseSource.Mock
+                }
+
+                is RuleAction.MockAndThrottle -> {
+                    val minDelay = action.delayMs
+                    val maxDelay = action.delayMaxMs ?: minDelay
+                    val delayMs =
+                        if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
+                    if (delayMs > 0) Thread.sleep(delayMs)
+
+                    responseCode = action.responseCode
+                    mockBody = action.responseBody
+                    mockHeaders = action.responseHeaders
+                    source = ResponseSource.MockAndThrottle
+                }
+
+                else -> error("unreachable")
+            }
+
+            val body = (mockBody ?: "")
                 .toResponseBody("application/json; charset=utf-8".toMediaType())
             val mockResponse = Response.Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
-                .code(mock.responseCode)
+                .code(responseCode)
                 .message("Mock")
                 .body(body)
-                .apply { mock.responseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
+                .apply { mockHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
 
             if (logEntryId >= 0) {
@@ -148,10 +175,10 @@ class WiretapOkHttpInterceptor(
                         requestBody = requestBody,
                         responseCode = mockResponse.code,
                         responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                        responseBody = mock.responseBody,
+                        responseBody = mockBody,
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
-                        source = ResponseSource.Mock,
+                        source = source,
                         timestamp = currentTimeMillis(),
                     ),
                 )

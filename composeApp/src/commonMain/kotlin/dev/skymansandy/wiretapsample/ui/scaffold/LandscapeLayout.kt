@@ -35,7 +35,6 @@ internal fun LandscapeLayout(
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-
             if (title.isNotEmpty()) {
                 CenterAlignedTopAppBar(
                     title = {
