@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import dev.skymansandy.wiretap.di.WiretapKoinContext
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
 import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager.ACTION_CLEAR_HTTP_LOGS
 import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
@@ -20,6 +21,7 @@ internal class WiretapClearLogsReceiver : BroadcastReceiver(), KoinComponent {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_CLEAR_HTTP_LOGS) {
             runBlocking { httpLogManager.clearHttpLogs() }
+            WiretapNotificationManager.clearHttpNotifications(context)
         }
     }
 }

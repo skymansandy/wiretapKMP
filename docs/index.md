@@ -35,7 +35,7 @@ Full WebSocket lifecycle tracking:
 - Connection open/close/failure with status transitions
 - Close codes and reasons
 - Every sent and received message (text and binary) with timestamps and byte counts
-- Ktor: wrap session with `wiretapWrap()` for automatic message interception
+- Ktor: wrap session with `wiretapped()` for automatic message interception
 - OkHttp: wrap listener with `WiretapOkHttpWebSocketListener` for automatic event capture
 
 ## API Mocking

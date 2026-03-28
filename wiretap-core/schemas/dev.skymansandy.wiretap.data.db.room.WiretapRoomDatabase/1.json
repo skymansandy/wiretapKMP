@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "8a89b4822cd32aed66c64ede618fd26e",
+    "identityHash": "3d3874c2bc7f698d54d9b84849a97f32",
     "entities": [
       {
         "tableName": "HttpLogEntity",
@@ -140,6 +140,24 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `idx_http_log_response_code` ON `${TABLE_NAME}` (`response_code`)"
+          },
+          {
+            "name": "idx_http_log_method",
+            "unique": false,
+            "columnNames": [
+              "method"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_http_log_method` ON `${TABLE_NAME}` (`method`)"
+          },
+          {
+            "name": "idx_http_log_source",
+            "unique": false,
+            "columnNames": [
+              "source"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_http_log_source` ON `${TABLE_NAME}` (`source`)"
           }
         ]
       },
@@ -437,7 +455,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8a89b4822cd32aed66c64ede618fd26e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3d3874c2bc7f698d54d9b84849a97f32')"
     ]
   }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,6 +40,7 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
@@ -80,22 +82,27 @@ internal fun SocketLogList(
             lastItemCount = socketLogs.size
         }
 
-        LazyColumn(
+        ScrollToTopButton(
+            listState = listState,
             modifier = modifier,
-            state = listState,
         ) {
-            items(
-                count = socketLogs.size,
-                key = { index -> socketLogs[index].id },
-            ) { index ->
-                SocketLogItemContent(
-                    socket = socketLogs[index],
-                    searchQuery = searchQuery,
-                    onClick = {
-                        onDismissSearch()
-                        onSocketClick(socketLogs[index])
-                    },
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState,
+            ) {
+                items(
+                    count = socketLogs.size,
+                    key = { index -> socketLogs[index].id },
+                ) { index ->
+                    SocketLogItemContent(
+                        socket = socketLogs[index],
+                        searchQuery = searchQuery,
+                        onClick = {
+                            onDismissSearch()
+                            onSocketClick(socketLogs[index])
+                        },
+                    )
+                }
             }
         }
     }

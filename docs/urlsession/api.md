@@ -1,32 +1,95 @@
 # URLSession — API Reference
 
-## WiretapURLSessionInterceptor
+## WiretapURLSession
 
 ```kotlin
-class WiretapURLSessionInterceptor(
-    private val session: NSURLSession = NSURLSession.sharedSession,
+class WiretapURLSession(
+    configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
     configure: WiretapConfig.() -> Unit = {},
-) : KoinComponent
+)
 ```
 
-iOS URLSession interceptor with full logging and rule support.
+Drop-in URLSession wrapper with Wiretap network inspection. Manages its own `NSURLSession` internally.
 
 ### Constructor
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `session` | `NSURLSession` | `.sharedSession` | The URLSession to use for network requests |
+| `configuration` | `NSURLSessionConfiguration` | `.defaultSessionConfiguration` | Session configuration for timeouts, caching, etc. |
 | `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
 ### Swift Construction
 
 ```swift
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+let session = WiretapURLSession { config in
+    #if DEBUG
     config.enabled = true
+    #else
+    config.enabled = false
+    #endif
     config.logRetention = LogRetentionDays(days: 7)
     config.shouldLog = { url, method in KotlinBoolean(value: true) }
     config.headerAction = { key in HeaderActionKeep.shared }
 }
+```
+
+### Custom Configuration
+
+```swift
+let config = URLSessionConfiguration.default
+config.timeoutIntervalForRequest = 10
+
+let session = WiretapURLSession(configuration: config) { config in
+    config.enabled = true
+}
+```
+
+---
+
+## dataTask(request)
+
+Creates a data task with logging. Caller must call `resume()`.
+
+```kotlin
+fun dataTask(
+    request: NSURLRequest,
+    completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
+): NSURLSessionDataTask
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `request` | `NSURLRequest` | The URL request to execute |
+| `completionHandler` | `(NSData?, NSURLResponse?, NSError?) -> Unit` | Called with response data |
+
+- Captures full request/response body, headers, timing
+- Detects and logs cancellation automatically
+- Mock/throttle rules are NOT applied — use `intercept()` for rule support
+
+---
+
+## dataTask(url: String)
+
+Convenience overload from a URL string.
+
+```kotlin
+fun dataTask(
+    url: String,
+    completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
+): NSURLSessionDataTask
+```
+
+---
+
+## dataTask(url: NSURL)
+
+Convenience overload from an NSURL.
+
+```kotlin
+fun dataTask(
+    url: NSURL,
+    completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
+): NSURLSessionDataTask
 ```
 
 ---
@@ -53,59 +116,70 @@ fun intercept(
 
 ---
 
-## dataTask(request)
+## invalidateAndCancel()
 
-Creates a data task with logging. No mock/throttle rules applied.
+Invalidates the session, cancelling all outstanding tasks.
 
 ```kotlin
-fun dataTask(
-    request: NSURLRequest,
-    completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
-): NSURLSessionDataTask
+fun invalidateAndCancel()
 ```
-
-Returns `NSURLSessionDataTask` — caller must call `resume()`.
 
 ---
 
-## dataTask(url)
+## finishTasksAndInvalidate()
 
-Convenience overload from a URL string.
+Allows outstanding tasks to finish, then invalidates the session.
 
 ```kotlin
-fun dataTask(
-    url: String,
-    completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
-): NSURLSessionDataTask
+fun finishTasksAndInvalidate()
 ```
 
 ---
 
 ## API Comparison
 
-| Feature | `intercept()` | `dataTask()` |
+| Feature | `dataTask()` | `intercept()` |
 |---------|:------------:|:------------:|
 | HTTP logging | ✅ | ✅ |
-| Mock rules | ✅ | — |
-| Throttle rules | ✅ | — |
-| Cancel support | — | ✅ |
-| Returns task | — | ✅ |
-| Auto-executes | ✅ | — |
+| Cancel support | ✅ | — |
+| Returns task | ✅ | — |
+| Mock rules | — | ✅ |
+| Throttle rules | — | ✅ |
+| Auto-executes | — | ✅ |
 
 ---
 
-## Disabling for Release
+## Debug vs Release
 
-Use `config.enabled = false` to disable all logging and rule evaluation. When disabled, requests pass through directly to `NSURLSession` with no overhead.
+Use `WiretapURLSession` in debug and plain `URLSession` in release:
 
 ```swift
 #if DEBUG
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-}
+import WiretapURLSession
+let session = WiretapURLSession { config in config.enabled = true }
 #else
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = false
-}
+let session = URLSession.shared
 #endif
 ```
+
+See [Setup — Create a Session](setup.md#create-a-session) for the full bridge pattern.
+
+---
+
+## WiretapURLSessionInterceptor (Advanced)
+
+```kotlin
+class WiretapURLSessionInterceptor(
+    private val session: NSURLSession = NSURLSession.sharedSession,
+    configure: WiretapConfig.() -> Unit = {},
+) : KoinComponent
+```
+
+Low-level interceptor for when you need to provide your own `NSURLSession` instance. Prefer `WiretapURLSession` for most use cases.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `session` | `NSURLSession` | `.sharedSession` | The URLSession to use for network requests |
+| `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
+
+Provides the same `intercept()` and `dataTask()` methods as `WiretapURLSession`.

@@ -17,9 +17,9 @@
     <ID>NoWildcardImports:ThrottleEngine.kt$import io.ktor.client.request.*</ID>
     <ID>NoWildcardImports:ThrottleEngineImpl.kt$import io.ktor.client.request.*</ID>
     <ID>NoWildcardImports:Wiretap.kt$import io.ktor.client.*</ID>
-    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.client.plugins.api.*</ID>
-    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.client.statement.*</ID>
-    <ID>NoWildcardImports:WiretapKtorPlugin.kt$import io.ktor.util.*</ID>
+    <ID>NoWildcardImports:WiretapKtorHttpPlugin.kt$import io.ktor.client.plugins.api.*</ID>
+    <ID>NoWildcardImports:WiretapKtorHttpPlugin.kt$import io.ktor.client.statement.*</ID>
+    <ID>NoWildcardImports:WiretapKtorHttpPlugin.kt$import io.ktor.util.*</ID>
     <ID>WildcardImport:MockEngine.kt$import io.ktor.client.request.*</ID>
     <ID>WildcardImport:MockEngineImpl.kt$import io.ktor.client.request.*</ID>
     <ID>WildcardImport:NetworkEngine.kt$import io.ktor.client.request.*</ID>
@@ -31,8 +31,8 @@
     <ID>WildcardImport:ThrottleEngine.kt$import io.ktor.client.request.*</ID>
     <ID>WildcardImport:ThrottleEngineImpl.kt$import io.ktor.client.request.*</ID>
     <ID>WildcardImport:Wiretap.kt$import io.ktor.client.*</ID>
-    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.client.plugins.api.*</ID>
-    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.client.statement.*</ID>
-    <ID>WildcardImport:WiretapKtorPlugin.kt$import io.ktor.util.*</ID>
+    <ID>WildcardImport:WiretapKtorHttpPlugin.kt$import io.ktor.client.plugins.api.*</ID>
+    <ID>WildcardImport:WiretapKtorHttpPlugin.kt$import io.ktor.client.statement.*</ID>
+    <ID>WildcardImport:WiretapKtorHttpPlugin.kt$import io.ktor.util.*</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -79,6 +79,22 @@ internal interface HttpLogsDao {
     @Query("UPDATE HttpLogEntity SET response_code = 0 WHERE response_code = -2")
     suspend fun closeStaleHttpLogs()
 
+    @Query(
+        """
+        SELECT DISTINCT
+            SUBSTR(url, INSTR(url, '://') + 3,
+                CASE
+                    WHEN INSTR(SUBSTR(url, INSTR(url, '://') + 3), '/') > 0
+                    THEN INSTR(SUBSTR(url, INSTR(url, '://') + 3), '/') - 1
+                    ELSE LENGTH(SUBSTR(url, INSTR(url, '://') + 3))
+                END
+            ) AS host
+        FROM HttpLogEntity
+        ORDER BY host
+        """,
+    )
+    fun getDistinctHosts(): Flow<List<String>>
+
     @Query("UPDATE HttpLogEntity SET response_code = -1 WHERE id = :id AND response_code = -2")
     suspend fun markCancelledIfInProgress(id: Long)
 
@@ -92,10 +108,44 @@ internal interface HttpLogsDao {
         WHERE (url LIKE '%' || :query || '%'
            OR method LIKE '%' || :query || '%'
            OR CAST(response_code AS TEXT) LIKE '%' || :query || '%')
+        AND (:noStatusFilter = 1
+           OR (:hasInProgress = 1 AND response_code = -2)
+           OR (:hasSuccess = 1 AND response_code BETWEEN 200 AND 299)
+           OR (:hasRedirect = 1 AND response_code BETWEEN 300 AND 399)
+           OR (:hasClientError = 1 AND response_code BETWEEN 400 AND 499)
+           OR (:hasServerError = 1 AND response_code BETWEEN 500 AND 599)
+           OR (:hasFailed = 1 AND response_code BETWEEN -1 AND 0))
+        AND (:noMethodFilter = 1 OR method IN (:methods))
+        AND (:noSourceFilter = 1 OR source IN (:sources))
+        AND (:noDomainFilter = 1 OR
+            SUBSTR(url, INSTR(url, '://') + 3,
+                CASE
+                    WHEN INSTR(SUBSTR(url, INSTR(url, '://') + 3), '/') > 0
+                    THEN INSTR(SUBSTR(url, INSTR(url, '://') + 3), '/') - 1
+                    ELSE LENGTH(SUBSTR(url, INSTR(url, '://') + 3))
+                END
+            ) IN (:domains))
         AND (:afterId IS NULL OR id < :afterId)
         ORDER BY id DESC
         LIMIT :limit
         """,
     )
-    suspend fun getPage(query: String, afterId: Long?, limit: Long): List<HttpLogListProjection>
+    suspend fun getPage(
+        query: String,
+        noStatusFilter: Int,
+        hasInProgress: Int,
+        hasSuccess: Int,
+        hasRedirect: Int,
+        hasClientError: Int,
+        hasServerError: Int,
+        hasFailed: Int,
+        noMethodFilter: Int,
+        methods: List<String>,
+        noSourceFilter: Int,
+        sources: List<String>,
+        noDomainFilter: Int,
+        domains: List<String>,
+        afterId: Long?,
+        limit: Long,
+    ): List<HttpLogListProjection>
 }

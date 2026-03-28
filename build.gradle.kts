@@ -68,6 +68,9 @@ subprojects {
         val wiretapGroup = findProperty("wiretap.group") as String
         val wiretapVersion = findProperty("wiretap.version") as String
 
+        group = wiretapGroup
+        version = wiretapVersion
+
         apply(plugin = "com.vanniktech.maven.publish")
         apply(plugin = "org.jetbrains.kotlinx.binary-compatibility-validator")
 

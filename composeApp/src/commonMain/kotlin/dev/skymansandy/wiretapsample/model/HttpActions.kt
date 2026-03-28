@@ -17,7 +17,6 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val MAX_BODY_DISPLAY_LENGTH = 16_384
 
 private fun formatResponse(response: HttpResponse, body: String): String {
-
     val headers = response.headers.entries().joinToString("\n") { (key, values) ->
         "$key: ${values.joinToString(", ")}"
     }

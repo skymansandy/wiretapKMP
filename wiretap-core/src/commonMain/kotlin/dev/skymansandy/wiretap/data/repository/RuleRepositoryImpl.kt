@@ -21,6 +21,9 @@ internal class RuleRepositoryImpl(
     override fun flowForQuery(query: String): Flow<List<WiretapRule>> =
         rulesDao.search(query).map { entities -> entities.map { it.toDomain() } }
 
+    override fun flowById(id: Long): Flow<WiretapRule?> =
+        rulesDao.flowById(id).map { it?.toDomain() }
+
     override suspend fun addRule(rule: WiretapRule) {
         rulesDao.insert(rule.toRoomEntity())
     }
@@ -35,17 +38,32 @@ internal class RuleRepositoryImpl(
             bodyMatcherType = rule.bodyMatcher?.type?.name,
             bodyPattern = rule.bodyMatcher?.pattern,
             action = rule.action.name,
-            mockResponseCode = (rule.action as? RuleAction.Mock)?.responseCode?.toLong(),
-            mockResponseBody = (rule.action as? RuleAction.Mock)?.responseBody,
-            mockResponseHeaders = (rule.action as? RuleAction.Mock)?.responseHeaders
-                ?.let { HeadersSerializerUtil.serialize(it) },
+            mockResponseCode = when (rule.action) {
+                is RuleAction.Mock -> rule.action.responseCode.toLong()
+                is RuleAction.MockAndThrottle -> rule.action.responseCode.toLong()
+                is RuleAction.Throttle -> null
+            },
+            mockResponseBody = when (rule.action) {
+                is RuleAction.Mock -> rule.action.responseBody
+                is RuleAction.MockAndThrottle -> rule.action.responseBody
+                is RuleAction.Throttle -> null
+            },
+            mockResponseHeaders = when (rule.action) {
+                is RuleAction.Mock -> rule.action.responseHeaders
+                    ?.let { HeadersSerializerUtil.serialize(it) }
+                is RuleAction.MockAndThrottle -> rule.action.responseHeaders
+                    ?.let { HeadersSerializerUtil.serialize(it) }
+                is RuleAction.Throttle -> null
+            },
             throttleDelayMs = when (val action = rule.action) {
-                is RuleAction.Mock -> action.throttleDelayMs
+                is RuleAction.Mock -> null
                 is RuleAction.Throttle -> action.delayMs
+                is RuleAction.MockAndThrottle -> action.delayMs
             },
             throttleDelayMaxMs = when (val action = rule.action) {
-                is RuleAction.Mock -> action.throttleDelayMaxMs
+                is RuleAction.Mock -> null
                 is RuleAction.Throttle -> action.delayMaxMs
+                is RuleAction.MockAndThrottle -> action.delayMaxMs
             },
             enabled = if (rule.enabled) 1L else 0L,
             id = rule.id,

@@ -19,23 +19,19 @@ internal fun SourceChip(
     val bgColor = when (source) {
         ResponseSource.Mock -> MaterialTheme.colorScheme.secondaryContainer
         ResponseSource.Throttle -> MaterialTheme.colorScheme.tertiaryContainer
+        ResponseSource.MockAndThrottle -> MaterialTheme.colorScheme.errorContainer
         ResponseSource.Network -> return
     }
 
     val textColor = when (source) {
         ResponseSource.Mock -> MaterialTheme.colorScheme.onSecondaryContainer
         ResponseSource.Throttle -> MaterialTheme.colorScheme.onTertiaryContainer
-        ResponseSource.Network -> return
-    }
-
-    val label = when (source) {
-        ResponseSource.Mock -> "Mock"
-        ResponseSource.Throttle -> "Throttle"
+        ResponseSource.MockAndThrottle -> MaterialTheme.colorScheme.onErrorContainer
         ResponseSource.Network -> return
     }
 
     Text(
-        text = label,
+        text = source.label,
         style = MaterialTheme.typography.labelSmall,
         color = textColor,
         modifier = modifier

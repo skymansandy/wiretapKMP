@@ -19,11 +19,7 @@ internal fun ActionBadge(
     val color = when (action) {
         is RuleAction.Mock -> MaterialTheme.colorScheme.error
         is RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
-    }
-
-    val label = when (action) {
-        is RuleAction.Mock -> "Mock"
-        is RuleAction.Throttle -> "Throttle"
+        is RuleAction.MockAndThrottle -> MaterialTheme.colorScheme.secondary
     }
 
     Surface(
@@ -32,7 +28,7 @@ internal fun ActionBadge(
         shape = MaterialTheme.shapes.extraSmall,
     ) {
         Text(
-            text = label,
+            text = action.type.label,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
             color = color,

@@ -12,7 +12,7 @@
 
 Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
-## Platforms
+## 📱 Platforms
 
 ### KMP Plugins
 
@@ -21,15 +21,15 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebS
 | **Ktor** | ✅ | ✅ | ✅ |
 | **OkHttp** | ✅ | — | ✅ |
 
-### Swift Wrapper
+### Swift UrlSession
 
-| Client | iOS |
-|--------|:---:|
-| **URLSession** | ✅ |
+| Client                | iOS |
+|-----------------------|:---:|
+| **WiretapURLSession** | ✅ |
 
 `wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM.
 
-## Features
+## ✨ Features
 
 - **API Mocking** — Return fake responses without hitting the network. Match on method, URL, headers, and body.
 - **Request Throttling** — Add artificial delay with fixed or random ranges.
@@ -40,119 +40,51 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebS
 - **Built-in Inspector UI** — Compose Multiplatform UI for browsing logs, WebSocket streams, and managing rules.
 - **No-op Variants** — Drop-in release replacements with zero overhead.
 
-## Installation
+## 📖 Plugin Documentation
 
-WiretapKMP is published to Maven Central.
+Each plugin module has its own README with detailed setup, configuration, usage examples, WebSocket support, and mock/throttle rules:
 
-### 1. Add Maven Central repository
+| Plugin                | Platforms         | README                                                          |
+|-----------------------|-------------------|-----------------------------------------------------------------|
+| **Ktor**              | Android, iOS, JVM | [`wiretap-ktor/README.md`](wiretap-ktor/README.md)             |
+| **OkHttp**            | Android, JVM      | [`wiretap-okhttp/README.md`](wiretap-okhttp/README.md)         |
+| **WiretapURLSession** | iOS               | [`wiretap-urlsession/README.md`](wiretap-urlsession/README.md) |
 
-In your `settings.gradle.kts`:
-
-```kotlin
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        google()
-    }
-}
-```
-
-### 2. Add dependencies
-
-#### Ktor
-
-```kotlin
-dependencies {
-    // Debug
-    debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC3")
-    // Release (no-op)
-    releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC3")
-}
-```
-
-#### OkHttp
-
-```kotlin
-dependencies {
-    // Debug
-    debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC3")
-    // Release (no-op)
-    releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC3")
-}
-```
-
-#### URLSession (iOS via SPM)
-
-Add the `WiretapURLSession` SPM package, then use `#if DEBUG` to disable in release:
-
-```swift
-#if DEBUG
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-}
-#else
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = false
-}
-#endif
-```
-
-## Usage
-
-### Ktor plugin
-
-```kotlin
-val client = HttpClient {
-    install(WiretapKtorPlugin) {
-        enabled = true
-        logRetention = LogRetention.Days(7)
-    }
-    install(WiretapKtorWebSocketPlugin)
-}
-```
-
-### OkHttp interceptor
-
-```kotlin
-val client = OkHttpClient.Builder()
-    .addInterceptor(
-        WiretapOkHttpInterceptor {
-            enabled = true
-            logRetention = LogRetention.Days(7)
-        }
-    )
-    .build()
-```
-
-### URLSession (Swift)
-
-```swift
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-    config.logRetention = LogRetention.Days(days: 7)
-}
-
-interceptor.intercept(request: request) { data, response, error in
-    // handle response
-}
-```
-
-## No-op Variants
+## 🔇 No-op Variants
 
 Swap dependencies for release builds — no conditional code needed.
 
-| Debug | Release |
-|-------|---------|
-| `wiretap-ktor` | `wiretap-ktor-noop` |
+| Debug            | Release                |
+|------------------|------------------------|
+| `wiretap-ktor`   | `wiretap-ktor-noop`   |
 | `wiretap-okhttp` | `wiretap-okhttp-noop` |
 
-For URLSession, use `config.enabled = false` with `#if DEBUG` (see installation above).
+For URLSession, use `WiretapURLSession` in debug and plain `URLSession` in release (see installation above).
 
-## Documentation
+## 📚 Documentation
 
-[Full documentation](https://skymansandy.github.io/wiretapKMP/)
+[Full documentation](https://skymansandy.dev/wiretapKMP/)
 
-## License
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/my-feature`)
+3. **Commit** your changes (`git commit -m 'Add my feature'`)
+4. **Push** to the branch (`git push origin feature/my-feature`)
+5. **Open** a Pull Request
+
+## 🙏 Acknowledgements
+
+- [JetBrains](https://www.jetbrains.com/) — for [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html), [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/), and [Ktor](https://ktor.io/)
+- [Android Jetpack](https://developer.android.com/jetpack) — for [Room](https://developer.android.com/kotlin/multiplatform/room), [App Startup](https://developer.android.com/topic/libraries/app-startup), and [Compose](https://developer.android.com/develop/ui/compose)
+- [Koin](https://insert-koin.io/) — lightweight dependency injection for KMP
+- [OkHttp](https://square.github.io/okhttp/) — by Square, for the HTTP client and interceptor APIs
+- [SKIE](https://skie.touchlab.co/) — by Touchlab, for Swift-friendly KMP interop
+- [KMMBridge](https://kmmbridge.touchlab.co/) — by Touchlab, for SPM publishing of KMP frameworks
+
+## 📄 License
 
 ```
 Copyright 2025 skymansandy

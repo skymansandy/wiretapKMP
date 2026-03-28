@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class KtorSampleViewModel(
+class KtorHttpViewModel(
     private val client: HttpClient,
 ) : ViewModel(), HttpSampleActions {
 

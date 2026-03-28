@@ -55,6 +55,9 @@ internal interface RulesDao {
     @Query("SELECT * FROM RuleEntity WHERE id = :id")
     suspend fun getById(id: Long): RuleEntity?
 
+    @Query("SELECT * FROM RuleEntity WHERE id = :id")
+    fun flowById(id: Long): Flow<RuleEntity?>
+
     @Query("SELECT * FROM RuleEntity WHERE enabled = 1 ORDER BY created_at DESC")
     suspend fun getEnabledRules(): List<RuleEntity>
 

@@ -19,6 +19,7 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
     private val thresholdForAcceleration = 12f
 
     private val sensorListener = object : SensorEventListener {
+
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
         override fun onSensorChanged(event: SensorEvent) {
             val x = event.values[0]

@@ -52,28 +52,91 @@ Add the WiretapKMP SPM package via its GitHub repository URL, then link the `Wir
           - package: WiretapURLSession
     ```
 
-## Create the Interceptor
+## Create a Session
+
+Use `WiretapURLSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
 
 ```swift
+#if DEBUG
 import WiretapURLSession
+#endif
 
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-    config.shouldLog = { url, method in
-        KotlinBoolean(value: url.contains("/api/"))
-    }
-    config.headerAction = { key in
-        if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-            return HeaderActionMask(mask: "***")
+class NetworkClient {
+
+    #if DEBUG
+    private let session: WiretapURLSession
+
+    init() {
+        session = WiretapURLSession(configuration: .default) { config in
+            config.enabled = true
+            config.shouldLog = { url, method in
+                KotlinBoolean(value: url.contains("/api/"))
+            }
+            config.headerAction = { key in
+                if key.caseInsensitiveCompare("Authorization") == .orderedSame {
+                    return HeaderActionMask(mask: "***")
+                }
+                if key.caseInsensitiveCompare("Cookie") == .orderedSame {
+                    return HeaderActionSkip.shared
+                }
+                return HeaderActionKeep.shared
+            }
+            config.logRetention = LogRetentionDays(days: 7)
         }
-        if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-            return HeaderActionSkip.shared
-        }
-        return HeaderActionKeep.shared
     }
-    config.logRetention = LogRetentionDays(days: 7)
+    #else
+    private let session = URLSession.shared
+
+    init() {}
+    #endif
 }
 ```
+
+Then bridge the two session types with a pair of private helpers so the rest of your networking code stays `#if`-free:
+
+```swift
+private func execute(
+    _ request: URLRequest,
+    completion: @escaping (Data?, URLResponse?, Error?) -> Void
+) {
+    #if DEBUG
+    session.intercept(request: request) { data, response, error in
+        completion(data as Data?, response, error)
+    }
+    #else
+    session.dataTask(with: request) { data, response, error in
+        completion(data, response, error)
+    }.resume()
+    #endif
+}
+
+private func createTask(
+    _ request: URLRequest,
+    completion: @escaping (Data?, URLResponse?, Error?) -> Void
+) -> URLSessionDataTask {
+    #if DEBUG
+    session.dataTask(request: request) { data, response, error in
+        completion(data as Data?, response, error)
+    }
+    #else
+    session.dataTask(with: request) { data, response, error in
+        completion(data, response, error)
+    }
+    #endif
+}
+```
+
+All other methods just call `execute()` or `createTask()` — no `#if DEBUG` needed.
+
+??? note "Advanced: Using your own URLSession"
+    If you need a custom `URLSession` instance (e.g. custom delegate or shared session),
+    use `WiretapURLSessionInterceptor` directly:
+
+    ```swift
+    let interceptor = WiretapURLSessionInterceptor(session: mySession) { config in
+        config.enabled = true
+    }
+    ```
 
 ## Enable the Inspector UI
 

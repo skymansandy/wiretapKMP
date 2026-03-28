@@ -3,7 +3,7 @@ package dev.skymansandy.wiretap.ui.screens.rules.create.step.response
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,7 +51,7 @@ internal fun ResponseStep(
             fontWeight = FontWeight.Bold,
         )
 
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilterChip(
@@ -65,59 +65,23 @@ internal fun ResponseStep(
                 onClick = { viewModel.updateAction(RuleAction.Throttle()) },
                 label = { Text("Throttle") },
             )
+
+            FilterChip(
+                selected = action is RuleAction.MockAndThrottle,
+                onClick = { viewModel.updateAction(RuleAction.MockAndThrottle()) },
+                label = { Text("Mock + Throttle") },
+            )
         }
 
         when (action) {
             is RuleAction.Mock -> {
-                ThrottleDelayInput(
-                    throttleDelayMs = throttleDelayMs,
-                    onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
-                    throttleDelayMaxMs = throttleDelayMaxMs,
-                    onThrottleDelayMaxMsChange = { viewModel.updateThrottleDelayMaxMs(it) },
-                    throttleInputMode = throttleInputMode,
-                    onThrottleInputModeChange = { viewModel.updateThrottleInputMode(it) },
-                    supportingText = "Optional \u2014 adds artificial latency to this mock response",
-                )
-
-                OutlinedTextField(
-                    value = mockResponseCode,
-                    onValueChange = { viewModel.updateMockResponseCode(it) },
-                    label = { Text("Response Code") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                )
-
-                Text(
-                    "Response Body",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                val editorState = rememberJsonEditorState(
-                    initialJson = mockResponseBody.ifBlank { "{}" },
-                    isEditing = true,
-                )
-
-                JsonCMP(
-                    state = editorState,
-                    modifier = Modifier.fillMaxWidth().height(300.dp),
-                    onJsonChange = { json, _, _ -> viewModel.updateMockResponseBody(json) },
-                )
-
-                // Response headers with Key/Value ↔ Bulk Edit toggle
-                ResponseHeadersSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    entries = responseHeaderEntries,
-                    onAdd = { viewModel.addResponseHeader() },
-                    onUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
-                    onRemove = { idx -> viewModel.removeResponseHeader(idx) },
-                    bulk = responseHeadersBulk,
-                    onBulkChange = { viewModel.updateResponseHeadersBulk(it) },
-                    mode = responseHeadersMode,
-                    onModeChange = { viewModel.updateResponseHeadersMode(it) },
+                MockResponseFields(
+                    mockResponseCode = mockResponseCode,
+                    mockResponseBody = mockResponseBody,
+                    responseHeaderEntries = responseHeaderEntries,
+                    responseHeadersBulk = responseHeadersBulk,
+                    responseHeadersMode = responseHeadersMode,
+                    viewModel = viewModel,
                 )
             }
 
@@ -132,6 +96,88 @@ internal fun ResponseStep(
                     supportingText = "Adds artificial latency before the real network request",
                 )
             }
+
+            is RuleAction.MockAndThrottle -> {
+                ThrottleDelayInput(
+                    throttleDelayMs = throttleDelayMs,
+                    onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
+                    throttleDelayMaxMs = throttleDelayMaxMs,
+                    onThrottleDelayMaxMsChange = { viewModel.updateThrottleDelayMaxMs(it) },
+                    throttleInputMode = throttleInputMode,
+                    onThrottleInputModeChange = { viewModel.updateThrottleInputMode(it) },
+                    supportingText = "Adds artificial latency before returning the mock response",
+                )
+
+                MockResponseFields(
+                    mockResponseCode = mockResponseCode,
+                    mockResponseBody = mockResponseBody,
+                    responseHeaderEntries = responseHeaderEntries,
+                    responseHeadersBulk = responseHeadersBulk,
+                    responseHeadersMode = responseHeadersMode,
+                    viewModel = viewModel,
+                )
+            }
         }
     }
+}
+
+@OptIn(ExperimentalJsonCmpApi::class)
+@Composable
+private fun MockResponseFields(
+    mockResponseCode: String,
+    mockResponseBody: String,
+    responseHeaderEntries: List<dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry>,
+    responseHeadersBulk: String,
+    responseHeadersMode: dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode,
+    viewModel: CreateRuleViewModel,
+) {
+    val codeInt = mockResponseCode.toIntOrNull()
+    val isError = mockResponseCode.isNotEmpty() && (codeInt == null || codeInt !in 100..599)
+
+    OutlinedTextField(
+        value = mockResponseCode,
+        onValueChange = { viewModel.updateMockResponseCode(it) },
+        label = { Text("Response Code") },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        isError = isError,
+        supportingText = if (isError) {
+            { Text("Must be 100–599") }
+        } else {
+            null
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    )
+
+    Text(
+        "Response Body",
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    Spacer(Modifier.height(4.dp))
+
+    val editorState = rememberJsonEditorState(
+        initialJson = mockResponseBody.ifBlank { "{}" },
+        isEditing = true,
+    )
+
+    JsonCMP(
+        state = editorState,
+        modifier = Modifier.fillMaxWidth().height(300.dp),
+        onJsonChange = { json, _, _ -> viewModel.updateMockResponseBody(json) },
+    )
+
+    // Response headers with Key/Value ↔ Bulk Edit toggle
+    ResponseHeadersSection(
+        modifier = Modifier.fillMaxWidth(),
+        entries = responseHeaderEntries,
+        onAdd = { viewModel.addResponseHeader() },
+        onUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
+        onRemove = { idx -> viewModel.removeResponseHeader(idx) },
+        bulk = responseHeadersBulk,
+        onBulkChange = { viewModel.updateResponseHeadersBulk(it) },
+        mode = responseHeadersMode,
+        onModeChange = { viewModel.updateResponseHeadersMode(it) },
+    )
 }

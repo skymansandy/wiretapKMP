@@ -9,10 +9,9 @@ import dev.skymansandy.wiretap.data.repository.SocketRepositoryImpl
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.koin.dsl.module
 
 internal val wiretapDataModule = module {
@@ -24,7 +23,7 @@ internal val wiretapDataModule = module {
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
             .also { db ->
-                CoroutineScope(Dispatchers.IO).launch {
+                runBlocking(Dispatchers.IO) {
                     db.httpRoomDao().closeStaleHttpLogs()
                     db.socketRoomDao().closeStaleSocketLogs()
                 }

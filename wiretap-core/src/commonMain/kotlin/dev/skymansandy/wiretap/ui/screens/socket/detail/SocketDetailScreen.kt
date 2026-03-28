@@ -47,6 +47,7 @@ import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.MessageBubble
+import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import org.koin.compose.viewmodel.koinViewModel
@@ -117,35 +118,40 @@ internal fun SocketDetailScreenView(
             )
         },
     ) { padding ->
-        LazyColumn(
-            state = listState,
+        ScrollToTopButton(
+            listState = listState,
             modifier = Modifier.fillMaxSize().padding(padding),
         ) {
-            // Connection info header
-            item(key = "header") {
-                ConnectionInfoHeader(
-                    modifier = Modifier.fillMaxWidth(),
-                    entry = entry,
-                )
-            }
-
-            // History cleared banner
-            if (entry.historyCleared) {
-                item(key = "history_cleared") {
-                    HistoryClearedBanner()
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                // Connection info header
+                item(key = "header") {
+                    ConnectionInfoHeader(
+                        modifier = Modifier.fillMaxWidth(),
+                        entry = entry,
+                    )
                 }
-            }
 
-            // Messages
-            items(messages, key = { it.id }) { message ->
-                MessageBubble(
-                    modifier = Modifier.fillMaxWidth(),
-                    message = message,
-                )
-            }
+                // History cleared banner
+                if (entry.historyCleared) {
+                    item(key = "history_cleared") {
+                        HistoryClearedBanner()
+                    }
+                }
 
-            // Bottom spacer
-            item { Spacer(Modifier.height(16.dp)) }
+                // Messages
+                items(messages, key = { it.id }) { message ->
+                    MessageBubble(
+                        modifier = Modifier.fillMaxWidth(),
+                        message = message,
+                    )
+                }
+
+                // Bottom spacer
+                item { Spacer(Modifier.height(16.dp)) }
+            }
         }
     }
 }

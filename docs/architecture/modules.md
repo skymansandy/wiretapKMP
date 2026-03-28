@@ -44,7 +44,7 @@ The core module contains everything except client-specific plugins:
 
 | Component | Description |
 |-----------|-------------|
-| `WiretapKtorPlugin` | HTTP request/response logging + rule evaluation |
+| `WiretapKtorHttpPlugin` | HTTP request/response logging + rule evaluation |
 | `WiretapKtorWebSocketPlugin` | WebSocket connection/message logging |
 | `WiretapWebSocketSession` | Session wrapper for message interception |
 

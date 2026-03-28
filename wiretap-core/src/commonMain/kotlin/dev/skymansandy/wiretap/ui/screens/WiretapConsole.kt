@@ -82,7 +82,9 @@ internal fun WiretapConsole(
             ) {
                 NavDisplay(
                     backStack = backStack,
-                    onBack = { navigator.pop() },
+                    onBack = {
+                        if (backStack.size <= 1) onBack() else navigator.pop()
+                    },
                     sceneStrategy = sceneStrategy,
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),

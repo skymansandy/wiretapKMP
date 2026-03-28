@@ -6,6 +6,7 @@ import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.data.mappers.toRoomEntity
 import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import kotlinx.coroutines.flow.Flow
@@ -22,11 +23,14 @@ internal class HttpRepositoryImpl(
         rows.map { it.toDomain() }
     }
 
-    override fun flowPagesLogs(query: String): Flow<PagingData<HttpLog>> =
+    override fun flowDistinctHosts(): Flow<List<String>> = httpLogsDao.getDistinctHosts()
+
+    override fun flowPagesLogs(query: String, filter: HttpLogFilter): Flow<PagingData<HttpLog>> =
         Pager(config = defaultPagingConfig) {
             HttpLogPagingSource(
                 roomDao = httpLogsDao,
                 query = query,
+                filter = filter,
                 invalidationSignal = invalidationSignal,
             )
         }.flow

@@ -2,13 +2,16 @@ package dev.skymansandy.wiretap.domain.repository
 
 import app.cash.paging.PagingData
 import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import kotlinx.coroutines.flow.Flow
 
 interface HttpRepository {
 
     fun flowAll(): Flow<List<HttpLog>>
 
-    fun flowPagesLogs(query: String): Flow<PagingData<HttpLog>>
+    fun flowDistinctHosts(): Flow<List<String>>
+
+    fun flowPagesLogs(query: String, filter: HttpLogFilter = HttpLogFilter()): Flow<PagingData<HttpLog>>
 
     fun flowById(id: Long): Flow<HttpLog?>
 

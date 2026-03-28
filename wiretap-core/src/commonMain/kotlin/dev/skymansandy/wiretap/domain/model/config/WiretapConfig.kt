@@ -8,7 +8,7 @@ package dev.skymansandy.wiretap.domain.model.config
  *
  * Example — Ktor DSL:
  * ```kotlin
- * install(WiretapKtorPlugin) {
+ * install(WiretapKtorHttpPlugin) {
  *     shouldLog = { url, _ -> url.contains("/api/") }
  *     headerAction = { key ->
  *         when {

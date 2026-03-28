@@ -1,46 +1,53 @@
 package dev.skymansandy.wiretap.ui.model
 
-internal enum class UrlMatchMode {
-    Exact,
-    Contains,
-    Regex,
+internal enum class UrlMatchMode(val label: String) {
+
+    Exact("Exact"),
+    Contains("Contains"),
+    Regex("Regex"),
 }
 
-internal enum class BodyMatchMode {
-    Exact,
-    Contains,
-    Regex,
+internal enum class BodyMatchMode(val label: String) {
+
+    Exact("Exact"),
+    Contains("Contains"),
+    Regex("Regex"),
 }
 
-internal enum class HeaderEntryMode {
-    KeyExists,
-    ValueExact,
-    ValueContains,
-    ValueRegex,
+internal enum class HeaderEntryMode(val label: String) {
+
+    KeyExists("Key Exists"),
+    ValueExact("Exact"),
+    ValueContains("Contains"),
+    ValueRegex("Regex"),
 }
 
 internal enum class ResponseHeadersEditMode {
+
     KeyValue,
     BulkEdit,
 }
 
 internal enum class ThrottleInputMode {
+
     None,
     Manual,
     Profile,
 }
 
 internal enum class ThrottleProfile(
+    val label: String,
     val delayMinMs: Long,
     val delayMaxMs: Long,
 ) {
-    Gprs(1500, 3000),
-    Edge(800, 2000),
-    Slow3g(500, 1500),
-    Fast3g(300, 800),
-    Slow4g(150, 400),
-    Lte(50, 200),
-    SlowWifi(500, 1000),
+
+    Gprs("2G (GPRS)", 1500, 3000),
+    Edge("2G (EDGE)", 800, 2000),
+    Slow3g("3G (Slow)", 500, 1500),
+    Fast3g("3G", 300, 800),
+    Slow4g("4G (Slow)", 150, 400),
+    Lte("4G (LTE)", 50, 200),
+    SlowWifi("Slow WiFi", 500, 1000),
 }
 
 internal data class HeaderEntry(

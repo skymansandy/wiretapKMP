@@ -39,7 +39,6 @@ internal class WiretapListDetailScene(
 
     override val content: @Composable () -> Unit = {
         Row(modifier = Modifier.fillMaxSize()) {
-
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -76,7 +75,6 @@ internal class WiretapListDetailSceneStrategy(
     override fun SceneStrategyScope<NavKey>.calculateScene(
         entries: List<NavEntry<NavKey>>,
     ): Scene<NavKey>? {
-
         if (!isWideScreen) return null
 
         val detailEntry = entries.lastOrNull()

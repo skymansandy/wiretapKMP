@@ -1,20 +1,20 @@
-public final class dev/skymansandy/wiretap/plugin/WiretapKtorPluginKt {
-	public static final fun getWiretapKtorPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+public final class dev/skymansandy/wiretap/plugin/http/WiretapKtorHttpPluginKt {
+	public static final fun getWiretapKtorHttpPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
 }
 
-public final class dev/skymansandy/wiretap/plugin/WiretapKtorWebSocketPluginKt {
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapKtorWebSocketPluginKt {
 	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
-	public static final fun wiretapWrap (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class dev/skymansandy/wiretap/plugin/WiretapWebSocketSession {
-	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getDelegate ()Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;
-	public final fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
-	public final fun logReceivedFrame (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun markClosed (Ljava/lang/Short;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun markClosed$default (Ldev/skymansandy/wiretap/plugin/WiretapWebSocketSession;Ljava/lang/Short;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun markFailed (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun send (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession : io/ktor/websocket/DefaultWebSocketSession {
+	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession$DefaultImpls {
+	public static fun send (Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWrapKt {
+	public static final fun wiretapped (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;
 }
 
