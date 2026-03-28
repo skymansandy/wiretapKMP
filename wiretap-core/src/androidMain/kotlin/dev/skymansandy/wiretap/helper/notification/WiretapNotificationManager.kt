@@ -33,7 +33,7 @@ internal object WiretapNotificationManager {
     internal const val EXTRA_SOCKET_ID = "wiretap_socket_id"
 
     private val notificationIcon by lazy {
-        IconCompat.createWithBitmap(WiretapIconFactory.createNotificationBitmap())
+        IconCompat.createWithBitmap(WiretapIconFactory.notificationBitmap)
     }
 
     private val recentHttpEntries = mutableListOf<HttpLog>()

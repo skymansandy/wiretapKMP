@@ -26,7 +26,7 @@ import dev.skymansandy.wiretapsample.model.TabItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandscapeLayout(
+internal fun LandscapeLayout(
     title: String = "",
     tabs: List<TabItem>,
     selectedTab: Int,

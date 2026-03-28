@@ -12,8 +12,9 @@ internal object WiretapIconFactory {
     fun createShortcutIcon(sizePx: Int = 108): Icon =
         Icon.createWithBitmap(createShortcutBitmap(sizePx))
 
-    fun createNotificationIcon(sizePx: Int = 24): Icon =
-        Icon.createWithBitmap(createNotificationBitmap(sizePx))
+    val notificationIcon: Icon by lazy {
+        Icon.createWithBitmap(notificationBitmap)
+    }
 
     fun createShortcutBitmap(sizePx: Int = 108): Bitmap {
         val bitmap = createBitmap(sizePx, sizePx)
@@ -31,13 +32,40 @@ internal object WiretapIconFactory {
         return bitmap
     }
 
-    fun createNotificationBitmap(sizePx: Int = 24): Bitmap {
+    val notificationBitmap: Bitmap by lazy {
+        val sizePx = 96
         val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
-        val scale = sizePx / 108f
+        val scale = sizePx / 24f
 
-        drawWiretapSymbol(canvas, scale)
-        return bitmap
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFFFFFFFF.toInt()
+            style = Paint.Style.FILL
+        }
+
+        // Material swap_vert icon (24x24 viewport)
+        val path = Path().apply {
+            // Down arrow
+            moveTo(16f * scale, 17.01f * scale)
+            lineTo(16f * scale, 10f * scale)
+            lineTo(14f * scale, 10f * scale)
+            lineTo(14f * scale, 17.01f * scale)
+            lineTo(11f * scale, 17.01f * scale)
+            lineTo(15f * scale, 21f * scale)
+            lineTo(19f * scale, 17.01f * scale)
+            close()
+            // Up arrow
+            moveTo(9f * scale, 3f * scale)
+            lineTo(5f * scale, 6.99f * scale)
+            lineTo(8f * scale, 6.99f * scale)
+            lineTo(8f * scale, 14f * scale)
+            lineTo(10f * scale, 14f * scale)
+            lineTo(10f * scale, 6.99f * scale)
+            lineTo(13f * scale, 6.99f * scale)
+            close()
+        }
+        canvas.drawPath(path, paint)
+        bitmap
     }
 
     // FIXME: Fix compose resource access in kmp library

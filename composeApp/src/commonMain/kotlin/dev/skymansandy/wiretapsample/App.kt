@@ -11,7 +11,6 @@ import org.koin.dsl.koinApplication
 
 @Composable
 fun App(title: String = "") {
-
     KoinIsolatedContext(
         context = koinApplication {
             modules(sampleAppModule)
