@@ -30,7 +30,7 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
             activeAcceleration = activeAcceleration * 0.9f + delta
 
             if (activeAcceleration > thresholdForAcceleration) {
-                startWiretap()
+                launchWiretapConsole()
             }
         }
     }

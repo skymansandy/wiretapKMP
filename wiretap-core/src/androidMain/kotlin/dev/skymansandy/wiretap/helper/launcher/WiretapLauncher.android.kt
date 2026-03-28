@@ -5,7 +5,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 import dev.skymansandy.wiretap.presentation.WiretapConsoleActivity
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     val context = WiretapContextProvider.context
     val intent = getLaunchIntent()
     context.startActivity(intent)

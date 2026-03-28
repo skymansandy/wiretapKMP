@@ -4,7 +4,7 @@ import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.logger.WiretapLoggerImpl
 import org.koin.dsl.module
 
-val wiretapUtilityModule = module {
+internal val wiretapUtilityModule = module {
 
     single<WiretapLogger> {
         WiretapLoggerImpl()

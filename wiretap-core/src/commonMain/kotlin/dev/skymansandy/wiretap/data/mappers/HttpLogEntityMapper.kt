@@ -1,13 +1,13 @@
 package dev.skymansandy.wiretap.data.mappers
 
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogListProjection
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 
-internal fun HttpLogEntity.toDomain(): HttpLogEntry {
-    return HttpLogEntry(
+internal fun HttpLogEntity.toDomain(): HttpLog {
+    return HttpLog(
         id = id,
         url = url,
         method = method,
@@ -31,8 +31,8 @@ internal fun HttpLogEntity.toDomain(): HttpLogEntry {
     )
 }
 
-internal fun HttpLogListProjection.toDomain(): HttpLogEntry {
-    return HttpLogEntry(
+internal fun HttpLogListProjection.toDomain(): HttpLog {
+    return HttpLog(
         id = id,
         url = url,
         method = method,
@@ -42,6 +42,30 @@ internal fun HttpLogListProjection.toDomain(): HttpLogEntry {
         responseBodySize = responseBodySize,
         durationMs = durationMs,
         source = ResponseSource.valueOf(source),
+        timestamp = timestamp,
+        matchedRuleId = matchedRuleId,
+        protocol = protocol,
+        remoteAddress = remoteAddress,
+        tlsProtocol = tlsProtocol,
+        cipherSuite = cipherSuite,
+        certificateCn = certificateCn,
+        issuerCn = issuerCn,
+        certificateExpiry = certificateExpiry,
+    )
+}
+
+internal fun HttpLog.toRoomEntity(): HttpLogEntity {
+    return HttpLogEntity(
+        id = id,
+        url = url,
+        method = method,
+        requestHeaders = HeadersSerializerUtil.serialize(requestHeaders),
+        requestBody = requestBody,
+        responseCode = responseCode.toLong(),
+        responseHeaders = HeadersSerializerUtil.serialize(responseHeaders),
+        responseBody = responseBody,
+        durationMs = durationMs,
+        source = source.name,
         timestamp = timestamp,
         matchedRuleId = matchedRuleId,
         protocol = protocol,

@@ -6,9 +6,9 @@ import app.cash.paging.PagingSourceLoadResult
 import app.cash.paging.PagingSourceLoadResultError
 import app.cash.paging.PagingSourceLoadResultPage
 import app.cash.paging.PagingState
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
 import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,7 +20,7 @@ internal class SocketLogPagingSource(
     private val roomDao: SocketLogsDao,
     private val query: String,
     invalidationSignal: SharedFlow<Unit>,
-) : PagingSource<Long, SocketEntry>() {
+) : PagingSource<Long, SocketConnection>() {
 
     private val listenerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -36,7 +36,7 @@ internal class SocketLogPagingSource(
         }
     }
 
-    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketEntry> {
+    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketConnection> {
         val afterId = params.key
         return try {
             val items = roomDao.getSocketLogsPage(query, afterId, params.loadSize.toLong())
@@ -51,5 +51,5 @@ internal class SocketLogPagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Long, SocketEntry>): Long? = null
+    override fun getRefreshKey(state: PagingState<Long, SocketConnection>): Long? = null
 }

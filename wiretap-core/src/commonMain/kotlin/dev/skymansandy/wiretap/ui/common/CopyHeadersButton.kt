@@ -24,19 +24,24 @@ internal fun CopyHeadersButton(
         modifier = modifier,
         onClick = {
             copyToClipboard(
-                headers.entries.joinToString("\n") { "${it.key}: ${it.value}" },
+                headers.entries.joinToString("\n") {
+                    "${it.key}: ${it.value}"
+                },
             )
         },
     ) {
         Icon(
+            modifier = Modifier.size(14.dp),
             imageVector = Icons.Filled.ContentCopy,
             contentDescription = "Copy headers",
-            modifier = Modifier.size(14.dp),
         )
 
-        Spacer(Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(4.dp))
 
-        Text("Copy", style = MaterialTheme.typography.labelSmall)
+        Text(
+            text = "Copy",
+            style = MaterialTheme.typography.labelSmall,
+        )
     }
 }
 

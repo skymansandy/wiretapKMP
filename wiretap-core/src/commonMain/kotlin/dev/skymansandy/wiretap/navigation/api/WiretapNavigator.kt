@@ -1,0 +1,27 @@
+package dev.skymansandy.wiretap.navigation.api
+
+internal interface WiretapNavigator {
+
+    fun push(screen: WiretapScreen)
+
+    fun pushDetailPane(screen: WiretapScreen)
+
+    fun clearDetailPane()
+
+    fun pop()
+
+    fun popUntil(predicate: (WiretapScreen) -> Boolean)
+
+    fun replaceTop(screen: WiretapScreen)
+
+    companion object {
+        val NoOp = object : WiretapNavigator {
+            override fun push(screen: WiretapScreen) = Unit
+            override fun pushDetailPane(screen: WiretapScreen) = Unit
+            override fun clearDetailPane() = Unit
+            override fun pop() = Unit
+            override fun popUntil(predicate: (WiretapScreen) -> Boolean) = Unit
+            override fun replaceTop(screen: WiretapScreen) = Unit
+        }
+    }
+}

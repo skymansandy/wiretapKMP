@@ -6,8 +6,8 @@ import android.content.pm.ShortcutManager
 import android.os.Build
 import androidx.startup.Initializer
 import dev.skymansandy.wiretap.helper.launcher.WiretapIconFactory
-import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
 import dev.skymansandy.wiretap.helper.launcher.getLaunchIntent
+import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
 

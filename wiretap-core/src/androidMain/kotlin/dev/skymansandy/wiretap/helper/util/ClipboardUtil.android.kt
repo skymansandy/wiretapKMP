@@ -8,5 +8,5 @@ import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 internal actual fun copyToClipboard(text: String) {
     val context = WiretapContextProvider.context
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("Wiretap body", text))
+    clipboard.setPrimaryClip(ClipData.newPlainText("Body", text))
 }

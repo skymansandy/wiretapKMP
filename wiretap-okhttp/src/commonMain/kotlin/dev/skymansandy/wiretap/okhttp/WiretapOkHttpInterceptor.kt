@@ -1,13 +1,13 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.config.LogRetention
-import dev.skymansandy.wiretap.config.WiretapConfig
-import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.config.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
+import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
@@ -52,7 +52,7 @@ class WiretapOkHttpInterceptor(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val orchestrator: WiretapOrchestrator by inject()
+    private val httpLogManager: HttpLogManager by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
     @Volatile
@@ -73,10 +73,10 @@ class WiretapOkHttpInterceptor(
                     sessionInitialized = true
                     when (val retention = config.logRetention) {
                         LogRetention.Forever -> Unit
-                        LogRetention.AppSession -> orchestrator.clearHttpLogs()
+                        LogRetention.AppSession -> httpLogManager.clearHttpLogs()
                         is LogRetention.Days -> {
                             val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-                            orchestrator.purgeHttpLogsOlderThan(cutoff)
+                            httpLogManager.purgeHttpLogsOlderThan(cutoff)
                         }
                     }
                 }
@@ -111,8 +111,8 @@ class WiretapOkHttpInterceptor(
         // coroutine is canceled mid-flight, preventing orphaned "..." entries.
         val logEntryId = if (config.shouldLog(url, method)) {
             withContext(NonCancellable) {
-                orchestrator.logHttpAndGetId(
-                    HttpLogEntry(
+                httpLogManager.logHttpAndGetId(
+                    HttpLog(
                         url = url,
                         method = method,
                         requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
@@ -141,8 +141,8 @@ class WiretapOkHttpInterceptor(
             if (logEntryId >= 0) {
                 val mockRespHeaders = mockResponse.headers.toMap()
                 val durationNs = currentNanoTime() - startNano
-                orchestrator.updateHttp(
-                    HttpLogEntry(
+                httpLogManager.updateHttp(
+                    HttpLog(
                         id = logEntryId,
                         url = url,
                         method = method,
@@ -177,8 +177,8 @@ class WiretapOkHttpInterceptor(
                 val isCancelled = e is IOException && e.message == "Canceled"
                 withContext(NonCancellable) {
                     val durationNs = currentNanoTime() - startNano
-                    orchestrator.updateHttp(
-                        HttpLogEntry(
+                    httpLogManager.updateHttp(
+                        HttpLog(
                             id = logEntryId,
                             url = url,
                             method = method,
@@ -242,8 +242,8 @@ class WiretapOkHttpInterceptor(
         val certificateExpiry = peerCert?.notAfter?.toString()
 
         if (logEntryId >= 0) {
-            orchestrator.updateHttp(
-                HttpLogEntry(
+            httpLogManager.updateHttp(
+                HttpLog(
                     id = logEntryId,
                     url = url,
                     method = method,

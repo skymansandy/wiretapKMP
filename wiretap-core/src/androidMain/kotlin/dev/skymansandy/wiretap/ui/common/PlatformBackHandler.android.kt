@@ -5,5 +5,8 @@ import androidx.compose.runtime.Composable
 
 @Composable
 internal actual fun PlatformBackHandler(enabled: Boolean, onBack: () -> Unit) {
-    BackHandler(enabled = enabled, onBack = onBack)
+    BackHandler(
+        enabled = enabled,
+        onBack = onBack,
+    )
 }

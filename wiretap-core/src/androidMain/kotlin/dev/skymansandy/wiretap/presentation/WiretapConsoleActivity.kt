@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.presentation
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -9,9 +10,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
-import dev.skymansandy.wiretap.ui.WiretapConsole
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
+import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
 import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 
 class WiretapConsoleActivity : ComponentActivity() {
@@ -22,15 +23,16 @@ class WiretapConsoleActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         deepLinkScreen = parseDeepLinkScreen(intent)
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
+
         setContent {
             WiretapTheme {
                 WiretapConsole(
-                    onBack = { finish() },
                     deepLinkScreen = deepLinkScreen,
                     onDeepLinkConsumed = { deepLinkScreen = null },
+                    onBack = { finish() },
                 )
             }
         }

@@ -1,14 +1,14 @@
 package dev.skymansandy.wiretap.helper.logger
 
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
-import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.SocketConnection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 
 internal class WiretapLoggerImpl : WiretapLogger {
 
-    override fun logHttp(entry: HttpLogEntry) {
+    override fun logHttp(entry: HttpLog) {
         if (entry.isInProgress) {
             println("[Wiretap] ${entry.method} ${entry.url} -> ...")
             return
@@ -21,7 +21,7 @@ internal class WiretapLoggerImpl : WiretapLogger {
         println("[Wiretap] ${entry.method} ${entry.url} -> ${entry.responseCode} ($duration) [${entry.source}]$protocol$remote")
     }
 
-    override fun logSocket(entry: SocketEntry) {
+    override fun logSocket(entry: SocketConnection) {
         when (entry.status) {
             SocketStatus.Connecting -> println("[Wiretap] WS CONNECTING ${entry.url}")
             SocketStatus.Open -> println("[Wiretap] WS OPEN ${entry.url}")
@@ -33,8 +33,8 @@ internal class WiretapLoggerImpl : WiretapLogger {
 
     override fun logSocketMessage(message: SocketMessage) {
         val arrow = when (message.direction) {
-            SocketMessageDirection.Sent -> "▲"
-            SocketMessageDirection.Received -> "▼"
+            SocketMessageType.Sent -> "▲"
+            SocketMessageType.Received -> "▼"
         }
         val preview = if (message.content.length > 80) message.content.take(80) + "..." else message.content
         println("[Wiretap] WS $arrow \"$preview\" (${formatBytes(message.byteCount)})")

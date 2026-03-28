@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretap.di
 
 import org.koin.core.Koin
+import org.koin.core.KoinApplication
 import org.koin.dsl.koinApplication
 import kotlin.concurrent.Volatile
 
@@ -9,12 +10,12 @@ internal object WiretapKoinContext {
     @Volatile
     private var testKoin: Koin? = null
 
-    val koin: Koin get() = testKoin ?: productionKoin
+    val koin: Koin get() = testKoin ?: productionApp.koin
 
-    private val productionKoin: Koin by lazy {
+    val productionApp: KoinApplication by lazy {
         koinApplication {
             modules(wiretapModule)
-        }.koin
+        }
     }
 
     fun setTestKoin(koin: Koin?) {

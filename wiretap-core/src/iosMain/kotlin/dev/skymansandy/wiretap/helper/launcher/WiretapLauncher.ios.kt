@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.helper.launcher
 
 import androidx.compose.ui.window.ComposeUIViewController
 import dev.skymansandy.wiretap.shake.ShakeDetector
-import dev.skymansandy.wiretap.ui.WiretapConsole
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
 import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import platform.UIKit.UIApplication
 import platform.UIKit.UIModalPresentationFullScreen
@@ -32,7 +32,7 @@ fun WiretapViewController(): UIViewController {
     }
 }
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     if (wiretapViewControllerInstance != null) return
 
     val topVc = getTopMostViewController() ?: return
@@ -45,7 +45,7 @@ actual fun enableWiretapLauncher() {
     ShakeDetector.enable {
         if (wiretapViewControllerInstance != null) return@enable
 
-        startWiretap()
+        launchWiretapConsole()
     }
 }
 

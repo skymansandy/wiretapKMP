@@ -1,17 +1,17 @@
 package dev.skymansandy.wiretap.domain.repository
 
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.WiretapRule
 import kotlinx.coroutines.flow.Flow
 
 interface RuleRepository {
 
+    fun flowAll(): Flow<List<WiretapRule>>
+
+    fun flowForQuery(query: String): Flow<List<WiretapRule>>
+
     suspend fun addRule(rule: WiretapRule)
 
     suspend fun updateRule(rule: WiretapRule)
-
-    fun getAll(): Flow<List<WiretapRule>>
-
-    fun search(query: String): Flow<List<WiretapRule>>
 
     suspend fun getById(id: Long): WiretapRule?
 

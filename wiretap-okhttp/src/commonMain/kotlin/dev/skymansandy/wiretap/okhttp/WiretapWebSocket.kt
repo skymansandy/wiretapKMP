@@ -1,9 +1,9 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketContentType
-import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.runBlocking
 import okhttp3.WebSocket
@@ -15,15 +15,15 @@ import okio.ByteString
 internal class WiretapWebSocket(
     private val delegate: WebSocket,
     private val socketId: Long,
-    private val orchestrator: WiretapOrchestrator,
+    private val socketLogManager: SocketLogManager,
 ) : WebSocket by delegate {
 
     override fun send(text: String): Boolean {
         runBlocking {
-            orchestrator.logSocketMsg(
+            socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.Sent,
+                    direction = SocketMessageType.Sent,
                     contentType = SocketContentType.Text,
                     content = text,
                     byteCount = text.encodeToByteArray().size.toLong(),
@@ -36,10 +36,10 @@ internal class WiretapWebSocket(
 
     override fun send(bytes: ByteString): Boolean {
         runBlocking {
-            orchestrator.logSocketMsg(
+            socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.Sent,
+                    direction = SocketMessageType.Sent,
                     contentType = SocketContentType.Binary,
                     content = "[Binary: ${bytes.size} bytes]",
                     byteCount = bytes.size.toLong(),

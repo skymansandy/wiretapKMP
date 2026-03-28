@@ -28,7 +28,6 @@ internal fun SectionTitle(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .fillMaxWidth()
             .then(
                 if (onToggleExpand != null) Modifier.clickable(onClick = onToggleExpand)
                 else Modifier,
@@ -46,8 +45,7 @@ internal fun SectionTitle(
 
         if (expanded != null) {
             Icon(
-                imageVector = if (expanded) Icons.Default.KeyboardArrowUp
-                else Icons.Default.KeyboardArrowDown,
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (expanded) "Collapse" else "Expand",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -59,7 +57,10 @@ internal fun SectionTitle(
 @Composable
 private fun Preview_SectionTitle() {
     MaterialTheme {
-        SectionTitle(text = "Request Headers")
+        SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Request Headers",
+        )
     }
 }
 
@@ -68,6 +69,7 @@ private fun Preview_SectionTitle() {
 private fun Preview_SectionTitleWithAction() {
     MaterialTheme {
         SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
             text = "Response Body",
             action = {
                 Text(
