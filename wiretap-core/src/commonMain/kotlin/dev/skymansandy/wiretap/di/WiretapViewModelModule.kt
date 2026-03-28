@@ -59,8 +59,8 @@ internal val wiretapViewModelModule = module {
 
     viewModel<RuleDetailViewModel> { (ruleId: Long) ->
         RuleDetailViewModel(
-            ruleRepository = get(),
             ruleId = ruleId,
+            ruleRepository = get(),
         )
     }
 }

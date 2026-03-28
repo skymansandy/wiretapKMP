@@ -54,9 +54,9 @@ import org.koin.core.parameter.parametersOf
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RuleDetailScreen(
-    ruleId: Long,
+internal fun RuleDetailScreenView(
     modifier: Modifier = Modifier,
+    ruleId: Long,
     viewModel: RuleDetailViewModel = koinViewModel { parametersOf(ruleId) },
 ) {
     val navigator = LocalWiretapNavigator.current

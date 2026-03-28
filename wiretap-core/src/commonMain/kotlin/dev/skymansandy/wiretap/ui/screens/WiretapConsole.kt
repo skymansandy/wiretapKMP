@@ -39,6 +39,7 @@ import dev.skymansandy.wiretap.ui.scenes.listPane
 import dev.skymansandy.wiretap.ui.screens.home.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.http.detail.HttpLogDetailScreen
 import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleScreenView
+import dev.skymansandy.wiretap.ui.screens.rules.view.RuleDetailScreenView
 import dev.skymansandy.wiretap.ui.screens.socket.detail.SocketDetailScreenView
 import org.koin.compose.KoinIsolatedContext
 
@@ -122,7 +123,7 @@ internal fun WiretapConsole(
                         entry<RuleDetailScreen>(
                             metadata = detailPane(),
                         ) { key ->
-                            RuleDetailScreen(
+                            RuleDetailScreenView(
                                 ruleId = key.ruleId,
                             )
                         }
