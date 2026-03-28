@@ -11,6 +11,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.truncateBody
 import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
@@ -113,7 +114,7 @@ class WiretapOkHttpInterceptor(
                         url = url,
                         method = method,
                         requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
+                        requestBody = requestBody.truncateBody(config.maxContentLength),
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -172,10 +173,10 @@ class WiretapOkHttpInterceptor(
                         url = url,
                         method = method,
                         requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
+                        requestBody = requestBody.truncateBody(config.maxContentLength),
                         responseCode = mockResponse.code,
                         responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                        responseBody = mockBody,
+                        responseBody = mockBody.truncateBody(config.maxContentLength),
                         durationMs = durationNs / 1_000_000,
                         durationNs = durationNs,
                         source = source,
@@ -208,10 +209,11 @@ class WiretapOkHttpInterceptor(
                             url = url,
                             method = method,
                             requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                            requestBody = requestBody,
+                            requestBody = requestBody.truncateBody(config.maxContentLength),
                             responseCode = if (isCancelled) -1 else 0,
                             responseHeaders = emptyMap(),
-                            responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                            responseBody = (e.message ?: e::class.simpleName ?: "Unknown error")
+                                .truncateBody(config.maxContentLength),
                             durationMs = durationNs / 1_000_000,
                             durationNs = durationNs,
                             source = ResponseSource.Network,
@@ -242,7 +244,7 @@ class WiretapOkHttpInterceptor(
                     requestBody = null,
                     responseCode = response.code,
                     responseHeaders = meta.responseHeaders.applyHeaderAction(config.headerAction),
-                    responseBody = meta.responseBody,
+                    responseBody = meta.responseBody.truncateBody(config.maxContentLength),
                     durationMs = durationMs,
                     durationNs = durationNs,
                     source = source,

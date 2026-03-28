@@ -142,7 +142,7 @@ private fun SocketLogItemContent(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = highlightText(path, searchQuery),
+                    text = remember(path, searchQuery) { highlightText(path, searchQuery) },
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     maxLines = 3,
@@ -165,7 +165,7 @@ private fun SocketLogItemContent(
                     }
 
                     Text(
-                        text = highlightText(host, searchQuery),
+                        text = remember(host, searchQuery) { highlightText(host, searchQuery) },
                         style = MaterialTheme.typography.bodySmall,
                         color = WiretapColors.SecureHost,
                     )

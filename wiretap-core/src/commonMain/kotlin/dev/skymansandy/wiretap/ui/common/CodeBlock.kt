@@ -9,13 +9,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.helper.constants.jsonMockText
 import dev.skymansandy.wiretap.helper.util.highlightText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+
+private const val SEARCH_DEBOUNCE_MS = 300L
 
 @Composable
 internal fun CodeBlock(
@@ -23,8 +29,12 @@ internal fun CodeBlock(
     text: String,
     searchQuery: String = "",
 ) {
-    val highlightedText = remember(text, searchQuery) {
-        highlightText(text, searchQuery)
+    val highlightedText = produceState(AnnotatedString(text), text, searchQuery) {
+        if (searchQuery.isNotBlank()) delay(SEARCH_DEBOUNCE_MS)
+
+        value = withContext(Dispatchers.Default) {
+            highlightText(text, searchQuery)
+        }
     }
 
     SelectionContainer(
@@ -36,7 +46,7 @@ internal fun CodeBlock(
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
-                text = highlightedText,
+                text = highlightedText.value,
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 modifier = Modifier

@@ -1,5 +1,7 @@
 package dev.skymansandy.wiretap.domain.model.config
 
+import dev.skymansandy.wiretap.domain.model.config.WiretapConfig.Companion.MAX_CONTENT_LENGTH
+
 /**
  * Configuration for Wiretap network inspection plugins.
  *
@@ -52,4 +54,20 @@ class WiretapConfig {
      * [LogRetention.Days] prunes entries older than N days on each new capture.
      */
     var logRetention: LogRetention = LogRetention.Forever
+
+    /**
+     * Maximum number of characters to store for request and response bodies.
+     * Bodies exceeding this limit are truncated before being saved to the database.
+     * Capped at [MAX_CONTENT_LENGTH] (500 KB). Defaults to [MAX_CONTENT_LENGTH].
+     * Set to 0 to skip body logging entirely.
+     */
+    var maxContentLength: Int = MAX_CONTENT_LENGTH
+        set(value) {
+            field = value.coerceIn(0, MAX_CONTENT_LENGTH)
+        }
+
+    companion object {
+        /** Hard upper bound: 250 KB expressed in characters. */
+        const val MAX_CONTENT_LENGTH: Int = 500 * 1024
+    }
 }
