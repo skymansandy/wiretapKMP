@@ -32,7 +32,7 @@ fun WiretapViewController(): UIViewController {
     }
 }
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     if (wiretapViewControllerInstance != null) return
 
     val topVc = getTopMostViewController() ?: return
@@ -45,7 +45,7 @@ actual fun enableWiretapLauncher() {
     ShakeDetector.enable {
         if (wiretapViewControllerInstance != null) return@enable
 
-        startWiretap()
+        launchWiretapConsole()
     }
 }
 

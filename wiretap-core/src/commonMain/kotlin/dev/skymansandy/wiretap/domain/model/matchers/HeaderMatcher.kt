@@ -1,11 +1,11 @@
-package dev.skymansandy.wiretap.domain.model
+package dev.skymansandy.wiretap.domain.model.matchers
 
 /**
  * Defines how a rule matches request headers.
  * Multiple matchers on a rule use AND logic — all must match.
  * Header key matching is case-insensitive.
  *
- * @see dev.skymansandy.wiretap.data.db.entity.WiretapRule
+ * @see dev.skymansandy.wiretap.domain.model.WiretapRule
  */
 sealed interface HeaderMatcher {
 

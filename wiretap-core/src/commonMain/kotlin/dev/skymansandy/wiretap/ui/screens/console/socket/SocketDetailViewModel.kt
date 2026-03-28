@@ -2,9 +2,9 @@ package dev.skymansandy.wiretap.ui.screens.console.socket
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.SocketConnection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,20 +13,20 @@ import kotlinx.coroutines.launch
 
 internal class SocketDetailViewModel(
     private val socketId: Long,
-    private val orchestrator: WiretapOrchestrator,
+    private val socketLogManager: SocketLogManager,
 ) : ViewModel() {
 
-    val initialEntry: StateFlow<SocketEntry?>
+    val initialEntry: StateFlow<SocketConnection?>
         field = MutableStateFlow(null)
 
-    val liveEntry: StateFlow<SocketEntry?> = orchestrator.flowSocketById(socketId)
+    val liveEntry: StateFlow<SocketConnection?> = socketLogManager.flowSocketById(socketId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null,
         )
 
-    val messages: StateFlow<List<SocketMessage>> = orchestrator.flowSocketMessagesById(socketId)
+    val messages: StateFlow<List<SocketMessage>> = socketLogManager.flowSocketMessagesById(socketId)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -35,7 +35,7 @@ internal class SocketDetailViewModel(
 
     init {
         viewModelScope.launch {
-            initialEntry.value = orchestrator.getSocketById(socketId)
+            initialEntry.value = socketLogManager.getSocketById(socketId)
         }
     }
 

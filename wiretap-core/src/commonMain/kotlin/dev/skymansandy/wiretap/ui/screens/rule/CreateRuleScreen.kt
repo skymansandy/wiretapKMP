@@ -33,12 +33,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen
@@ -358,8 +358,8 @@ private fun Preview_ConflictDialogMultiple() {
 }
 
 private object NoOpRuleRepository : RuleRepository {
-    override fun getAll() = flowOf(emptyList<WiretapRule>())
-    override fun search(query: String) = flowOf(emptyList<WiretapRule>())
+    override fun flowAll() = flowOf(emptyList<WiretapRule>())
+    override fun flowForQuery(query: String) = flowOf(emptyList<WiretapRule>())
     override suspend fun getById(id: Long) = null
     override suspend fun getEnabledRules() = emptyList<WiretapRule>()
     override suspend fun addRule(rule: WiretapRule) {}

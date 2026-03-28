@@ -1,44 +1,44 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
-import dev.skymansandy.wiretap.helper.launcher.onNetworkEntryLogged
-import dev.skymansandy.wiretap.helper.launcher.onNetworkLogsCleared
+import dev.skymansandy.wiretap.helper.launcher.onClearHttpLogs
+import dev.skymansandy.wiretap.helper.launcher.onNewHttpLog
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
-internal class HttpOrchestratorImpl(
+internal class HttpLogManagerImpl(
     private val httpRepository: HttpRepository,
     private val wiretapLogger: WiretapLogger,
-) : HttpOrchestrator {
+) : HttpLogManager {
 
-    override suspend fun logHttp(entry: HttpLogEntry) {
+    override fun flowHttpLogs(): Flow<List<HttpLog>> = httpRepository.flowAll()
+
+    override fun flowPagedHttpLogsForSearchQuery(query: String): Flow<PagingData<HttpLog>> =
+        httpRepository.flowPagesLogs(query)
+
+    override suspend fun logHttp(entry: HttpLog) {
         httpRepository.save(entry)
         wiretapLogger.logHttp(entry)
-        onNetworkEntryLogged(entry)
+        onNewHttpLog(entry)
     }
 
-    override suspend fun logHttpAndGetId(entry: HttpLogEntry): Long {
+    override suspend fun logHttpAndGetId(entry: HttpLog): Long {
         val id = httpRepository.saveAndGetId(entry)
         val entryWithId = entry.copy(id = id)
         wiretapLogger.logHttp(entryWithId)
-        onNetworkEntryLogged(entryWithId)
+        onNewHttpLog(entryWithId)
         return id
     }
 
-    override suspend fun updateHttp(entry: HttpLogEntry) {
+    override suspend fun updateHttp(entry: HttpLog) {
         httpRepository.update(entry)
         wiretapLogger.logHttp(entry)
-        onNetworkEntryLogged(entry)
+        onNewHttpLog(entry)
     }
 
-    override fun getAllHttpLogs(): Flow<List<HttpLogEntry>> = httpRepository.getAll()
-
-    override fun getPagedHttpLogs(query: String): Flow<PagingData<HttpLogEntry>> =
-        httpRepository.getPagedLogs(query)
-
-    override suspend fun getHttpLogById(id: Long): HttpLogEntry? = httpRepository.getById(id)
+    override suspend fun getHttpLogById(id: Long): HttpLog? = httpRepository.getById(id)
 
     override suspend fun deleteHttpLog(id: Long) {
         httpRepository.deleteById(id)
@@ -46,7 +46,7 @@ internal class HttpOrchestratorImpl(
 
     override suspend fun clearHttpLogs() {
         httpRepository.clearAll()
-        onNetworkLogsCleared()
+        onClearHttpLogs()
     }
 
     override suspend fun purgeHttpLogsOlderThan(cutoffMs: Long) {

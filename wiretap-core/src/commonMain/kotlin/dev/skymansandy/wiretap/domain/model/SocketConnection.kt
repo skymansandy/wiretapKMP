@@ -1,8 +1,6 @@
-package dev.skymansandy.wiretap.data.db.entity
+package dev.skymansandy.wiretap.domain.model
 
-import dev.skymansandy.wiretap.domain.model.SocketStatus
-
-data class SocketEntry(
+data class SocketConnection(
     val id: Long = 0,
     val url: String,
     val requestHeaders: Map<String, String> = emptyMap(),

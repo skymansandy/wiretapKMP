@@ -8,7 +8,7 @@ enum class SocketStatus {
     Failed,
 }
 
-enum class SocketMessageDirection {
+enum class SocketMessageType {
     Sent,
     Received,
 }

@@ -38,14 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 
@@ -91,7 +91,7 @@ internal fun RuleDetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        navigator.navigateTo(
+                        navigator.push(
                             WiretapScreen.CreateRuleScreen(existingRuleId = currentRule.id),
                         )
                     }) {

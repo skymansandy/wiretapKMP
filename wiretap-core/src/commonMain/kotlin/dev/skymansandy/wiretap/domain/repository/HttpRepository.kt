@@ -1,22 +1,22 @@
 package dev.skymansandy.wiretap.domain.repository
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import kotlinx.coroutines.flow.Flow
 
 interface HttpRepository {
 
-    suspend fun save(entry: HttpLogEntry)
+    fun flowAll(): Flow<List<HttpLog>>
 
-    suspend fun saveAndGetId(entry: HttpLogEntry): Long
+    fun flowPagesLogs(query: String): Flow<PagingData<HttpLog>>
 
-    suspend fun update(entry: HttpLogEntry)
+    suspend fun save(log: HttpLog)
 
-    fun getAll(): Flow<List<HttpLogEntry>>
+    suspend fun saveAndGetId(log: HttpLog): Long
 
-    fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>>
+    suspend fun update(log: HttpLog)
 
-    suspend fun getById(id: Long): HttpLogEntry?
+    suspend fun getById(id: Long): HttpLog?
 
     suspend fun deleteById(id: Long)
 

@@ -3,12 +3,12 @@ package dev.skymansandy.wiretap.urlsession
 import dev.skymansandy.wiretap.config.LogRetention
 import dev.skymansandy.wiretap.config.WiretapConfig
 import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
 import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
@@ -66,7 +66,7 @@ class WiretapURLSessionInterceptor(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val orchestrator: WiretapOrchestrator by inject()
+    private val httpLogManager: HttpLogManager by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
     @Volatile
@@ -105,12 +105,12 @@ class WiretapURLSessionInterceptor(
         val retention = config.logRetention
         if (retention is LogRetention.Days) {
             val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            orchestrator.purgeHttpLogsOlderThan(cutoff)
+            httpLogManager.purgeHttpLogsOlderThan(cutoff)
         }
 
         val logEntryId = if (config.shouldLog(url, method)) {
-            orchestrator.logHttpAndGetId(
-                HttpLogEntry(
+            httpLogManager.logHttpAndGetId(
+                HttpLog(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
@@ -191,8 +191,8 @@ class WiretapURLSessionInterceptor(
         val requestBody = request.HTTPBody?.toKotlinString()
 
         val logEntryId = if (config.shouldLog(url, method)) {
-            orchestrator.logHttpAndGetId(
-                HttpLogEntry(
+            httpLogManager.logHttpAndGetId(
+                HttpLog(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
@@ -239,7 +239,7 @@ class WiretapURLSessionInterceptor(
         if (!sessionInitialized) {
             sessionInitialized = true
             if (config.logRetention == LogRetention.AppSession) {
-                orchestrator.clearHttpLogs()
+                httpLogManager.clearHttpLogs()
             }
         }
     }
@@ -264,8 +264,8 @@ class WiretapURLSessionInterceptor(
         val mockBody = mock.responseBody
 
         if (logEntryId >= 0) {
-            orchestrator.updateHttp(
-                HttpLogEntry(
+            httpLogManager.updateHttp(
+                HttpLog(
                     id = logEntryId,
                     url = url,
                     method = method,
@@ -311,7 +311,7 @@ class WiretapURLSessionInterceptor(
     ) {
 
         val responseCode = httpResponse?.statusCode?.toInt()
-            ?: if (error != null) 0 else HttpLogEntry.RESPONSE_CODE_IN_PROGRESS
+            ?: if (error != null) 0 else HttpLog.RESPONSE_CODE_IN_PROGRESS
 
         val responseHeaders = extractResponseHeaders(httpResponse)
         val responseBody = if (error != null) {
@@ -325,8 +325,8 @@ class WiretapURLSessionInterceptor(
             else -> ResponseSource.Network
         }
 
-        orchestrator.updateHttp(
-            HttpLogEntry(
+        httpLogManager.updateHttp(
+            HttpLog(
                 id = logEntryId,
                 url = url,
                 method = method,

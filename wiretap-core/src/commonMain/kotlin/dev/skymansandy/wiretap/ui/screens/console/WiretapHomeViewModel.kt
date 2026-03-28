@@ -3,10 +3,11 @@ package dev.skymansandy.wiretap.ui.screens.console
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.SocketConnection
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -21,7 +22,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 internal class WiretapHomeViewModel(
-    private val orchestrator: WiretapOrchestrator,
+    private val httpLogManager: HttpLogManager,
+    private val socketLogManager: SocketLogManager,
     private val ruleRepository: RuleRepository,
 ) : ViewModel() {
 
@@ -47,11 +49,11 @@ internal class WiretapHomeViewModel(
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val pagedLogs: Flow<PagingData<HttpLogEntry>> = debouncedQuery
-        .flatMapLatest { query -> orchestrator.getPagedHttpLogs(query) }
+    val pagedLogs: Flow<PagingData<HttpLog>> = debouncedQuery
+        .flatMapLatest { query -> httpLogManager.flowPagedHttpLogsForSearchQuery(query) }
 
-    val socketLogs: StateFlow<List<SocketEntry>> = combine(
-        orchestrator.getAllSockets(),
+    val socketLogs: StateFlow<List<SocketConnection>> = combine(
+        socketLogManager.flowAllSockets(),
         debouncedQuery,
     ) { logs, query ->
         when {
@@ -89,11 +91,11 @@ internal class WiretapHomeViewModel(
     }
 
     fun clearHttpLogs() {
-        viewModelScope.launch { orchestrator.clearHttpLogs() }
+        viewModelScope.launch { httpLogManager.clearHttpLogs() }
     }
 
     fun clearSocketLogs() {
-        viewModelScope.launch { orchestrator.clearLogs() }
+        viewModelScope.launch { socketLogManager.clearLogs() }
     }
 
     suspend fun getRuleById(id: Long): WiretapRule? {

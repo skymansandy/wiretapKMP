@@ -27,18 +27,18 @@ import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.itemKey
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun HttpLogList(
     modifier: Modifier = Modifier,
-    lazyItems: LazyPagingItems<HttpLogEntry>,
+    lazyItems: LazyPagingItems<HttpLog>,
     searchQuery: String,
     onDismissSearch: () -> Unit,
-    onHttpClick: (HttpLogEntry) -> Unit,
-    onCreateRule: (HttpLogEntry) -> Unit,
+    onHttpClick: (HttpLog) -> Unit,
+    onCreateRule: (HttpLog) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -124,13 +124,13 @@ private fun StatusText(text: String) {
 private fun HttpLogColumn(
     modifier: Modifier,
     listState: androidx.compose.foundation.lazy.LazyListState,
-    lazyItems: LazyPagingItems<HttpLogEntry>,
+    lazyItems: LazyPagingItems<HttpLog>,
     searchQuery: String,
     revealedItemId: String?,
     onRevealedItemIdChange: (String?) -> Unit,
     onDismissSearch: () -> Unit,
-    onHttpClick: (HttpLogEntry) -> Unit,
-    onCreateRule: (HttpLogEntry) -> Unit,
+    onHttpClick: (HttpLog) -> Unit,
+    onCreateRule: (HttpLog) -> Unit,
     onViewRule: (Long) -> Unit,
 ) {
 

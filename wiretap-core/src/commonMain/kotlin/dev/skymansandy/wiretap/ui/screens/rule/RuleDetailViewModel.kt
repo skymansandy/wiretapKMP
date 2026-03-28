@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.ui.screens.rule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

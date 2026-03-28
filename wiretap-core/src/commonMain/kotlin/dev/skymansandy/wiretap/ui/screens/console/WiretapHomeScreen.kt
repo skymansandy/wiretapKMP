@@ -52,9 +52,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.common.SearchField
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.HTTP_SUB_TAB_LOGS
@@ -174,7 +174,7 @@ internal fun WiretapHomeScreen(
                                 selected = httpSubTab == HTTP_SUB_TAB_RULES,
                                 onClick = {
                                     viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
-                                    navigator.clearDetailPanes()
+                                    navigator.clearDetailPane()
                                 },
                                 text = { Text("Rules") },
                             )
@@ -186,17 +186,17 @@ internal fun WiretapHomeScreen(
                             lazyItems = lazyItems,
                             searchQuery = searchQuery,
                             onDismissSearch = { viewModel.setSearchActive(false) },
-                            onHttpClick = { navigator.navigateToDetail(WiretapScreen.HttpDetailScreen(it.id)) },
-                            onCreateRule = { navigator.navigateToDetail(WiretapScreen.CreateRuleScreen(prefillFromLogId = it.id)) },
-                            onViewRule = { ruleId -> navigator.navigateToDetail(WiretapScreen.RuleDetailScreen(ruleId)) },
+                            onHttpClick = { navigator.pushDetailPane(WiretapScreen.HttpDetailScreen(it.id)) },
+                            onCreateRule = { navigator.pushDetailPane(WiretapScreen.CreateRuleScreen(prefillFromLogId = it.id)) },
+                            onViewRule = { ruleId -> navigator.pushDetailPane(WiretapScreen.RuleDetailScreen(ruleId)) },
                             modifier = Modifier.fillMaxSize(),
                         )
 
                         HTTP_SUB_TAB_RULES -> RulesListScreen(
                             ruleRepository = ruleRepository,
                             searchQuery = debouncedQuery,
-                            onRuleClick = { navigator.navigateToDetail(WiretapScreen.RuleDetailScreen(it.id)) },
-                            onCreateClick = { navigator.navigateToDetail(WiretapScreen.CreateRuleScreen()) },
+                            onRuleClick = { navigator.pushDetailPane(WiretapScreen.RuleDetailScreen(it.id)) },
+                            onCreateClick = { navigator.pushDetailPane(WiretapScreen.CreateRuleScreen()) },
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -206,7 +206,7 @@ internal fun WiretapHomeScreen(
                     socketLogs = socketLogs,
                     searchQuery = searchQuery,
                     onDismissSearch = { viewModel.setSearchActive(false) },
-                    onSocketClick = { navigator.navigateToDetail(WiretapScreen.SocketDetailScreen(it.id)) },
+                    onSocketClick = { navigator.pushDetailPane(WiretapScreen.SocketDetailScreen(it.id)) },
                     modifier = contentModifier,
                 )
             }

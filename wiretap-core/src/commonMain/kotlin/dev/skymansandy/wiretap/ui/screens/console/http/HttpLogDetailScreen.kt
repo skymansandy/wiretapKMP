@@ -42,14 +42,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
-import dev.skymansandy.wiretap.helper.util.shareNetworkLog
+import dev.skymansandy.wiretap.helper.util.shareHttpLogs
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.SearchField
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
-import dev.skymansandy.wiretap.ui.navigation.PreviewWithNavigator
+import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
@@ -60,7 +60,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HttpLogDetailScreen(
-    entry: HttpLogEntry,
+    entry: HttpLog,
     modifier: Modifier = Modifier,
 ) {
     val navigator = LocalWiretapNavigator.current
@@ -171,7 +171,7 @@ internal fun HttpLogDetailScreen(
                                 text = { Text("Share as text") },
                                 onClick = {
                                     showShareMenu = false
-                                    shareNetworkLog(
+                                    shareHttpLogs(
                                         subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
                                         text = buildShareText(entry),
                                     )
@@ -181,7 +181,7 @@ internal fun HttpLogDetailScreen(
                                 text = { Text("Share as cURL") },
                                 onClick = {
                                     showShareMenu = false
-                                    shareNetworkLog(
+                                    shareHttpLogs(
                                         subject = "cURL - ${entry.method} ${entry.url}",
                                         text = buildCurlCommand(entry),
                                     )
@@ -217,7 +217,7 @@ internal fun HttpLogDetailScreen(
                     source = entry.source,
                     matchedRuleId = entry.matchedRuleId,
                     onViewRule = { ruleId ->
-                        navigator.navigateTo(WiretapScreen.RuleDetailScreen(ruleId))
+                        navigator.push(WiretapScreen.RuleDetailScreen(ruleId))
                     },
                 )
             }
@@ -307,7 +307,7 @@ private fun RuleMatchBanner(
 private fun Preview_HttpLogDetailScreen() {
     PreviewWithNavigator {
         HttpLogDetailScreen(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 1,
                 url = "https://api.example.com/users/123",
                 method = "GET",
@@ -332,7 +332,7 @@ private fun Preview_HttpLogDetailScreen() {
 private fun Preview_HttpLogDetailScreenMocked() {
     PreviewWithNavigator {
         HttpLogDetailScreen(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 2,
                 url = "https://api.example.com/users",
                 method = "POST",

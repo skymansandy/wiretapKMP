@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.ui.common.highlightText
@@ -46,10 +46,10 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun SocketLogList(
     modifier: Modifier = Modifier,
-    socketLogs: List<SocketEntry>,
+    socketLogs: List<SocketConnection>,
     searchQuery: String,
     onDismissSearch: () -> Unit,
-    onSocketClick: (SocketEntry) -> Unit,
+    onSocketClick: (SocketConnection) -> Unit,
 ) {
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
@@ -92,7 +92,7 @@ internal fun SocketLogList(
 
 @Composable
 private fun SocketLogItemContent(
-    entry: SocketEntry,
+    entry: SocketConnection,
     searchQuery: String,
     onClick: () -> Unit,
 ) {
@@ -213,7 +213,7 @@ private fun SocketStatusChip(status: SocketStatus) {
 private fun Preview_SocketLogItemOpen() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
                 status = SocketStatus.Open,
@@ -231,7 +231,7 @@ private fun Preview_SocketLogItemOpen() {
 private fun Preview_SocketLogItemClosed() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 2,
                 url = "ws://localhost:8080/ws",
                 status = SocketStatus.Closed,
@@ -251,7 +251,7 @@ private fun Preview_SocketLogItemClosed() {
 private fun Preview_SocketLogItemFailed() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 3,
                 url = "wss://api.example.com/stream",
                 status = SocketStatus.Failed,
@@ -270,7 +270,7 @@ private fun Preview_SocketLogItemFailed() {
 private fun Preview_SocketLogItemConnecting() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 4,
                 url = "wss://api.example.com/realtime",
                 status = SocketStatus.Connecting,

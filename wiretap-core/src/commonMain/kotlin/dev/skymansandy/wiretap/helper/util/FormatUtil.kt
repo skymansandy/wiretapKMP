@@ -4,7 +4,7 @@ import kotlin.math.abs
 
 internal fun formatOneDecimal(value: Float): String {
     val intPart = value.toLong()
-    val decPart = ((value - intPart) * 10).toInt().let { abs(it) }
+    val decPart = abs(((value - intPart) * 10).toInt())
     return "$intPart.$decPart"
 }
 

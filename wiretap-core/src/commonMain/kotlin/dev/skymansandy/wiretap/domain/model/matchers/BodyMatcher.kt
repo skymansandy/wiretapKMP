@@ -1,9 +1,11 @@
-package dev.skymansandy.wiretap.domain.model
+package dev.skymansandy.wiretap.domain.model.matchers
+
+import dev.skymansandy.wiretap.domain.model.MatcherType
 
 /**
  * Defines how a rule matches the request body.
  *
- * @see dev.skymansandy.wiretap.data.db.entity.WiretapRule
+ * @see dev.skymansandy.wiretap.domain.model.WiretapRule
  */
 sealed interface BodyMatcher {
 

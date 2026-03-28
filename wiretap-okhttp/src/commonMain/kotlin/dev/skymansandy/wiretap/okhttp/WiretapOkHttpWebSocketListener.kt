@@ -1,12 +1,12 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
-import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.runBlocking
 import okhttp3.Response
@@ -32,7 +32,7 @@ class WiretapOkHttpWebSocketListener(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val orchestrator: WiretapOrchestrator by inject()
+    private val socketLogManager: SocketLogManager by inject()
 
     private var socketId: Long = -1
     private val isSocketActive
@@ -42,8 +42,8 @@ class WiretapOkHttpWebSocketListener(
         val url = webSocket.request().url.toString()
         val reqHeaders = webSocket.request().headers.toMap()
 
-        socketId = orchestrator.createSocket(
-            SocketEntry(
+        socketId = socketLogManager.createSocket(
+            SocketConnection(
                 url = url,
                 requestHeaders = reqHeaders,
                 status = SocketStatus.Open,
@@ -52,16 +52,16 @@ class WiretapOkHttpWebSocketListener(
             ),
         )
 
-        val wiretapSocket = WiretapWebSocket(webSocket, socketId, orchestrator)
+        val wiretapSocket = WiretapWebSocket(webSocket, socketId, socketLogManager)
         delegate.onOpen(wiretapSocket, response)
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) = runBlocking {
         if (isSocketActive) {
-            orchestrator.logSocketMsg(
+            socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.Received,
+                    direction = SocketMessageType.Received,
                     contentType = SocketContentType.Text,
                     content = text,
                     byteCount = text.encodeToByteArray().size.toLong(),
@@ -75,10 +75,10 @@ class WiretapOkHttpWebSocketListener(
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) = runBlocking {
         if (isSocketActive) {
-            orchestrator.logSocketMsg(
+            socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
-                    direction = SocketMessageDirection.Received,
+                    direction = SocketMessageType.Received,
                     contentType = SocketContentType.Binary,
                     content = "[Binary: ${bytes.size} bytes]",
                     byteCount = bytes.size.toLong(),
@@ -92,8 +92,8 @@ class WiretapOkHttpWebSocketListener(
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) = runBlocking {
         if (isSocketActive) {
-            orchestrator.updateSocket(
-                SocketEntry(
+            socketLogManager.updateSocket(
+                SocketConnection(
                     id = socketId,
                     url = webSocket.request().url.toString(),
                     status = SocketStatus.Closing,
@@ -109,8 +109,8 @@ class WiretapOkHttpWebSocketListener(
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) = runBlocking {
         if (isSocketActive) {
-            orchestrator.updateSocket(
-                SocketEntry(
+            socketLogManager.updateSocket(
+                SocketConnection(
                     id = socketId,
                     url = webSocket.request().url.toString(),
                     status = SocketStatus.Closed,
@@ -127,8 +127,8 @@ class WiretapOkHttpWebSocketListener(
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) = runBlocking {
         if (isSocketActive) {
-            orchestrator.updateSocket(
-                SocketEntry(
+            socketLogManager.updateSocket(
+                SocketConnection(
                     id = socketId,
                     url = webSocket.request().url.toString(),
                     status = SocketStatus.Failed,

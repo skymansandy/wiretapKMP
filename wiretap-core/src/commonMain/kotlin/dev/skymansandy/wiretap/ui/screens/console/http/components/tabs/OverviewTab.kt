@@ -8,14 +8,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.formatSize
 import dev.skymansandy.wiretap.ui.common.KeyValueTable
 
 @Composable
 internal fun OverviewTab(
     modifier: Modifier = Modifier,
-    entry: HttpLogEntry,
+    entry: HttpLog,
 ) {
     Column(
         modifier = modifier
@@ -48,7 +48,7 @@ internal fun OverviewTab(
 private fun Preview_OverviewTab() {
     MaterialTheme {
         OverviewTab(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 1,
                 url = "https://api.example.com/users/123",
                 method = "GET",

@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.CopyBodyButton
@@ -27,7 +27,7 @@ import dev.skymansandy.wiretap.ui.common.SectionTitle
 @Composable
 internal fun ResponseTab(
     modifier: Modifier = Modifier,
-    entry: HttpLogEntry,
+    entry: HttpLog,
     searchQuery: String = "",
 ) {
     val body = entry.responseBody
@@ -80,7 +80,7 @@ internal fun ResponseTab(
 private fun Preview_ResponseTab() {
     MaterialTheme {
         ResponseTab(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 1,
                 url = "https://api.example.com/users/123",
                 method = "GET",
@@ -102,7 +102,7 @@ private fun Preview_ResponseTab() {
 private fun Preview_ResponseTabEmpty() {
     MaterialTheme {
         ResponseTab(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 2,
                 url = "https://api.example.com/users/123",
                 method = "DELETE",

@@ -2,10 +2,10 @@ package dev.skymansandy.wiretap.data.repository
 
 import app.cash.paging.Pager
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
-import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.data.mappers.toDomain
+import dev.skymansandy.wiretap.data.mappers.toRoomEntity
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import kotlinx.coroutines.flow.Flow
@@ -18,41 +18,11 @@ internal class HttpRepositoryImpl(
 
     private val invalidationSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    override suspend fun save(entry: HttpLogEntry) {
-        httpLogsDao.insert(entry.toRoomEntity())
-        invalidationSignal.tryEmit(Unit)
+    override fun flowAll(): Flow<List<HttpLog>> = httpLogsDao.getAllNetworkLogs().map { rows ->
+        rows.map { it.toDomain() }
     }
 
-    override suspend fun saveAndGetId(entry: HttpLogEntry): Long {
-        val id = httpLogsDao.insert(entry.toRoomEntity())
-        invalidationSignal.tryEmit(Unit)
-        return id
-    }
-
-    override suspend fun update(entry: HttpLogEntry) {
-        httpLogsDao.update(
-            responseCode = entry.responseCode.toLong(),
-            responseHeaders = HeadersSerializerUtil.serialize(entry.responseHeaders),
-            responseBody = entry.responseBody,
-            durationMs = entry.durationMs,
-            source = entry.source.name,
-            matchedRuleId = entry.matchedRuleId,
-            protocol = entry.protocol,
-            remoteAddress = entry.remoteAddress,
-            tlsProtocol = entry.tlsProtocol,
-            cipherSuite = entry.cipherSuite,
-            certificateCn = entry.certificateCn,
-            issuerCn = entry.issuerCn,
-            certificateExpiry = entry.certificateExpiry,
-            id = entry.id,
-        )
-        invalidationSignal.tryEmit(Unit)
-    }
-
-    override fun getAll(): Flow<List<HttpLogEntry>> =
-        httpLogsDao.getAllNetworkLogs().map { rows -> rows.map { it.toDomain() } }
-
-    override fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>> =
+    override fun flowPagesLogs(query: String): Flow<PagingData<HttpLog>> =
         Pager(config = defaultPagingConfig) {
             HttpLogPagingSource(
                 roomDao = httpLogsDao,
@@ -61,7 +31,38 @@ internal class HttpRepositoryImpl(
             )
         }.flow
 
-    override suspend fun getById(id: Long): HttpLogEntry? =
+    override suspend fun save(log: HttpLog) {
+        httpLogsDao.insert(log.toRoomEntity())
+        invalidationSignal.tryEmit(Unit)
+    }
+
+    override suspend fun saveAndGetId(log: HttpLog): Long {
+        val id = httpLogsDao.insert(log.toRoomEntity())
+        invalidationSignal.tryEmit(Unit)
+        return id
+    }
+
+    override suspend fun update(log: HttpLog) {
+        httpLogsDao.update(
+            responseCode = log.responseCode.toLong(),
+            responseHeaders = HeadersSerializerUtil.serialize(log.responseHeaders),
+            responseBody = log.responseBody,
+            durationMs = log.durationMs,
+            source = log.source.name,
+            matchedRuleId = log.matchedRuleId,
+            protocol = log.protocol,
+            remoteAddress = log.remoteAddress,
+            tlsProtocol = log.tlsProtocol,
+            cipherSuite = log.cipherSuite,
+            certificateCn = log.certificateCn,
+            issuerCn = log.issuerCn,
+            certificateExpiry = log.certificateExpiry,
+            id = log.id,
+        )
+        invalidationSignal.tryEmit(Unit)
+    }
+
+    override suspend fun getById(id: Long): HttpLog? =
         httpLogsDao.getById(id)?.toDomain()
 
     override suspend fun deleteById(id: Long) {
@@ -83,28 +84,4 @@ internal class HttpRepositoryImpl(
         httpLogsDao.markCancelledIfInProgress(id)
         invalidationSignal.tryEmit(Unit)
     }
-}
-
-private fun HttpLogEntry.toRoomEntity(): HttpLogEntity {
-    return HttpLogEntity(
-        id = id,
-        url = url,
-        method = method,
-        requestHeaders = HeadersSerializerUtil.serialize(requestHeaders),
-        requestBody = requestBody,
-        responseCode = responseCode.toLong(),
-        responseHeaders = HeadersSerializerUtil.serialize(responseHeaders),
-        responseBody = responseBody,
-        durationMs = durationMs,
-        source = source.name,
-        timestamp = timestamp,
-        matchedRuleId = matchedRuleId,
-        protocol = protocol,
-        remoteAddress = remoteAddress,
-        tlsProtocol = tlsProtocol,
-        cipherSuite = cipherSuite,
-        certificateCn = certificateCn,
-        issuerCn = issuerCn,
-        certificateExpiry = certificateExpiry,
-    )
 }

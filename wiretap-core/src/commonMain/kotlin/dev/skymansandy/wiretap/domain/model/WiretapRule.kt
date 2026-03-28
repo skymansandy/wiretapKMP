@@ -1,9 +1,8 @@
-package dev.skymansandy.wiretap.data.db.entity
+package dev.skymansandy.wiretap.domain.model
 
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
-import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 
 /**
  * A rule that intercepts matching HTTP requests to apply a [RuleAction] (mock or throttle).

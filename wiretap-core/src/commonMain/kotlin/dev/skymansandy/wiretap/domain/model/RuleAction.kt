@@ -1,16 +1,16 @@
 package dev.skymansandy.wiretap.domain.model
 
 /**
- * Action to perform when a [WiretapRule][dev.skymansandy.wiretap.data.db.entity.WiretapRule] matches a request.
+ * Action to perform when a [WiretapRule][WiretapRule] matches a request.
  *
  * @see Mock
  * @see Throttle
  */
-sealed class RuleAction {
+sealed interface RuleAction {
 
     enum class Type { Mock, Throttle }
 
-    abstract val type: Type
+    val type: Type
 
     val name: String get() = type.name
 
@@ -29,7 +29,7 @@ sealed class RuleAction {
         val responseHeaders: Map<String, String>? = null,
         val throttleDelayMs: Long? = null,
         val throttleDelayMaxMs: Long? = null,
-    ) : RuleAction() {
+    ) : RuleAction {
         override val type: Type = Type.Mock
     }
 
@@ -42,7 +42,7 @@ sealed class RuleAction {
     data class Throttle(
         val delayMs: Long = 0,
         val delayMaxMs: Long? = null,
-    ) : RuleAction() {
+    ) : RuleAction {
         override val type: Type = Type.Throttle
     }
 }

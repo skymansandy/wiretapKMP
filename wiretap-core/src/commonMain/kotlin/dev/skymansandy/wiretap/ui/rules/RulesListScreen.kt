@@ -36,10 +36,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.ui.common.highlightText
 import kotlinx.coroutines.launch
@@ -54,7 +54,7 @@ internal fun RulesListScreen(
 ) {
     val scope = rememberCoroutineScope()
     val rulesFlow = remember(searchQuery) {
-        if (searchQuery.isBlank()) ruleRepository.getAll() else ruleRepository.search(searchQuery)
+        if (searchQuery.isBlank()) ruleRepository.flowAll() else ruleRepository.flowForQuery(searchQuery)
     }
     val rules by rulesFlow.collectAsStateWithLifecycle(initialValue = emptyList())
 

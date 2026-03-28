@@ -40,6 +40,7 @@ internal object WiretapIconFactory {
         return bitmap
     }
 
+    // FIXME: Fix compose resource access in kmp library
     private fun drawWiretapSymbol(canvas: Canvas, scale: Float) {
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = 0xFFFFFFFF.toInt()

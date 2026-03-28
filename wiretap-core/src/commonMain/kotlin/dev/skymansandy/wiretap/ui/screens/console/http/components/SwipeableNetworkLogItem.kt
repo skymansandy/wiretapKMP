@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import kotlinx.coroutines.launch
 
@@ -38,7 +38,7 @@ private val RevealWidth = 64.dp
 @Composable
 internal fun SwipeableHttpLogItem(
     modifier: Modifier = Modifier,
-    entry: HttpLogEntry,
+    entry: HttpLog,
     searchQuery: String,
     isRevealed: Boolean,
     onReveal: () -> Unit,

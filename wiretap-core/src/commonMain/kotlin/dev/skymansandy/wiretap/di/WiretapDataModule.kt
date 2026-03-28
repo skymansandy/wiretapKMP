@@ -15,7 +15,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 import org.koin.dsl.module
 
-val wiretapDataModule = module {
+internal val wiretapDataModule = module {
 
     single<WiretapRoomDatabase> {
         createWiretapDatabaseBuilder()
@@ -32,14 +32,23 @@ val wiretapDataModule = module {
     }
 
     single<HttpRepository> {
-        HttpRepositoryImpl(httpLogsDao = get<WiretapRoomDatabase>().httpRoomDao())
+        val db = get<WiretapRoomDatabase>()
+        HttpRepositoryImpl(
+            httpLogsDao = db.httpRoomDao(),
+        )
     }
 
     single<RuleRepository> {
-        RuleRepositoryImpl(rulesDao = get<WiretapRoomDatabase>().ruleRoomDao())
+        val db = get<WiretapRoomDatabase>()
+        RuleRepositoryImpl(
+            rulesDao = db.ruleRoomDao(),
+        )
     }
 
     single<SocketRepository> {
-        SocketRepositoryImpl(socketLogsDao = get<WiretapRoomDatabase>().socketRoomDao())
+        val db = get<WiretapRoomDatabase>()
+        SocketRepositoryImpl(
+            socketLogsDao = db.socketRoomDao(),
+        )
     }
 }

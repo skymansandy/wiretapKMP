@@ -1,5 +1,5 @@
 package dev.skymansandy.wiretap.helper.launcher
 
-expect fun startWiretap()
+expect fun launchWiretapConsole()
 
 expect fun enableWiretapLauncher()

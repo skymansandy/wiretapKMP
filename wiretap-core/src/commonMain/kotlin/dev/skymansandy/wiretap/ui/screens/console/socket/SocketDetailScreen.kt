@@ -40,14 +40,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
-import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,7 +140,7 @@ internal fun SocketDetailScreen(
 }
 
 @Composable
-private fun ConnectionInfoHeader(entry: SocketEntry) {
+private fun ConnectionInfoHeader(entry: SocketConnection) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -221,7 +221,7 @@ private fun InfoLabel(
 private fun MessageBubble(
     message: SocketMessage,
 ) {
-    val isSent = message.direction == SocketMessageDirection.Sent
+    val isSent = message.direction == SocketMessageType.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
 
     val bgColor = when {
@@ -331,7 +331,7 @@ private fun StatusChip(status: SocketStatus) {
 private fun Preview_ConnectionInfoHeader() {
     MaterialTheme {
         ConnectionInfoHeader(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
                 status = SocketStatus.Open,
@@ -351,7 +351,7 @@ private fun Preview_ConnectionInfoHeader() {
 private fun Preview_ConnectionInfoHeaderClosed() {
     MaterialTheme {
         ConnectionInfoHeader(
-            entry = SocketEntry(
+            entry = SocketConnection(
                 id = 2,
                 url = "wss://api.example.com/stream",
                 status = SocketStatus.Closed,
@@ -372,7 +372,7 @@ private fun Preview_MessageBubbleSent() {
             message = SocketMessage(
                 id = 1,
                 socketId = 1,
-                direction = SocketMessageDirection.Sent,
+                direction = SocketMessageType.Sent,
                 contentType = SocketContentType.Text,
                 content = """{"type":"ping","id":42}""",
                 byteCount = 23,
@@ -390,7 +390,7 @@ private fun Preview_MessageBubbleReceived() {
             message = SocketMessage(
                 id = 2,
                 socketId = 1,
-                direction = SocketMessageDirection.Received,
+                direction = SocketMessageType.Received,
                 contentType = SocketContentType.Text,
                 content = """{"type":"pong","id":42,"data":{"status":"ok"}}""",
                 byteCount = 46,
@@ -408,7 +408,7 @@ private fun Preview_MessageBubbleBinary() {
             message = SocketMessage(
                 id = 3,
                 socketId = 1,
-                direction = SocketMessageDirection.Received,
+                direction = SocketMessageType.Received,
                 contentType = SocketContentType.Binary,
                 content = "",
                 byteCount = 1024,

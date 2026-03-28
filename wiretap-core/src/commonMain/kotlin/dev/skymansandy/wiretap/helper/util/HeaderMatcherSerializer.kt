@@ -1,6 +1,6 @@
 package dev.skymansandy.wiretap.helper.util
 
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
 
 /**
  * Serializes/deserializes a list of HeaderMatcher to/from a single string for DB storage.

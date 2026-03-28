@@ -1,10 +1,10 @@
 package dev.skymansandy.wiretap.ui.model
 
 import androidx.compose.runtime.Composable
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 
 @Composable
 internal fun UrlMatchMode.label() = when (this) {

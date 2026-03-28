@@ -9,7 +9,7 @@ import java.awt.event.KeyEvent
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     SwingUtilities.invokeLater {
         JFrame("Wiretap").apply {
             defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
@@ -38,7 +38,7 @@ actual fun enableWiretapLauncher() {
             event.modifiersEx == (KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK) &&
             event.keyCode == KeyEvent.VK_D
         ) {
-            startWiretap()
+            launchWiretapConsole()
             true
         } else {
             false

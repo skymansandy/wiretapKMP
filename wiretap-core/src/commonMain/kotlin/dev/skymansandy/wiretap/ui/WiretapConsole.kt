@@ -24,13 +24,14 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import dev.skymansandy.wiretap.di.WiretapDi
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.navigation.BackStackNavigatorImpl
+import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.navigation.screenSerializersModule
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
-import dev.skymansandy.wiretap.ui.navigation.BackStackNavigator
-import dev.skymansandy.wiretap.ui.navigation.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen.CreateRuleScreen
 import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HomeScreen
@@ -65,7 +66,8 @@ private fun buildSyntheticBackStack(
 @Composable
 internal fun WiretapConsole(
     onBack: () -> Unit,
-    orchestrator: WiretapOrchestrator = WiretapDi.orchestrator,
+    httpLogManager: HttpLogManager = WiretapDi.httpLogManager,
+    socketLogManager: SocketLogManager = WiretapDi.socketLogManager,
     ruleRepository: RuleRepository = WiretapDi.ruleRepository,
     findConflictingRules: FindConflictingRulesUseCase = WiretapDi.findConflictingRules,
     deepLinkScreen: WiretapScreen? = null,
@@ -75,11 +77,17 @@ internal fun WiretapConsole(
     // that includes the deep-link destination, so Back navigates naturally.
     val initialKeys = remember { buildSyntheticBackStack(deepLinkScreen) }
     val backStack = rememberNavBackStack(screenSerializersModule, *initialKeys)
-    val navigator = remember(backStack) { BackStackNavigator(backStack) }
+    val navigator = remember(backStack) { BackStackNavigatorImpl(backStack) }
     val density = LocalDensity.current
     var isWideScreen by rememberSaveable { mutableStateOf(false) }
 
-    val homeVm = viewModel { WiretapHomeViewModel(orchestrator, ruleRepository) }
+    val homeVm = viewModel {
+        WiretapHomeViewModel(
+            httpLogManager = httpLogManager,
+            socketLogManager = socketLogManager,
+            ruleRepository = ruleRepository,
+        )
+    }
 
     val sceneStrategy = remember(isWideScreen) {
         WiretapListDetailSceneStrategy(isWideScreen).then(SinglePaneSceneStrategy())
@@ -98,7 +106,7 @@ internal fun WiretapConsole(
     // Handle subsequent deep-links (e.g. onNewIntent) after the initial composition
     LaunchedEffect(deepLinkScreen) {
         if (deepLinkScreen != null && backStack.lastOrNull() != deepLinkScreen) {
-            navigator.navigateToDetail(deepLinkScreen)
+            navigator.pushDetailPane(deepLinkScreen)
             onDeepLinkConsumed()
         }
     }
@@ -137,7 +145,7 @@ internal fun WiretapConsole(
                         metadata = detailPane(),
                     ) { key ->
                         val vm = viewModel {
-                            HttpLogDetailViewModel(key.entryId, orchestrator)
+                            HttpLogDetailViewModel(key.entryId, httpLogManager)
                         }
                         val entry by vm.entry.collectAsStateWithLifecycle()
                         entry?.let {
@@ -149,7 +157,7 @@ internal fun WiretapConsole(
                         metadata = detailPane(),
                     ) { key ->
                         val vm = viewModel {
-                            SocketDetailViewModel(key.socketId, orchestrator)
+                            SocketDetailViewModel(key.socketId, socketLogManager)
                         }
                         SocketDetailScreen(viewModel = vm)
                     }
@@ -171,7 +179,7 @@ internal fun WiretapConsole(
                                 existingRuleId = key.existingRuleId,
                                 prefillFromLogId = key.prefillFromLogId,
                                 ruleRepository = ruleRepository,
-                                orchestrator = orchestrator,
+                                httpLogManager = httpLogManager,
                                 findConflictingRules = findConflictingRules,
                             )
                         }

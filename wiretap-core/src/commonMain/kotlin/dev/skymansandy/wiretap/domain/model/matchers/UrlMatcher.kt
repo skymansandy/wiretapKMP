@@ -1,11 +1,13 @@
-package dev.skymansandy.wiretap.domain.model
+package dev.skymansandy.wiretap.domain.model.matchers
+
+import dev.skymansandy.wiretap.domain.model.MatcherType
 
 /**
  * Defines how a rule's URL pattern is matched against request URLs.
  *
  * All matching is case-insensitive.
  *
- * @see dev.skymansandy.wiretap.data.db.entity.WiretapRule
+ * @see dev.skymansandy.wiretap.domain.model.WiretapRule
  */
 sealed interface UrlMatcher {
 

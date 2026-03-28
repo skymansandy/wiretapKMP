@@ -2,11 +2,11 @@ package dev.skymansandy.wiretap.ui.screens.rule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
@@ -36,7 +36,7 @@ internal class CreateRuleViewModel(
     private val existingRuleId: Long,
     private val prefillFromLogId: Long,
     private val ruleRepository: RuleRepository,
-    private val orchestrator: WiretapOrchestrator,
+    private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
 ) : ViewModel() {
 
@@ -140,7 +140,7 @@ internal class CreateRuleViewModel(
     init {
         viewModelScope.launch {
             val existingRule = if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
-            val prefillFromLog = if (prefillFromLogId > 0) orchestrator.getHttpLogById(prefillFromLogId) else null
+            val prefillFromLog = if (prefillFromLogId > 0) httpLogManager.getHttpLogById(prefillFromLogId) else null
 
             if (existingRule != null) {
                 loadedRuleId = existingRule.id

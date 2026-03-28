@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.formatOneDecimal
 import dev.skymansandy.wiretap.helper.util.formatTime
@@ -34,7 +34,7 @@ import dev.skymansandy.wiretap.ui.theme.WiretapColors
 @Composable
 internal fun HttpLogItemContent(
     modifier: Modifier = Modifier,
-    entry: HttpLogEntry,
+    entry: HttpLog,
     searchQuery: String,
     onClick: () -> Unit,
 ) {
@@ -167,7 +167,7 @@ internal fun HttpLogItemContent(
 private fun Preview_HttpLogItemSuccess() {
     MaterialTheme {
         HttpLogItemContent(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 1,
                 url = "https://api.example.com/users/123?include=profile",
                 method = "GET",
@@ -187,7 +187,7 @@ private fun Preview_HttpLogItemSuccess() {
 private fun Preview_HttpLogItemError() {
     MaterialTheme {
         HttpLogItemContent(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 2,
                 url = "https://api.example.com/auth/login",
                 method = "POST",
@@ -206,11 +206,11 @@ private fun Preview_HttpLogItemError() {
 private fun Preview_HttpLogItemInProgress() {
     MaterialTheme {
         HttpLogItemContent(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 3,
                 url = "https://api.example.com/data/sync",
                 method = "POST",
-                responseCode = HttpLogEntry.RESPONSE_CODE_IN_PROGRESS,
+                responseCode = HttpLog.RESPONSE_CODE_IN_PROGRESS,
                 timestamp = 1710850000000,
             ),
             searchQuery = "",
@@ -224,7 +224,7 @@ private fun Preview_HttpLogItemInProgress() {
 private fun Preview_HttpLogItemMocked() {
     MaterialTheme {
         HttpLogItemContent(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 4,
                 url = "https://api.example.com/users",
                 method = "GET",
@@ -245,7 +245,7 @@ private fun Preview_HttpLogItemMocked() {
 private fun Preview_HttpLogItemServerError() {
     MaterialTheme {
         HttpLogItemContent(
-            entry = HttpLogEntry(
+            entry = HttpLog(
                 id = 5,
                 url = "http://api.example.com/internal/health",
                 method = "GET",

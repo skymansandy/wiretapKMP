@@ -1,12 +1,12 @@
 package dev.skymansandy.wiretap.plugin
 
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
 import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
-import dev.skymansandy.wiretap.domain.model.SocketMessageDirection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
@@ -55,8 +55,8 @@ val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
         val requestHeaders = response.call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
 
-        val socketId = deps.orchestrator.createSocket(
-            SocketEntry(
+        val socketId = deps.socketLogManager.createSocket(
+            SocketConnection(
                 url = url,
                 requestHeaders = requestHeaders,
                 status = SocketStatus.Open,
@@ -91,8 +91,8 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
         val url = call.request.url.toString().toWebSocketUrl()
         val requestHeaders = call.request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
-        deps.orchestrator.createSocket(
-            SocketEntry(
+        deps.socketLogManager.createSocket(
+            SocketConnection(
                 url = url,
                 requestHeaders = requestHeaders,
                 status = SocketStatus.Open,
@@ -101,7 +101,7 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
         )
     }
 
-    return WiretapWebSocketSession(this, actualSocketId, deps.orchestrator)
+    return WiretapWebSocketSession(this, actualSocketId, deps.socketLogManager)
 }
 
 /**
@@ -113,7 +113,7 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
 class WiretapWebSocketSession internal constructor(
     val delegate: DefaultClientWebSocketSession,
     private val socketId: Long,
-    private val orchestrator: WiretapOrchestrator,
+    private val socketLogManager: SocketLogManager,
 ) {
     val incoming get() = delegate.incoming
 
@@ -133,8 +133,8 @@ class WiretapWebSocketSession internal constructor(
             val url = delegate.call.request.url.toString().toWebSocketUrl()
             runBlocking {
                 if (cause != null && cause !is CancellationException) {
-                    orchestrator.updateSocket(
-                        SocketEntry(
+                    socketLogManager.updateSocket(
+                        SocketConnection(
                             id = socketId,
                             url = url,
                             status = SocketStatus.Failed,
@@ -145,8 +145,8 @@ class WiretapWebSocketSession internal constructor(
                     )
                 } else {
                     val closeReason = runCatching { delegate.closeReason.getCompleted() }.getOrNull()
-                    orchestrator.updateSocket(
-                        SocketEntry(
+                    socketLogManager.updateSocket(
+                        SocketConnection(
                             id = socketId,
                             url = url,
                             status = SocketStatus.Closed,
@@ -165,10 +165,10 @@ class WiretapWebSocketSession internal constructor(
         when (frame) {
             is Frame.Text -> {
                 val text = frame.readText()
-                orchestrator.logSocketMsg(
+                socketLogManager.logSocketMsg(
                     SocketMessage(
                         socketId = socketId,
-                        direction = SocketMessageDirection.Sent,
+                        direction = SocketMessageType.Sent,
                         contentType = SocketContentType.Text,
                         content = text,
                         byteCount = text.encodeToByteArray().size.toLong(),
@@ -179,10 +179,10 @@ class WiretapWebSocketSession internal constructor(
 
             is Frame.Binary -> {
                 val bytes = frame.readBytes()
-                orchestrator.logSocketMsg(
+                socketLogManager.logSocketMsg(
                     SocketMessage(
                         socketId = socketId,
-                        direction = SocketMessageDirection.Sent,
+                        direction = SocketMessageType.Sent,
                         contentType = SocketContentType.Binary,
                         content = "[Binary: ${bytes.size} bytes]",
                         byteCount = bytes.size.toLong(),
@@ -202,10 +202,10 @@ class WiretapWebSocketSession internal constructor(
         when (frame) {
             is Frame.Text -> {
                 val text = frame.readText()
-                orchestrator.logSocketMsg(
+                socketLogManager.logSocketMsg(
                     SocketMessage(
                         socketId = socketId,
-                        direction = SocketMessageDirection.Received,
+                        direction = SocketMessageType.Received,
                         contentType = SocketContentType.Text,
                         content = text,
                         byteCount = text.encodeToByteArray().size.toLong(),
@@ -216,10 +216,10 @@ class WiretapWebSocketSession internal constructor(
 
             is Frame.Binary -> {
                 val bytes = frame.readBytes()
-                orchestrator.logSocketMsg(
+                socketLogManager.logSocketMsg(
                     SocketMessage(
                         socketId = socketId,
-                        direction = SocketMessageDirection.Received,
+                        direction = SocketMessageType.Received,
                         contentType = SocketContentType.Binary,
                         content = "[Binary: ${bytes.size} bytes]",
                         byteCount = bytes.size.toLong(),
@@ -239,8 +239,8 @@ class WiretapWebSocketSession internal constructor(
         val url = delegate.call.request.url.toString().toWebSocketUrl()
         val closeReason = try { delegate.closeReason.await() } catch (_: Exception) { null }
 
-        orchestrator.updateSocket(
-            SocketEntry(
+        socketLogManager.updateSocket(
+            SocketConnection(
                 id = socketId,
                 url = url,
                 status = SocketStatus.Closed,
@@ -259,8 +259,8 @@ class WiretapWebSocketSession internal constructor(
 
         val url = delegate.call.request.url.toString().toWebSocketUrl()
 
-        orchestrator.updateSocket(
-            SocketEntry(
+        socketLogManager.updateSocket(
+            SocketConnection(
                 id = socketId,
                 url = url,
                 status = SocketStatus.Failed,
@@ -276,8 +276,8 @@ class WiretapWebSocketSession internal constructor(
 
         val url = delegate.call.request.url.toString().toWebSocketUrl()
 
-        orchestrator.updateSocket(
-            SocketEntry(
+        socketLogManager.updateSocket(
+            SocketConnection(
                 id = socketId,
                 url = url,
                 status = SocketStatus.Closed,
@@ -298,5 +298,5 @@ private class WsPluginDeps : KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    val orchestrator: WiretapOrchestrator by inject()
+    val socketLogManager: SocketLogManager by inject()
 }
