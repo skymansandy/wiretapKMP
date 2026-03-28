@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens.socket.list
+package dev.skymansandy.wiretap.ui.screens.home.tabs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,16 +16,17 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.ClearLogsConfirmationDialog
 import dev.skymansandy.wiretap.ui.common.WiretapTopBar
+import dev.skymansandy.wiretap.ui.screens.socket.list.SocketLogList
+import dev.skymansandy.wiretap.ui.screens.socket.list.SocketLogListViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 internal fun SocketTabScreen(
-    onBack: () -> Unit,
-    navigationRail: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: SocketLogListViewModel = koinViewModel(),
+    navigationRail: (@Composable () -> Unit)? = null,
+    onBack: () -> Unit,
 ) {
-
     val navigator = LocalWiretapNavigator.current
     val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
 

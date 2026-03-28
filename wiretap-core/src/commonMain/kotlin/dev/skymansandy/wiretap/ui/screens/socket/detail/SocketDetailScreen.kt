@@ -104,7 +104,7 @@ internal fun SocketDetailScreenView(
                 navigationIcon = {
                     IconButton(onClick = { navigator.pop() }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                         )
                     }

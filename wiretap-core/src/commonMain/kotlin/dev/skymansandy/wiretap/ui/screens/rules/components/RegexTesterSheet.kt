@@ -47,13 +47,17 @@ internal fun RegexTesterSheet(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Regex Tester",
+                text = "Regex Tester",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
             )
+
             IconButton(onClick = onDismiss) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                )
             }
         }
 
@@ -78,15 +82,21 @@ internal fun RegexTesterSheet(
             singleLine = true,
         )
 
+        val result = remember(pattern, testInput) {
+            testRegex(pattern, testInput)
+        }
+
         if (testInput.isNotBlank()) {
-            val result = testRegex(pattern, testInput)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Icon(
                     imageVector = if (result.matches) Icons.Default.Check else Icons.Default.Close,
                     contentDescription = null,
                     tint = if (result.matches) WiretapColors.StatusGreen else MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(end = 8.dp),
                 )
+
                 Column {
                     Text(
                         text = if (result.matches) "Match found" else "No match",
@@ -94,6 +104,7 @@ internal fun RegexTesterSheet(
                         fontWeight = FontWeight.Bold,
                         color = if (result.matches) WiretapColors.StatusGreen else MaterialTheme.colorScheme.error,
                     )
+
                     if (result.error != null) {
                         Text(
                             text = "Invalid regex: ${result.error}",

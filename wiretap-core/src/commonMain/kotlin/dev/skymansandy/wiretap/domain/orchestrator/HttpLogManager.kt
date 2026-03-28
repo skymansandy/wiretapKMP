@@ -10,6 +10,8 @@ interface HttpLogManager {
 
     fun flowPagedHttpLogsForSearchQuery(query: String): Flow<PagingData<HttpLog>>
 
+    fun flowHttpLogById(id: Long): Flow<HttpLog?>
+
     suspend fun logHttp(entry: HttpLog)
 
     suspend fun logHttpAndGetId(entry: HttpLog): Long

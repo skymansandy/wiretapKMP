@@ -49,11 +49,11 @@ internal val wiretapViewModelModule = module {
 
     viewModel<CreateRuleViewModel> { (existingRuleId: Long, prefillFromLogId: Long) ->
         CreateRuleViewModel(
-            ruleRepository = get(),
             httpLogManager = get(),
             findConflictingRules = get(),
             existingRuleId = existingRuleId,
             prefillFromLogId = prefillFromLogId,
+            ruleRepository = get(),
         )
     }
 

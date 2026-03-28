@@ -1,11 +1,7 @@
 package dev.skymansandy.wiretap.ui.screens.http.detail
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,14 +31,11 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
@@ -53,6 +46,7 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
+import dev.skymansandy.wiretap.ui.screens.http.detail.component.RuleMatchBanner
 import dev.skymansandy.wiretap.ui.screens.http.detail.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.http.detail.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.http.detail.tabs.ResponseTab
@@ -67,33 +61,36 @@ internal fun HttpLogDetailScreen(
     entryId: Long,
     modifier: Modifier = Modifier,
 ) {
-
     val vm = koinViewModel<HttpLogDetailViewModel> { parametersOf(entryId) }
     val entry by vm.entry.collectAsStateWithLifecycle()
     val currentEntry = entry ?: return
 
     HttpLogDetailScreenContent(
-        entry = currentEntry,
         modifier = modifier,
+        entry = currentEntry,
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HttpLogDetailScreenContent(
-    entry: HttpLog,
     modifier: Modifier = Modifier,
+    entry: HttpLog,
 ) {
     val navigator = LocalWiretapNavigator.current
+
     val coroutineScope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-    val tabs = listOf(
-        "Overview",
-        "Request",
-        "Response",
-    )
+    val tabs = remember {
+        listOf(
+            "Overview",
+            "Request",
+            "Response",
+        )
+    }
+
     val pagerState = rememberPagerState(
         pageCount = { tabs.size },
     )
@@ -106,7 +103,9 @@ private fun HttpLogDetailScreenContent(
     }
 
     LaunchedEffect(isSearchActive) {
-        if (isSearchActive) searchFocusRequester.requestFocus()
+        if (isSearchActive) {
+            searchFocusRequester.requestFocus()
+        }
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
@@ -134,16 +133,12 @@ private fun HttpLogDetailScreenContent(
                     } else {
                         Column {
                             Text(
-                                text = entry.method + " " + when {
-                                    entry.isInProgress -> "..."
-                                    entry.responseCode > 0 -> entry.responseCode.toString()
-                                    entry.responseCode == -1 -> "!!!"
-                                    else -> "ERR"
-                                },
+                                text = entry.method + " " + entry.statusText,
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+
                             Text(
                                 text = entry.url,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -154,36 +149,57 @@ private fun HttpLogDetailScreenContent(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (isSearchActive) {
-                            isSearchActive = false
-                            searchQuery = ""
-                        } else {
-                            navigator.pop()
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    IconButton(
+                        onClick = {
+                            if (isSearchActive) {
+                                isSearchActive = false
+                                searchQuery = ""
+                            } else {
+                                navigator.pop()
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
                     }
                 },
                 actions = {
                     if (supportsSearch) {
                         if (isSearchActive) {
-                            IconButton(onClick = {
-                                isSearchActive = false
-                                searchQuery = ""
-                            }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close search")
+                            IconButton(
+                                onClick = {
+                                    isSearchActive = false
+                                    searchQuery = ""
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close search",
+                                )
                             }
                         } else {
                             IconButton(onClick = { isSearchActive = true }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                )
                             }
                         }
                     }
                     Box {
-                        IconButton(onClick = { showShareMenu = true }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        IconButton(
+                            onClick = {
+                                showShareMenu = true
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share",
+                            )
                         }
+
                         DropdownMenu(
                             expanded = showShareMenu,
                             onDismissRequest = { showShareMenu = false },
@@ -198,6 +214,7 @@ private fun HttpLogDetailScreenContent(
                                     )
                                 },
                             )
+
                             DropdownMenuItem(
                                 text = { Text("Share as cURL") },
                                 onClick = {
@@ -214,6 +231,7 @@ private fun HttpLogDetailScreenContent(
             )
         },
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -235,6 +253,7 @@ private fun HttpLogDetailScreenContent(
 
             if (entry.source != ResponseSource.Network) {
                 RuleMatchBanner(
+                    modifier = Modifier.fillMaxWidth(),
                     source = entry.source,
                     matchedRuleId = entry.matchedRuleId,
                     onViewRule = { ruleId ->
@@ -267,58 +286,6 @@ private fun HttpLogDetailScreenContent(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun RuleMatchBanner(
-    source: ResponseSource,
-    matchedRuleId: Long?,
-    onViewRule: ((ruleId: Long) -> Unit)?,
-) {
-    val bgColor: Color
-    val contentColor: Color
-    val label: String
-    when (source) {
-        ResponseSource.Mock -> {
-            bgColor = MaterialTheme.colorScheme.secondaryContainer
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            label = "Mocked by rule"
-        }
-
-        ResponseSource.Throttle -> {
-            bgColor = MaterialTheme.colorScheme.tertiaryContainer
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-            label = "Throttled by rule"
-        }
-
-        ResponseSource.Network -> return
-    }
-    val clickable = matchedRuleId != null && onViewRule != null
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(bgColor)
-            .then(
-                if (clickable) Modifier.clickable { onViewRule?.invoke(matchedRuleId!!) }
-                else Modifier,
-            )
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor,
-        )
-        if (clickable) {
-            Text(
-                text = "View Rule \u2192",
-                style = MaterialTheme.typography.labelMedium,
-                color = contentColor,
-            )
         }
     }
 }
@@ -364,30 +331,6 @@ private fun Preview_HttpLogDetailScreenMocked() {
                 matchedRuleId = 1,
                 responseBody = """{"id":456,"name":"Mock User"}""",
             ),
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_RuleMatchBannerMock() {
-    MaterialTheme {
-        RuleMatchBanner(
-            source = ResponseSource.Mock,
-            matchedRuleId = 1,
-            onViewRule = {},
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun Preview_RuleMatchBannerThrottle() {
-    MaterialTheme {
-        RuleMatchBanner(
-            source = ResponseSource.Throttle,
-            matchedRuleId = 2,
-            onViewRule = {},
         )
     }
 }

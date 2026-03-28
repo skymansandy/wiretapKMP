@@ -26,8 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.model.HomeTab
-import dev.skymansandy.wiretap.ui.screens.http.list.HttpTabScreen
-import dev.skymansandy.wiretap.ui.screens.socket.list.SocketTabScreen
+import dev.skymansandy.wiretap.ui.screens.home.tabs.HttpTabScreen
+import dev.skymansandy.wiretap.ui.screens.home.tabs.SocketTabScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

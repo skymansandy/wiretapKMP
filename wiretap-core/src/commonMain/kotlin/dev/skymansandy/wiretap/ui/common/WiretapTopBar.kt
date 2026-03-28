@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.focusRequester
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun WiretapTopBar(
+    modifier: Modifier = Modifier,
     title: String,
     isSearchActive: Boolean,
     searchQuery: String,
@@ -28,8 +29,8 @@ internal fun WiretapTopBar(
     onBack: () -> Unit,
     onClear: () -> Unit,
 ) {
-
     TopAppBar(
+        modifier = modifier,
         title = {
             if (isSearchActive) {
                 SearchField(
@@ -49,22 +50,34 @@ internal fun WiretapTopBar(
                     onBack()
                 }
             }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
             }
         },
         actions = {
             if (isSearchActive) {
                 IconButton(onClick = { onSearchActiveChange(false) }) {
-                    Icon(Icons.Default.Close, contentDescription = "Close search")
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close search",
+                    )
                 }
             } else {
                 IconButton(onClick = { onSearchActiveChange(true) }) {
-                    Icon(Icons.Default.Search, contentDescription = "Search")
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                    )
                 }
             }
             if (showClearAction) {
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Default.DeleteSweep, contentDescription = "Clear logs")
+                    Icon(
+                        imageVector = Icons.Default.DeleteSweep,
+                        contentDescription = "Clear logs",
+                    )
                 }
             }
         },

@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.jsoncmp.JsonCMP
 import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
+import dev.skymansandy.jsoncmp.helper.annotation.ExperimentalJsonCmpApi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.ui.common.CodeBlock
@@ -25,6 +26,7 @@ import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.common.SectionTitle
 
+@OptIn(ExperimentalJsonCmpApi::class)
 @Composable
 internal fun RequestTab(
     modifier: Modifier = Modifier,
@@ -32,7 +34,9 @@ internal fun RequestTab(
     searchQuery: String = "",
 ) {
     val body = entry.requestBody
-    val isJson = body != null && looksLikeJson(body)
+    val isJson = remember(body) {
+        body != null && looksLikeJson(body)
+    }
 
     var headersExpanded by remember { mutableStateOf(true) }
 

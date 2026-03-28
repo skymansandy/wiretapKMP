@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.ui.screens.http.list
+package dev.skymansandy.wiretap.ui.screens.home.tabs
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -25,11 +25,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.navigation.api.WiretapScreen
-import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.ClearLogsConfirmationDialog
 import dev.skymansandy.wiretap.ui.common.WiretapTopBar
 import dev.skymansandy.wiretap.ui.model.HttpSubTab
+import dev.skymansandy.wiretap.ui.screens.http.list.HttpLogList
+import dev.skymansandy.wiretap.ui.screens.http.list.HttpLogListViewModel
 import dev.skymansandy.wiretap.ui.screens.rules.list.RulesListScreen
 import dev.skymansandy.wiretap.ui.screens.rules.list.RulesListViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -37,14 +37,13 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HttpTabScreen(
-    onBack: () -> Unit,
-    navigationRail: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
-    httpLogListViewModel: HttpLogListViewModel = koinViewModel(),
+    httpListViewModel: HttpLogListViewModel = koinViewModel(),
     rulesListViewModel: RulesListViewModel = koinViewModel(),
+    navigationRail: (@Composable () -> Unit)? = null,
+    onBack: () -> Unit,
 ) {
-    val navigator = LocalWiretapNavigator.current
-    val hasHttpLogs by httpLogListViewModel.hasLogs.collectAsStateWithLifecycle()
+    val hasHttpLogs by httpListViewModel.hasLogs.collectAsStateWithLifecycle()
 
     var httpSubTab by remember { mutableStateOf(HttpSubTab.Logs) }
     var isSearchActive by remember { mutableStateOf(false) }
@@ -80,7 +79,7 @@ internal fun HttpTabScreen(
     // Sync search query to the active sub-ViewModel
     LaunchedEffect(searchQuery, httpSubTab) {
         when (httpSubTab) {
-            HttpSubTab.Logs -> httpLogListViewModel.updateSearchQuery(searchQuery)
+            HttpSubTab.Logs -> httpListViewModel.updateSearchQuery(searchQuery)
             HttpSubTab.Rules -> rulesListViewModel.updateSearchQuery(searchQuery)
         }
     }
@@ -137,39 +136,18 @@ internal fun HttpTabScreen(
 
                 when (httpSubTab) {
                     HttpSubTab.Logs -> HttpLogList(
-                        viewModel = httpLogListViewModel,
+                        modifier = Modifier.fillMaxSize(),
+                        viewModel = httpListViewModel,
                         searchQuery = searchQuery,
                         onDismissSearch = {
                             isSearchActive = false
                             searchQuery = ""
                         },
-                        onHttpClick = {
-                            navigator.pushDetailPane(
-                                WiretapScreen.HttpDetailScreen(it.id),
-                            )
-                        },
-                        onCreateRule = {
-                            navigator.pushDetailPane(
-                                WiretapScreen.CreateRuleScreen(prefillFromLogId = it.id),
-                            )
-                        },
-                        onViewRule = { ruleId ->
-                            navigator.pushDetailPane(
-                                WiretapScreen.RuleDetailScreen(ruleId),
-                            )
-                        },
-                        modifier = Modifier.fillMaxSize(),
                     )
 
                     HttpSubTab.Rules -> RulesListScreen(
-                        viewModel = rulesListViewModel,
-                        onRuleClick = {
-                            navigator.pushDetailPane(
-                                WiretapScreen.RuleDetailScreen(it.id),
-                            )
-                        },
-                        onCreateClick = { navigator.pushDetailPane(WiretapScreen.CreateRuleScreen()) },
                         modifier = Modifier.fillMaxSize(),
+                        viewModel = rulesListViewModel,
                     )
                 }
             }
@@ -180,7 +158,7 @@ internal fun HttpTabScreen(
         ClearLogsConfirmationDialog(
             onDismiss = { showClearConfirmation = false },
             onConfirm = {
-                httpLogListViewModel.clearLogs()
+                httpListViewModel.clearLogs()
                 showClearConfirmation = false
             },
         )

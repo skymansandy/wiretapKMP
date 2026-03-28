@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
 import dev.skymansandy.wiretap.ui.model.HeaderEntryMode
@@ -44,141 +45,141 @@ import dev.skymansandy.wiretap.ui.model.urlPlaceholder
 import dev.skymansandy.wiretap.ui.screens.rules.components.MethodSelector
 import dev.skymansandy.wiretap.ui.screens.rules.components.RegexTesterIcon
 import dev.skymansandy.wiretap.ui.screens.rules.components.SectionLabel
+import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleViewModel
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun RequestStep(
-    method: String,
-    onMethodChange: (String) -> Unit,
-    urlMode: UrlMatchMode?,
-    onUrlModeChange: (UrlMatchMode?) -> Unit,
-    urlPattern: String,
-    onUrlPatternChange: (String) -> Unit,
-    headerEntries: List<HeaderEntry>,
-    onHeaderAdd: () -> Unit,
-    onHeaderUpdate: (Int, HeaderEntry) -> Unit,
-    onHeaderRemove: (Int) -> Unit,
-    bodyMode: BodyMatchMode?,
-    onBodyModeChange: (BodyMatchMode?) -> Unit,
-    bodyPattern: String,
-    onBodyPatternChange: (String) -> Unit,
-    onOpenRegexTester: (pattern: String, label: String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: CreateRuleViewModel,
 ) {
-    // HTTP Method — at the top
-    MethodSelector(
-        method = method,
-        onMethodChange = onMethodChange,
-    )
 
-    // ── URL ──────────────────────────────────────────────────────────────────
-    SectionLabel(
-        title = "URL",
-    )
+    val method by viewModel.method.collectAsStateWithLifecycle()
+    val urlMode by viewModel.urlMode.collectAsStateWithLifecycle()
+    val urlPattern by viewModel.urlPattern.collectAsStateWithLifecycle()
+    val headerEntries by viewModel.headerEntries.collectAsStateWithLifecycle()
+    val bodyMode by viewModel.bodyMode.collectAsStateWithLifecycle()
+    val bodyPattern by viewModel.bodyPattern.collectAsStateWithLifecycle()
 
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    Column(
+        modifier = modifier,
     ) {
-        FilterChip(
-            selected = urlMode == null,
-            onClick = { onUrlModeChange(null) },
-            label = { Text("None") },
+        // HTTP Method — at the top
+        MethodSelector(
+            method = method,
+            onMethodChange = { viewModel.updateMethod(it) },
         )
 
-        UrlMatchMode.entries.forEach { mode ->
+        // ── URL ──────────────────────────────────────────────────────────────────
+        SectionLabel(
+            title = "URL",
+        )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             FilterChip(
-                selected = urlMode == mode,
-                onClick = { onUrlModeChange(mode) },
-                label = { Text(mode.label()) },
+                selected = urlMode == null,
+                onClick = { viewModel.updateUrlMode(null) },
+                label = { Text("None") },
+            )
+
+            UrlMatchMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = urlMode == mode,
+                    onClick = { viewModel.updateUrlMode(mode) },
+                    label = { Text(mode.label()) },
+                )
+            }
+        }
+
+        val testUrlLabel = "Test URL"
+        val testHeaderValueLabel = "Test Header Value"
+        val testBodyLabel = "Test Body"
+
+        if (urlMode != null) {
+            OutlinedTextField(
+                value = urlPattern,
+                onValueChange = { viewModel.updateUrlPattern(it) },
+                label = { Text("URL ${urlMode!!.label()}") },
+                placeholder = { Text(urlPlaceholder(urlMode!!)) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                trailingIcon = when {
+                    urlMode!!.isRegex() -> {
+                        { RegexTesterIcon { viewModel.openRegexTester(urlPattern, testUrlLabel) } }
+                    }
+
+                    else -> null
+                },
             )
         }
-    }
 
-    val testUrlLabel = "Test URL"
-    val testHeaderValueLabel = "Test Header Value"
-    val testBodyLabel = "Test Body"
-
-    if (urlMode != null) {
-        OutlinedTextField(
-            value = urlPattern,
-            onValueChange = onUrlPatternChange,
-            label = { Text("URL ${urlMode.label()}") },
-            placeholder = { Text(urlPlaceholder(urlMode)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            trailingIcon = when {
-                urlMode.isRegex() -> {
-                    { RegexTesterIcon { onOpenRegexTester(urlPattern, testUrlLabel) } }
-                }
-
-                else -> null
-            },
-        )
-    }
-
-    // ── Headers ───────────────────────────────────────────────────────────────
-    SectionLabel(
-        title = "Headers",
-    )
-
-    headerEntries.forEachIndexed { idx, entry ->
-        HeaderMatcherItem(
-            entry = entry,
-            onUpdate = { onHeaderUpdate(idx, it) },
-            onRemove = { onHeaderRemove(idx) },
-            onOpenRegexTester = {
-                onOpenRegexTester(it, testHeaderValueLabel)
-            },
-        )
-    }
-
-    TextButton(
-        onClick = onHeaderAdd,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Text(
-            text = "+ Add Header Condition",
-        )
-    }
-
-    // ── Body ──────────────────────────────────────────────────────────────────
-    SectionLabel(
-        title = "Body",
-    )
-
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        FilterChip(
-            selected = bodyMode == null,
-            onClick = { onBodyModeChange(null) },
-            label = { Text("None") },
+        // ── Headers ───────────────────────────────────────────────────────────────
+        SectionLabel(
+            title = "Headers",
         )
 
-        BodyMatchMode.entries.forEach { mode ->
-            FilterChip(
-                selected = bodyMode == mode,
-                onClick = { onBodyModeChange(mode) },
-                label = { Text(mode.label()) },
+        headerEntries.forEachIndexed { idx, entry ->
+            HeaderMatcherItem(
+                entry = entry,
+                onUpdate = { viewModel.updateHeader(idx, it) },
+                onRemove = { viewModel.removeHeader(idx) },
+                onOpenRegexTester = {
+                    viewModel.openRegexTester(it, testHeaderValueLabel)
+                },
             )
         }
-    }
 
-    if (bodyMode != null) {
-        OutlinedTextField(
-            value = bodyPattern,
-            onValueChange = onBodyPatternChange,
-            label = { Text("Body ${bodyMode.label()}") },
-            placeholder = { Text(bodyPlaceholder(bodyMode)) },
+        TextButton(
+            onClick = { viewModel.addHeader() },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3,
-            trailingIcon = when {
-                bodyMode.isRegex() -> {
-                    { RegexTesterIcon { onOpenRegexTester(bodyPattern, testBodyLabel) } }
-                }
+        ) {
+            Text(
+                text = "+ Add Header Condition",
+            )
+        }
 
-                else -> null
-            },
+        // ── Body ──────────────────────────────────────────────────────────────────
+        SectionLabel(
+            title = "Body",
         )
+
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FilterChip(
+                selected = bodyMode == null,
+                onClick = { viewModel.updateBodyMode(null) },
+                label = { Text("None") },
+            )
+
+            BodyMatchMode.entries.forEach { mode ->
+                FilterChip(
+                    selected = bodyMode == mode,
+                    onClick = { viewModel.updateBodyMode(mode) },
+                    label = { Text(mode.label()) },
+                )
+            }
+        }
+
+        if (bodyMode != null) {
+            OutlinedTextField(
+                value = bodyPattern,
+                onValueChange = { viewModel.updateBodyPattern(it) },
+                label = { Text("Body ${bodyMode!!.label()}") },
+                placeholder = { Text(bodyPlaceholder(bodyMode!!)) },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                trailingIcon = when {
+                    bodyMode!!.isRegex() -> {
+                        { RegexTesterIcon { viewModel.openRegexTester(bodyPattern, testBodyLabel) } }
+                    }
+
+                    else -> null
+                },
+            )
+        }
     }
 }
 
@@ -255,7 +256,7 @@ private fun HeaderMatcherItem(
 
                 IconButton(onClick = onRemove) {
                     Icon(
-                        Icons.Default.Close,
+                        imageVector = Icons.Default.Close,
                         contentDescription = "Remove",
                         tint = MaterialTheme.colorScheme.error,
                     )

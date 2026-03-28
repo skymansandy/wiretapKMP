@@ -33,7 +33,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import kotlinx.coroutines.launch
 
-private val RevealWidth = 64.dp
+private val RevealWidth = 96.dp
 
 @Composable
 internal fun SwipeableHttpLogItem(
@@ -99,8 +99,8 @@ internal fun SwipeableHttpLogItem(
                     color = contentColor,
                     textAlign = TextAlign.Center,
                     text = when {
-                        hasMatchedRule -> "View\nRule"
-                        else -> "Create\nRule"
+                        hasMatchedRule -> "View Rule"
+                        else -> "Create Rule"
                     },
                 )
             }

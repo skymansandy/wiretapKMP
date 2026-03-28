@@ -27,18 +27,19 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.CreateRuleScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.screens.rules.components.RegexTesterSheet
@@ -52,19 +53,21 @@ import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CreateRuleScreen(
+internal fun CreateRuleScreenView(
     existingRuleId: Long = 0L,
     prefillFromLogId: Long = 0L,
     modifier: Modifier = Modifier,
-    viewModel: CreateRuleViewModel = koinViewModel { parametersOf(existingRuleId, prefillFromLogId) },
-    ruleRepository: RuleRepository = WiretapDi.getKoin().get(),
+    viewModel: CreateRuleViewModel = koinViewModel {
+        parametersOf(
+            existingRuleId,
+            prefillFromLogId,
+        )
+    },
 ) {
-
     val loaded by viewModel.loaded.collectAsStateWithLifecycle()
     if (!loaded) return
 
     val navigator = LocalWiretapNavigator.current
-    val scope = rememberCoroutineScope()
     val step by viewModel.step.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -125,13 +128,13 @@ internal fun CreateRuleScreen(
     if (showConflictDialog && conflictingRules.isNotEmpty()) {
         ConflictDialog(
             conflictingRules = conflictingRules,
-            ruleRepository = ruleRepository,
+            ruleRepository = viewModel.ruleRepository,
+            onDismiss = { viewModel.dismissConflictDialog() },
             onEditConflictingRule = { conflictRule ->
                 navigator.replaceTop(
-                    WiretapScreen.CreateRuleScreen(existingRuleId = conflictRule.id),
+                    CreateRuleScreen(existingRuleId = conflictRule.id),
                 )
             },
-            onDismiss = { viewModel.dismissConflictDialog() },
         )
     }
 
@@ -149,83 +152,55 @@ internal fun CreateRuleScreen(
                             navigator.pop()
                         }
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
                     }
                 },
             )
         },
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
             StepIndicator(
                 currentStep = step,
-                labels = listOf("Request", "Response"),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                labels = remember { listOf("Request", "Response") },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             )
 
             HorizontalDivider()
 
             Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 when (step) {
-                    1 -> RequestStep(
-                        method = method,
-                        onMethodChange = { viewModel.updateMethod(it) },
-                        urlMode = urlMode,
-                        onUrlModeChange = { viewModel.updateUrlMode(it) },
-                        urlPattern = urlPattern,
-                        onUrlPatternChange = { viewModel.updateUrlPattern(it) },
-                        headerEntries = headerEntries,
-                        onHeaderAdd = { viewModel.addHeader() },
-                        onHeaderUpdate = { idx, e -> viewModel.updateHeader(idx, e) },
-                        onHeaderRemove = { idx -> viewModel.removeHeader(idx) },
-                        bodyMode = bodyMode,
-                        onBodyModeChange = { viewModel.updateBodyMode(it) },
-                        bodyPattern = bodyPattern,
-                        onBodyPatternChange = { viewModel.updateBodyPattern(it) },
-                        onOpenRegexTester = { pattern, label -> viewModel.openRegexTester(pattern, label) },
-                    )
-
-                    2 -> ResponseStep(
-                        action = action,
-                        onActionChange = { viewModel.updateAction(it) },
-                        mockResponseCode = mockResponseCode,
-                        onMockResponseCodeChange = { viewModel.updateMockResponseCode(it) },
-                        mockResponseBody = mockResponseBody,
-                        onMockResponseBodyChange = { viewModel.updateMockResponseBody(it) },
-                        responseHeaderEntries = responseHeaderEntries,
-                        onResponseHeaderAdd = { viewModel.addResponseHeader() },
-                        onResponseHeaderUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
-                        onResponseHeaderRemove = { idx -> viewModel.removeResponseHeader(idx) },
-                        responseHeadersBulk = responseHeadersBulk,
-                        onResponseHeadersBulkChange = { viewModel.updateResponseHeadersBulk(it) },
-                        responseHeadersMode = responseHeadersMode,
-                        onResponseHeadersModeChange = { viewModel.updateResponseHeadersMode(it) },
-                        throttleDelayMs = throttleDelayMs,
-                        onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
-                        throttleDelayMaxMs = throttleDelayMaxMs,
-                        onThrottleDelayMaxMsChange = { viewModel.updateThrottleDelayMaxMs(it) },
-                        throttleInputMode = throttleInputMode,
-                        onThrottleInputModeChange = { viewModel.updateThrottleInputMode(it) },
-                    )
+                    1 -> RequestStep(viewModel = viewModel)
+                    2 -> ResponseStep(viewModel = viewModel)
                 }
             }
 
             HorizontalDivider()
 
             Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (step > 1) {
-                    OutlinedButton(onClick = { viewModel.prevStep() }, modifier = Modifier.weight(1f)) {
+                    OutlinedButton(
+                        onClick = { viewModel.prevStep() },
+                        modifier = Modifier.weight(1f),
+                    ) {
                         Text("Back")
                     }
                 }
@@ -268,25 +243,28 @@ private fun ConflictDialog(
     val scope = rememberCoroutineScope()
     val firstConflict = conflictingRules.first()
     val anyMethodLabel = "Any"
-    val conflictSummary = conflictingRules.joinToString("\n") { rule ->
-        buildString {
-            append(if (rule.method == "*") anyMethodLabel else rule.method)
-            rule.urlMatcher?.let { append(" ${it.pattern}") }
-            append(" → ${rule.action.name}")
+    val conflictSummary = remember(conflictingRules) {
+        conflictingRules.joinToString("\n") { rule ->
+            buildString {
+                append(if (rule.method == "*") anyMethodLabel else rule.method)
+                rule.urlMatcher?.let { append(" ${it.pattern}") }
+                append(" → ${rule.action.name}")
+            }
         }
     }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Rule Conflict") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = if (conflictingRules.size == 1) {
-                        "An existing rule already matches the same requests:"
-                    } else {
-                        "${conflictingRules.size} existing rules already match the same requests:"
+                    text = when (conflictingRules.size) {
+                        1 -> "An existing rule already matches the same requests:"
+                        else -> "${conflictingRules.size} existing rules already match the same requests:"
                     },
                 )
+
                 Text(
                     text = conflictSummary,
                     style = MaterialTheme.typography.bodySmall,
@@ -296,15 +274,17 @@ private fun ConflictDialog(
         },
         confirmButton = {
             if (onEditConflictingRule != null) {
-                TextButton(onClick = {
-                    onDismiss()
-                    scope.launch {
-                        val ruleToEdit = ruleRepository.getById(firstConflict.id)
-                        if (ruleToEdit != null) {
-                            onEditConflictingRule(ruleToEdit)
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        scope.launch {
+                            val ruleToEdit = ruleRepository.getById(firstConflict.id)
+                            if (ruleToEdit != null) {
+                                onEditConflictingRule(ruleToEdit)
+                            }
                         }
-                    }
-                }) {
+                    },
+                ) {
                     Text("Edit Existing Rule")
                 }
             }

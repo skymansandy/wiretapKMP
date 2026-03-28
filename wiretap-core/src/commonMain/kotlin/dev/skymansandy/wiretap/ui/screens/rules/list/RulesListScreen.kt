@@ -39,33 +39,30 @@ import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.CreateRuleScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.StatusText
 import dev.skymansandy.wiretap.ui.screens.rules.components.ActionBadge
 
 @Composable
 internal fun RulesListScreen(
-    viewModel: RulesListViewModel,
-    onRuleClick: (WiretapRule) -> Unit,
-    onCreateClick: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: RulesListViewModel,
 ) {
-
+    val navigator = LocalWiretapNavigator.current
     val rules by viewModel.rules.collectAsStateWithLifecycle()
     val searchQuery by viewModel.debouncedQuery.collectAsStateWithLifecycle()
 
     Box(modifier = modifier) {
         if (rules.isEmpty()) {
-            Box(
+            StatusText(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    style = MaterialTheme.typography.bodyLarge,
-                    text = when {
-                        searchQuery.isBlank() -> "No rules yet"
-                        else -> "No rules match \"$searchQuery\""
-                    },
-                )
-            }
+                text = when {
+                    searchQuery.isBlank() -> "No rules yet"
+                    else -> "No rules match \"$searchQuery\""
+                },
+            )
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -77,16 +74,24 @@ internal fun RulesListScreen(
                     RuleItem(
                         rule = rule,
                         searchQuery = searchQuery,
-                        onClick = { onRuleClick(rule) },
                         onToggle = { viewModel.setEnabled(rule.id, it) },
+                        onClick = {
+                            navigator.pushDetailPane(
+                                WiretapScreen.RuleDetailScreen(rule.id),
+                            )
+                        },
                     )
                 }
             }
         }
 
         FloatingActionButton(
-            onClick = onCreateClick,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            onClick = {
+                navigator.pushDetailPane(CreateRuleScreen())
+            },
         ) {
             Icon(
                 imageVector = Icons.Default.Add,

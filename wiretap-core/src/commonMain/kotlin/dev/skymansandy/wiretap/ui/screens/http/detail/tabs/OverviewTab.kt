@@ -1,12 +1,12 @@
 package dev.skymansandy.wiretap.ui.screens.http.detail.tabs
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretap.domain.model.HttpLog
@@ -20,26 +20,27 @@ internal fun OverviewTab(
 ) {
     Column(
         modifier = modifier
-            .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
         KeyValueTable(
             modifier = Modifier.fillMaxWidth(),
-            rows = buildList {
-                add("URL" to entry.url)
-                add("Method" to entry.method)
-                add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
-                add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
-                add("Source" to entry.source.name)
-                add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
-                add("Response Size" to formatSize(entry.responseBodySize))
-                entry.protocol?.let { add("HTTP Version" to it) }
-                entry.remoteAddress?.let { add("Remote Address" to it) }
-                entry.tlsProtocol?.let { add("TLS Protocol" to it) }
-                entry.cipherSuite?.let { add("Cipher Suite" to it) }
-                entry.certificateCn?.let { add("Certificate CN" to it) }
-                entry.issuerCn?.let { add("Issuer CN" to it) }
-                entry.certificateExpiry?.let { add("Valid Until" to it) }
+            rows = remember(entry) {
+                buildList {
+                    add("URL" to entry.url)
+                    add("Method" to entry.method)
+                    add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
+                    add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
+                    add("Source" to entry.source.name)
+                    add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))
+                    add("Response Size" to formatSize(entry.responseBodySize))
+                    entry.protocol?.let { add("HTTP Version" to it) }
+                    entry.remoteAddress?.let { add("Remote Address" to it) }
+                    entry.tlsProtocol?.let { add("TLS Protocol" to it) }
+                    entry.cipherSuite?.let { add("Cipher Suite" to it) }
+                    entry.certificateCn?.let { add("Certificate CN" to it) }
+                    entry.issuerCn?.let { add("Issuer CN" to it) }
+                    entry.certificateExpiry?.let { add("Valid Until" to it) }
+                }
             },
         )
     }

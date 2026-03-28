@@ -1,6 +1,8 @@
 package dev.skymansandy.wiretap.domain.model
 
+import androidx.compose.ui.graphics.Color
 import dev.skymansandy.wiretap.domain.model.HttpLog.Companion.RESPONSE_CODE_IN_PROGRESS
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 /**
  * Represents a logged HTTP request/response pair.
@@ -34,10 +36,25 @@ data class HttpLog(
     val issuerCn: String? = null,
     val certificateExpiry: String? = null,
 ) {
-    val isInProgress: Boolean get() = responseCode == RESPONSE_CODE_IN_PROGRESS
+    val isInProgress: Boolean = responseCode == RESPONSE_CODE_IN_PROGRESS
+
+    val statusText: String = when {
+        isInProgress -> "..."
+        responseCode > 0 -> responseCode.toString()
+        responseCode == -1 -> "!!!"
+        else -> "ERR"
+    }
+
+    val statusColor: Color = when {
+        isInProgress -> WiretapColors.StatusBlue
+        responseCode in 200..299 -> Color.White
+        responseCode in 300..399 -> WiretapColors.StatusBlue
+        responseCode in 400..499 -> WiretapColors.StatusAmber
+        responseCode >= 500 -> WiretapColors.StatusRed
+        else -> WiretapColors.StatusGray
+    }
 
     companion object {
-
         const val RESPONSE_CODE_IN_PROGRESS = -2
     }
 }

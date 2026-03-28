@@ -592,7 +592,7 @@ private fun WsMessageInput(
             enabled = isConnected && messageText.isNotBlank(),
         ) {
             Icon(
-                Icons.AutoMirrored.Filled.Send,
+                imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = stringResource(Res.string.send),
                 tint = when {
                     isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary

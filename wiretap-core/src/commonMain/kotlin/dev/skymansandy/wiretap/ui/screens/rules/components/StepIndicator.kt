@@ -3,7 +3,6 @@ package dev.skymansandy.wiretap.ui.screens.rules.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -26,13 +25,17 @@ internal fun StepIndicator(
     currentStep: Int,
     labels: List<String>,
 ) {
-    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         labels.forEachIndexed { index, label ->
             val step = index + 1
             val isActive = step == currentStep
             val isCompleted = step < currentStep
 
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(28.dp)
                     .background(
@@ -40,12 +43,11 @@ internal fun StepIndicator(
                         else MaterialTheme.colorScheme.surfaceVariant,
                         shape = CircleShape,
                     ),
-                contentAlignment = Alignment.Center,
             ) {
                 if (isCompleted) {
                     Icon(
-                        Icons.Default.Check,
-                        null,
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(16.dp),
                     )
@@ -68,7 +70,11 @@ internal fun StepIndicator(
             )
 
             if (index < labels.size - 1) {
-                HorizontalDivider(modifier = Modifier.weight(1f).padding(horizontal = 12.dp))
+                HorizontalDivider(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp),
+                )
             }
         }
     }

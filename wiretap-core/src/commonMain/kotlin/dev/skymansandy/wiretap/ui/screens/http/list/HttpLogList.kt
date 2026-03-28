@@ -1,15 +1,10 @@
 package dev.skymansandy.wiretap.ui.screens.http.list
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -19,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
@@ -30,21 +24,22 @@ import app.cash.paging.compose.LazyPagingItems
 import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.LoaderView
+import dev.skymansandy.wiretap.ui.common.StatusText
 import dev.skymansandy.wiretap.ui.screens.http.components.SwipeableHttpLogItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun HttpLogList(
+    modifier: Modifier = Modifier,
     viewModel: HttpLogListViewModel,
     searchQuery: String,
     onDismissSearch: () -> Unit,
-    onHttpClick: (HttpLog) -> Unit,
-    onCreateRule: (HttpLog) -> Unit,
-    onViewRule: (Long) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-
     val lazyItems = viewModel.pagedLogs.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -61,12 +56,13 @@ internal fun HttpLogList(
         if (lazyItems.itemCount > lastItemCount && isAtTop) {
             scope.launch { listState.scrollToItem(0) }
         }
+
         lastItemCount = lazyItems.itemCount
     }
 
     LaunchedEffect(revealedItemId) {
         if (revealedItemId != null) {
-            delay(3000)
+            delay(3.seconds)
             revealedItemId = null
         }
     }
@@ -75,58 +71,40 @@ internal fun HttpLogList(
 
     when (lazyItems.loadState.refresh) {
         is LoadStateLoading if isEmpty -> {
-            CenteredBox(modifier) { CircularProgressIndicator() }
+            LoaderView(modifier)
         }
 
         is LoadStateNotLoading if isEmpty -> {
-            CenteredBox(modifier) { StatusText("No HTTP logs yet") }
+            StatusText(
+                modifier = modifier,
+                text = when {
+                    searchQuery.isBlank() -> "No results found"
+                    else -> "No HTTP logs yet"
+                },
+            )
         }
 
         is LoadStateError if isEmpty -> {
-            CenteredBox(modifier) { StatusText("Failed to load logs") }
-        }
-
-        else -> {
-            HttpLogColumn(
+            StatusText(
                 modifier = modifier,
-                listState = listState,
-                lazyItems = lazyItems,
-                searchQuery = searchQuery,
-                revealedItemId = revealedItemId,
-                onRevealedItemIdChange = { revealedItemId = it },
-                onDismissSearch = onDismissSearch,
-                onHttpClick = onHttpClick,
-                onCreateRule = onCreateRule,
-                onViewRule = onViewRule,
+                text = "Failed to load logs",
             )
         }
+
+        else -> HttpLogListView(
+            modifier = modifier,
+            listState = listState,
+            lazyItems = lazyItems,
+            searchQuery = searchQuery,
+            revealedItemId = revealedItemId,
+            onRevealedItemIdChange = { revealedItemId = it },
+            onDismissSearch = onDismissSearch,
+        )
     }
 }
 
 @Composable
-private fun CenteredBox(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center,
-        content = { content() },
-    )
-}
-
-@Composable
-private fun StatusText(text: String) {
-
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyLarge,
-    )
-}
-
-@Composable
-private fun HttpLogColumn(
+private fun HttpLogListView(
     modifier: Modifier,
     listState: LazyListState,
     lazyItems: LazyPagingItems<HttpLog>,
@@ -134,10 +112,8 @@ private fun HttpLogColumn(
     revealedItemId: String?,
     onRevealedItemIdChange: (String?) -> Unit,
     onDismissSearch: () -> Unit,
-    onHttpClick: (HttpLog) -> Unit,
-    onCreateRule: (HttpLog) -> Unit,
-    onViewRule: (Long) -> Unit,
 ) {
+    val navigator = LocalWiretapNavigator.current
 
     LazyColumn(
         modifier = modifier.clipToBounds(),
@@ -158,26 +134,33 @@ private fun HttpLogColumn(
                 onClick = {
                     onDismissSearch()
                     onRevealedItemIdChange(null)
-                    onHttpClick(entry)
+                    navigator.pushDetailPane(
+                        WiretapScreen.HttpDetailScreen(entry.id),
+                    )
                 },
                 onCreateRule = {
                     onRevealedItemIdChange(null)
-                    onCreateRule(entry)
+                    navigator.pushDetailPane(
+                        WiretapScreen.CreateRuleScreen(prefillFromLogId = entry.id),
+                    )
                 },
                 onViewRule = {
                     onRevealedItemIdChange(null)
-                    entry.matchedRuleId?.let(onViewRule)
+                    entry.matchedRuleId?.let { ruleId ->
+                        navigator.pushDetailPane(
+                            WiretapScreen.RuleDetailScreen(ruleId),
+                        )
+                    }
                 },
             )
         }
 
         if (lazyItems.loadState.append is LoadStateLoading) {
             item {
-                CenteredBox(Modifier.fillMaxWidth().padding(16.dp)) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
+                LoaderView(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    loaderSize = 24.dp,
+                )
             }
         }
     }

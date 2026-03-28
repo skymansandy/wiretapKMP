@@ -89,7 +89,10 @@ internal fun RuleDetailScreen(
                 title = { Text("Rule Details") },
                 navigationIcon = {
                     IconButton(onClick = { navigator.pop() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
                     }
                 },
                 actions = {
@@ -98,10 +101,16 @@ internal fun RuleDetailScreen(
                             WiretapScreen.CreateRuleScreen(existingRuleId = currentRule.id),
                         )
                     }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit rule")
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit rule",
+                        )
                     }
                     IconButton(onClick = { viewModel.requestDelete() }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete rule")
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete rule",
+                        )
                     }
                 },
             )

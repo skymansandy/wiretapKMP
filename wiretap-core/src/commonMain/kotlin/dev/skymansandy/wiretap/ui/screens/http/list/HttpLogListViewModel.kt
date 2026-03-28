@@ -17,30 +17,30 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 internal class HttpLogListViewModel(
     private val httpLogManager: HttpLogManager,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-
-    @OptIn(FlowPreview::class)
     private val debouncedQuery: StateFlow<String> = _searchQuery
         .debounce { if (it.isEmpty()) 0L else 450L }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(),
             initialValue = "",
         )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val pagedLogs: Flow<PagingData<HttpLog>> = debouncedQuery
-        .flatMapLatest { query -> httpLogManager.flowPagedHttpLogsForSearchQuery(query) }
+        .flatMapLatest { query ->
+            httpLogManager.flowPagedHttpLogsForSearchQuery(query)
+        }
 
     val hasLogs: StateFlow<Boolean> = httpLogManager.flowHttpLogs()
         .map { it.isNotEmpty() }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(),
             initialValue = false,
         )
 
@@ -49,6 +49,8 @@ internal class HttpLogListViewModel(
     }
 
     fun clearLogs() {
-        viewModelScope.launch { httpLogManager.clearHttpLogs() }
+        viewModelScope.launch {
+            httpLogManager.clearHttpLogs()
+        }
     }
 }

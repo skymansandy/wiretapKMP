@@ -18,6 +18,8 @@ internal class HttpLogManagerImpl(
     override fun flowPagedHttpLogsForSearchQuery(query: String): Flow<PagingData<HttpLog>> =
         httpRepository.flowPagesLogs(query)
 
+    override fun flowHttpLogById(id: Long): Flow<HttpLog?> = httpRepository.flowById(id)
+
     override suspend fun logHttp(entry: HttpLog) {
         httpRepository.save(entry)
         wiretapLogger.logHttp(entry)

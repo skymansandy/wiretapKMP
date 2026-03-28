@@ -17,6 +17,13 @@ internal fun formatSize(bytes: Long?): String {
     }
 }
 
+internal fun formatSizeOrNull(bytes: Long): String? = when {
+    bytes >= 1_048_576 -> "${formatOneDecimal(bytes / 1_048_576f)} MB"
+    bytes >= 1_024 -> "${formatOneDecimal(bytes / 1_024f)} kB"
+    bytes > 0 -> "$bytes B"
+    else -> null
+}
+
 internal fun formatBytes(bytes: Long): String = when {
     bytes >= 1_048_576 -> "${bytes / 1_048_576} MB"
     bytes >= 1_024 -> "${bytes / 1_024} kB"

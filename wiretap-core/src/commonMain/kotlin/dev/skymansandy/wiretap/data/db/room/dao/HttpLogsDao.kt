@@ -64,6 +64,9 @@ internal interface HttpLogsDao {
     @Query("SELECT * FROM HttpLogEntity WHERE id = :id")
     suspend fun getById(id: Long): HttpLogEntity?
 
+    @Query("SELECT * FROM HttpLogEntity WHERE id = :id")
+    fun flowById(id: Long): Flow<HttpLogEntity?>
+
     @Query("DELETE FROM HttpLogEntity")
     suspend fun deleteAll()
 

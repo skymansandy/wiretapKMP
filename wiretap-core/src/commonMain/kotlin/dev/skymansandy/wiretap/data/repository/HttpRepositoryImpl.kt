@@ -31,6 +31,9 @@ internal class HttpRepositoryImpl(
             )
         }.flow
 
+    override fun flowById(id: Long): Flow<HttpLog?> =
+        httpLogsDao.flowById(id).map { it?.toDomain() }
+
     override suspend fun save(log: HttpLog) {
         httpLogsDao.insert(log.toRoomEntity())
         invalidationSignal.tryEmit(Unit)

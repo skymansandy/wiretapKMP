@@ -25,6 +25,7 @@ import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
 
 @Composable
 internal fun ResponseHeadersSection(
+    modifier: Modifier = Modifier,
     entries: List<ResponseHeaderEntry>,
     onAdd: () -> Unit,
     onUpdate: (Int, ResponseHeaderEntry) -> Unit,
@@ -35,7 +36,7 @@ internal fun ResponseHeadersSection(
     onModeChange: (ResponseHeadersEditMode) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -44,6 +45,7 @@ internal fun ResponseHeadersSection(
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
         )
+
         IconButton(
             onClick = {
                 onModeChange(
@@ -72,7 +74,11 @@ internal fun ResponseHeadersSection(
                     onRemove = { onRemove(idx) },
                 )
             }
-            TextButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
+
+            TextButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onAdd,
+            ) {
                 Text("+ Add Header")
             }
         }
@@ -103,24 +109,26 @@ private fun ResponseHeaderEntryRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         OutlinedTextField(
+            modifier = Modifier.weight(1f),
             value = entry.key,
             onValueChange = { onUpdate(entry.copy(key = it)) },
             label = { Text("Key") },
             placeholder = { Text("Content-Type") },
-            modifier = Modifier.weight(1f),
             singleLine = true,
         )
+
         OutlinedTextField(
+            modifier = Modifier.weight(1f),
             value = entry.value,
             onValueChange = { onUpdate(entry.copy(value = it)) },
             label = { Text("Value") },
             placeholder = { Text("application/json") },
-            modifier = Modifier.weight(1f),
             singleLine = true,
         )
+
         IconButton(onClick = onRemove) {
             Icon(
-                Icons.Default.Close,
+                imageVector = Icons.Default.Close,
                 contentDescription = "Remove",
                 tint = MaterialTheme.colorScheme.error,
             )

@@ -10,6 +10,8 @@ interface HttpRepository {
 
     fun flowPagesLogs(query: String): Flow<PagingData<HttpLog>>
 
+    fun flowById(id: Long): Flow<HttpLog?>
+
     suspend fun save(log: HttpLog)
 
     suspend fun saveAndGetId(log: HttpLog): Long

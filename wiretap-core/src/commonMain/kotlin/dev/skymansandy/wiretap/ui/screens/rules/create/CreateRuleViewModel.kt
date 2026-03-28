@@ -35,9 +35,9 @@ import kotlinx.coroutines.launch
 internal class CreateRuleViewModel(
     private val existingRuleId: Long,
     private val prefillFromLogId: Long,
-    private val ruleRepository: RuleRepository,
     private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
+    val ruleRepository: RuleRepository,
 ) : ViewModel() {
 
     val isEditing = existingRuleId > 0

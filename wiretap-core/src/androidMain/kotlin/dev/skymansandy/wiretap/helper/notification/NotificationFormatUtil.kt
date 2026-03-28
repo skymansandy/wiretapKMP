@@ -8,14 +8,7 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 internal object NotificationFormatUtil {
 
     fun formatHttpEntry(entry: HttpLog): String {
-        val status = when {
-            entry.responseCode == HttpLog.RESPONSE_CODE_IN_PROGRESS -> "..."
-            entry.responseCode > 0 -> entry.responseCode.toString()
-            entry.responseCode == -1 -> "!!!"
-            else -> "ERR"
-        }
-
-        return "${entry.method}  $status  ${entry.url}"
+        return "${entry.method}  ${entry.statusText}  ${entry.url}"
     }
 
     fun formatSocketMessage(message: SocketMessage): String {

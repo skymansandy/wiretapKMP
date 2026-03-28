@@ -21,14 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.helper.util.formatOneDecimal
+import dev.skymansandy.wiretap.helper.util.formatSizeOrNull
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
@@ -40,31 +39,12 @@ internal fun HttpLogItemContent(
     searchQuery: String,
     onClick: () -> Unit,
 ) {
-    val statusColor = remember(entry) {
-        when {
-            entry.isInProgress -> WiretapColors.StatusBlue
-            entry.responseCode in 200..299 -> Color.White
-            entry.responseCode in 300..399 -> WiretapColors.StatusBlue
-            entry.responseCode in 400..499 -> WiretapColors.StatusAmber
-            entry.responseCode >= 500 -> WiretapColors.StatusRed
-            else -> WiretapColors.StatusGray
-        }
-    }
-
     val isHttps = remember(entry) { entry.url.startsWith("https://", ignoreCase = true) }
     val withoutScheme = remember(entry) { entry.url.substringAfter("://") }
     val host = remember(withoutScheme) { withoutScheme.substringBefore("/").substringBefore("?") }
     val path = remember(withoutScheme) { withoutScheme.removePrefix(host).ifEmpty { "/" } }
 
-    val responseBytes = remember(entry) { entry.responseBodySize }
-    val formattedSize = remember(responseBytes) {
-        when {
-            responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
-            responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
-            responseBytes > 0 -> "$responseBytes B"
-            else -> null
-        }
-    }
+    val formattedSize = remember(entry) { formatSizeOrNull(entry.responseBodySize) }
 
     Column(
         modifier = modifier
@@ -79,15 +59,10 @@ internal fun HttpLogItemContent(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = when {
-                    entry.isInProgress -> "..."
-                    entry.responseCode > 0 -> entry.responseCode.toString()
-                    entry.responseCode == -1 -> "!!!"
-                    else -> "ERR"
-                },
+                text = entry.statusText,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                color = statusColor,
+                color = entry.statusColor,
                 modifier = Modifier.width(44.dp),
             )
 
@@ -95,12 +70,14 @@ internal fun HttpLogItemContent(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = highlightText("${entry.method} $path", searchQuery),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
-                    color = statusColor,
+                    color = entry.statusColor,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
+                    text = remember(entry.method, path, searchQuery) {
+                        highlightText("${entry.method} $path", searchQuery)
+                    },
                 )
 
                 Spacer(
@@ -121,11 +98,13 @@ internal fun HttpLogItemContent(
                     }
 
                     Text(
-                        text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis,
+                        text = remember(host, searchQuery) {
+                            highlightText(host, searchQuery)
+                        },
                     )
 
                     if (entry.source != ResponseSource.Network) {

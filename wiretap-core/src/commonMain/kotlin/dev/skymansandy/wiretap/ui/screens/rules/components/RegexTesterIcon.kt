@@ -19,7 +19,7 @@ internal fun RegexTesterIcon(
         onClick = onClick,
     ) {
         Icon(
-            Icons.Default.PlayArrow,
+            imageVector = Icons.Default.PlayArrow,
             contentDescription = "Test regex",
             tint = MaterialTheme.colorScheme.primary,
         )

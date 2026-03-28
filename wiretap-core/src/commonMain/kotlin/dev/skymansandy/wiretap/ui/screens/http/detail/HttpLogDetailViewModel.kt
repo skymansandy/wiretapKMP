@@ -4,21 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 
 internal class HttpLogDetailViewModel(
     logId: Long,
-    private val httpLogManager: HttpLogManager,
+    httpLogManager: HttpLogManager,
 ) : ViewModel() {
 
-    val entry: StateFlow<HttpLog?>
-        field = MutableStateFlow(null)
-
-    init {
-        viewModelScope.launch {
-            entry.value = httpLogManager.getHttpLogById(logId)
-        }
-    }
+    val entry: StateFlow<HttpLog?> = httpLogManager.flowHttpLogById(logId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = null,
+        )
 }
