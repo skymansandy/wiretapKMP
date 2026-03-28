@@ -1,12 +1,12 @@
-package dev.skymansandy.wiretap.navigation
+package dev.skymansandy.wiretap.navigation.api
 
 import androidx.navigation3.runtime.NavKey
 import androidx.savedstate.serialization.SavedStateConfiguration
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.CreateRuleScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HomeScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HttpDetailScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.RuleDetailScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.SocketDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.CreateRuleScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HomeScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HttpDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.RuleDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SocketDetailScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 

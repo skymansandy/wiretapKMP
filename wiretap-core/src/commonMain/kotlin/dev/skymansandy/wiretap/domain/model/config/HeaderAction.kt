@@ -1,4 +1,6 @@
-package dev.skymansandy.wiretap.config
+package dev.skymansandy.wiretap.domain.model.config
+
+import kotlin.collections.iterator
 
 /**
  * Specifies how a header should be treated in logged data.

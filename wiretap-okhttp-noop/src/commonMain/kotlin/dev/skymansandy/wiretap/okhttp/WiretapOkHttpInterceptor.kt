@@ -1,6 +1,6 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.config.WiretapConfig
+import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
 import okhttp3.Interceptor
 import okhttp3.Response
 

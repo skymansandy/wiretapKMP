@@ -43,11 +43,11 @@ import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
-import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.rules.ActionBadge
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)

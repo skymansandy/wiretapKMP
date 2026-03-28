@@ -47,10 +47,10 @@ import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareHttpLogs
-import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.OverviewTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.console.http.components.tabs.ResponseTab

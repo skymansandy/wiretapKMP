@@ -37,11 +37,11 @@ import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.rules.sections.RequestStep
 import dev.skymansandy.wiretap.ui.rules.sections.ResponseStep
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.rule.components.RegexTesterSheet
 import dev.skymansandy.wiretap.ui.screens.rule.components.StepIndicator
 import kotlinx.coroutines.flow.flowOf

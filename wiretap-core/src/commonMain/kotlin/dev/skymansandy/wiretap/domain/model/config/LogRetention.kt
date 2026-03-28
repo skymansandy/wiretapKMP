@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.config
+package dev.skymansandy.wiretap.domain.model.config
 
 /**
  * Controls how long network logs are retained.

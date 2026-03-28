@@ -1,11 +1,4 @@
-package dev.skymansandy.wiretap.navigation
-
-import androidx.compose.runtime.compositionLocalOf
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
-
-internal val LocalWiretapNavigator = compositionLocalOf<WiretapNavigator> {
-    error("No WiretapNavigator provided")
-}
+package dev.skymansandy.wiretap.navigation.api
 
 internal interface WiretapNavigator {
 
@@ -17,6 +10,8 @@ internal interface WiretapNavigator {
 
     fun pop()
 
+    fun popUntil(predicate: (WiretapScreen) -> Boolean)
+
     fun replaceTop(screen: WiretapScreen)
 
     companion object {
@@ -25,6 +20,7 @@ internal interface WiretapNavigator {
             override fun pushDetailPane(screen: WiretapScreen) = Unit
             override fun clearDetailPane() = Unit
             override fun pop() = Unit
+            override fun popUntil(predicate: (WiretapScreen) -> Boolean) = Unit
             override fun replaceTop(screen: WiretapScreen) = Unit
         }
     }

@@ -1,12 +1,12 @@
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.config.LogRetention
-import dev.skymansandy.wiretap.config.WiretapConfig
-import dev.skymansandy.wiretap.config.applyHeaderAction
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.config.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
+import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime

@@ -47,7 +47,7 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
-import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @OptIn(ExperimentalMaterial3Api::class)

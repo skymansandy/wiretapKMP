@@ -52,11 +52,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.navigation.LocalWiretapNavigator
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.rules.RulesListScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.HTTP_SUB_TAB_LOGS
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.HTTP_SUB_TAB_RULES
 import dev.skymansandy.wiretap.ui.screens.console.WiretapHomeViewModel.Companion.TAB_HTTP
@@ -172,10 +172,7 @@ internal fun WiretapHomeScreen(
                             )
                             Tab(
                                 selected = httpSubTab == HTTP_SUB_TAB_RULES,
-                                onClick = {
-                                    viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES)
-                                    navigator.clearDetailPane()
-                                },
+                                onClick = { viewModel.selectHttpSubTab(HTTP_SUB_TAB_RULES) },
                                 text = { Text("Rules") },
                             )
                         }

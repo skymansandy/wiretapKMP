@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.config
+package dev.skymansandy.wiretap.domain.model.config
 
 /**
  * Configuration for Wiretap network inspection plugins.

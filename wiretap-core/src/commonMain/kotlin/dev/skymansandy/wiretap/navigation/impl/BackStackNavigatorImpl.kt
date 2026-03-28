@@ -1,9 +1,9 @@
-package dev.skymansandy.wiretap.navigation
+package dev.skymansandy.wiretap.navigation.impl
 
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen
-import dev.skymansandy.wiretap.ui.screens.WiretapScreen.HomeScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapNavigator
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 
 internal class BackStackNavigatorImpl(
     private val backStack: NavBackStack<NavKey>,
@@ -14,16 +14,24 @@ internal class BackStackNavigatorImpl(
     }
 
     override fun pushDetailPane(screen: WiretapScreen) {
-        backStack.removeAll { it !is HomeScreen }
+        popUntil { it is WiretapScreen.ListPane }
         backStack.add(screen)
     }
 
     override fun clearDetailPane() {
-        backStack.removeAll { it !is HomeScreen }
+        popUntil { it is WiretapScreen.ListPane }
     }
 
     override fun pop() {
         backStack.removeLastOrNull()
+    }
+
+    override fun popUntil(predicate: (WiretapScreen) -> Boolean) {
+        while (backStack.isNotEmpty()) {
+            val last = backStack.lastOrNull() as? WiretapScreen ?: break
+            if (predicate(last)) break
+            backStack.removeLast()
+        }
     }
 
     override fun replaceTop(screen: WiretapScreen) {
