@@ -2,7 +2,7 @@
 
 ## How It Works
 
-`WiretapKtorPlugin` hooks into three Ktor lifecycle points:
+`WiretapKtorHttpPlugin` hooks into three Ktor lifecycle points:
 
 1. **`onRequest`** — Captures timestamps (ms + ns) for duration measurement
 2. **`on(Send)`** — Intercepts the request before it reaches the network:
@@ -17,7 +17,7 @@
 Use `shouldLog` to control which requests are captured:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     shouldLog = { url, method ->
         url.contains("/api/") && method != "OPTIONS"
     }
@@ -31,7 +31,7 @@ Requests that don't pass `shouldLog` are still subject to rule evaluation (mock/
 Protect sensitive data in logs:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     headerAction = { key ->
         when {
             key.equals("Authorization", ignoreCase = true) -> HeaderAction.Mask()
@@ -93,7 +93,7 @@ Wiretap logs exceptions and re-throws them so your error handling works normally
 ## Log Retention
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     logRetention = LogRetention.Forever      // Keep all (default)
     logRetention = LogRetention.AppSession   // Clear on app restart
     logRetention = LogRetention.Days(7)      // Auto-prune after 7 days

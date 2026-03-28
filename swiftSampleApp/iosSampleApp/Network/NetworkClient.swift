@@ -6,10 +6,10 @@ import WiretapURLSession
 final class NetworkClient {
 
     #if DEBUG
-    private let session: WiretapSession
+    private let session: WiretapURLSession
 
     init() {
-        session = WiretapSession(configuration: .default) { config in
+        session = WiretapURLSession(configuration: .default) { config in
             config.enabled = true
             config.logRetention = LogRetentionDays(days: 7)
             config.headerAction = { key in
@@ -89,7 +89,7 @@ final class NetworkClient {
         config.timeoutIntervalForRequest = timeoutSeconds
 
         #if DEBUG
-        let timeoutSession = WiretapSession(configuration: config) { _ in }
+        let timeoutSession = WiretapURLSession(configuration: config) { _ in }
         timeoutSession.intercept(request: request) { _, _, error in
             completion(error.map { "Timeout: \($0.localizedDescription)" } ?? "Unexpected success")
         }

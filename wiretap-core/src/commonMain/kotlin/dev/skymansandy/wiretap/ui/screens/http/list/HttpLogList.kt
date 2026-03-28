@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.ui.screens.http.list
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LoaderView
+import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
 import dev.skymansandy.wiretap.ui.common.StatusText
 import dev.skymansandy.wiretap.ui.screens.http.components.SwipeableHttpLogItem
 import kotlinx.coroutines.delay
@@ -91,15 +93,20 @@ internal fun HttpLogList(
             )
         }
 
-        else -> HttpLogListView(
-            modifier = modifier,
+        else -> ScrollToTopButton(
             listState = listState,
-            lazyItems = lazyItems,
-            searchQuery = searchQuery,
-            revealedItemId = revealedItemId,
-            onRevealedItemIdChange = { revealedItemId = it },
-            onDismissSearch = onDismissSearch,
-        )
+            modifier = modifier,
+        ) {
+            HttpLogListView(
+                modifier = Modifier.fillMaxSize(),
+                listState = listState,
+                lazyItems = lazyItems,
+                searchQuery = searchQuery,
+                revealedItemId = revealedItemId,
+                onRevealedItemIdChange = { revealedItemId = it },
+                onDismissSearch = onDismissSearch,
+            )
+        }
     }
 }
 

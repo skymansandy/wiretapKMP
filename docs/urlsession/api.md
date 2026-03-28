@@ -1,9 +1,9 @@
 # URLSession — API Reference
 
-## WiretapSession
+## WiretapURLSession
 
 ```kotlin
-class WiretapSession(
+class WiretapURLSession(
     configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
     configure: WiretapConfig.() -> Unit = {},
 )
@@ -21,7 +21,7 @@ Drop-in URLSession wrapper with Wiretap network inspection. Manages its own `NSU
 ### Swift Construction
 
 ```swift
-let session = WiretapSession { config in
+let session = WiretapURLSession { config in
     #if DEBUG
     config.enabled = true
     #else
@@ -39,7 +39,7 @@ let session = WiretapSession { config in
 let config = URLSessionConfiguration.default
 config.timeoutIntervalForRequest = 10
 
-let session = WiretapSession(configuration: config) { config in
+let session = WiretapURLSession(configuration: config) { config in
     config.enabled = true
 }
 ```
@@ -151,12 +151,12 @@ fun finishTasksAndInvalidate()
 
 ## Debug vs Release
 
-Use `WiretapSession` in debug and plain `URLSession` in release:
+Use `WiretapURLSession` in debug and plain `URLSession` in release:
 
 ```swift
 #if DEBUG
 import WiretapURLSession
-let session = WiretapSession { config in config.enabled = true }
+let session = WiretapURLSession { config in config.enabled = true }
 #else
 let session = URLSession.shared
 #endif
@@ -175,11 +175,11 @@ class WiretapURLSessionInterceptor(
 ) : KoinComponent
 ```
 
-Low-level interceptor for when you need to provide your own `NSURLSession` instance. Prefer `WiretapSession` for most use cases.
+Low-level interceptor for when you need to provide your own `NSURLSession` instance. Prefer `WiretapURLSession` for most use cases.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `session` | `NSURLSession` | `.sharedSession` | The URLSession to use for network requests |
 | `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
-Provides the same `intercept()` and `dataTask()` methods as `WiretapSession`.
+Provides the same `intercept()` and `dataTask()` methods as `WiretapURLSession`.

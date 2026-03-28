@@ -18,6 +18,8 @@ import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.runBlocking
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
@@ -34,7 +36,7 @@ private val WiretapSocketIdKey = AttributeKey<Long>("WiretapSocketId")
  * ```kotlin
  * HttpClient {
  *     install(WebSockets)
- *     install(WiretapKtorPlugin)
+ *     install(WiretapKtorHttpPlugin)
  *     install(WiretapKtorWebSocketPlugin)
  * }
  * ```
@@ -73,35 +75,24 @@ val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
 /**
  * Extension to wrap a Ktor [DefaultClientWebSocketSession] for Wiretap logging.
  *
- * This intercepts both incoming and outgoing frames. Use it like:
+ * Requires [WiretapKtorWebSocketPlugin] to be installed in the HttpClient.
+ * Returns `null` if the plugin is not installed.
+ *
  * ```kotlin
  * client.webSocket("wss://example.com/ws") {
- *     val session = this.wiretapWrap()
+ *     val session = this.wiretapWrap() ?: return@webSocket
  *     session.send(Frame.Text("hello"))
  *     for (frame in session.incoming) { ... }
  * }
  * ```
  */
-suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession {
-    val deps = WsPluginDeps()
+fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession? {
     val socketId = call.request.attributes.getOrNull(WiretapSocketIdKey)
-    val actualSocketId = if (socketId != null && socketId >= 0) {
-        socketId
-    } else {
-        val url = call.request.url.toString().toWebSocketUrl()
-        val requestHeaders = call.request.headers.entries()
-            .associate { (key, values) -> key to values.joinToString(", ") }
-        deps.socketLogManager.createSocket(
-            SocketConnection(
-                url = url,
-                requestHeaders = requestHeaders,
-                status = SocketStatus.Open,
-                timestamp = currentTimeMillis(),
-            ),
-        )
-    }
+        ?: return null
+    if (socketId < 0) return null
 
-    return WiretapWebSocketSession(this, actualSocketId, deps.socketLogManager)
+    val deps = WsPluginDeps()
+    return WiretapWebSocketSession(this, socketId, deps.socketLogManager)
 }
 
 /**
@@ -111,11 +102,22 @@ suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
  * updates the socket status accordingly — no manual `markClosed()`/`markFailed()` needed.
  */
 class WiretapWebSocketSession internal constructor(
-    val delegate: DefaultClientWebSocketSession,
+    private val delegate: DefaultClientWebSocketSession,
     private val socketId: Long,
     private val socketLogManager: SocketLogManager,
 ) {
-    val incoming get() = delegate.incoming
+
+    /**
+     * Channel of incoming frames with automatic logging.
+     * All frame types (Text, Binary, Ping, Pong, Close) are logged as they are consumed.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val incoming: ReceiveChannel<Frame> = delegate.produce {
+        for (frame in delegate.incoming) {
+            logFrame(frame, SocketMessageType.Received)
+            send(frame)
+        }
+    }
 
     @Volatile
     private var statusUpdated = false
@@ -162,90 +164,21 @@ class WiretapWebSocketSession internal constructor(
     }
 
     suspend fun send(frame: Frame) {
-        when (frame) {
-            is Frame.Text -> {
-                val text = frame.readText()
-                socketLogManager.logSocketMsg(
-                    SocketMessage(
-                        socketId = socketId,
-                        direction = SocketMessageType.Sent,
-                        contentType = SocketContentType.Text,
-                        content = text,
-                        byteCount = text.encodeToByteArray().size.toLong(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            }
-
-            is Frame.Binary -> {
-                val bytes = frame.readBytes()
-                socketLogManager.logSocketMsg(
-                    SocketMessage(
-                        socketId = socketId,
-                        direction = SocketMessageType.Sent,
-                        contentType = SocketContentType.Binary,
-                        content = "[Binary: ${bytes.size} bytes]",
-                        byteCount = bytes.size.toLong(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            }
-
-            /* pass through */
-            else -> Unit
-        }
-
+        logFrame(frame, SocketMessageType.Sent)
         delegate.send(frame)
     }
 
-    suspend fun logReceivedFrame(frame: Frame) {
-        when (frame) {
-            is Frame.Text -> {
-                val text = frame.readText()
-                socketLogManager.logSocketMsg(
-                    SocketMessage(
-                        socketId = socketId,
-                        direction = SocketMessageType.Received,
-                        contentType = SocketContentType.Text,
-                        content = text,
-                        byteCount = text.encodeToByteArray().size.toLong(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            }
-
-            is Frame.Binary -> {
-                val bytes = frame.readBytes()
-                socketLogManager.logSocketMsg(
-                    SocketMessage(
-                        socketId = socketId,
-                        direction = SocketMessageType.Received,
-                        contentType = SocketContentType.Binary,
-                        content = "[Binary: ${bytes.size} bytes]",
-                        byteCount = bytes.size.toLong(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            }
-
-            /* ignore Ping/Pong/Close frames for logging */
-            else -> Unit
-        }
-    }
-
-    suspend fun close() {
+    suspend fun close(code: Short = 1000.toShort(), reason: String? = null) {
         statusUpdated = true
 
         val url = delegate.call.request.url.toString().toWebSocketUrl()
-        val closeReason = try { delegate.closeReason.await() } catch (_: Exception) { null }
-
         socketLogManager.updateSocket(
             SocketConnection(
                 id = socketId,
                 url = url,
                 status = SocketStatus.Closed,
-                closeCode = closeReason?.code?.toInt(),
-                closeReason = closeReason?.message,
+                closeCode = code.toInt(),
+                closeReason = reason,
                 closedAt = currentTimeMillis(),
                 timestamp = currentTimeMillis(),
             ),
@@ -254,36 +187,42 @@ class WiretapWebSocketSession internal constructor(
         delegate.close()
     }
 
-    suspend fun markFailed(error: String) {
-        statusUpdated = true
+    private suspend fun logFrame(frame: Frame, direction: SocketMessageType) {
+        val (contentType, content, byteCount) = when (frame) {
+            is Frame.Text -> {
+                val text = frame.readText()
+                Triple(SocketContentType.Text, text, text.encodeToByteArray().size.toLong())
+            }
 
-        val url = delegate.call.request.url.toString().toWebSocketUrl()
+            is Frame.Binary -> {
+                val bytes = frame.readBytes()
+                Triple(SocketContentType.Binary, "[Binary: ${bytes.size} bytes]", bytes.size.toLong())
+            }
 
-        socketLogManager.updateSocket(
-            SocketConnection(
-                id = socketId,
-                url = url,
-                status = SocketStatus.Failed,
-                failureMessage = error,
-                closedAt = currentTimeMillis(),
-                timestamp = currentTimeMillis(),
-            ),
-        )
-    }
+            is Frame.Ping -> Triple(SocketContentType.Ping, "", frame.data.size.toLong())
+            is Frame.Pong -> Triple(SocketContentType.Pong, "", frame.data.size.toLong())
+            is Frame.Close -> {
+                val bytes = frame.data
+                val closeContent = if (bytes.size >= 2) {
+                    val closeCode = (bytes[0].toInt() and 0xFF shl 8) or (bytes[1].toInt() and 0xFF)
+                    val closeReason = if (bytes.size > 2) bytes.decodeToString(2, bytes.size) else ""
+                    if (closeReason.isNotEmpty()) "$closeCode $closeReason" else "$closeCode"
+                } else {
+                    ""
+                }
+                Triple(SocketContentType.Close, closeContent, bytes.size.toLong())
+            }
 
-    suspend fun markClosed(code: Short? = null, reason: String? = null) {
-        statusUpdated = true
+            else -> return
+        }
 
-        val url = delegate.call.request.url.toString().toWebSocketUrl()
-
-        socketLogManager.updateSocket(
-            SocketConnection(
-                id = socketId,
-                url = url,
-                status = SocketStatus.Closed,
-                closeCode = code?.toInt(),
-                closeReason = reason,
-                closedAt = currentTimeMillis(),
+        socketLogManager.logSocketMsg(
+            SocketMessage(
+                socketId = socketId,
+                direction = direction,
+                contentType = contentType,
+                content = content,
+                byteCount = byteCount,
                 timestamp = currentTimeMillis(),
             ),
         )

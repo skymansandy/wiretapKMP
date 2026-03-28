@@ -2,7 +2,7 @@
 
 ## Two APIs
 
-`WiretapSession` provides two ways to make requests:
+`WiretapURLSession` provides two ways to make requests:
 
 ### `dataTask()` — Logging with Task Control
 
@@ -119,7 +119,7 @@ Pass a custom `NSURLSessionConfiguration` for timeouts, caching, etc.:
 let config = URLSessionConfiguration.default
 config.timeoutIntervalForRequest = 5
 
-let session = WiretapSession(configuration: config) { config in
+let session = WiretapURLSession(configuration: config) { config in
     config.enabled = true
 }
 ```
@@ -158,7 +158,7 @@ let session = WiretapSession(configuration: config) { config in
 
 ## Debug vs Release
 
-Use `WiretapSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
+Use `WiretapURLSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
 
 ```swift
 #if DEBUG
@@ -167,7 +167,7 @@ import WiretapURLSession
 
 class NetworkClient {
     #if DEBUG
-    private let session = WiretapSession { config in
+    private let session = WiretapURLSession { config in
         config.enabled = true
     }
     #else

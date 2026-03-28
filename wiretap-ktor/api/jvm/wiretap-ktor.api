@@ -8,13 +8,9 @@ public final class dev/skymansandy/wiretap/plugin/WiretapKtorWebSocketPluginKt {
 }
 
 public final class dev/skymansandy/wiretap/plugin/WiretapWebSocketSession {
-	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun getDelegate ()Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;
+	public final fun close (SLjava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun close$default (Ldev/skymansandy/wiretap/plugin/WiretapWebSocketSession;SLjava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
-	public final fun logReceivedFrame (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun markClosed (Ljava/lang/Short;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun markClosed$default (Ldev/skymansandy/wiretap/plugin/WiretapWebSocketSession;Ljava/lang/Short;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun markFailed (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun send (Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

@@ -38,4 +38,7 @@ enum class SocketMessageType {
 enum class SocketContentType {
     Text,
     Binary,
+    Ping,
+    Pong,
+    Close,
 }

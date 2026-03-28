@@ -45,7 +45,7 @@ import kotlin.concurrent.Volatile
 /**
  * Low-level URLSession interceptor for Wiretap network inspection on iOS.
  *
- * **Prefer [WiretapSession]** for new code — it wraps this class and manages the
+ * **Prefer [WiretapURLSession]** for new code — it wraps this class and manages the
  * underlying NSURLSession for you, giving a drop-in URLSession-like API.
  *
  * Use this class directly only when you need to provide your own NSURLSession

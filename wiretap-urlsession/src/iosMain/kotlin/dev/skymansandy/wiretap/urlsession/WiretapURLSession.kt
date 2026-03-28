@@ -16,7 +16,7 @@ import platform.Foundation.NSURLSessionDataTask
  *
  * Provides the same data-task API as NSURLSession — create once, use everywhere:
  * ```swift
- * let session = WiretapSession { config in
+ * let session = WiretapURLSession { config in
  *     #if DEBUG
  *     config.enabled = true
  *     #else
@@ -36,7 +36,7 @@ import platform.Foundation.NSURLSessionDataTask
  * - [dataTask]: Returns an NSURLSessionDataTask with logging — caller must call resume().
  * - [intercept]: Fire-and-forget execution with full mock/throttle rule support.
  */
-class WiretapSession(
+class WiretapURLSession(
     configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
     configure: WiretapConfig.() -> Unit = {},
 ) {

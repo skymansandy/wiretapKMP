@@ -28,6 +28,45 @@ internal fun MessageBubble(
     modifier: Modifier = Modifier,
     message: SocketMessage,
 ) {
+    when (message.contentType) {
+        SocketContentType.Ping,
+        SocketContentType.Pong,
+        SocketContentType.Close,
+        -> ControlFrameLabel(modifier = modifier, message = message)
+
+        else -> DataFrameBubble(modifier = modifier, message = message)
+    }
+}
+
+@Composable
+private fun ControlFrameLabel(
+    modifier: Modifier = Modifier,
+    message: SocketMessage,
+) {
+    val label = when (message.contentType) {
+        SocketContentType.Ping -> "Ping"
+        SocketContentType.Pong -> "Pong"
+        SocketContentType.Close -> "Close${message.content.takeIf { it.isNotBlank() }?.let { " — $it" } ?: ""}"
+        else -> return
+    }
+
+    Box(
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "$label · ${formatTime(message.timestamp)}",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        )
+    }
+}
+
+@Composable
+private fun DataFrameBubble(
+    modifier: Modifier = Modifier,
+    message: SocketMessage,
+) {
     val isSent = message.direction == SocketMessageType.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
 

@@ -1,6 +1,6 @@
 ```mermaid
 flowchart TD
-    WiretapPlugin["WiretapKtorPlugin)"]
+    WiretapPlugin["WiretapKtorHttpPlugin)"]
     WireTapOrchestrator["WireTapOrchestrator"]
     WiretapConfig["WiretapConfig"]
     NetworkRepository["NetworkRepository"]

@@ -54,7 +54,7 @@ Add the WiretapKMP SPM package via its GitHub repository URL, then link the `Wir
 
 ## Create a Session
 
-Use `WiretapSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
+Use `WiretapURLSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
 
 ```swift
 #if DEBUG
@@ -64,10 +64,10 @@ import WiretapURLSession
 class NetworkClient {
 
     #if DEBUG
-    private let session: WiretapSession
+    private let session: WiretapURLSession
 
     init() {
-        session = WiretapSession(configuration: .default) { config in
+        session = WiretapURLSession(configuration: .default) { config in
             config.enabled = true
             config.shouldLog = { url, method in
                 KotlinBoolean(value: url.contains("/api/"))

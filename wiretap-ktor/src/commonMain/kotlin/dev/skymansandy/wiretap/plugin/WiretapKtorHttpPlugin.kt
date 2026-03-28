@@ -55,7 +55,7 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * Install in your [io.ktor.client.HttpClient] configuration:
  * ```kotlin
  * HttpClient {
- *     install(WiretapKtorPlugin) {
+ *     install(WiretapKtorHttpPlugin) {
  *         shouldLog = { url, _ -> url.contains("/api/") }
  *         headerAction = { key ->
  *             if (key.equals("Authorization", ignoreCase = true)) HeaderAction.Mask()
@@ -72,7 +72,7 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * @see WiretapKtorWebSocketPlugin
  */
 @OptIn(InternalAPI::class, ExperimentalAtomicApi::class)
-val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
+val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
 
     val config = pluginConfig
     val deps = WiretapDeps()
@@ -102,7 +102,10 @@ val WiretapKtorPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
         val upgradeHeader = request.headers.getAll("Upgrade")
         val isWebSocketUpgrade =
             upgradeHeader?.any { it.equals("websocket", ignoreCase = true) } == true
-        if (isWebSocketUpgrade) return@on proceed(request)
+        val urlString = request.url.buildString()
+        val isWebSocketScheme =
+            urlString.startsWith("ws://") || urlString.startsWith("wss://")
+        if (isWebSocketUpgrade || isWebSocketScheme) return@on proceed(request)
 
         val url = request.url.buildString()
         val method = request.method.value

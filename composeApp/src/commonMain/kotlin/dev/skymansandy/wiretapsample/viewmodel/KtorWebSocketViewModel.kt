@@ -75,10 +75,10 @@ class KtorWebSocketViewModel(
                     messageLog.add(SampleMessage(MessageType.System, "Connected!"))
 
                     try {
-                        for (frame in wrapped.incoming) {
+                        val incomingChannel = wrapped?.incoming ?: incoming
+                        for (frame in incomingChannel) {
                             if (frame is Frame.Text) {
                                 val text = frame.readText()
-                                wrapped.logReceivedFrame(frame)
                                 messageLog.add(SampleMessage(MessageType.Received, text))
                             }
                         }
@@ -101,8 +101,7 @@ class KtorWebSocketViewModel(
     private fun disconnect() {
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
-                session?.markClosed(1000, "User disconnected")
-                session?.delegate?.close()
+                session?.close(reason = "User disconnected")
             } catch (_: Exception) {
                 // Ignore close errors
             }

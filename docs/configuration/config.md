@@ -11,7 +11,7 @@
 Master switch. When `false`, the plugin passes requests through without any logging, rule evaluation, or overhead.
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     enabled = BuildConfig.DEBUG
 }
 ```
@@ -62,7 +62,7 @@ logRetention = LogRetention.Days(7)
 === "Ktor"
 
     ```kotlin
-    install(WiretapKtorPlugin) {
+    install(WiretapKtorHttpPlugin) {
         enabled = true
         shouldLog = { url, _ -> url.contains("/api/") }
         headerAction = { key -> HeaderAction.Keep }
