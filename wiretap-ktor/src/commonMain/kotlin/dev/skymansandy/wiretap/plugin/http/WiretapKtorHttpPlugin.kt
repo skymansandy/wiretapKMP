@@ -4,6 +4,7 @@ import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.TimingPhase
 import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.config.LogRetention
 import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
@@ -271,8 +272,8 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
         }
 
         val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
-        val durationNs = currentNanoTime() - startNano
-        val durationMs = durationNs / 1_000_000
+        val responseStartNano = currentNanoTime()
+        val waitingNs = responseStartNano - startNano
 
         val url = request.url.toString()
         val method = request.method.value
@@ -285,6 +286,27 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
             response.bodyAsText()
         } catch (_: Exception) {
             null
+        }
+
+        val downloadNs = currentNanoTime() - responseStartNano
+        val durationNs = currentNanoTime() - startNano
+        val durationMs = durationNs / 1_000_000
+
+        val timingPhases = buildList {
+            add(
+                TimingPhase(
+                    name = "Waiting",
+                    startMs = 0.0,
+                    durationMs = waitingNs / 1_000_000.0,
+                ),
+            )
+            add(
+                TimingPhase(
+                    name = "Download",
+                    startMs = waitingNs / 1_000_000.0,
+                    durationMs = downloadNs / 1_000_000.0,
+                ),
+            )
         }
 
         val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
@@ -314,6 +336,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
                     timestamp = currentTimeMillis(),
                     matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
                     protocol = protocol,
+                    timingPhases = timingPhases,
                 ),
             )
         }

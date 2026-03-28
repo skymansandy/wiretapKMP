@@ -35,6 +35,7 @@ data class HttpLog(
     val certificateCn: String? = null,
     val issuerCn: String? = null,
     val certificateExpiry: String? = null,
+    val timingPhases: List<TimingPhase> = emptyList(),
 ) {
     val isInProgress: Boolean = responseCode == RESPONSE_CODE_IN_PROGRESS
 

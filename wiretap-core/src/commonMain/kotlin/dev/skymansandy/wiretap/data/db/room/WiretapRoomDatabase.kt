@@ -19,7 +19,7 @@ import dev.skymansandy.wiretap.data.db.room.entity.SocketMessageEntity
         SocketLogEntity::class,
         SocketMessageEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 @ConstructedBy(WiretapDatabaseConstructor::class)

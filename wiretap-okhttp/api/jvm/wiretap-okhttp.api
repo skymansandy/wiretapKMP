@@ -2,6 +2,7 @@ public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpInterceptor : okh
 	public fun <init> ()V
 	public fun <init> (Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getEventListenerFactory ()Lokhttp3/EventListener$Factory;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun intercept (Lokhttp3/Interceptor$Chain;)Lokhttp3/Response;
 }

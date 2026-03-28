@@ -29,7 +29,8 @@ internal interface HttpLogsDao {
             cipher_suite = :cipherSuite,
             certificate_cn = :certificateCn,
             issuer_cn = :issuerCn,
-            certificate_expiry = :certificateExpiry
+            certificate_expiry = :certificateExpiry,
+            timing_phases = :timingPhases
         WHERE id = :id
         """,
     )
@@ -47,6 +48,7 @@ internal interface HttpLogsDao {
         certificateCn: String?,
         issuerCn: String?,
         certificateExpiry: String?,
+        timingPhases: String?,
         id: Long,
     )
 

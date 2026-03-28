@@ -4,7 +4,11 @@ import dev.skymansandy.wiretap.data.db.room.entity.HttpLogEntity
 import dev.skymansandy.wiretap.data.db.room.entity.HttpLogListProjection
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.domain.model.TimingPhase
 import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
+import kotlinx.serialization.json.Json
+
+private val timingJson = Json { ignoreUnknownKeys = true }
 
 internal fun HttpLogEntity.toDomain(): HttpLog {
     return HttpLog(
@@ -28,6 +32,9 @@ internal fun HttpLogEntity.toDomain(): HttpLog {
         certificateCn = certificateCn,
         issuerCn = issuerCn,
         certificateExpiry = certificateExpiry,
+        timingPhases = timingPhases?.let {
+            runCatching { timingJson.decodeFromString<List<TimingPhase>>(it) }.getOrDefault(emptyList())
+        } ?: emptyList(),
     )
 }
 
@@ -75,5 +82,8 @@ internal fun HttpLog.toRoomEntity(): HttpLogEntity {
         certificateCn = certificateCn,
         issuerCn = issuerCn,
         certificateExpiry = certificateExpiry,
+        timingPhases = timingPhases.takeIf { it.isNotEmpty() }?.let {
+            timingJson.encodeToString(it)
+        },
     )
 }

@@ -58,4 +58,6 @@ internal data class HttpLogEntity(
     val issuerCn: String? = null,
     @ColumnInfo(name = "certificate_expiry")
     val certificateExpiry: String? = null,
+    @ColumnInfo(name = "timing_phases")
+    val timingPhases: String? = null,
 )

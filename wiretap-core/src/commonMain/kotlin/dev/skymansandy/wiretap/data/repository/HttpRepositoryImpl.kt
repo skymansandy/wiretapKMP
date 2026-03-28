@@ -11,6 +11,7 @@ import dev.skymansandy.wiretap.helper.util.HeadersSerializerUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 internal class HttpRepositoryImpl(
     private val httpLogsDao: HttpLogsDao,
@@ -60,6 +61,9 @@ internal class HttpRepositoryImpl(
             certificateCn = log.certificateCn,
             issuerCn = log.issuerCn,
             certificateExpiry = log.certificateExpiry,
+            timingPhases = log.timingPhases.takeIf { it.isNotEmpty() }?.let {
+                Json.encodeToString(it)
+            },
             id = log.id,
         )
         invalidationSignal.tryEmit(Unit)

@@ -11,10 +11,12 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.okhttp.timing.WiretapTimingRegistry
 import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.EventListener
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
@@ -55,6 +57,22 @@ class WiretapOkHttpInterceptor(
 
     private val httpLogManager: HttpLogManager by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
+
+    /**
+     * Install this on the same [okhttp3.OkHttpClient.Builder] to capture
+     * granular timing (DNS, TCP, TLS, Request, Waiting, Download).
+     *
+     * ```kotlin
+     * val wiretap = WiretapOkHttpInterceptor { ... }
+     * OkHttpClient.Builder()
+     *     .addInterceptor(wiretap)
+     *     .eventListenerFactory(wiretap.eventListenerFactory)
+     *     .build()
+     * ```
+     */
+    val eventListenerFactory: EventListener.Factory = EventListener.Factory { call ->
+        WiretapTimingRegistry.create(call)
+    }
 
     private val sessionInitialized = AtomicBoolean(false)
 
@@ -206,6 +224,8 @@ class WiretapOkHttpInterceptor(
 
         if (logEntryId >= 0) {
             val meta = extractResponseMetadata(response, chain)
+            val timingCollector = WiretapTimingRegistry.retrieve(chain.call())
+            val timingPhases = timingCollector?.toTimingPhases(startNano) ?: emptyList()
             httpLogManager.updateHttp(
                 HttpLog(
                     id = logEntryId,
@@ -227,6 +247,7 @@ class WiretapOkHttpInterceptor(
                     certificateCn = meta.certificateCn,
                     issuerCn = meta.issuerCn,
                     certificateExpiry = meta.certificateExpiry,
+                    timingPhases = timingPhases,
                 ),
             )
         }
