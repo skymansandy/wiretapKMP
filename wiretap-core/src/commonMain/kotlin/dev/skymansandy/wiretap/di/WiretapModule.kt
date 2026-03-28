@@ -12,6 +12,7 @@ internal val wiretapModule = module {
 
     includes(wiretapDataModule)
     includes(wiretapUtilityModule)
+    includes(wiretapViewModelModule)
 
     single<HttpLogManager> {
         HttpLogManagerImpl(

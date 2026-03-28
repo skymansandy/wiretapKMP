@@ -27,6 +27,7 @@ import app.cash.paging.LoadStateError
 import app.cash.paging.LoadStateLoading
 import app.cash.paging.LoadStateNotLoading
 import app.cash.paging.compose.LazyPagingItems
+import app.cash.paging.compose.collectAsLazyPagingItems
 import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.ui.screens.http.components.SwipeableHttpLogItem
@@ -35,14 +36,16 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun HttpLogList(
-    modifier: Modifier = Modifier,
-    lazyItems: LazyPagingItems<HttpLog>,
+    viewModel: HttpLogListViewModel,
     searchQuery: String,
     onDismissSearch: () -> Unit,
     onHttpClick: (HttpLog) -> Unit,
     onCreateRule: (HttpLog) -> Unit,
     onViewRule: (Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+
+    val lazyItems = viewModel.pagedLogs.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val isAtTop by remember {

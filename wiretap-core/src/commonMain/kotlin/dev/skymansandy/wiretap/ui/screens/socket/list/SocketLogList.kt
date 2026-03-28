@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
@@ -45,12 +46,14 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun SocketLogList(
-    modifier: Modifier = Modifier,
-    socketLogs: List<SocketConnection>,
+    viewModel: SocketLogListViewModel,
     searchQuery: String,
     onDismissSearch: () -> Unit,
     onSocketClick: (SocketConnection) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
+
     if (socketLogs.isEmpty()) {
         Box(modifier, contentAlignment = Alignment.Center) {
             Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)

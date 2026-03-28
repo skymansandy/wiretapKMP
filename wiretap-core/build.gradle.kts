@@ -56,6 +56,7 @@ kotlin {
                 api(libs.jsonCmp)
                 api(libs.koin.core)
                 api(libs.koin.compose)
+                api(libs.koin.compose.viewmodel)
                 api(libs.kotlinx.coroutines.core)
 
                 implementation(libs.room.runtime)

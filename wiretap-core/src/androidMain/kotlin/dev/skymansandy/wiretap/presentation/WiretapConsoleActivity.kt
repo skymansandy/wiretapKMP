@@ -30,9 +30,9 @@ class WiretapConsoleActivity : ComponentActivity() {
         setContent {
             WiretapTheme {
                 WiretapConsole(
-                    onBack = { finish() },
                     deepLinkScreen = deepLinkScreen,
                     onDeepLinkConsumed = { deepLinkScreen = null },
+                    onBack = { finish() },
                 )
             }
         }

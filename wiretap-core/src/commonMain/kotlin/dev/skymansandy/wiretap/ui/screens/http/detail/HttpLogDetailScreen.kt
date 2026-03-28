@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
@@ -57,10 +58,29 @@ import dev.skymansandy.wiretap.ui.screens.http.detail.tabs.RequestTab
 import dev.skymansandy.wiretap.ui.screens.http.detail.tabs.ResponseTab
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HttpLogDetailScreen(
+    entryId: Long,
+    modifier: Modifier = Modifier,
+) {
+
+    val vm = koinViewModel<HttpLogDetailViewModel> { parametersOf(entryId) }
+    val entry by vm.entry.collectAsStateWithLifecycle()
+    val currentEntry = entry ?: return
+
+    HttpLogDetailScreenContent(
+        entry = currentEntry,
+        modifier = modifier,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HttpLogDetailScreenContent(
     entry: HttpLog,
     modifier: Modifier = Modifier,
 ) {
@@ -307,7 +327,7 @@ private fun RuleMatchBanner(
 @Composable
 private fun Preview_HttpLogDetailScreen() {
     PreviewWithNavigator {
-        HttpLogDetailScreen(
+        HttpLogDetailScreenContent(
             entry = HttpLog(
                 id = 1,
                 url = "https://api.example.com/users/123",
@@ -332,7 +352,7 @@ private fun Preview_HttpLogDetailScreen() {
 @Composable
 private fun Preview_HttpLogDetailScreenMocked() {
     PreviewWithNavigator {
-        HttpLogDetailScreen(
+        HttpLogDetailScreenContent(
             entry = HttpLog(
                 id = 2,
                 url = "https://api.example.com/users",

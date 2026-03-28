@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 internal class HttpLogDetailViewModel(
-    entryId: Long,
+    logId: Long,
     private val httpLogManager: HttpLogManager,
 ) : ViewModel() {
 
@@ -18,7 +18,7 @@ internal class HttpLogDetailViewModel(
 
     init {
         viewModelScope.launch {
-            entry.value = httpLogManager.getHttpLogById(entryId)
+            entry.value = httpLogManager.getHttpLogById(logId)
         }
     }
 }

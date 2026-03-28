@@ -49,12 +49,15 @@ import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SocketDetailScreen(
-    viewModel: SocketDetailViewModel,
+internal fun SocketDetailScreenView(
     modifier: Modifier = Modifier,
+    socketId: Long,
+    viewModel: SocketDetailViewModel = koinViewModel { parametersOf(socketId) },
 ) {
     val navigator = LocalWiretapNavigator.current
     val initialEntry by viewModel.initialEntry.collectAsStateWithLifecycle()

@@ -48,13 +48,16 @@ import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.CodeBlock
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.screens.rules.components.ActionBadge
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RuleDetailScreen(
-    viewModel: RuleDetailViewModel,
+    ruleId: Long,
     modifier: Modifier = Modifier,
+    viewModel: RuleDetailViewModel = koinViewModel { parametersOf(ruleId) },
 ) {
     val navigator = LocalWiretapNavigator.current
     val rule by viewModel.rule.collectAsStateWithLifecycle()

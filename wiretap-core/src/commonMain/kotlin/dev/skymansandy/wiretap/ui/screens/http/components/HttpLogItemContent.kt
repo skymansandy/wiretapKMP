@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,30 +40,35 @@ internal fun HttpLogItemContent(
     searchQuery: String,
     onClick: () -> Unit,
 ) {
-    val statusColor = when {
-        entry.isInProgress -> WiretapColors.StatusBlue
-        entry.responseCode in 200..299 -> Color.White
-        entry.responseCode in 300..399 -> WiretapColors.StatusBlue
-        entry.responseCode in 400..499 -> WiretapColors.StatusAmber
-        entry.responseCode >= 500 -> WiretapColors.StatusRed
-        else -> WiretapColors.StatusGray
+    val statusColor = remember(entry) {
+        when {
+            entry.isInProgress -> WiretapColors.StatusBlue
+            entry.responseCode in 200..299 -> Color.White
+            entry.responseCode in 300..399 -> WiretapColors.StatusBlue
+            entry.responseCode in 400..499 -> WiretapColors.StatusAmber
+            entry.responseCode >= 500 -> WiretapColors.StatusRed
+            else -> WiretapColors.StatusGray
+        }
     }
 
-    val isHttps = entry.url.startsWith("https://", ignoreCase = true)
-    val withoutScheme = entry.url.substringAfter("://")
-    val host = withoutScheme.substringBefore("/").substringBefore("?")
-    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
+    val isHttps = remember(entry) { entry.url.startsWith("https://", ignoreCase = true) }
+    val withoutScheme = remember(entry) { entry.url.substringAfter("://") }
+    val host = remember(withoutScheme) { withoutScheme.substringBefore("/").substringBefore("?") }
+    val path = remember(withoutScheme) { withoutScheme.removePrefix(host).ifEmpty { "/" } }
 
-    val responseBytes = entry.responseBodySize
-    val formattedSize = when {
-        responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
-        responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
-        responseBytes > 0 -> "$responseBytes B"
-        else -> null
+    val responseBytes = remember(entry) { entry.responseBodySize }
+    val formattedSize = remember(responseBytes) {
+        when {
+            responseBytes >= 1_048_576 -> "${formatOneDecimal(responseBytes / 1_048_576f)} MB"
+            responseBytes >= 1_024 -> "${formatOneDecimal(responseBytes / 1_024f)} kB"
+            responseBytes > 0 -> "$responseBytes B"
+            else -> null
+        }
     }
 
     Column(
-        modifier = modifier.background(MaterialTheme.colorScheme.background),
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Row(
             modifier = Modifier
@@ -117,7 +123,7 @@ internal fun HttpLogItemContent(
                     Text(
                         text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = statusColor,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis,
                     )

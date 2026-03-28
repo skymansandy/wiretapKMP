@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal sealed interface WiretapScreen : NavKey {
 
+    /** Marker for screens that appear as a fullscreen */
+    interface FullScreenPane
+
     /** Marker for screens that appear in the list pane. */
     interface ListPane
 

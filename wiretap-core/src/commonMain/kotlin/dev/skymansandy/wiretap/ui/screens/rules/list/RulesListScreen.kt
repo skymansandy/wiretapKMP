@@ -26,8 +26,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,24 +38,19 @@ import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
-import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.ui.screens.rules.components.ActionBadge
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun RulesListScreen(
-    modifier: Modifier = Modifier,
-    ruleRepository: RuleRepository,
-    searchQuery: String = "",
+    viewModel: RulesListViewModel,
     onRuleClick: (WiretapRule) -> Unit,
     onCreateClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val scope = rememberCoroutineScope()
-    val rulesFlow = remember(searchQuery) {
-        if (searchQuery.isBlank()) ruleRepository.flowAll() else ruleRepository.flowForQuery(searchQuery)
-    }
-    val rules by rulesFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    val rules by viewModel.rules.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.debouncedQuery.collectAsStateWithLifecycle()
 
     Box(modifier = modifier) {
         if (rules.isEmpty()) {
@@ -85,7 +78,7 @@ internal fun RulesListScreen(
                         rule = rule,
                         searchQuery = searchQuery,
                         onClick = { onRuleClick(rule) },
-                        onToggle = { scope.launch { ruleRepository.setEnabled(rule.id, it) } },
+                        onToggle = { viewModel.setEnabled(rule.id, it) },
                     )
                 }
             }

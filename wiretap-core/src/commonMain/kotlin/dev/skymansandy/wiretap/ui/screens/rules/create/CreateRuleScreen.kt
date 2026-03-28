@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
@@ -46,14 +47,22 @@ import dev.skymansandy.wiretap.ui.screens.rules.create.step.request.RequestStep
 import dev.skymansandy.wiretap.ui.screens.rules.create.step.response.ResponseStep
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CreateRuleScreen(
-    viewModel: CreateRuleViewModel,
-    ruleRepository: RuleRepository,
+    existingRuleId: Long = 0L,
+    prefillFromLogId: Long = 0L,
     modifier: Modifier = Modifier,
+    viewModel: CreateRuleViewModel = koinViewModel { parametersOf(existingRuleId, prefillFromLogId) },
+    ruleRepository: RuleRepository = WiretapDi.getKoin().get(),
 ) {
+
+    val loaded by viewModel.loaded.collectAsStateWithLifecycle()
+    if (!loaded) return
+
     val navigator = LocalWiretapNavigator.current
     val scope = rememberCoroutineScope()
     val step by viewModel.step.collectAsStateWithLifecycle()
