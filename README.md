@@ -83,17 +83,14 @@ dependencies {
 
 #### URLSession (iOS via SPM)
 
-Add the `WiretapURLSession` SPM package, then use `#if DEBUG` to disable in release:
+Add the `WiretapURLSession` SPM package. Use `WiretapSession` in debug and plain `URLSession` in release:
 
 ```swift
 #if DEBUG
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-}
+import WiretapURLSession
+let session = WiretapSession { config in config.enabled = true }
 #else
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = false
-}
+let session = URLSession.shared
 #endif
 ```
 
@@ -127,14 +124,20 @@ val client = OkHttpClient.Builder()
 ### URLSession (Swift)
 
 ```swift
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+#if DEBUG
+import WiretapURLSession
+let session = WiretapSession { config in
     config.enabled = true
-    config.logRetention = LogRetention.Days(days: 7)
+    config.logRetention = LogRetentionDays(days: 7)
 }
+#else
+let session = URLSession.shared
+#endif
 
-interceptor.intercept(request: request) { data, response, error in
+// Use like URLSession — same call sites in debug and release
+session.dataTask(with: request) { data, response, error in
     // handle response
-}
+}.resume()
 ```
 
 ## No-op Variants
@@ -146,7 +149,7 @@ Swap dependencies for release builds — no conditional code needed.
 | `wiretap-ktor` | `wiretap-ktor-noop` |
 | `wiretap-okhttp` | `wiretap-okhttp-noop` |
 
-For URLSession, use `config.enabled = false` with `#if DEBUG` (see installation above).
+For URLSession, use `WiretapSession` in debug and plain `URLSession` in release (see installation above).
 
 ## Documentation
 

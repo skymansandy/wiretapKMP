@@ -1,12 +1,15 @@
 import Foundation
+#if DEBUG
 import WiretapURLSession
+#endif
 
 final class NetworkClient {
 
-    let interceptor: WiretapURLSessionInterceptor
+    #if DEBUG
+    private let session: WiretapSession
 
     init() {
-        interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
+        session = WiretapSession(configuration: .default) { config in
             config.enabled = true
             config.logRetention = LogRetentionDays(days: 7)
             config.headerAction = { key in
@@ -20,6 +23,11 @@ final class NetworkClient {
             }
         }
     }
+    #else
+    private let session = URLSession.shared
+
+    init() {}
+    #endif
 
     // MARK: - Request Builders
 
@@ -30,7 +38,7 @@ final class NetworkClient {
     ) {
         guard let request = buildRequest(url: url, method: method) else { return }
 
-        interceptor.intercept(request: request) { data, response, error in
+        execute(request) { data, response, error in
             completion(error.map { "Error: \($0.localizedDescription)" }
                        ?? Self.formatResponse(response: response as? HTTPURLResponse, data: data))
         }
@@ -44,7 +52,7 @@ final class NetworkClient {
     ) {
         guard let request = buildRequest(url: url, method: method, headers: headers) else { return }
 
-        interceptor.intercept(request: request) { data, response, error in
+        execute(request) { data, response, error in
             completion(error.map { "Error: \($0.localizedDescription)" }
                        ?? Self.formatResponse(response: response as? HTTPURLResponse, data: data))
         }
@@ -65,7 +73,7 @@ final class NetworkClient {
             contentType: contentType
         ) else { return }
 
-        interceptor.intercept(request: request) { data, response, error in
+        execute(request) { data, response, error in
             completion(error.map { "Error: \($0.localizedDescription)" }
                        ?? Self.formatResponse(response: response as? HTTPURLResponse, data: data))
         }
@@ -79,12 +87,17 @@ final class NetworkClient {
 
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = timeoutSeconds
-        let session = URLSession(configuration: config)
-        let timeoutInterceptor = WiretapURLSessionInterceptor(session: session) { _ in }
 
-        timeoutInterceptor.intercept(request: request) { _, _, error in
+        #if DEBUG
+        let timeoutSession = WiretapSession(configuration: config) { _ in }
+        timeoutSession.intercept(request: request) { _, _, error in
             completion(error.map { "Timeout: \($0.localizedDescription)" } ?? "Unexpected success")
         }
+        #else
+        URLSession(configuration: config).dataTask(with: request) { _, _, error in
+            completion(error.map { "Timeout: \($0.localizedDescription)" } ?? "Unexpected success")
+        }.resume()
+        #endif
     }
 
     func makeCancelRequest(
@@ -93,7 +106,7 @@ final class NetworkClient {
     ) {
         guard let request = buildRequest(url: "https://httpbin.org/delay/10", method: "GET") else { return }
 
-        let task = interceptor.dataTask(request: request) { _, _, error in
+        let task = createTask(request) { _, _, error in
             completion(error.map { "Cancelled: \($0.localizedDescription)" } ?? "Unexpected success")
         }
         task.resume()
@@ -114,7 +127,7 @@ final class NetworkClient {
                 let urlString = "https://jsonplaceholder.typicode.com/posts/\(i)"
                 guard let request = self.buildRequest(url: urlString, method: "GET") else { return }
 
-                self.interceptor.intercept(request: request) { _, response, error in
+                self.execute(request) { _, response, error in
                     if let error = error {
                         completion("Burst \(i)/\(count): Error \(error.localizedDescription)")
                     } else {
@@ -140,7 +153,7 @@ final class NetworkClient {
                 let urlString = "https://jsonplaceholder.typicode.com/posts/\(i)"
                 guard let request = self.buildRequest(url: urlString, method: "GET") else { return }
 
-                let task = self.interceptor.dataTask(request: request) { _, response, error in
+                let task = self.createTask(request) { _, response, error in
                     guard error == nil else { return }
                     let code = (response as? HTTPURLResponse)?.statusCode ?? 0
                     completion("Request \(i)/\(count): HTTP \(code)")
@@ -149,6 +162,38 @@ final class NetworkClient {
                 task.resume()
             }
         }
+    }
+
+    // MARK: - Session Bridge
+
+    private func execute(
+        _ request: URLRequest,
+        completion: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) {
+        #if DEBUG
+        session.intercept(request: request) { data, response, error in
+            completion(data as Data?, response, error)
+        }
+        #else
+        session.dataTask(with: request) { data, response, error in
+            completion(data, response, error)
+        }.resume()
+        #endif
+    }
+
+    private func createTask(
+        _ request: URLRequest,
+        completion: @escaping (Data?, URLResponse?, Error?) -> Void
+    ) -> URLSessionDataTask {
+        #if DEBUG
+        session.dataTask(request: request) { data, response, error in
+            completion(data as Data?, response, error)
+        }
+        #else
+        session.dataTask(with: request) { data, response, error in
+            completion(data, response, error)
+        }
+        #endif
     }
 
     // MARK: - Private Helpers

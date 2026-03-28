@@ -2,17 +2,37 @@
 
 ## Two APIs
 
-`WiretapURLSessionInterceptor` provides two ways to make requests:
+`WiretapSession` provides two ways to make requests:
+
+### `dataTask()` — Logging with Task Control
+
+Returns an `NSURLSessionDataTask` for standard URLSession patterns:
+
+```swift
+let url = URL(string: "https://api.example.com/users")!
+let request = URLRequest(url: url)
+
+let task = session.dataTask(request: request) { data, response, error in
+    guard let data = data, error == nil else {
+        print("Error: \(error?.localizedDescription ?? "Unknown")")
+        return
+    }
+    let json = try? JSONSerialization.jsonObject(with: data)
+    print(json ?? "No data")
+}
+task.resume()
+```
+
+- Returns the data task — **caller must call `resume()`**
+- Supports cancellation via `task.cancel()` (logged automatically)
+- **Logging only** — mock and throttle rules are NOT applied
 
 ### `intercept()` — Full Rule Support
 
 Fire-and-forget execution with mock and throttle rule support:
 
 ```swift
-let url = URL(string: "https://api.example.com/users")!
-let request = URLRequest(url: url)
-
-interceptor.intercept(request: request) { data, response, error in
+session.intercept(request: request) { data, response, error in
     guard let data = data, error == nil else {
         print("Error: \(error?.localizedDescription ?? "Unknown")")
         return
@@ -27,30 +47,17 @@ interceptor.intercept(request: request) { data, response, error in
 - If a **throttle rule** matches, delays execution using GCD (`dispatch_after`)
 - No task object returned — cannot cancel
 
-### `dataTask()` — Logging Only
-
-Returns an `NSURLSessionDataTask` for standard URLSession patterns:
+### URL Convenience Overloads
 
 ```swift
-let task = interceptor.dataTask(request: request) { data, response, error in
+// URL string
+let task = session.dataTask(url: "https://api.example.com/users") { data, response, error in
     // handle response
 }
 task.resume()
 
-// Cancel support
-DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-    task.cancel()
-}
-```
-
-- Returns the data task — **caller must call `resume()`**
-- **Logging only** — mock and throttle rules are NOT applied
-- Supports cancellation via `task.cancel()`
-
-### URL String Convenience
-
-```swift
-let task = interceptor.dataTask(url: "https://api.example.com/users") { data, response, error in
+// NSURL
+let task = session.dataTask(url: myNSURL) { data, response, error in
     // handle response
 }
 task.resume()
@@ -58,17 +65,35 @@ task.resume()
 
 ## When to Use Which API
 
-| Feature | `intercept()` | `dataTask()` |
+| Feature | `dataTask()` | `intercept()` |
 |---------|:------------:|:------------:|
 | HTTP logging | ✅ | ✅ |
-| Mock rules | ✅ | — |
-| Throttle rules | ✅ | — |
-| Cancel support | — | ✅ |
-| Returns task | — | ✅ |
-| Auto-executes | ✅ | — |
+| Cancel support | ✅ | — |
+| Returns task | ✅ | — |
+| Mock rules | — | ✅ |
+| Throttle rules | — | ✅ |
+| Auto-executes | — | ✅ |
 
-Use `intercept()` when you need rule support (testing, development).
-Use `dataTask()` when you need task control (cancellation, progress).
+Use `dataTask()` for standard networking (most use cases).
+Use `intercept()` when you need mock/throttle rule support.
+
+## Cancellation
+
+Cancelled requests are automatically detected and marked in the inspector UI:
+
+```swift
+let task = session.dataTask(request: request) { _, _, error in
+    if let error = error as? NSError, error.code == NSURLErrorCancelled {
+        print("Request was cancelled")
+    }
+}
+task.resume()
+
+// Cancel after 1 second
+DispatchQueue.global().asyncAfter(deadline: .now() + 1.0) {
+    task.cancel()
+}
+```
 
 ## POST Request Example
 
@@ -81,12 +106,33 @@ request.httpBody = try? JSONSerialization.data(withJSONObject: [
     "email": "john@example.com",
 ])
 
-interceptor.intercept(request: request) { data, response, error in
+session.intercept(request: request) { data, response, error in
     // Request body is captured in the log
 }
 ```
 
+## Custom Session Configuration
+
+Pass a custom `NSURLSessionConfiguration` for timeouts, caching, etc.:
+
+```swift
+let config = URLSessionConfiguration.default
+config.timeoutIntervalForRequest = 5
+
+let session = WiretapSession(configuration: config) { config in
+    config.enabled = true
+}
+```
+
 ## How It Works
+
+### `dataTask()` Flow
+
+1. If `enabled = false`, returns raw `session.dataTaskWithRequest()`
+2. Extracts request metadata and logs request
+3. Wraps completion handler to capture response
+4. If cancelled, marks the log entry as cancelled
+5. Returns the data task (caller must `resume()`)
 
 ### `intercept()` Flow
 
@@ -99,30 +145,35 @@ interceptor.intercept(request: request) { data, response, error in
 7. **Mock rule**: calls completion handler with mock data immediately
 8. **Throttle rule**: delays via `dispatch_after` on GCD global queue, then executes
 9. **No rule**: executes request immediately
-10. Logs response when complete
-
-### `dataTask()` Flow
-
-1. If `enabled = false`, returns raw `session.dataTaskWithRequest()`
-2. Extracts request metadata and logs request
-3. Wraps completion handler to capture response
-4. Returns the data task (caller must `resume()`)
+10. Logs response when complete (or marks cancelled)
 
 ## Error Handling
 
 | Scenario | Response Code | Response Body |
 |----------|:------------:|---------------|
+| Success | HTTP status | Response data |
 | Network error | `0` | `NSError.localizedDescription` |
+| Cancelled | Marked cancelled | — |
 | In-progress | `-2` | — |
 
 ## Debug vs Release
 
-Set `config.enabled = false` in release builds to disable logging and rule evaluation. When disabled, requests pass through directly to `NSURLSession`.
+Use `WiretapSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
 
 ```swift
 #if DEBUG
-config.enabled = true
-#else
-config.enabled = false
+import WiretapURLSession
 #endif
+
+class NetworkClient {
+    #if DEBUG
+    private let session = WiretapSession { config in
+        config.enabled = true
+    }
+    #else
+    private let session = URLSession.shared
+    #endif
+}
 ```
+
+Confine `#if DEBUG` to the session property and a pair of bridge methods (see [Setup](setup.md#create-a-session)). The rest of your networking code stays `#if`-free.

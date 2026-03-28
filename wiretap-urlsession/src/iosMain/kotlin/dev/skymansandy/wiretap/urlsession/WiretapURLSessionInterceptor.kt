@@ -27,6 +27,7 @@ import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSString
 import platform.Foundation.NSURL
+import platform.Foundation.NSURLErrorCancelled
 import platform.Foundation.NSURLRequest
 import platform.Foundation.NSURLResponse
 import platform.Foundation.NSURLSession
@@ -42,16 +43,13 @@ import platform.darwin.dispatch_time
 import kotlin.concurrent.Volatile
 
 /**
- * URLSession interceptor for Wiretap network inspection on iOS.
+ * Low-level URLSession interceptor for Wiretap network inspection on iOS.
  *
- * Configuration is applied via a builder lambda:
- * ```swift
- * // Swift (via SKIE)
- * let interceptor = WiretapURLSessionInterceptor(session: .shared) {
- *     $0.shouldLog = { url, method in url.contains("/api/") }
- *     $0.logRetention = LogRetention.Days(days: 7)
- * }
- * ```
+ * **Prefer [WiretapSession]** for new code — it wraps this class and manages the
+ * underlying NSURLSession for you, giving a drop-in URLSession-like API.
+ *
+ * Use this class directly only when you need to provide your own NSURLSession
+ * instance (e.g. custom configuration, delegate, or shared session).
  *
  * Provides two APIs:
  * - [intercept]: Fire-and-forget execution with full mock/throttle rule support.
@@ -137,10 +135,14 @@ class WiretapURLSessionInterceptor(
 
                 if (logEntryId >= 0) {
                     runBlocking {
-                        logResponse(
-                            logEntryId, url, method, reqHeaders, requestBody,
-                            httpResponse, data, error, durationNs, matchingRule,
-                        )
+                        if (error?.code == NSURLErrorCancelled) {
+                            httpLogManager.markHttpCancelledIfInProgress(logEntryId)
+                        } else {
+                            logResponse(
+                                logEntryId, url, method, reqHeaders, requestBody,
+                                httpResponse, data, error, durationNs, matchingRule,
+                            )
+                        }
                     }
                 }
 
@@ -210,10 +212,14 @@ class WiretapURLSessionInterceptor(
 
             if (logEntryId >= 0) {
                 runBlocking {
-                    logResponse(
-                        logEntryId, url, method, reqHeaders, requestBody,
-                        httpResponse, data, error, durationNs, null,
-                    )
+                    if (error?.code == NSURLErrorCancelled) {
+                        httpLogManager.markHttpCancelledIfInProgress(logEntryId)
+                    } else {
+                        logResponse(
+                            logEntryId, url, method, reqHeaders, requestBody,
+                            httpResponse, data, error, durationNs, null,
+                        )
+                    }
                 }
             }
 

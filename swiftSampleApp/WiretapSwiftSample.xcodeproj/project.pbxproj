@@ -7,31 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3DA36F7B204E7E6681C7CB10 /* WiretapSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */; };
-		423D1B3E9865A5D6DEF58E25 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE17C5921ECB604BEBE593D8 /* FlowLayout.swift */; };
-		5426882AF44D60C4D82DFDEF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703A6EE4BBDFFA66EEDB3A6E /* Theme.swift */; };
-		7C68B12F71833FF2E2DEF1A4 /* StatusWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 676BDAF0E230D636FF55C2DD /* StatusWindow.swift */; };
-		93404DBFF5B4F9290C3813C3 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56EB6899E62AFAEDE4F03E /* NetworkClient.swift */; };
-		AB0212E36827E3D6294D8851 /* ActionButtonGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 866B84ACDEE730ABA0E31005 /* ActionButtonGrid.swift */; };
-		B65CC724EF1964DCD1B6E11E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */; };
-		D023ECA4B1C2024FFD2337EE /* ApiAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D98ACB57A05CE8B63B5DC1 /* ApiAction.swift */; };
+		15FED7812C7FFE9B1C6E0BC6 /* WiretapSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD2CE6417538EDEB787E7C9E /* WiretapSampleApp.swift */; };
+		58D4A7A8430457FEA15DA6FD /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D28DFDA0954C23E7EFEAD03 /* Theme.swift */; };
+		5D54EBE297F55BBFD50219F6 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E1703E9CEC4AB58A0838F7 /* FlowLayout.swift */; };
+		7A05BB0BAECB0E58DD360690 /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8531D58822B1C18F11CE8E5 /* NetworkClient.swift */; };
+		9471B54DA5B7D9FB155E7151 /* StatusWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE16D342E357D452FC47FEDA /* StatusWindow.swift */; };
+		9B517CD063BABB25E6A4B1F8 /* ActionButtonGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D12444442228BCD155812C0 /* ActionButtonGrid.swift */; };
+		9FE3C7AA98226D15A36F9EAB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD74C0CF299E36CDABF5FC15 /* Assets.xcassets */; };
+		A751F5563A1B6BD0D9DC5F8F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FCF85B8BB4462F0C0C12DEE /* ContentView.swift */; };
+		D34E0A20BEAF7ECA17880CE4 /* ApiAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = E97A2C9002821FDDA5E7A1EB /* ApiAction.swift */; };
 		D72BA44A7DECAE2235BC610B /* WiretapURLSession in Frameworks */ = {isa = PBXBuildFile; productRef = C16E5D8503307AD6D647B276 /* WiretapURLSession */; };
-		F557626B34D7067263F11655 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB3F1FB1AD71D809BACB2627 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		25D98ACB57A05CE8B63B5DC1 /* ApiAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiAction.swift; sourceTree = "<group>"; };
-		2B56EB6899E62AFAEDE4F03E /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
-		2ED7DB91F66CAC604613F22C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		676BDAF0E230D636FF55C2DD /* StatusWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusWindow.swift; sourceTree = "<group>"; };
-		703A6EE4BBDFFA66EEDB3A6E /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		866B84ACDEE730ABA0E31005 /* ActionButtonGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonGrid.swift; sourceTree = "<group>"; };
+		0FCF85B8BB4462F0C0C12DEE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1D12444442228BCD155812C0 /* ActionButtonGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButtonGrid.swift; sourceTree = "<group>"; };
+		5D28DFDA0954C23E7EFEAD03 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		900CA32CA2556E6479CC551E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9484F103EC0B1BFFE6CD368A /* WiretapKMP */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WiretapKMP; path = ..; sourceTree = SOURCE_ROOT; };
-		AB3F1FB1AD71D809BACB2627 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		CE17C5921ECB604BEBE593D8 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		BD74C0CF299E36CDABF5FC15 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C8531D58822B1C18F11CE8E5 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
+		CD2CE6417538EDEB787E7C9E /* WiretapSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiretapSampleApp.swift; sourceTree = "<group>"; };
 		D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WiretapSwiftSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiretapSampleApp.swift; sourceTree = "<group>"; };
+		E97A2C9002821FDDA5E7A1EB /* ApiAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiAction.swift; sourceTree = "<group>"; };
+		F0E1703E9CEC4AB58A0838F7 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		FE16D342E357D452FC47FEDA /* StatusWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,6 +46,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1F02CCBC299289B25C670571 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				1D12444442228BCD155812C0 /* ActionButtonGrid.swift */,
+				0FCF85B8BB4462F0C0C12DEE /* ContentView.swift */,
+				F0E1703E9CEC4AB58A0838F7 /* FlowLayout.swift */,
+				FE16D342E357D452FC47FEDA /* StatusWindow.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		25F5C938DEA4CD4911FAEB6C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				CD2CE6417538EDEB787E7C9E /* WiretapSampleApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
 		2F62A9A798462A9AF98CA90F = {
 			isa = PBXGroup;
 			children = (
@@ -53,6 +72,14 @@
 				B00BDF6916FCE775F871CAC4 /* Packages */,
 				C380C1C68734F4BB9827B83C /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		572758951D6A2047C88141A3 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				C8531D58822B1C18F11CE8E5 /* NetworkClient.swift */,
+			);
+			path = Network;
 			sourceTree = "<group>";
 		};
 		B00BDF6916FCE775F871CAC4 /* Packages */ = {
@@ -66,16 +93,11 @@
 		C1740782434E0816ADE6A2E4 /* iosSampleApp */ = {
 			isa = PBXGroup;
 			children = (
-				866B84ACDEE730ABA0E31005 /* ActionButtonGrid.swift */,
-				25D98ACB57A05CE8B63B5DC1 /* ApiAction.swift */,
-				AB3F1FB1AD71D809BACB2627 /* Assets.xcassets */,
-				5139E7FCEC9BB46ADAA9D483 /* ContentView.swift */,
-				CE17C5921ECB604BEBE593D8 /* FlowLayout.swift */,
-				2ED7DB91F66CAC604613F22C /* Info.plist */,
-				2B56EB6899E62AFAEDE4F03E /* NetworkClient.swift */,
-				676BDAF0E230D636FF55C2DD /* StatusWindow.swift */,
-				703A6EE4BBDFFA66EEDB3A6E /* Theme.swift */,
-				F85FFB7B0B40730AC32F6F72 /* WiretapSampleApp.swift */,
+				25F5C938DEA4CD4911FAEB6C /* App */,
+				D14D9AF99712CC942C5C7194 /* Model */,
+				572758951D6A2047C88141A3 /* Network */,
+				D75573A3CD89E79E961C3946 /* Resources */,
+				1F02CCBC299289B25C670571 /* UI */,
 			);
 			path = iosSampleApp;
 			sourceTree = "<group>";
@@ -86,6 +108,24 @@
 				D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D14D9AF99712CC942C5C7194 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				E97A2C9002821FDDA5E7A1EB /* ApiAction.swift */,
+				5D28DFDA0954C23E7EFEAD03 /* Theme.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		D75573A3CD89E79E961C3946 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				BD74C0CF299E36CDABF5FC15 /* Assets.xcassets */,
+				900CA32CA2556E6479CC551E /* Info.plist */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,7 +193,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F557626B34D7067263F11655 /* Assets.xcassets in Resources */,
+				9FE3C7AA98226D15A36F9EAB /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,14 +226,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AB0212E36827E3D6294D8851 /* ActionButtonGrid.swift in Sources */,
-				D023ECA4B1C2024FFD2337EE /* ApiAction.swift in Sources */,
-				B65CC724EF1964DCD1B6E11E /* ContentView.swift in Sources */,
-				423D1B3E9865A5D6DEF58E25 /* FlowLayout.swift in Sources */,
-				93404DBFF5B4F9290C3813C3 /* NetworkClient.swift in Sources */,
-				7C68B12F71833FF2E2DEF1A4 /* StatusWindow.swift in Sources */,
-				5426882AF44D60C4D82DFDEF /* Theme.swift in Sources */,
-				3DA36F7B204E7E6681C7CB10 /* WiretapSampleApp.swift in Sources */,
+				9B517CD063BABB25E6A4B1F8 /* ActionButtonGrid.swift in Sources */,
+				D34E0A20BEAF7ECA17880CE4 /* ApiAction.swift in Sources */,
+				A751F5563A1B6BD0D9DC5F8F /* ContentView.swift in Sources */,
+				5D54EBE297F55BBFD50219F6 /* FlowLayout.swift in Sources */,
+				7A05BB0BAECB0E58DD360690 /* NetworkClient.swift in Sources */,
+				9471B54DA5B7D9FB155E7151 /* StatusWindow.swift in Sources */,
+				58D4A7A8430457FEA15DA6FD /* Theme.swift in Sources */,
+				15FED7812C7FFE9B1C6E0BC6 /* WiretapSampleApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,7 +302,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = iosSampleApp/Info.plist;
+				INFOPLIST_FILE = iosSampleApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -347,7 +387,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = iosSampleApp/Info.plist;
+				INFOPLIST_FILE = iosSampleApp/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
