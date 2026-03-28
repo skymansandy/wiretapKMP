@@ -32,12 +32,19 @@ All configuration properties are optional — with no arguments, Wiretap logs ev
 
 ## With WebSocket Support
 
+Use the `wiretapped()` extension to wrap your listener:
+
 ```kotlin
 val client = OkHttpClient.Builder()
     .addInterceptor(WiretapOkHttpInterceptor())
     .build()
 
-// Wrap your WebSocketListener
+client.newWebSocket(request, myWebSocketListener.wiretapped())
+```
+
+Or use the constructor directly:
+
+```kotlin
 val listener = WiretapOkHttpWebSocketListener(myWebSocketListener)
 client.newWebSocket(request, listener)
 ```

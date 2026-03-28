@@ -40,7 +40,8 @@ import platform.darwin.DISPATCH_TIME_NOW
 import platform.darwin.dispatch_after
 import platform.darwin.dispatch_get_global_queue
 import platform.darwin.dispatch_time
-import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Low-level URLSession interceptor for Wiretap network inspection on iOS.
@@ -55,6 +56,7 @@ import kotlin.concurrent.Volatile
  * - [intercept]: Fire-and-forget execution with full mock/throttle rule support.
  * - [dataTask]: Returns an NSURLSessionDataTask with logging (no mock/throttle).
  */
+@OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
     configure: WiretapConfig.() -> Unit = {},
@@ -67,8 +69,7 @@ class WiretapURLSessionInterceptor(
     private val httpLogManager: HttpLogManager by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
-    @Volatile
-    private var sessionInitialized = false
+    private val sessionInitialized = AtomicBoolean(false)
 
     /**
      * Intercepts a URL request with full rule support (mock, throttle).
@@ -76,7 +77,6 @@ class WiretapURLSessionInterceptor(
      * For mock rules, the completion handler is called with mock data without network access.
      */
     @Suppress("LongMethod")
-    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     fun intercept(
         request: NSURLRequest,
         completionHandler: (NSData?, NSHTTPURLResponse?, NSError?) -> Unit,
@@ -99,12 +99,6 @@ class WiretapURLSessionInterceptor(
         val requestBody = request.HTTPBody?.toKotlinString()
 
         val matchingRule = findMatchingRule(url, method, reqHeaders, requestBody)
-
-        val retention = config.logRetention
-        if (retention is LogRetention.Days) {
-            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            httpLogManager.purgeHttpLogsOlderThan(cutoff)
-        }
 
         val logEntryId = if (config.shouldLog(url, method)) {
             httpLogManager.logHttpAndGetId(
@@ -240,12 +234,16 @@ class WiretapURLSessionInterceptor(
         return dataTask(request, completionHandler)
     }
 
+    // Retention cleanup: runs once per plugin installation
     private suspend fun initSessionIfNeeded() {
-
-        if (!sessionInitialized) {
-            sessionInitialized = true
-            if (config.logRetention == LogRetention.AppSession) {
-                httpLogManager.clearHttpLogs()
+        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+            when (val logRetention = config.logRetention) {
+                LogRetention.Forever -> Unit
+                is LogRetention.AppSession -> httpLogManager.clearHttpLogs()
+                is LogRetention.Days -> {
+                    val cutoff = currentTimeMillis() - logRetention.days * 24L * 60 * 60 * 1000
+                    httpLogManager.purgeHttpLogsOlderThan(cutoff)
+                }
             }
         }
     }

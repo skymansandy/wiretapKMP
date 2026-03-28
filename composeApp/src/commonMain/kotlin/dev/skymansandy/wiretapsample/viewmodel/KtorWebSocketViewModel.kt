@@ -4,14 +4,15 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.plugin.WiretapWebSocketSession
-import dev.skymansandy.wiretap.plugin.wiretapWrap
+import dev.skymansandy.wiretap.plugin.ws.WiretapWebSocketSession
+import dev.skymansandy.wiretap.plugin.ws.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.WsSampleActions
 import dev.skymansandy.wiretapsample.model.wsServers
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
@@ -42,7 +43,7 @@ class KtorWebSocketViewModel(
     override val messageLog: SnapshotStateList<SampleMessage> = mutableStateListOf()
 
     private var wsUrl = wsServers[0].first
-    private var session: WiretapWebSocketSession? = null
+    private var session: WiretapWebSocketSession? = null // nullable because it's only set during active connection
     private var connectionJob: Job? = null
     private val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
@@ -68,15 +69,14 @@ class KtorWebSocketViewModel(
         connectionJob = viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
                 client.webSocket(wsUrl) {
-                    val wrapped = this.wiretapWrap()
+                    val wrapped = this.wiretapped()
                     session = wrapped
                     _isConnected.value = true
                     _isConnecting.value = false
                     messageLog.add(SampleMessage(MessageType.System, "Connected!"))
 
                     try {
-                        val incomingChannel = wrapped?.incoming ?: incoming
-                        for (frame in incomingChannel) {
+                        for (frame in wrapped.incoming) {
                             if (frame is Frame.Text) {
                                 val text = frame.readText()
                                 messageLog.add(SampleMessage(MessageType.Received, text))
@@ -101,7 +101,7 @@ class KtorWebSocketViewModel(
     private fun disconnect() {
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
-                session?.close(reason = "User disconnected")
+                session?.close(CloseReason(CloseReason.Codes.NORMAL, "User disconnected"))
             } catch (_: Exception) {
                 // Ignore close errors
             }

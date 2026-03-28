@@ -76,7 +76,6 @@ class WiretapURLSession(
         url: NSURL,
         completionHandler: (NSData?, NSURLResponse?, NSError?) -> Unit,
     ): NSURLSessionDataTask {
-
         val request = NSURLRequest.requestWithURL(url)
         return interceptor.dataTask(request, completionHandler)
     }

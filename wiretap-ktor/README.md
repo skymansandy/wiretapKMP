@@ -98,7 +98,7 @@ Rules match on method, URL (exact/contains/regex), headers, and body. First matc
 `WiretapKtorWebSocketPlugin` intercepts WebSocket upgrade requests (status 101) and logs all sent/received frames. It works independently of `WiretapKtorHttpPlugin` — you can install either or both depending on your needs.
 
 1. **On upgrade** — The plugin detects the 101 response and creates a `SocketConnection` entry with URL, request headers, status, and protocol.
-2. **Session wrapping** — Call `wiretapWrap()` inside the `webSocket {}` block to get a `WiretapWebSocketSession` that logs all frames.
+2. **Session wrapping** — Call `wiretapped()` inside the `webSocket {}` block to get a `WiretapWebSocketSession` that logs all frames.
 3. **Auto-close detection** — The session monitors its coroutine Job and automatically updates status to Closed/Failed when the connection ends.
 
 ### 📦 Setup
@@ -114,7 +114,7 @@ val client = HttpClient {
 
 ```kotlin
 client.webSocket("wss://example.com/ws") {
-    val session = this.wiretapWrap() // IMPORTANT: Returns null if WiretapKtorWebSocketPlugin is not installed
+    val session = this.wiretapped() // IMPORTANT: Returns a DelegatingWebSocketSession if plugin is not installed
 
     // Send — automatically logged
     session?.send(Frame.Text("Hello!"))
@@ -133,7 +133,6 @@ client.webSocket("wss://example.com/ws") {
 
 | Event                      | Logged as                              |
 |----------------------------|----------------------------------------|
-| Connection upgrade (101)   | `SocketConnection` with status `Open`  |
 | `session.send(Text)`       | Sent, full text content                |
 | `session.send(Binary)`     | Sent, `[Binary: N bytes]`             |
 | Receive Text from `incoming` | Received, full text content          |

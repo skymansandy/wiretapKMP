@@ -116,6 +116,16 @@ Unlike other interceptors, the OkHttp interceptor captures rich TLS information 
 
 ### 🔧 Usage
 
+#### Extension function (recommended)
+
+```kotlin
+val request = Request.Builder().url("wss://example.com/ws").build()
+
+client.newWebSocket(request, myListener.wiretapped())
+```
+
+#### Constructor
+
 ```kotlin
 val request = Request.Builder().url("wss://example.com/ws").build()
 
@@ -161,4 +171,4 @@ client.newWebSocket(
 | `onClosed(code, reason)`       | Status updated to `Closed` with code/reason |
 | `onFailure(throwable)`         | Status updated to `Failed` with error  |
 
-The noop module (`wiretap-okhttp-noop`) provides the same `WiretapOkHttpWebSocketListener` API but delegates all callbacks directly without logging.
+The noop module (`wiretap-okhttp-noop`) provides the same `WiretapOkHttpWebSocketListener` class and `wiretapped()` extension but delegates all callbacks directly without logging.

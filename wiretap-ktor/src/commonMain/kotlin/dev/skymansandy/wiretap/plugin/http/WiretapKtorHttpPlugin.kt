@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.plugin
+package dev.skymansandy.wiretap.plugin.http
 
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
@@ -66,10 +66,10 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * }
  * ```
  *
- * WebSocket upgrade requests (101) are skipped — use [WiretapKtorWebSocketPlugin] for those.
+ * WebSocket upgrade requests (101) are skipped — use [dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin] for those.
  *
  * @see WiretapConfig
- * @see WiretapKtorWebSocketPlugin
+ * @see dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
  */
 @OptIn(InternalAPI::class, ExperimentalAtomicApi::class)
 val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
@@ -78,15 +78,8 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
     val deps = WiretapDeps()
     val sessionInitialized = AtomicBoolean(false)
 
-    onRequest { request, _ ->
-        request.attributes.put(RequestTimestampKey, currentTimeMillis())
-        request.attributes.put(RequestNanoTimestampKey, currentNanoTime())
-    }
-
-    on(Send) { request ->
-        if (!config.enabled) return@on proceed(request)
-
-        // Retention cleanup: runs once per plugin installation
+    // Retention cleanup: runs once per plugin installation
+    suspend fun initSessionIfNeeded() {
         if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
             when (val logRetention = config.logRetention) {
                 LogRetention.Forever -> Unit
@@ -97,6 +90,17 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
                 }
             }
         }
+    }
+
+    onRequest { request, _ ->
+        request.attributes.put(RequestTimestampKey, currentTimeMillis())
+        request.attributes.put(RequestNanoTimestampKey, currentNanoTime())
+    }
+
+    on(Send) { request ->
+        if (!config.enabled) return@on proceed(request)
+
+        initSessionIfNeeded()
 
         // Skip WebSocket upgrade requests — handled by WiretapKtorWebSocketPlugin
         val upgradeHeader = request.headers.getAll("Upgrade")

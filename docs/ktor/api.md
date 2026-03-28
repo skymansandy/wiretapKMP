@@ -42,10 +42,10 @@ Intercepts WebSocket upgrades (101 responses) to log connections.
 
 ---
 
-## wiretapWrap()
+## wiretapped()
 
 ```kotlin
-suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession?
+suspend fun DefaultClientWebSocketSession.wiretapped(): WiretapWebSocketSession?
 ```
 
 Extension to wrap a Ktor WebSocket session for message logging. Returns `null` if `WiretapKtorWebSocketPlugin` is not installed.

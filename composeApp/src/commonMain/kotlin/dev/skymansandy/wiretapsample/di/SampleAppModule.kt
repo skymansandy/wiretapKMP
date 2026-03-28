@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretapsample.di
 
-import dev.skymansandy.wiretap.plugin.WiretapKtorHttpPlugin
-import dev.skymansandy.wiretap.plugin.WiretapKtorWebSocketPlugin
+import dev.skymansandy.wiretap.plugin.http.WiretapKtorHttpPlugin
+import dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
 import dev.skymansandy.wiretapsample.viewmodel.KtorHttpViewModel
 import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient

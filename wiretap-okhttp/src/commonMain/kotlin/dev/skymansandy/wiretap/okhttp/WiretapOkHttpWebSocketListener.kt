@@ -20,7 +20,12 @@ import org.koin.core.component.inject
 /**
  * Wraps a consumer's WebSocketListener to log all WebSocket events via Wiretap.
  *
- * Usage:
+ * Usage — extension function:
+ * ```kotlin
+ * client.newWebSocket(request, myListener.wiretapped())
+ * ```
+ *
+ * Usage — constructor:
  * ```kotlin
  * val listener = WiretapOkHttpWebSocketListener(myListener)
  * client.newWebSocket(request, listener)
@@ -142,3 +147,13 @@ class WiretapOkHttpWebSocketListener(
         delegate.onFailure(webSocket, t, response)
     }
 }
+
+/**
+ * Wraps this [WebSocketListener] with Wiretap logging.
+ *
+ * ```kotlin
+ * client.newWebSocket(request, myListener.wiretapped())
+ * ```
+ */
+fun WebSocketListener.wiretapped(): WiretapOkHttpWebSocketListener =
+    WiretapOkHttpWebSocketListener(this)

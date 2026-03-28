@@ -1,4 +1,4 @@
-package dev.skymansandy.wiretap.plugin
+package dev.skymansandy.wiretap.plugin.http
 
 import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
 import io.ktor.client.plugins.api.createClientPlugin
