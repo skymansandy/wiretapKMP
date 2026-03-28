@@ -1,7 +1,7 @@
 package dev.skymansandy.wiretap.helper.launcher
 
 import androidx.compose.ui.awt.ComposePanel
-import dev.skymansandy.wiretap.ui.WiretapConsole
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
 import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
