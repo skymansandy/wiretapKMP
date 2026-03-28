@@ -27,7 +27,7 @@ import dev.skymansandy.wiretap.ui.model.toUrlMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -53,51 +53,10 @@ internal class CreateRuleViewModel(
         field = MutableStateFlow(1)
 
     // Request state
-    val method: StateFlow<String>
-        field = MutableStateFlow("*")
-
-    val urlMode: StateFlow<UrlMatchMode?>
-        field = MutableStateFlow(null)
-
-    val urlPattern: StateFlow<String>
-        field = MutableStateFlow("")
-
-    val headerEntries: StateFlow<List<HeaderEntry>>
-        field = MutableStateFlow(emptyList())
-
-    val bodyMode: StateFlow<BodyMatchMode?>
-        field = MutableStateFlow(null)
-
-    val bodyPattern: StateFlow<String>
-        field = MutableStateFlow("")
+    val requestState = MutableStateFlow(RequestStepState())
 
     // Response state
-    val action: StateFlow<RuleAction>
-        field = MutableStateFlow<RuleAction>(RuleAction.Mock())
-
-    val mockResponseCode: StateFlow<String>
-        field = MutableStateFlow("200")
-
-    val mockResponseBody: StateFlow<String>
-        field = MutableStateFlow("")
-
-    val responseHeaderEntries: StateFlow<List<ResponseHeaderEntry>>
-        field = MutableStateFlow(emptyList())
-
-    val responseHeadersBulk: StateFlow<String>
-        field = MutableStateFlow("")
-
-    val responseHeadersMode: StateFlow<ResponseHeadersEditMode>
-        field = MutableStateFlow(ResponseHeadersEditMode.KeyValue)
-
-    val throttleDelayMs: StateFlow<String>
-        field = MutableStateFlow("")
-
-    val throttleDelayMaxMs: StateFlow<String>
-        field = MutableStateFlow("")
-
-    val throttleInputMode: StateFlow<ThrottleInputMode>
-        field = MutableStateFlow(ThrottleInputMode.None)
+    val responseState = MutableStateFlow(ResponseStepState())
 
     // Regex tester
     val regexTesterPattern: StateFlow<String>
@@ -117,19 +76,13 @@ internal class CreateRuleViewModel(
         field = MutableStateFlow(false)
 
     // Validation
-    val canProceed: StateFlow<Boolean> = combine(
-        urlMode,
-        urlPattern,
-        headerEntries,
-        bodyMode,
-        bodyPattern,
-    ) { urlMode, urlPattern, headerEntries, bodyMode, bodyPattern ->
-        val urlValid = urlMode == null || urlPattern.isNotBlank()
-        val headersValid = headerEntries.all { e ->
+    val canProceed: StateFlow<Boolean> = requestState.map { req ->
+        val urlValid = req.urlMode == null || req.urlPattern.isNotBlank()
+        val headersValid = req.headerEntries.all { e ->
             e.key.isNotBlank() && (!e.mode.hasValue() || e.value.isNotBlank())
         }
-        val bodyValid = bodyMode == null || bodyPattern.isNotBlank()
-        val hasSomeMatcher = urlMode != null || headerEntries.isNotEmpty() || bodyMode != null
+        val bodyValid = req.bodyMode == null || req.bodyPattern.isNotBlank()
+        val hasSomeMatcher = req.urlMode != null || req.headerEntries.isNotEmpty() || req.bodyMode != null
         hasSomeMatcher && urlValid && headersValid && bodyValid
     }.stateIn(
         scope = viewModelScope,
@@ -147,50 +100,51 @@ internal class CreateRuleViewModel(
                 loadedCreatedAt = existingRule.createdAt
                 loadedEnabled = existingRule.enabled
 
-                method.value = existingRule.method
-                urlMode.value = existingRule.toUrlMode()
-                urlPattern.value = existingRule.urlMatcher?.pattern ?: ""
-                headerEntries.value = existingRule.headerMatchers.map { it.toEntry() }
-                bodyMode.value = existingRule.toBodyMode()
-                bodyPattern.value = existingRule.bodyMatcher?.pattern ?: ""
-                action.value = existingRule.action
+                requestState.value = RequestStepState(
+                    method = existingRule.method,
+                    urlMode = existingRule.toUrlMode(),
+                    urlPattern = existingRule.urlMatcher?.pattern ?: "",
+                    headerEntries = existingRule.headerMatchers.map { it.toEntry() },
+                    bodyMode = existingRule.toBodyMode(),
+                    bodyPattern = existingRule.bodyMatcher?.pattern ?: "",
+                )
 
                 val existingMock = existingRule.action as? RuleAction.Mock
                 val existingThrottle = existingRule.action as? RuleAction.Throttle
-                mockResponseCode.value = existingMock?.responseCode?.toString() ?: "200"
-                mockResponseBody.value = existingMock?.responseBody ?: ""
-                responseHeaderEntries.value =
-                    existingMock?.responseHeaders?.entries?.map { (k, v) -> ResponseHeaderEntry(k, v) }
-                        ?: emptyList()
-                responseHeadersBulk.value =
-                    existingMock?.responseHeaders?.let { HeadersSerializerUtil.serialize(it) } ?: ""
-                throttleDelayMs.value =
-                    (existingMock?.throttleDelayMs ?: existingThrottle?.delayMs)?.toString() ?: ""
-                throttleDelayMaxMs.value =
-                    (existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs)?.toString() ?: ""
-
                 val delayMs = existingMock?.throttleDelayMs ?: existingThrottle?.delayMs
                 val delayMaxMs = existingMock?.throttleDelayMaxMs ?: existingThrottle?.delayMaxMs
-                throttleInputMode.value = when {
-                    delayMs == null ||
-                        (delayMs == 0L && delayMaxMs.let { it == null || it == 0L }) ->
-                        ThrottleInputMode.None
-                    ThrottleProfile.entries.any {
-                        it.delayMinMs == delayMs && it.delayMaxMs == delayMaxMs
-                    } -> ThrottleInputMode.Profile
-                    else -> ThrottleInputMode.Manual
-                }
+
+                responseState.value = ResponseStepState(
+                    action = existingRule.action,
+                    mockResponseCode = existingMock?.responseCode?.toString() ?: "200",
+                    mockResponseBody = existingMock?.responseBody ?: "",
+                    responseHeaderEntries = existingMock?.responseHeaders?.entries
+                        ?.map { (k, v) -> ResponseHeaderEntry(k, v) } ?: emptyList(),
+                    responseHeadersBulk = existingMock?.responseHeaders
+                        ?.let { HeadersSerializerUtil.serialize(it) } ?: "",
+                    throttleDelayMs = delayMs?.toString() ?: "",
+                    throttleDelayMaxMs = delayMaxMs?.toString() ?: "",
+                    throttleInputMode = when {
+                        delayMs == null ||
+                            (delayMs == 0L && delayMaxMs.let { it == null || it == 0L }) ->
+                            ThrottleInputMode.None
+                        ThrottleProfile.entries.any {
+                            it.delayMinMs == delayMs && it.delayMaxMs == delayMaxMs
+                        } -> ThrottleInputMode.Profile
+                        else -> ThrottleInputMode.Manual
+                    },
+                )
             } else if (prefillFromLog != null) {
-                method.value = prefillFromLog.method
-                urlMode.value = UrlMatchMode.Exact
-                urlPattern.value = prefillFromLog.url
-                headerEntries.value = prefillFromLog.requestHeaders?.map { (k, v) ->
-                    HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
-                } ?: emptyList()
-                if (prefillFromLog.requestBody != null) {
-                    bodyMode.value = BodyMatchMode.Exact
-                    bodyPattern.value = prefillFromLog.requestBody
-                }
+                requestState.value = RequestStepState(
+                    method = prefillFromLog.method,
+                    urlMode = UrlMatchMode.Exact,
+                    urlPattern = prefillFromLog.url,
+                    headerEntries = prefillFromLog.requestHeaders?.map { (k, v) ->
+                        HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                    } ?: emptyList(),
+                    bodyMode = if (prefillFromLog.requestBody != null) BodyMatchMode.Exact else null,
+                    bodyPattern = prefillFromLog.requestBody ?: "",
+                )
             }
 
             loaded.value = true
@@ -209,104 +163,125 @@ internal class CreateRuleViewModel(
         step.value--
     }
 
+    // ── Request updates ─────────────────────────────────────────────────────────
+
     fun updateMethod(method: String) {
-        this.method.value = method
+        requestState.update { copy(method = method) }
     }
 
     fun updateUrlMode(mode: UrlMatchMode?) {
-        urlMode.value = mode
-        if (mode == null) urlPattern.value = ""
+        requestState.update { copy(urlMode = mode, urlPattern = if (mode == null) "" else urlPattern) }
     }
 
     fun updateUrlPattern(pattern: String) {
-        urlPattern.value = pattern
+        requestState.update { copy(urlPattern = pattern) }
     }
 
     fun addHeader() {
-        headerEntries.value += HeaderEntry()
+        requestState.update { copy(headerEntries = headerEntries + HeaderEntry()) }
     }
 
     fun updateHeader(index: Int, entry: HeaderEntry) {
-        headerEntries.value =
-            headerEntries.value.mapIndexed { i, v -> if (i == index) entry else v }
+        requestState.update {
+            copy(headerEntries = headerEntries.mapIndexed { i, v -> if (i == index) entry else v })
+        }
     }
 
     fun removeHeader(index: Int) {
-        headerEntries.value = headerEntries.value.filterIndexed { i, _ -> i != index }
+        requestState.update {
+            copy(headerEntries = headerEntries.filterIndexed { i, _ -> i != index })
+        }
     }
 
     fun updateBodyMode(mode: BodyMatchMode?) {
-        bodyMode.value = mode
-        if (mode == null) bodyPattern.value = ""
+        requestState.update { copy(bodyMode = mode, bodyPattern = if (mode == null) "" else bodyPattern) }
     }
 
     fun updateBodyPattern(pattern: String) {
-        bodyPattern.value = pattern
+        requestState.update { copy(bodyPattern = pattern) }
     }
 
+    // ── Response updates ────────────────────────────────────────────────────────
+
     fun updateAction(action: RuleAction) {
-        this.action.value = action
+        responseState.update { copy(action = action) }
     }
 
     fun updateMockResponseCode(code: String) {
-        mockResponseCode.value = code.filter { it.isDigit() }
+        responseState.update { copy(mockResponseCode = code.filter { it.isDigit() }) }
     }
 
     fun updateMockResponseBody(body: String) {
-        mockResponseBody.value = body
+        responseState.update { copy(mockResponseBody = body) }
     }
 
     fun addResponseHeader() {
-        responseHeaderEntries.value += ResponseHeaderEntry()
+        responseState.update { copy(responseHeaderEntries = responseHeaderEntries + ResponseHeaderEntry()) }
     }
 
     fun updateResponseHeader(index: Int, entry: ResponseHeaderEntry) {
-        responseHeaderEntries.value =
-            responseHeaderEntries.value.mapIndexed { i, v -> if (i == index) entry else v }
+        responseState.update {
+            copy(
+                responseHeaderEntries = responseHeaderEntries.mapIndexed { i, v ->
+                    if (i == index) entry else v
+                },
+            )
+        }
     }
 
     fun removeResponseHeader(index: Int) {
-        responseHeaderEntries.value =
-            responseHeaderEntries.value.filterIndexed { i, _ -> i != index }
+        responseState.update {
+            copy(responseHeaderEntries = responseHeaderEntries.filterIndexed { i, _ -> i != index })
+        }
     }
 
     fun updateResponseHeadersBulk(bulk: String) {
-        responseHeadersBulk.value = bulk
+        responseState.update { copy(responseHeadersBulk = bulk) }
     }
 
     fun updateResponseHeadersMode(newMode: ResponseHeadersEditMode) {
-        when (newMode) {
-            ResponseHeadersEditMode.KeyValue -> {
-                val parsed = HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
-                responseHeaderEntries.value =
-                    parsed.entries.map { (k, v) -> ResponseHeaderEntry(k, v) }
-            }
+        responseState.update {
+            when (newMode) {
+                ResponseHeadersEditMode.KeyValue -> {
+                    val parsed = HeadersSerializerUtil.deserialize(responseHeadersBulk)
+                    copy(
+                        responseHeadersMode = newMode,
+                        responseHeaderEntries = parsed.entries.map { (k, v) -> ResponseHeaderEntry(k, v) },
+                    )
+                }
 
-            ResponseHeadersEditMode.BulkEdit -> {
-                val map = responseHeaderEntries.value
-                    .filter { e -> e.key.isNotBlank() }
-                    .associate { e -> e.key.trim() to e.value.trim() }
-                responseHeadersBulk.value = HeadersSerializerUtil.serialize(map)
+                ResponseHeadersEditMode.BulkEdit -> {
+                    val map = responseHeaderEntries
+                        .filter { e -> e.key.isNotBlank() }
+                        .associate { e -> e.key.trim() to e.value.trim() }
+                    copy(
+                        responseHeadersMode = newMode,
+                        responseHeadersBulk = HeadersSerializerUtil.serialize(map),
+                    )
+                }
             }
         }
-        responseHeadersMode.value = newMode
     }
 
     fun updateThrottleDelayMs(delay: String) {
-        throttleDelayMs.value = delay.filter { it.isDigit() }
+        responseState.update { copy(throttleDelayMs = delay.filter { it.isDigit() }) }
     }
 
     fun updateThrottleDelayMaxMs(delay: String) {
-        throttleDelayMaxMs.value = delay.filter { it.isDigit() }
+        responseState.update { copy(throttleDelayMaxMs = delay.filter { it.isDigit() }) }
     }
 
     fun updateThrottleInputMode(mode: ThrottleInputMode) {
-        throttleInputMode.value = mode
-        if (mode == ThrottleInputMode.None) {
-            throttleDelayMs.value = "0"
-            throttleDelayMaxMs.value = "0"
+        responseState.update {
+            if (mode == ThrottleInputMode.None) {
+                copy(throttleInputMode = mode, throttleDelayMs = "0", throttleDelayMaxMs = "0")
+            } else {
+                copy(throttleInputMode = mode)
+            }
         }
     }
+
+    // ── Regex tester ────────────────────────────────────────────────────────────
 
     fun openRegexTester(pattern: String, label: String) {
         regexTesterPattern.value = pattern
@@ -317,6 +292,8 @@ internal class CreateRuleViewModel(
     fun closeRegexTester() {
         showRegexTester.value = false
     }
+
+    // ── Conflict ────────────────────────────────────────────────────────────────
 
     fun dismissConflictDialog() {
         showConflictDialog.value = false
@@ -343,47 +320,52 @@ internal class CreateRuleViewModel(
     }
 
     private fun buildRuleFromForm(): WiretapRule {
-        val resolvedHeaders: Map<String, String>? = when (responseHeadersMode.value) {
+        val req = requestState.value
+        val res = responseState.value
+
+        val resolvedHeaders: Map<String, String>? = when (res.responseHeadersMode) {
             ResponseHeadersEditMode.KeyValue ->
-                responseHeaderEntries.value
+                res.responseHeaderEntries
                     .filter { e -> e.key.isNotBlank() }
                     .associate { e -> e.key.trim() to e.value.trim() }
                     .takeIf { m -> m.isNotEmpty() }
 
             ResponseHeadersEditMode.BulkEdit ->
-                if (responseHeadersBulk.value.isNotBlank())
-                    HeadersSerializerUtil.deserialize(responseHeadersBulk.value)
+                if (res.responseHeadersBulk.isNotBlank())
+                    HeadersSerializerUtil.deserialize(res.responseHeadersBulk)
                         .takeIf { m -> m.isNotEmpty() }
                 else null
         }
-        val ruleAction = when (action.value) {
+
+        val ruleAction = when (res.action) {
             is RuleAction.Mock -> RuleAction.Mock(
-                responseCode = mockResponseCode.value.toIntOrNull() ?: 200,
-                responseBody = mockResponseBody.value.ifBlank { null },
+                responseCode = res.mockResponseCode.toIntOrNull() ?: 200,
+                responseBody = res.mockResponseBody.ifBlank { null },
                 responseHeaders = resolvedHeaders,
-                throttleDelayMs = throttleDelayMs.value.toLongOrNull(),
-                throttleDelayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+                throttleDelayMs = res.throttleDelayMs.toLongOrNull(),
+                throttleDelayMaxMs = res.throttleDelayMaxMs.toLongOrNull(),
             )
 
             is RuleAction.Throttle -> RuleAction.Throttle(
-                delayMs = throttleDelayMs.value.toLongOrNull() ?: 1000L,
-                delayMaxMs = throttleDelayMaxMs.value.toLongOrNull(),
+                delayMs = res.throttleDelayMs.toLongOrNull() ?: 1000L,
+                delayMaxMs = res.throttleDelayMaxMs.toLongOrNull(),
             )
         }
+
         return WiretapRule(
             id = loadedRuleId ?: 0,
-            method = method.value.trim().ifBlank { "*" },
-            urlMatcher = when (urlMode.value) {
-                UrlMatchMode.Exact -> UrlMatcher.Exact(urlPattern.value.trim())
-                UrlMatchMode.Contains -> UrlMatcher.Contains(urlPattern.value.trim())
-                UrlMatchMode.Regex -> UrlMatcher.Regex(urlPattern.value.trim())
+            method = req.method.trim().ifBlank { "*" },
+            urlMatcher = when (req.urlMode) {
+                UrlMatchMode.Exact -> UrlMatcher.Exact(req.urlPattern.trim())
+                UrlMatchMode.Contains -> UrlMatcher.Contains(req.urlPattern.trim())
+                UrlMatchMode.Regex -> UrlMatcher.Regex(req.urlPattern.trim())
                 null -> null
             },
-            headerMatchers = headerEntries.value.mapNotNull { entry -> entry.toDomain() },
-            bodyMatcher = when (bodyMode.value) {
-                BodyMatchMode.Exact -> BodyMatcher.Exact(bodyPattern.value.trim())
-                BodyMatchMode.Contains -> BodyMatcher.Contains(bodyPattern.value.trim())
-                BodyMatchMode.Regex -> BodyMatcher.Regex(bodyPattern.value.trim())
+            headerMatchers = req.headerEntries.mapNotNull { entry -> entry.toDomain() },
+            bodyMatcher = when (req.bodyMode) {
+                BodyMatchMode.Exact -> BodyMatcher.Exact(req.bodyPattern.trim())
+                BodyMatchMode.Contains -> BodyMatcher.Contains(req.bodyPattern.trim())
+                BodyMatchMode.Regex -> BodyMatcher.Regex(req.bodyPattern.trim())
                 null -> null
             },
             action = ruleAction,

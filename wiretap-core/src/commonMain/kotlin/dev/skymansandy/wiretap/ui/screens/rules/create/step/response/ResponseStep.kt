@@ -31,15 +31,16 @@ internal fun ResponseStep(
     modifier: Modifier = Modifier,
     viewModel: CreateRuleViewModel,
 ) {
-    val action by viewModel.action.collectAsStateWithLifecycle()
-    val mockResponseCode by viewModel.mockResponseCode.collectAsStateWithLifecycle()
-    val mockResponseBody by viewModel.mockResponseBody.collectAsStateWithLifecycle()
-    val responseHeaderEntries by viewModel.responseHeaderEntries.collectAsStateWithLifecycle()
-    val responseHeadersBulk by viewModel.responseHeadersBulk.collectAsStateWithLifecycle()
-    val responseHeadersMode by viewModel.responseHeadersMode.collectAsStateWithLifecycle()
-    val throttleDelayMs by viewModel.throttleDelayMs.collectAsStateWithLifecycle()
-    val throttleDelayMaxMs by viewModel.throttleDelayMaxMs.collectAsStateWithLifecycle()
-    val throttleInputMode by viewModel.throttleInputMode.collectAsStateWithLifecycle()
+    val state by viewModel.responseState.collectAsStateWithLifecycle()
+    val action = state.action
+    val mockResponseCode = state.mockResponseCode
+    val mockResponseBody = state.mockResponseBody
+    val responseHeaderEntries = state.responseHeaderEntries
+    val responseHeadersBulk = state.responseHeadersBulk
+    val responseHeadersMode = state.responseHeadersMode
+    val throttleDelayMs = state.throttleDelayMs
+    val throttleDelayMaxMs = state.throttleDelayMaxMs
+    val throttleInputMode = state.throttleInputMode
 
     Column(
         modifier = modifier,

@@ -74,25 +74,6 @@ internal fun CreateRuleScreenView(
         viewModel.resetStep()
     }
 
-    // Request state
-    val method by viewModel.method.collectAsStateWithLifecycle()
-    val urlMode by viewModel.urlMode.collectAsStateWithLifecycle()
-    val urlPattern by viewModel.urlPattern.collectAsStateWithLifecycle()
-    val headerEntries by viewModel.headerEntries.collectAsStateWithLifecycle()
-    val bodyMode by viewModel.bodyMode.collectAsStateWithLifecycle()
-    val bodyPattern by viewModel.bodyPattern.collectAsStateWithLifecycle()
-
-    // Response state
-    val action by viewModel.action.collectAsStateWithLifecycle()
-    val mockResponseCode by viewModel.mockResponseCode.collectAsStateWithLifecycle()
-    val mockResponseBody by viewModel.mockResponseBody.collectAsStateWithLifecycle()
-    val responseHeaderEntries by viewModel.responseHeaderEntries.collectAsStateWithLifecycle()
-    val responseHeadersBulk by viewModel.responseHeadersBulk.collectAsStateWithLifecycle()
-    val responseHeadersMode by viewModel.responseHeadersMode.collectAsStateWithLifecycle()
-    val throttleDelayMs by viewModel.throttleDelayMs.collectAsStateWithLifecycle()
-    val throttleDelayMaxMs by viewModel.throttleDelayMaxMs.collectAsStateWithLifecycle()
-    val throttleInputMode by viewModel.throttleInputMode.collectAsStateWithLifecycle()
-
     // Regex tester
     val regexTesterPattern by viewModel.regexTesterPattern.collectAsStateWithLifecycle()
     val regexTesterLabel by viewModel.regexTesterLabel.collectAsStateWithLifecycle()

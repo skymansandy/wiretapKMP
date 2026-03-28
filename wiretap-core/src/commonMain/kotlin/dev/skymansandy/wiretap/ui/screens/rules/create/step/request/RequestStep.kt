@@ -54,12 +54,13 @@ internal fun RequestStep(
     viewModel: CreateRuleViewModel,
 ) {
 
-    val method by viewModel.method.collectAsStateWithLifecycle()
-    val urlMode by viewModel.urlMode.collectAsStateWithLifecycle()
-    val urlPattern by viewModel.urlPattern.collectAsStateWithLifecycle()
-    val headerEntries by viewModel.headerEntries.collectAsStateWithLifecycle()
-    val bodyMode by viewModel.bodyMode.collectAsStateWithLifecycle()
-    val bodyPattern by viewModel.bodyPattern.collectAsStateWithLifecycle()
+    val state by viewModel.requestState.collectAsStateWithLifecycle()
+    val method = state.method
+    val urlMode = state.urlMode
+    val urlPattern = state.urlPattern
+    val headerEntries = state.headerEntries
+    val bodyMode = state.bodyMode
+    val bodyPattern = state.bodyPattern
 
     Column(
         modifier = modifier,
