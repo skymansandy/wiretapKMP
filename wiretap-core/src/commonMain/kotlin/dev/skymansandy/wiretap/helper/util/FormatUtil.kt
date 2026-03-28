@@ -29,3 +29,10 @@ internal fun formatBytes(bytes: Long): String = when {
     bytes >= 1_024 -> "${bytes / 1_024} kB"
     else -> "$bytes B"
 }
+
+internal fun formatUrlDisplay(url: String): String {
+    val afterScheme = url.substringAfter("://")
+    val host = afterScheme.substringBefore("/").substringBefore("?")
+    val path = afterScheme.removePrefix(host).ifEmpty { "/" }
+    return "$host$path"
+}

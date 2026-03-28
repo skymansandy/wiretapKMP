@@ -38,12 +38,4 @@ internal class SocketDetailViewModel(
             initialEntry.value = socketLogManager.getSocketById(socketId)
         }
     }
-
-    fun urlDisplay(url: String): String {
-        return url.substringAfter("://").let {
-            val host = it.substringBefore("/").substringBefore("?")
-            val path = it.removePrefix(host).ifEmpty { "/" }
-            "$host$path"
-        }
-    }
 }

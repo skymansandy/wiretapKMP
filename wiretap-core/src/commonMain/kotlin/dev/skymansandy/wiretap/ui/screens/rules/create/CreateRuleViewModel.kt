@@ -82,7 +82,8 @@ internal class CreateRuleViewModel(
             e.key.isNotBlank() && (!e.mode.hasValue() || e.value.isNotBlank())
         }
         val bodyValid = req.bodyMode == null || req.bodyPattern.isNotBlank()
-        val hasSomeMatcher = req.urlMode != null || req.headerEntries.isNotEmpty() || req.bodyMode != null
+        val hasSomeMatcher =
+            req.urlMode != null || req.headerEntries.isNotEmpty() || req.bodyMode != null
         hasSomeMatcher && urlValid && headersValid && bodyValid
     }.stateIn(
         scope = viewModelScope,
@@ -92,8 +93,10 @@ internal class CreateRuleViewModel(
 
     init {
         viewModelScope.launch {
-            val existingRule = if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
-            val prefillFromLog = if (prefillFromLogId > 0) httpLogManager.getHttpLogById(prefillFromLogId) else null
+            val existingRule =
+                if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
+            val prefillFromLog =
+                if (prefillFromLogId > 0) httpLogManager.getHttpLogById(prefillFromLogId) else null
 
             if (existingRule != null) {
                 loadedRuleId = existingRule.id
@@ -128,9 +131,11 @@ internal class CreateRuleViewModel(
                         delayMs == null ||
                             (delayMs == 0L && delayMaxMs.let { it == null || it == 0L }) ->
                             ThrottleInputMode.None
+
                         ThrottleProfile.entries.any {
                             it.delayMinMs == delayMs && it.delayMaxMs == delayMaxMs
                         } -> ThrottleInputMode.Profile
+
                         else -> ThrottleInputMode.Manual
                     },
                 )
@@ -166,61 +171,71 @@ internal class CreateRuleViewModel(
     // ── Request updates ─────────────────────────────────────────────────────────
 
     fun updateMethod(method: String) {
-        requestState.update { copy(method = method) }
+        requestState.updateRequest { copy(method = method) }
     }
 
     fun updateUrlMode(mode: UrlMatchMode?) {
-        requestState.update { copy(urlMode = mode, urlPattern = if (mode == null) "" else urlPattern) }
+        requestState.updateRequest {
+            copy(
+                urlMode = mode,
+                urlPattern = if (mode == null) "" else urlPattern,
+            )
+        }
     }
 
     fun updateUrlPattern(pattern: String) {
-        requestState.update { copy(urlPattern = pattern) }
+        requestState.updateRequest { copy(urlPattern = pattern) }
     }
 
     fun addHeader() {
-        requestState.update { copy(headerEntries = headerEntries + HeaderEntry()) }
+        requestState.updateRequest { copy(headerEntries = headerEntries + HeaderEntry()) }
     }
 
     fun updateHeader(index: Int, entry: HeaderEntry) {
-        requestState.update {
+        requestState.updateRequest {
             copy(headerEntries = headerEntries.mapIndexed { i, v -> if (i == index) entry else v })
         }
     }
 
     fun removeHeader(index: Int) {
-        requestState.update {
+        requestState.updateRequest {
             copy(headerEntries = headerEntries.filterIndexed { i, _ -> i != index })
         }
     }
 
     fun updateBodyMode(mode: BodyMatchMode?) {
-        requestState.update { copy(bodyMode = mode, bodyPattern = if (mode == null) "" else bodyPattern) }
+        requestState.updateRequest {
+            copy(
+                bodyMode = mode,
+                bodyPattern = if (mode == null) "" else bodyPattern,
+            )
+        }
     }
 
     fun updateBodyPattern(pattern: String) {
-        requestState.update { copy(bodyPattern = pattern) }
+        requestState.updateRequest { copy(bodyPattern = pattern) }
     }
 
     // ── Response updates ────────────────────────────────────────────────────────
 
     fun updateAction(action: RuleAction) {
-        responseState.update { copy(action = action) }
+        responseState.updateResponse { copy(action = action) }
     }
 
     fun updateMockResponseCode(code: String) {
-        responseState.update { copy(mockResponseCode = code.filter { it.isDigit() }) }
+        responseState.updateResponse { copy(mockResponseCode = code.filter { it.isDigit() }) }
     }
 
     fun updateMockResponseBody(body: String) {
-        responseState.update { copy(mockResponseBody = body) }
+        responseState.updateResponse { copy(mockResponseBody = body) }
     }
 
     fun addResponseHeader() {
-        responseState.update { copy(responseHeaderEntries = responseHeaderEntries + ResponseHeaderEntry()) }
+        responseState.updateResponse { copy(responseHeaderEntries = responseHeaderEntries + ResponseHeaderEntry()) }
     }
 
     fun updateResponseHeader(index: Int, entry: ResponseHeaderEntry) {
-        responseState.update {
+        responseState.updateResponse {
             copy(
                 responseHeaderEntries = responseHeaderEntries.mapIndexed { i, v ->
                     if (i == index) entry else v
@@ -230,23 +245,28 @@ internal class CreateRuleViewModel(
     }
 
     fun removeResponseHeader(index: Int) {
-        responseState.update {
+        responseState.updateResponse {
             copy(responseHeaderEntries = responseHeaderEntries.filterIndexed { i, _ -> i != index })
         }
     }
 
     fun updateResponseHeadersBulk(bulk: String) {
-        responseState.update { copy(responseHeadersBulk = bulk) }
+        responseState.updateResponse { copy(responseHeadersBulk = bulk) }
     }
 
     fun updateResponseHeadersMode(newMode: ResponseHeadersEditMode) {
-        responseState.update {
+        responseState.updateResponse {
             when (newMode) {
                 ResponseHeadersEditMode.KeyValue -> {
                     val parsed = HeadersSerializerUtil.deserialize(responseHeadersBulk)
                     copy(
                         responseHeadersMode = newMode,
-                        responseHeaderEntries = parsed.entries.map { (k, v) -> ResponseHeaderEntry(k, v) },
+                        responseHeaderEntries = parsed.entries.map { (k, v) ->
+                            ResponseHeaderEntry(
+                                k,
+                                v,
+                            )
+                        },
                     )
                 }
 
@@ -264,15 +284,15 @@ internal class CreateRuleViewModel(
     }
 
     fun updateThrottleDelayMs(delay: String) {
-        responseState.update { copy(throttleDelayMs = delay.filter { it.isDigit() }) }
+        responseState.updateResponse { copy(throttleDelayMs = delay.filter { it.isDigit() }) }
     }
 
     fun updateThrottleDelayMaxMs(delay: String) {
-        responseState.update { copy(throttleDelayMaxMs = delay.filter { it.isDigit() }) }
+        responseState.updateResponse { copy(throttleDelayMaxMs = delay.filter { it.isDigit() }) }
     }
 
     fun updateThrottleInputMode(mode: ThrottleInputMode) {
-        responseState.update {
+        responseState.updateResponse {
             if (mode == ThrottleInputMode.None) {
                 copy(throttleInputMode = mode, throttleDelayMs = "0", throttleDelayMaxMs = "0")
             } else {

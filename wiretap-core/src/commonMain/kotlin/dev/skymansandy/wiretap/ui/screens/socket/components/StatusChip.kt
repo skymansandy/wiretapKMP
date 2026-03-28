@@ -12,32 +12,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
 @Composable
-internal fun StatusChip(status: SocketStatus) {
-    val bgColor = when (status) {
-        SocketStatus.Connecting -> WiretapColors.StatusBlue
-        SocketStatus.Open -> WiretapColors.StatusGreen
-        SocketStatus.Closing -> WiretapColors.StatusAmber
-        SocketStatus.Closed -> WiretapColors.StatusGray
-        SocketStatus.Failed -> WiretapColors.StatusRed
-    }
-    val label = when (status) {
-        SocketStatus.Connecting -> "Connecting"
-        SocketStatus.Open -> "Open"
-        SocketStatus.Closing -> "Closing"
-        SocketStatus.Closed -> "Closed"
-        SocketStatus.Failed -> "Failed"
-    }
+internal fun StatusChip(
+    modifier: Modifier = Modifier,
+    status: SocketStatus,
+) {
     Text(
-        text = label,
+        text = status.name,
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
         color = Color.White,
-        modifier = Modifier
+        modifier = modifier
             .padding(end = 12.dp)
-            .background(bgColor, RoundedCornerShape(12.dp))
+            .background(status.bgColor, RoundedCornerShape(12.dp))
             .padding(horizontal = 10.dp, vertical = 4.dp),
     )
 }
@@ -46,7 +34,7 @@ internal fun StatusChip(status: SocketStatus) {
 @Composable
 private fun Preview_StatusChipOpen() {
     MaterialTheme {
-        StatusChip(SocketStatus.Open)
+        StatusChip(status = SocketStatus.Open)
     }
 }
 
@@ -54,6 +42,6 @@ private fun Preview_StatusChipOpen() {
 @Composable
 private fun Preview_StatusChipFailed() {
     MaterialTheme {
-        StatusChip(SocketStatus.Failed)
+        StatusChip(status = SocketStatus.Failed)
     }
 }

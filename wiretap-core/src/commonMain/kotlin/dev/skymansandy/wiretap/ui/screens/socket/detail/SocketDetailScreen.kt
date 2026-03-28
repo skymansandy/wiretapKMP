@@ -10,11 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,9 +42,11 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.InfoLabel
+import dev.skymansandy.wiretap.ui.common.MessageBubble
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import org.koin.compose.viewmodel.koinViewModel
@@ -85,7 +85,9 @@ internal fun SocketDetailScreenView(
         prevMessageCount = messages.size
     }
 
-    val urlDisplay = viewModel.urlDisplay(entry.url)
+    val urlDisplay = remember(entry.url) {
+        formatUrlDisplay(entry.url)
+    }
 
     Scaffold(
         modifier = modifier,
@@ -110,7 +112,7 @@ internal fun SocketDetailScreenView(
                     }
                 },
                 actions = {
-                    StatusChip(entry.status)
+                    StatusChip(status = entry.status)
                 },
             )
         },
@@ -121,7 +123,10 @@ internal fun SocketDetailScreenView(
         ) {
             // Connection info header
             item(key = "header") {
-                ConnectionInfoHeader(entry)
+                ConnectionInfoHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    entry = entry,
+                )
             }
 
             // History cleared banner
@@ -133,7 +138,10 @@ internal fun SocketDetailScreenView(
 
             // Messages
             items(messages, key = { it.id }) { message ->
-                MessageBubble(message)
+                MessageBubble(
+                    modifier = Modifier.fillMaxWidth(),
+                    message = message,
+                )
             }
 
             // Bottom spacer
@@ -143,9 +151,12 @@ internal fun SocketDetailScreenView(
 }
 
 @Composable
-private fun ConnectionInfoHeader(entry: SocketConnection) {
+private fun ConnectionInfoHeader(
+    modifier: Modifier = Modifier,
+    entry: SocketConnection,
+) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
@@ -156,24 +167,49 @@ private fun ConnectionInfoHeader(entry: SocketConnection) {
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            InfoLabel("Status", entry.status.name)
-            InfoLabel("Opened", formatTime(entry.timestamp))
+            InfoLabel(
+                label = "Status",
+                value = entry.status.name,
+            )
+            InfoLabel(
+                label = "Opened",
+                value = formatTime(entry.timestamp),
+            )
         }
 
         if (entry.closedAt != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                InfoLabel("Closed", formatTime(entry.closedAt))
-                entry.closeCode?.let { InfoLabel("Code", it.toString()) }
+                InfoLabel(
+                    label = "Closed",
+                    value = formatTime(entry.closedAt),
+                )
+                entry.closeCode?.let {
+                    InfoLabel(
+                        label = "Code",
+                        value = it.toString(),
+                    )
+                }
             }
-            entry.closeReason?.let { InfoLabel("Reason", it) }
+
+            entry.closeReason?.let {
+                InfoLabel(
+                    label = "Reason",
+                    value = it,
+                )
+            }
         }
 
         if (entry.failureMessage != null) {
-            InfoLabel("Error", entry.failureMessage)
+            InfoLabel(
+                label = "Error",
+                value = entry.failureMessage,
+            )
         }
 
         if (entry.protocol != null) {
-            InfoLabel("Protocol", entry.protocol)
+            InfoLabel(
+                label = "Protocol", value = entry.protocol,
+            )
         }
 
         if (entry.requestHeaders.isNotEmpty()) {
@@ -195,93 +231,6 @@ private fun ConnectionInfoHeader(entry: SocketConnection) {
         }
     }
     HorizontalDivider()
-}
-
-@Composable
-private fun InfoLabel(
-    label: String,
-    value: String,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = "$label:",
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun MessageBubble(
-    message: SocketMessage,
-) {
-    val isSent = message.direction == SocketMessageType.Sent
-    val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
-
-    val bgColor = when {
-        isSent -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-
-    val textColor = when {
-        isSent -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 3.dp),
-        contentAlignment = alignment,
-    ) {
-        Column(
-            modifier = Modifier
-                .widthIn(max = 300.dp)
-                .background(bgColor, RoundedCornerShape(12.dp))
-                .padding(10.dp),
-        ) {
-            val displayText = when (message.contentType) {
-                SocketContentType.Binary -> "[Binary: ${formatBytes(message.byteCount)}]"
-
-                else -> message.content
-            }
-
-            Text(
-                text = displayText,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = textColor,
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.align(Alignment.End),
-            ) {
-                Text(
-                    text = formatTime(message.timestamp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.6f),
-                )
-
-                Text(
-                    text = formatBytes(message.byteCount),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = textColor.copy(alpha = 0.6f),
-                )
-            }
-        }
-    }
 }
 
 @Composable

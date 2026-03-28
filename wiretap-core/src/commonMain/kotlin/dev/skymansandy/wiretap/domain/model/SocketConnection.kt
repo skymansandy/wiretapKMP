@@ -1,5 +1,7 @@
 package dev.skymansandy.wiretap.domain.model
 
+import dev.skymansandy.wiretap.ui.theme.WiretapColors
+
 data class SocketConnection(
     val id: Long = 0,
     val url: String,
@@ -14,4 +16,12 @@ data class SocketConnection(
     val protocol: String? = null,
     val remoteAddress: String? = null,
     val historyCleared: Boolean = false,
-)
+) {
+    val statusColor = when (status) {
+        SocketStatus.Connecting -> WiretapColors.StatusBlue
+        SocketStatus.Open -> WiretapColors.StatusGreen
+        SocketStatus.Closing -> WiretapColors.StatusAmber
+        SocketStatus.Closed -> WiretapColors.StatusGray
+        SocketStatus.Failed -> WiretapColors.StatusRed
+    }
+}

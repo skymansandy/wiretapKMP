@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.HorizontalDivider
@@ -31,7 +30,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,32 +39,39 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun SocketLogList(
+    modifier: Modifier = Modifier,
     viewModel: SocketLogListViewModel,
     searchQuery: String,
     onDismissSearch: () -> Unit,
     onSocketClick: (SocketConnection) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
 
     if (socketLogs.isEmpty()) {
-        Box(modifier, contentAlignment = Alignment.Center) {
-            Text("No WebSocket connections yet", style = MaterialTheme.typography.bodyLarge)
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "No WebSocket connections yet",
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
     } else {
         val listState = rememberLazyListState()
         val scope = rememberCoroutineScope()
+        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
         val isAtTop by remember {
             derivedStateOf {
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
         }
-        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
 
         LaunchedEffect(socketLogs.size) {
             if (socketLogs.size > lastItemCount && isAtTop) {
@@ -75,13 +80,16 @@ internal fun SocketLogList(
             lastItemCount = socketLogs.size
         }
 
-        LazyColumn(state = listState, modifier = modifier) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+        ) {
             items(
                 count = socketLogs.size,
                 key = { index -> socketLogs[index].id },
             ) { index ->
                 SocketLogItemContent(
-                    entry = socketLogs[index],
+                    socket = socketLogs[index],
                     searchQuery = searchQuery,
                     onClick = {
                         onDismissSearch()
@@ -95,24 +103,18 @@ internal fun SocketLogList(
 
 @Composable
 private fun SocketLogItemContent(
-    entry: SocketConnection,
+    socket: SocketConnection,
     searchQuery: String,
     onClick: () -> Unit,
 ) {
-    val statusColor = when (entry.status) {
-        SocketStatus.Connecting -> WiretapColors.StatusBlue
-        SocketStatus.Open -> WiretapColors.StatusGreen
-        SocketStatus.Closing -> WiretapColors.StatusAmber
-        SocketStatus.Closed -> WiretapColors.StatusGray
-        SocketStatus.Failed -> WiretapColors.StatusRed
-    }
-
-    val isSecure = entry.url.startsWith("wss://", ignoreCase = true)
-    val withoutScheme = entry.url.substringAfter("://")
+    val isSecure = socket.url.startsWith("wss://", ignoreCase = true)
+    val withoutScheme = socket.url.substringAfter("://")
     val host = withoutScheme.substringBefore("/").substringBefore("?")
     val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
 
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+    Column(
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,14 +124,16 @@ private fun SocketLogItemContent(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
+                modifier = Modifier.width(44.dp),
                 text = "WS",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = statusColor,
-                modifier = Modifier.width(44.dp),
+                color = socket.statusColor,
             )
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+            ) {
                 Text(
                     text = highlightText(path, searchQuery),
                     style = MaterialTheme.typography.bodyMedium,
@@ -152,6 +156,7 @@ private fun SocketLogItemContent(
                             tint = WiretapColors.SecureHost,
                         )
                     }
+
                     Text(
                         text = highlightText(host, searchQuery),
                         style = MaterialTheme.typography.bodySmall,
@@ -166,49 +171,25 @@ private fun SocketLogItemContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = formatTime(entry.timestamp),
+                        text = formatTime(socket.timestamp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (entry.messageCount > 0) {
+                    if (socket.messageCount > 0) {
                         Text(
-                            text = "${entry.messageCount} msgs",
+                            text = "${socket.messageCount} msgs",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    SocketStatusChip(entry.status)
+
+                    StatusChip(status = socket.status)
                 }
             }
         }
+
         HorizontalDivider()
     }
-}
-
-@Composable
-private fun SocketStatusChip(status: SocketStatus) {
-    val bgColor = when (status) {
-        SocketStatus.Connecting -> WiretapColors.StatusBlue
-        SocketStatus.Open -> WiretapColors.StatusGreen
-        SocketStatus.Closing -> WiretapColors.StatusAmber
-        SocketStatus.Closed -> WiretapColors.StatusGray
-        SocketStatus.Failed -> WiretapColors.StatusRed
-    }
-    val label = when (status) {
-        SocketStatus.Connecting -> "Connecting"
-        SocketStatus.Open -> "Open"
-        SocketStatus.Closing -> "Closing"
-        SocketStatus.Closed -> "Closed"
-        SocketStatus.Failed -> "Failed"
-    }
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = Color.White,
-        modifier = Modifier
-            .background(bgColor, RoundedCornerShape(4.dp))
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-    )
 }
 
 @Preview
@@ -216,7 +197,7 @@ private fun SocketStatusChip(status: SocketStatus) {
 private fun Preview_SocketLogItemOpen() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketConnection(
+            socket = SocketConnection(
                 id = 1,
                 url = "wss://echo.websocket.org/chat",
                 status = SocketStatus.Open,
@@ -234,7 +215,7 @@ private fun Preview_SocketLogItemOpen() {
 private fun Preview_SocketLogItemClosed() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketConnection(
+            socket = SocketConnection(
                 id = 2,
                 url = "ws://localhost:8080/ws",
                 status = SocketStatus.Closed,
@@ -254,7 +235,7 @@ private fun Preview_SocketLogItemClosed() {
 private fun Preview_SocketLogItemFailed() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketConnection(
+            socket = SocketConnection(
                 id = 3,
                 url = "wss://api.example.com/stream",
                 status = SocketStatus.Failed,
@@ -273,7 +254,7 @@ private fun Preview_SocketLogItemFailed() {
 private fun Preview_SocketLogItemConnecting() {
     MaterialTheme {
         SocketLogItemContent(
-            entry = SocketConnection(
+            socket = SocketConnection(
                 id = 4,
                 url = "wss://api.example.com/realtime",
                 status = SocketStatus.Connecting,

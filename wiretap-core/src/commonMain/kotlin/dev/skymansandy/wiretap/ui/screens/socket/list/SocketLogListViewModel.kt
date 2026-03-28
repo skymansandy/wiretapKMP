@@ -13,13 +13,13 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 internal class SocketLogListViewModel(
     private val socketLogManager: SocketLogManager,
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
 
-    @OptIn(FlowPreview::class)
     private val debouncedQuery: StateFlow<String> = _searchQuery
         .debounce { if (it.isEmpty()) 0L else 450L }
         .stateIn(

@@ -20,7 +20,7 @@ internal data class RequestStepState(
     val bodyPattern: String = "",
 )
 
-internal inline fun MutableStateFlow<RequestStepState>.update(
+internal inline fun MutableStateFlow<RequestStepState>.updateRequest(
     crossinline transform: RequestStepState.() -> RequestStepState,
 ) = update { it.transform() }
 
@@ -37,6 +37,6 @@ internal data class ResponseStepState(
     val throttleInputMode: ThrottleInputMode = ThrottleInputMode.None,
 )
 
-internal inline fun MutableStateFlow<ResponseStepState>.update(
+internal inline fun MutableStateFlow<ResponseStepState>.updateResponse(
     crossinline transform: ResponseStepState.() -> ResponseStepState,
 ) = update { it.transform() }
