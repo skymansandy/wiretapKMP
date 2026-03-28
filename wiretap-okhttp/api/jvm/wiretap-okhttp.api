@@ -17,3 +17,7 @@ public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListener
 	public fun onOpen (Lokhttp3/WebSocket;Lokhttp3/Response;)V
 }
 
+public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListenerKt {
+	public static final fun wiretapped (Lokhttp3/WebSocketListener;)Ldev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListener;
+}
+

@@ -1,75 +1,13 @@
-public abstract interface class dev/skymansandy/wiretap/config/HeaderAction {
-}
-
-public final class dev/skymansandy/wiretap/config/HeaderAction$Keep : dev/skymansandy/wiretap/config/HeaderAction {
+public final class dev/skymansandy/wiretap/di/WiretapDi : org/koin/core/component/KoinComponent {
 	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/config/HeaderAction$Keep;
+	public static final field INSTANCE Ldev/skymansandy/wiretap/di/WiretapDi;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public final fun setTestKoin (Lorg/koin/core/Koin;)V
 }
 
-public final class dev/skymansandy/wiretap/config/HeaderAction$Mask : dev/skymansandy/wiretap/config/HeaderAction {
+public final class dev/skymansandy/wiretap/domain/model/HttpLog {
 	public static final field $stable I
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;)V
-	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/config/HeaderAction$Mask;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/config/HeaderAction$Mask;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/config/HeaderAction$Mask;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getMask ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/config/HeaderAction$Skip : dev/skymansandy/wiretap/config/HeaderAction {
-	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/config/HeaderAction$Skip;
-}
-
-public final class dev/skymansandy/wiretap/config/HeaderActionKt {
-	public static final fun applyHeaderAction (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
-}
-
-public abstract interface class dev/skymansandy/wiretap/config/LogRetention {
-}
-
-public final class dev/skymansandy/wiretap/config/LogRetention$AppSession : dev/skymansandy/wiretap/config/LogRetention {
-	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/config/LogRetention$AppSession;
-}
-
-public final class dev/skymansandy/wiretap/config/LogRetention$Days : dev/skymansandy/wiretap/config/LogRetention {
-	public static final field $stable I
-	public fun <init> (I)V
-	public final fun component1 ()I
-	public final fun copy (I)Ldev/skymansandy/wiretap/config/LogRetention$Days;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/config/LogRetention$Days;IILjava/lang/Object;)Ldev/skymansandy/wiretap/config/LogRetention$Days;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDays ()I
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/config/LogRetention$Forever : dev/skymansandy/wiretap/config/LogRetention {
-	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/config/LogRetention$Forever;
-}
-
-public final class dev/skymansandy/wiretap/config/WiretapConfig {
-	public static final field $stable I
-	public fun <init> ()V
-	public final fun getEnabled ()Z
-	public final fun getHeaderAction ()Lkotlin/jvm/functions/Function1;
-	public final fun getLogRetention ()Ldev/skymansandy/wiretap/config/LogRetention;
-	public final fun getShouldLog ()Lkotlin/jvm/functions/Function2;
-	public final fun setEnabled (Z)V
-	public final fun setHeaderAction (Lkotlin/jvm/functions/Function1;)V
-	public final fun setLogRetention (Ldev/skymansandy/wiretap/config/LogRetention;)V
-	public final fun setShouldLog (Lkotlin/jvm/functions/Function2;)V
-}
-
-public final class dev/skymansandy/wiretap/data/db/entity/HttpLogEntry {
-	public static final field $stable I
-	public static final field Companion Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry$Companion;
+	public static final field Companion Ldev/skymansandy/wiretap/domain/model/HttpLog$Companion;
 	public static final field RESPONSE_CODE_IN_PROGRESS I
 	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -94,8 +32,8 @@ public final class dev/skymansandy/wiretap/data/db/entity/HttpLogEntry {
 	public final fun component7 ()Ljava/util/Map;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()J
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;
+	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/HttpLog;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/HttpLog;JLjava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/util/Map;Ljava/lang/String;JJJLdev/skymansandy/wiretap/domain/model/ResponseSource;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/HttpLog;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCertificateCn ()Ljava/lang/String;
 	public final fun getCertificateExpiry ()Ljava/lang/String;
@@ -115,6 +53,8 @@ public final class dev/skymansandy/wiretap/data/db/entity/HttpLogEntry {
 	public final fun getResponseCode ()I
 	public final fun getResponseHeaders ()Ljava/util/Map;
 	public final fun getSource ()Ldev/skymansandy/wiretap/domain/model/ResponseSource;
+	public final fun getStatusColor-0d7_KjU ()J
+	public final fun getStatusText ()Ljava/lang/String;
 	public final fun getTimestamp ()J
 	public final fun getTlsProtocol ()Ljava/lang/String;
 	public final fun getUrl ()Ljava/lang/String;
@@ -123,519 +63,7 @@ public final class dev/skymansandy/wiretap/data/db/entity/HttpLogEntry {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/skymansandy/wiretap/data/db/entity/HttpLogEntry$Companion {
-}
-
-public final class dev/skymansandy/wiretap/data/db/entity/SocketEntry {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Z)V
-	public synthetic fun <init> (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()J
-	public final fun component10 ()Ljava/lang/Long;
-	public final fun component11 ()Ljava/lang/String;
-	public final fun component12 ()Ljava/lang/String;
-	public final fun component13 ()Z
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/util/Map;
-	public final fun component4 ()Ldev/skymansandy/wiretap/domain/model/SocketStatus;
-	public final fun component5 ()Ljava/lang/Integer;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()J
-	public final fun component9 ()J
-	public final fun copy (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Z)Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCloseCode ()Ljava/lang/Integer;
-	public final fun getCloseReason ()Ljava/lang/String;
-	public final fun getClosedAt ()Ljava/lang/Long;
-	public final fun getFailureMessage ()Ljava/lang/String;
-	public final fun getHistoryCleared ()Z
-	public final fun getId ()J
-	public final fun getMessageCount ()J
-	public final fun getProtocol ()Ljava/lang/String;
-	public final fun getRemoteAddress ()Ljava/lang/String;
-	public final fun getRequestHeaders ()Ljava/util/Map;
-	public final fun getStatus ()Ldev/skymansandy/wiretap/domain/model/SocketStatus;
-	public final fun getTimestamp ()J
-	public final fun getUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/data/db/entity/SocketMessage {
-	public static final field $stable I
-	public fun <init> (JJLdev/skymansandy/wiretap/domain/model/SocketMessageDirection;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJ)V
-	public synthetic fun <init> (JJLdev/skymansandy/wiretap/domain/model/SocketMessageDirection;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()J
-	public final fun component2 ()J
-	public final fun component3 ()Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
-	public final fun component4 ()Ldev/skymansandy/wiretap/domain/model/SocketContentType;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()J
-	public final fun component7 ()J
-	public final fun copy (JJLdev/skymansandy/wiretap/domain/model/SocketMessageDirection;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJ)Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;JJLdev/skymansandy/wiretap/domain/model/SocketMessageDirection;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJILjava/lang/Object;)Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getByteCount ()J
-	public final fun getContent ()Ljava/lang/String;
-	public final fun getContentType ()Ldev/skymansandy/wiretap/domain/model/SocketContentType;
-	public final fun getDirection ()Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
-	public final fun getId ()J
-	public final fun getSocketId ()J
-	public final fun getTimestamp ()J
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/data/db/entity/WiretapRule {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJ)V
-	public synthetic fun <init> (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()J
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ldev/skymansandy/wiretap/domain/model/UrlMatcher;
-	public final fun component4 ()Ljava/util/List;
-	public final fun component5 ()Ldev/skymansandy/wiretap/domain/model/BodyMatcher;
-	public final fun component6 ()Ldev/skymansandy/wiretap/domain/model/RuleAction;
-	public final fun component7 ()Z
-	public final fun component8 ()J
-	public final fun copy (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJ)Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJILjava/lang/Object;)Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAction ()Ldev/skymansandy/wiretap/domain/model/RuleAction;
-	public final fun getBodyMatcher ()Ldev/skymansandy/wiretap/domain/model/BodyMatcher;
-	public final fun getCreatedAt ()J
-	public final fun getEnabled ()Z
-	public final fun getHeaderMatchers ()Ljava/util/List;
-	public final fun getId ()J
-	public final fun getMethod ()Ljava/lang/String;
-	public final fun getUrlMatcher ()Ldev/skymansandy/wiretap/domain/model/UrlMatcher;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/GetAllNetworkLogs {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()J
-	public final fun component10 ()J
-	public final fun component11 ()Ljava/lang/Long;
-	public final fun component12 ()Ljava/lang/String;
-	public final fun component13 ()Ljava/lang/String;
-	public final fun component14 ()Ljava/lang/String;
-	public final fun component15 ()Ljava/lang/String;
-	public final fun component16 ()Ljava/lang/String;
-	public final fun component17 ()Ljava/lang/String;
-	public final fun component18 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()J
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()J
-	public final fun component8 ()J
-	public final fun component9 ()Ljava/lang/String;
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/db/GetAllNetworkLogs;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/GetAllNetworkLogs;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/db/GetAllNetworkLogs;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCertificate_cn ()Ljava/lang/String;
-	public final fun getCertificate_expiry ()Ljava/lang/String;
-	public final fun getCipher_suite ()Ljava/lang/String;
-	public final fun getDuration_ms ()J
-	public final fun getId ()J
-	public final fun getIssuer_cn ()Ljava/lang/String;
-	public final fun getMatched_rule_id ()Ljava/lang/Long;
-	public final fun getMethod ()Ljava/lang/String;
-	public final fun getProtocol ()Ljava/lang/String;
-	public final fun getRemote_address ()Ljava/lang/String;
-	public final fun getRequest_headers ()Ljava/lang/String;
-	public final fun getResponse_body_size ()J
-	public final fun getResponse_code ()J
-	public final fun getResponse_headers ()Ljava/lang/String;
-	public final fun getSource ()Ljava/lang/String;
-	public final fun getTimestamp ()J
-	public final fun getTls_protocol ()Ljava/lang/String;
-	public final fun getUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/GetNetworkLogsPage {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()J
-	public final fun component10 ()J
-	public final fun component11 ()Ljava/lang/Long;
-	public final fun component12 ()Ljava/lang/String;
-	public final fun component13 ()Ljava/lang/String;
-	public final fun component14 ()Ljava/lang/String;
-	public final fun component15 ()Ljava/lang/String;
-	public final fun component16 ()Ljava/lang/String;
-	public final fun component17 ()Ljava/lang/String;
-	public final fun component18 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()J
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()J
-	public final fun component8 ()J
-	public final fun component9 ()Ljava/lang/String;
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/db/GetNetworkLogsPage;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/GetNetworkLogsPage;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;JJLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/db/GetNetworkLogsPage;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCertificate_cn ()Ljava/lang/String;
-	public final fun getCertificate_expiry ()Ljava/lang/String;
-	public final fun getCipher_suite ()Ljava/lang/String;
-	public final fun getDuration_ms ()J
-	public final fun getId ()J
-	public final fun getIssuer_cn ()Ljava/lang/String;
-	public final fun getMatched_rule_id ()Ljava/lang/Long;
-	public final fun getMethod ()Ljava/lang/String;
-	public final fun getProtocol ()Ljava/lang/String;
-	public final fun getRemote_address ()Ljava/lang/String;
-	public final fun getRequest_headers ()Ljava/lang/String;
-	public final fun getResponse_body_size ()J
-	public final fun getResponse_code ()J
-	public final fun getResponse_headers ()Ljava/lang/String;
-	public final fun getSource ()Ljava/lang/String;
-	public final fun getTimestamp ()J
-	public final fun getTls_protocol ()Ljava/lang/String;
-	public final fun getUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/HttpLogEntity {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;JLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()J
-	public final fun component10 ()Ljava/lang/String;
-	public final fun component11 ()J
-	public final fun component12 ()Ljava/lang/Long;
-	public final fun component13 ()Ljava/lang/String;
-	public final fun component14 ()Ljava/lang/String;
-	public final fun component15 ()Ljava/lang/String;
-	public final fun component16 ()Ljava/lang/String;
-	public final fun component17 ()Ljava/lang/String;
-	public final fun component18 ()Ljava/lang/String;
-	public final fun component19 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()J
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()Ljava/lang/String;
-	public final fun component9 ()J
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;JLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/db/HttpLogEntity;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/HttpLogEntity;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;JLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/db/HttpLogEntity;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getCertificate_cn ()Ljava/lang/String;
-	public final fun getCertificate_expiry ()Ljava/lang/String;
-	public final fun getCipher_suite ()Ljava/lang/String;
-	public final fun getDuration_ms ()J
-	public final fun getId ()J
-	public final fun getIssuer_cn ()Ljava/lang/String;
-	public final fun getMatched_rule_id ()Ljava/lang/Long;
-	public final fun getMethod ()Ljava/lang/String;
-	public final fun getProtocol ()Ljava/lang/String;
-	public final fun getRemote_address ()Ljava/lang/String;
-	public final fun getRequest_body ()Ljava/lang/String;
-	public final fun getRequest_headers ()Ljava/lang/String;
-	public final fun getResponse_body ()Ljava/lang/String;
-	public final fun getResponse_code ()J
-	public final fun getResponse_headers ()Ljava/lang/String;
-	public final fun getSource ()Ljava/lang/String;
-	public final fun getTimestamp ()J
-	public final fun getTls_protocol ()Ljava/lang/String;
-	public final fun getUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/RuleEntity {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;JJ)V
-	public final fun component1 ()J
-	public final fun component10 ()Ljava/lang/String;
-	public final fun component11 ()Ljava/lang/String;
-	public final fun component12 ()Ljava/lang/Long;
-	public final fun component13 ()Ljava/lang/Long;
-	public final fun component14 ()J
-	public final fun component15 ()J
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()Ljava/lang/String;
-	public final fun component9 ()Ljava/lang/Long;
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;JJ)Ldev/skymansandy/wiretap/db/RuleEntity;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/RuleEntity;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;JJILjava/lang/Object;)Ldev/skymansandy/wiretap/db/RuleEntity;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getAction ()Ljava/lang/String;
-	public final fun getBody_matcher_type ()Ljava/lang/String;
-	public final fun getBody_pattern ()Ljava/lang/String;
-	public final fun getCreated_at ()J
-	public final fun getEnabled ()J
-	public final fun getHeader_matchers ()Ljava/lang/String;
-	public final fun getId ()J
-	public final fun getMethod ()Ljava/lang/String;
-	public final fun getMock_response_body ()Ljava/lang/String;
-	public final fun getMock_response_code ()Ljava/lang/Long;
-	public final fun getMock_response_headers ()Ljava/lang/String;
-	public final fun getThrottle_delay_max_ms ()Ljava/lang/Long;
-	public final fun getThrottle_delay_ms ()Ljava/lang/Long;
-	public final fun getUrl_matcher_type ()Ljava/lang/String;
-	public final fun getUrl_pattern ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/SocketLogEntity {
-	public static final field $stable I
-	public fun <init> (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;J)V
-	public final fun component1 ()J
-	public final fun component10 ()Ljava/lang/Long;
-	public final fun component11 ()Ljava/lang/String;
-	public final fun component12 ()Ljava/lang/String;
-	public final fun component13 ()J
-	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/Long;
-	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()Ljava/lang/String;
-	public final fun component8 ()J
-	public final fun component9 ()J
-	public final fun copy (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;J)Ldev/skymansandy/wiretap/db/SocketLogEntity;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/SocketLogEntity;JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Ldev/skymansandy/wiretap/db/SocketLogEntity;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getClose_code ()Ljava/lang/Long;
-	public final fun getClose_reason ()Ljava/lang/String;
-	public final fun getClosed_at ()Ljava/lang/Long;
-	public final fun getFailure_message ()Ljava/lang/String;
-	public final fun getHistory_cleared ()J
-	public final fun getId ()J
-	public final fun getMessage_count ()J
-	public final fun getProtocol ()Ljava/lang/String;
-	public final fun getRemote_address ()Ljava/lang/String;
-	public final fun getRequest_headers ()Ljava/lang/String;
-	public final fun getStatus ()Ljava/lang/String;
-	public final fun getTimestamp ()J
-	public final fun getUrl ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/db/SocketMessageEntity {
-	public static final field $stable I
-	public fun <init> (JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJ)V
-	public final fun component1 ()J
-	public final fun component2 ()J
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/String;
-	public final fun component5 ()Ljava/lang/String;
-	public final fun component6 ()J
-	public final fun component7 ()J
-	public final fun copy (JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJ)Ldev/skymansandy/wiretap/db/SocketMessageEntity;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/db/SocketMessageEntity;JJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJILjava/lang/Object;)Ldev/skymansandy/wiretap/db/SocketMessageEntity;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getByte_count ()J
-	public final fun getContent ()Ljava/lang/String;
-	public final fun getContent_type ()Ljava/lang/String;
-	public final fun getDirection ()Ljava/lang/String;
-	public final fun getId ()J
-	public final fun getSocket_id ()J
-	public final fun getTimestamp ()J
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public abstract interface class dev/skymansandy/wiretap/db/WiretapDatabase : app/cash/sqldelight/Transacter {
-	public static final field Companion Ldev/skymansandy/wiretap/db/WiretapDatabase$Companion;
-	public abstract fun getWiretapQueries ()Ldev/skymansandy/wiretap/db/WiretapQueries;
-}
-
-public final class dev/skymansandy/wiretap/db/WiretapDatabase$Companion {
-	public final fun getSchema ()Lapp/cash/sqldelight/db/SqlSchema;
-	public final fun invoke (Lapp/cash/sqldelight/db/SqlDriver;)Ldev/skymansandy/wiretap/db/WiretapDatabase;
-}
-
-public final class dev/skymansandy/wiretap/db/WiretapQueries : app/cash/sqldelight/TransacterImpl {
-	public static final field $stable I
-	public fun <init> (Lapp/cash/sqldelight/db/SqlDriver;)V
-	public final fun closeStaleHttpLogs ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun closeStaleSocketLogs ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteAllNetworkLogs ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteAllRules ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteAllSocketLogs ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteAllSocketMessages ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteClosedSocketLogs ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteClosedSocketMessages ()Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteNetworkLogById (J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteNetworkLogsOlderThan (J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun deleteRuleById (J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun getAllNetworkLogs ()Lapp/cash/sqldelight/Query;
-	public final fun getAllNetworkLogs (Lkotlin/jvm/functions/Function18;)Lapp/cash/sqldelight/Query;
-	public final fun getAllRules ()Lapp/cash/sqldelight/Query;
-	public final fun getAllRules (Lkotlin/jvm/functions/Function15;)Lapp/cash/sqldelight/Query;
-	public final fun getAllSocketLogs ()Lapp/cash/sqldelight/Query;
-	public final fun getAllSocketLogs (Lkotlin/jvm/functions/Function13;)Lapp/cash/sqldelight/Query;
-	public final fun getEnabledRules ()Lapp/cash/sqldelight/Query;
-	public final fun getEnabledRules (Lkotlin/jvm/functions/Function15;)Lapp/cash/sqldelight/Query;
-	public final fun getNetworkLogById (J)Lapp/cash/sqldelight/Query;
-	public final fun getNetworkLogById (JLkotlin/jvm/functions/Function19;)Lapp/cash/sqldelight/Query;
-	public final fun getNetworkLogsPage (Ljava/lang/String;Ljava/lang/Long;J)Lapp/cash/sqldelight/Query;
-	public final fun getNetworkLogsPage (Ljava/lang/String;Ljava/lang/Long;JLkotlin/jvm/functions/Function18;)Lapp/cash/sqldelight/Query;
-	public final fun getRuleById (J)Lapp/cash/sqldelight/Query;
-	public final fun getRuleById (JLkotlin/jvm/functions/Function15;)Lapp/cash/sqldelight/Query;
-	public final fun getSocketLogById (J)Lapp/cash/sqldelight/Query;
-	public final fun getSocketLogById (JLkotlin/jvm/functions/Function13;)Lapp/cash/sqldelight/Query;
-	public final fun getSocketLogsPage (Ljava/lang/String;Ljava/lang/Long;J)Lapp/cash/sqldelight/Query;
-	public final fun getSocketLogsPage (Ljava/lang/String;Ljava/lang/Long;JLkotlin/jvm/functions/Function13;)Lapp/cash/sqldelight/Query;
-	public final fun getSocketMessagesBySocketId (J)Lapp/cash/sqldelight/Query;
-	public final fun getSocketMessagesBySocketId (JLkotlin/jvm/functions/Function7;)Lapp/cash/sqldelight/Query;
-	public final fun incrementSocketMessageCount (J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertNetworkLog (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;JLjava/lang/String;JLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertRule (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;JJ)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertSocketLog (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/String;)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertSocketLogWithId (Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/String;Ljava/lang/String;J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun insertSocketMessage (JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJ)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun lastInsertRowId ()Lapp/cash/sqldelight/ExecutableQuery;
-	public final fun searchRules (Ljava/lang/String;)Lapp/cash/sqldelight/Query;
-	public final fun searchRules (Ljava/lang/String;Lkotlin/jvm/functions/Function15;)Lapp/cash/sqldelight/Query;
-	public final fun updateNetworkLog (JLjava/lang/String;Ljava/lang/String;JLjava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun updateRule (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;JJ)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun updateRuleEnabled (JJ)Lapp/cash/sqldelight/db/QueryResult;
-	public final fun updateSocketLog (Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;J)Lapp/cash/sqldelight/db/QueryResult;
-}
-
-public final class dev/skymansandy/wiretap/di/WiretapDataModuleKt {
-	public static final fun getWiretapDataModule ()Lorg/koin/core/module/Module;
-}
-
-public final class dev/skymansandy/wiretap/di/WiretapDi : org/koin/core/component/KoinComponent {
-	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/di/WiretapDi;
-	public final fun getFindConflictingRules ()Ldev/skymansandy/wiretap/domain/usecase/FindConflictingRulesUseCase;
-	public fun getKoin ()Lorg/koin/core/Koin;
-	public final fun getOrchestrator ()Ldev/skymansandy/wiretap/domain/orchestrator/WiretapOrchestrator;
-	public final fun getRuleRepository ()Ldev/skymansandy/wiretap/domain/repository/RuleRepository;
-	public final fun setTestKoin (Lorg/koin/core/Koin;)V
-}
-
-public final class dev/skymansandy/wiretap/di/WiretapModuleKt {
-	public static final fun getWiretapModule ()Lorg/koin/core/module/Module;
-}
-
-public final class dev/skymansandy/wiretap/di/WiretapUtilityModuleKt {
-	public static final fun getWiretapUtilityModule ()Lorg/koin/core/module/Module;
-}
-
-public abstract interface class dev/skymansandy/wiretap/domain/model/BodyMatcher {
-	public abstract fun getPattern ()Ljava/lang/String;
-	public abstract fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/BodyMatcher$Contains : dev/skymansandy/wiretap/domain/model/BodyMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Contains;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Contains;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Contains;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getPattern ()Ljava/lang/String;
-	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/BodyMatcher$Exact : dev/skymansandy/wiretap/domain/model/BodyMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Exact;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Exact;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Exact;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getPattern ()Ljava/lang/String;
-	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/BodyMatcher$Regex : dev/skymansandy/wiretap/domain/model/BodyMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Regex;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Regex;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/BodyMatcher$Regex;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getPattern ()Ljava/lang/String;
-	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public abstract interface class dev/skymansandy/wiretap/domain/model/HeaderMatcher {
-	public abstract fun getKey ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/HeaderMatcher$KeyExists : dev/skymansandy/wiretap/domain/model/HeaderMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$KeyExists;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$KeyExists;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$KeyExists;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getKey ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueContains : dev/skymansandy/wiretap/domain/model/HeaderMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueContains;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueContains;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueContains;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getKey ()Ljava/lang/String;
-	public final fun getValue ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueExact : dev/skymansandy/wiretap/domain/model/HeaderMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueExact;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueExact;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueExact;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getKey ()Ljava/lang/String;
-	public final fun getValue ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueRegex : dev/skymansandy/wiretap/domain/model/HeaderMatcher {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueRegex;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueRegex;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/HeaderMatcher$ValueRegex;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getKey ()Ljava/lang/String;
-	public final fun getPattern ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
+public final class dev/skymansandy/wiretap/domain/model/HttpLog$Companion {
 }
 
 public final class dev/skymansandy/wiretap/domain/model/MatcherType : java/lang/Enum {
@@ -656,10 +84,13 @@ public final class dev/skymansandy/wiretap/domain/model/ResponseSource : java/la
 	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/ResponseSource;
 }
 
-public abstract class dev/skymansandy/wiretap/domain/model/RuleAction {
-	public static final field $stable I
-	public final fun getName ()Ljava/lang/String;
+public abstract interface class dev/skymansandy/wiretap/domain/model/RuleAction {
+	public fun getName ()Ljava/lang/String;
 	public abstract fun getType ()Ldev/skymansandy/wiretap/domain/model/RuleAction$Type;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/RuleAction$DefaultImpls {
+	public static fun getName (Ldev/skymansandy/wiretap/domain/model/RuleAction;)Ljava/lang/String;
 }
 
 public final class dev/skymansandy/wiretap/domain/model/RuleAction$Mock : dev/skymansandy/wiretap/domain/model/RuleAction {
@@ -675,6 +106,7 @@ public final class dev/skymansandy/wiretap/domain/model/RuleAction$Mock : dev/sk
 	public final fun copy (ILjava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/Long;)Ldev/skymansandy/wiretap/domain/model/RuleAction$Mock;
 	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/RuleAction$Mock;ILjava/lang/String;Ljava/util/Map;Ljava/lang/Long;Ljava/lang/Long;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/RuleAction$Mock;
 	public fun equals (Ljava/lang/Object;)Z
+	public fun getName ()Ljava/lang/String;
 	public final fun getResponseBody ()Ljava/lang/String;
 	public final fun getResponseCode ()I
 	public final fun getResponseHeaders ()Ljava/util/Map;
@@ -697,6 +129,7 @@ public final class dev/skymansandy/wiretap/domain/model/RuleAction$Throttle : de
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelayMaxMs ()Ljava/lang/Long;
 	public final fun getDelayMs ()J
+	public fun getName ()Ljava/lang/String;
 	public fun getType ()Ldev/skymansandy/wiretap/domain/model/RuleAction$Type;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -710,20 +143,86 @@ public final class dev/skymansandy/wiretap/domain/model/RuleAction$Type : java/l
 	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/RuleAction$Type;
 }
 
+public final class dev/skymansandy/wiretap/domain/model/SocketConnection {
+	public static final field $stable I
+	public fun <init> (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Z)V
+	public synthetic fun <init> (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component10 ()Ljava/lang/Long;
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component12 ()Ljava/lang/String;
+	public final fun component13 ()Z
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun component4 ()Ldev/skymansandy/wiretap/domain/model/SocketStatus;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()J
+	public final fun component9 ()J
+	public final fun copy (JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;Z)Ldev/skymansandy/wiretap/domain/model/SocketConnection;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/SocketConnection;JLjava/lang/String;Ljava/util/Map;Ldev/skymansandy/wiretap/domain/model/SocketStatus;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/Long;Ljava/lang/String;Ljava/lang/String;ZILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/SocketConnection;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCloseCode ()Ljava/lang/Integer;
+	public final fun getCloseReason ()Ljava/lang/String;
+	public final fun getClosedAt ()Ljava/lang/Long;
+	public final fun getFailureMessage ()Ljava/lang/String;
+	public final fun getHistoryCleared ()Z
+	public final fun getId ()J
+	public final fun getMessageCount ()J
+	public final fun getProtocol ()Ljava/lang/String;
+	public final fun getRemoteAddress ()Ljava/lang/String;
+	public final fun getRequestHeaders ()Ljava/util/Map;
+	public final fun getStatus ()Ldev/skymansandy/wiretap/domain/model/SocketStatus;
+	public final fun getStatusColor-0d7_KjU ()J
+	public final fun getTimestamp ()J
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/skymansandy/wiretap/domain/model/SocketContentType : java/lang/Enum {
 	public static final field Binary Ldev/skymansandy/wiretap/domain/model/SocketContentType;
+	public static final field Close Ldev/skymansandy/wiretap/domain/model/SocketContentType;
+	public static final field Ping Ldev/skymansandy/wiretap/domain/model/SocketContentType;
+	public static final field Pong Ldev/skymansandy/wiretap/domain/model/SocketContentType;
 	public static final field Text Ldev/skymansandy/wiretap/domain/model/SocketContentType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/SocketContentType;
 	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/SocketContentType;
 }
 
-public final class dev/skymansandy/wiretap/domain/model/SocketMessageDirection : java/lang/Enum {
-	public static final field Received Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
-	public static final field Sent Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
+public final class dev/skymansandy/wiretap/domain/model/SocketMessage {
+	public static final field $stable I
+	public fun <init> (JJLdev/skymansandy/wiretap/domain/model/SocketMessageType;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJ)V
+	public synthetic fun <init> (JJLdev/skymansandy/wiretap/domain/model/SocketMessageType;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
+	public final fun component4 ()Ldev/skymansandy/wiretap/domain/model/SocketContentType;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()J
+	public final fun component7 ()J
+	public final fun copy (JJLdev/skymansandy/wiretap/domain/model/SocketMessageType;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJ)Ldev/skymansandy/wiretap/domain/model/SocketMessage;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/SocketMessage;JJLdev/skymansandy/wiretap/domain/model/SocketMessageType;Ldev/skymansandy/wiretap/domain/model/SocketContentType;Ljava/lang/String;JJILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/SocketMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getByteCount ()J
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getContentType ()Ldev/skymansandy/wiretap/domain/model/SocketContentType;
+	public final fun getDirection ()Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
+	public final fun getId ()J
+	public final fun getSocketId ()J
+	public final fun getTimestamp ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/SocketMessageType : java/lang/Enum {
+	public static final field Received Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
+	public static final field Sent Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
-	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/SocketMessageDirection;
+	public static fun valueOf (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
+	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/SocketMessageType;
 }
 
 public final class dev/skymansandy/wiretap/domain/model/SocketStatus : java/lang/Enum {
@@ -732,22 +231,120 @@ public final class dev/skymansandy/wiretap/domain/model/SocketStatus : java/lang
 	public static final field Connecting Ldev/skymansandy/wiretap/domain/model/SocketStatus;
 	public static final field Failed Ldev/skymansandy/wiretap/domain/model/SocketStatus;
 	public static final field Open Ldev/skymansandy/wiretap/domain/model/SocketStatus;
+	public final fun getBgColor-0d7_KjU ()J
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getLabel ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/SocketStatus;
 	public static fun values ()[Ldev/skymansandy/wiretap/domain/model/SocketStatus;
 }
 
-public abstract interface class dev/skymansandy/wiretap/domain/model/UrlMatcher {
+public final class dev/skymansandy/wiretap/domain/model/WiretapRule {
+	public static final field $stable I
+	public fun <init> (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJ)V
+	public synthetic fun <init> (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;
+	public final fun component6 ()Ldev/skymansandy/wiretap/domain/model/RuleAction;
+	public final fun component7 ()Z
+	public final fun component8 ()J
+	public final fun copy (JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJ)Ldev/skymansandy/wiretap/domain/model/WiretapRule;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/WiretapRule;JLjava/lang/String;Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;Ljava/util/List;Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;Ldev/skymansandy/wiretap/domain/model/RuleAction;ZJILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/WiretapRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAction ()Ldev/skymansandy/wiretap/domain/model/RuleAction;
+	public final fun getBodyMatcher ()Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher;
+	public final fun getCreatedAt ()J
+	public final fun getEnabled ()Z
+	public final fun getHeaderMatchers ()Ljava/util/List;
+	public final fun getId ()J
+	public final fun getMethod ()Ljava/lang/String;
+	public final fun getUrlMatcher ()Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/HeaderAction {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/HeaderAction$Keep : dev/skymansandy/wiretap/domain/model/config/HeaderAction {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/HeaderAction$Keep;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/HeaderAction$Mask : dev/skymansandy/wiretap/domain/model/config/HeaderAction {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/config/HeaderAction$Mask;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/config/HeaderAction$Mask;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/config/HeaderAction$Mask;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMask ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/HeaderAction$Skip : dev/skymansandy/wiretap/domain/model/config/HeaderAction {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/HeaderAction$Skip;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/HeaderActionKt {
+	public static final fun applyHeaderAction (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/LogRetention {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/LogRetention$AppSession : dev/skymansandy/wiretap/domain/model/config/LogRetention {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/LogRetention$AppSession;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/LogRetention$Days : dev/skymansandy/wiretap/domain/model/config/LogRetention {
+	public static final field $stable I
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Ldev/skymansandy/wiretap/domain/model/config/LogRetention$Days;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/config/LogRetention$Days;IILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/config/LogRetention$Days;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDays ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/LogRetention$Forever : dev/skymansandy/wiretap/domain/model/config/LogRetention {
+	public static final field $stable I
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/LogRetention$Forever;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/WiretapConfig {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun getEnabled ()Z
+	public final fun getHeaderAction ()Lkotlin/jvm/functions/Function1;
+	public final fun getLogRetention ()Ldev/skymansandy/wiretap/domain/model/config/LogRetention;
+	public final fun getShouldLog ()Lkotlin/jvm/functions/Function2;
+	public final fun setEnabled (Z)V
+	public final fun setHeaderAction (Lkotlin/jvm/functions/Function1;)V
+	public final fun setLogRetention (Ldev/skymansandy/wiretap/domain/model/config/LogRetention;)V
+	public final fun setShouldLog (Lkotlin/jvm/functions/Function2;)V
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher {
 	public abstract fun getPattern ()Ljava/lang/String;
 	public abstract fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
 }
 
-public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Contains : dev/skymansandy/wiretap/domain/model/UrlMatcher {
+public final class dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Contains : dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Contains;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Contains;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Contains;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Contains;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Contains;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Contains;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getPattern ()Ljava/lang/String;
 	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
@@ -755,12 +352,12 @@ public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Contains : de
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Exact : dev/skymansandy/wiretap/domain/model/UrlMatcher {
+public final class dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Exact : dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Exact;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Exact;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Exact;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Exact;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Exact;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Exact;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getPattern ()Ljava/lang/String;
 	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
@@ -768,12 +365,12 @@ public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Exact : dev/s
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Regex : dev/skymansandy/wiretap/domain/model/UrlMatcher {
+public final class dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Regex : dev/skymansandy/wiretap/domain/model/matchers/BodyMatcher {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Regex;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Regex;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/UrlMatcher$Regex;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Regex;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Regex;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/BodyMatcher$Regex;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getPattern ()Ljava/lang/String;
 	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
@@ -781,118 +378,199 @@ public final class dev/skymansandy/wiretap/domain/model/UrlMatcher$Regex : dev/s
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/skymansandy/wiretap/domain/model/WiretapResponse {
+public abstract interface class dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher {
+	public abstract fun getKey ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$KeyExists : dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher {
 	public static final field $stable I
-	public fun <init> (ILjava/util/Map;Ljava/lang/String;Ldev/skymansandy/wiretap/domain/model/ResponseSource;J)V
-	public synthetic fun <init> (ILjava/util/Map;Ljava/lang/String;Ldev/skymansandy/wiretap/domain/model/ResponseSource;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()I
-	public final fun component2 ()Ljava/util/Map;
-	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ldev/skymansandy/wiretap/domain/model/ResponseSource;
-	public final fun component5 ()J
-	public final fun copy (ILjava/util/Map;Ljava/lang/String;Ldev/skymansandy/wiretap/domain/model/ResponseSource;J)Ldev/skymansandy/wiretap/domain/model/WiretapResponse;
-	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/WiretapResponse;ILjava/util/Map;Ljava/lang/String;Ldev/skymansandy/wiretap/domain/model/ResponseSource;JILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/WiretapResponse;
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$KeyExists;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$KeyExists;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$KeyExists;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getBody ()Ljava/lang/String;
-	public final fun getDurationMs ()J
-	public final fun getHeaders ()Ljava/util/Map;
-	public final fun getSource ()Ldev/skymansandy/wiretap/domain/model/ResponseSource;
-	public final fun getStatusCode ()I
+	public fun getKey ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/HttpOrchestrator {
+public final class dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueContains : dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueContains;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueContains;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueContains;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueExact : dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueExact;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueExact;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueExact;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueRegex : dev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueRegex;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueRegex;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/HeaderMatcher$ValueRegex;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getKey ()Ljava/lang/String;
+	public final fun getPattern ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher {
+	public abstract fun getPattern ()Ljava/lang/String;
+	public abstract fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Contains : dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Contains;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Contains;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Contains;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getPattern ()Ljava/lang/String;
+	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Exact : dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Exact;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Exact;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Exact;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getPattern ()Ljava/lang/String;
+	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Regex : dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Regex;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Regex;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Regex;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getPattern ()Ljava/lang/String;
+	public fun getType ()Ldev/skymansandy/wiretap/domain/model/MatcherType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/HttpLogManager {
 	public abstract fun clearHttpLogs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteHttpLog (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getAllHttpLogs ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowHttpLogById (J)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowHttpLogs ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowPagedHttpLogsForSearchQuery (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getHttpLogById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getPagedHttpLogs (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun logHttp (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun logHttpAndGetId (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun logHttp (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun logHttpAndGetId (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun markHttpCancelledIfInProgress (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun purgeHttpLogsOlderThan (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateHttp (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateHttp (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/SocketOrchestrator {
+public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/SocketLogManager {
 	public abstract fun clearLogs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun createSocket (Ldev/skymansandy/wiretap/domain/model/SocketConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun flowAllSockets ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowPagedSocketsForSearchQuery (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun flowSocketById (J)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun flowSocketMessagesById (J)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun getAllSockets ()Lkotlinx/coroutines/flow/Flow;
-	public abstract fun getPagedSockets (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getSocketById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun logSocketMsg (Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun openSocket (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateSocket (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/WiretapOrchestrator : dev/skymansandy/wiretap/domain/orchestrator/HttpOrchestrator, dev/skymansandy/wiretap/domain/orchestrator/SocketOrchestrator {
+	public abstract fun logSocketMsg (Ldev/skymansandy/wiretap/domain/model/SocketMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateSocket (Ldev/skymansandy/wiretap/domain/model/SocketConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/skymansandy/wiretap/domain/repository/HttpRepository {
 	public abstract fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteOlderThan (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowById (J)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowPagesLogs (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getPagedLogs (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun save (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun saveAndGetId (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun update (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun markCancelledIfInProgress (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun save (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun saveAndGetId (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun update (Ldev/skymansandy/wiretap/domain/model/HttpLog;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/skymansandy/wiretap/domain/repository/RuleRepository {
-	public abstract fun addRule (Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun addRule (Ldev/skymansandy/wiretap/domain/model/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowForQuery (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getEnabledRules (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun search (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun setEnabled (JZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateRule (Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateRule (Ldev/skymansandy/wiretap/domain/model/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class dev/skymansandy/wiretap/domain/repository/SocketRepository {
 	public abstract fun clearAll (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun clearClosed (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowAll ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowById (J)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowForSearchQuery (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun flowMessagesForId (J)Lkotlinx/coroutines/flow/Flow;
 	public abstract fun getById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun getByIdFlow (J)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun getMessages (J)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun getPagedConnections (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
-	public abstract fun logMessage (Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun openConnection (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun reopenConnection (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateConnection (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun logNew (Ldev/skymansandy/wiretap/domain/model/SocketConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun logSocketMsg (Ldev/skymansandy/wiretap/domain/model/SocketMessage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun markReopened (Ldev/skymansandy/wiretap/domain/model/SocketConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun update (Ldev/skymansandy/wiretap/domain/model/SocketConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/skymansandy/wiretap/domain/usecase/FindConflictingRulesUseCase {
 	public static final field $stable I
-	public final fun invoke (Ldev/skymansandy/wiretap/data/db/entity/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun invoke (Ldev/skymansandy/wiretap/domain/model/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class dev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase {
 	public static final field $stable I
-	public fun <init> (Ldev/skymansandy/wiretap/domain/repository/RuleRepository;)V
 	public final fun invoke (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun invoke$default (Ldev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class dev/skymansandy/wiretap/helper/launcher/WiretapLauncher_jvmKt {
 	public static final fun enableWiretapLauncher ()V
-	public static final fun startWiretap ()V
+	public static final fun launchWiretapConsole ()V
 }
 
 public abstract interface class dev/skymansandy/wiretap/helper/logger/WiretapLogger {
-	public abstract fun logHttp (Ldev/skymansandy/wiretap/data/db/entity/HttpLogEntry;)V
-	public fun logSocket (Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;)V
-	public fun logSocketMessage (Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;)V
+	public abstract fun logHttp (Ldev/skymansandy/wiretap/domain/model/HttpLog;)V
+	public fun logSocket (Ldev/skymansandy/wiretap/domain/model/SocketConnection;)V
+	public fun logSocketMessage (Ldev/skymansandy/wiretap/domain/model/SocketMessage;)V
 }
 
 public final class dev/skymansandy/wiretap/helper/logger/WiretapLogger$DefaultImpls {
-	public static fun logSocket (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/data/db/entity/SocketEntry;)V
-	public static fun logSocketMessage (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/data/db/entity/SocketMessage;)V
+	public static fun logSocket (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SocketConnection;)V
+	public static fun logSocketMessage (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SocketMessage;)V
 }
 
 public final class dev/skymansandy/wiretap/helper/util/HeaderMatcherSerializer {
@@ -915,8 +593,13 @@ public final class dev/skymansandy/wiretap/helper/util/TimeUtil_jvmKt {
 	public static final fun formatTime (J)Ljava/lang/String;
 }
 
-public final class dev/skymansandy/wiretap/ui/WiretapScreenKt {
-	public static final fun WiretapScreen (Lkotlin/jvm/functions/Function0;Ldev/skymansandy/wiretap/domain/orchestrator/WiretapOrchestrator;Ldev/skymansandy/wiretap/domain/repository/RuleRepository;Ldev/skymansandy/wiretap/domain/usecase/FindConflictingRulesUseCase;Ljava/lang/Long;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
+public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$ClearLogsConfirmationDialogKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$ClearLogsConfirmationDialogKt;
+	public fun <init> ()V
+	public final fun getLambda$1383185159$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1821205260$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$2014136461$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$997322757$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$CodeBlockKt {
@@ -954,6 +637,12 @@ public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$KeyVal
 	public final fun getLambda$1068462599$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
+public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$ScrollToTopButtonKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$ScrollToTopButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$-576943456$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
 public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$SearchFieldKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$SearchFieldKt;
 	public fun <init> ()V
@@ -969,242 +658,268 @@ public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$Sectio
 	public final fun getLambda$44060289$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/ComposableSingletons$ActionBadgeKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/ComposableSingletons$ActionBadgeKt;
+public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$WiretapTopBarKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$WiretapTopBarKt;
 	public fun <init> ()V
-	public final fun getLambda$-1050541047$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-699389015$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-2066855974$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-495464783$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$208329407$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$222637000$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/ComposableSingletons$RulesListScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/ComposableSingletons$RulesListScreenKt;
+public final class dev/skymansandy/wiretap/ui/scenes/ComposableSingletons$WiretapListDetailSceneKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/scenes/ComposableSingletons$WiretapListDetailSceneKt;
 	public fun <init> ()V
-	public final fun getLambda$-563589455$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1671648337$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$972377595$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-15110215$wiretap_core ()Lkotlin/jvm/functions/Function4;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$RequestStepKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$RequestStepKt;
+public final class dev/skymansandy/wiretap/ui/screens/ComposableSingletons$WiretapConsoleKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/ComposableSingletons$WiretapConsoleKt;
 	public fun <init> ()V
-	public final fun getLambda$-1491233347$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1935554453$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-2067862257$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1036380961$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1107854726$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$2016973579$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$373024810$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1629995242$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-576608628$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-690513918$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$364285880$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ResponseHeadersSectionKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ResponseHeadersSectionKt;
+public final class dev/skymansandy/wiretap/ui/screens/home/ComposableSingletons$WiretapHomeScreenKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/home/ComposableSingletons$WiretapHomeScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$-1266550120$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1435801705$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1784579367$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-25219496$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1403292829$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1851636953$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1856386928$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$254025753$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$448003371$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$638107311$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1668928063$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1850395949$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1102892743$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1135489130$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1184214512$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1225230549$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1262225752$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1433387518$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ResponseStepKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ResponseStepKt;
+public final class dev/skymansandy/wiretap/ui/screens/home/tabs/ComposableSingletons$HttpTabScreenKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/home/tabs/ComposableSingletons$HttpTabScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$-1529131334$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-998570575$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$484741557$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1718635845$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1421319364$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ThrottleDelayInputKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/rules/sections/ComposableSingletons$ThrottleDelayInputKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/components/ComposableSingletons$HttpLogItemContentKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/components/ComposableSingletons$HttpLogItemContentKt;
 	public fun <init> ()V
-	public final fun getLambda$-1371460476$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1582713936$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1675211817$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1682781751$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1763801753$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-497730968$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-5758424$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1455729647$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$198001720$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$888817614$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$919982083$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1074806886$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-50005137$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1012088564$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1534815953$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1969764593$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/ComposableSingletons$WiretapHomeScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/ComposableSingletons$WiretapHomeScreenKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/components/ComposableSingletons$SourceChipKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/components/ComposableSingletons$SourceChipKt;
 	public fun <init> ()V
-	public final fun getLambda$-1254012013$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1322841028$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-134079355$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1925641328$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-569195994$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-833843484$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1248990372$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1512774151$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1541814430$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1674138175$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1691649339$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1964863050$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1971070397$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1980740279$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$2068450958$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$397161895$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$542163600$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$547247460$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$637738829$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1280706193$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-157167857$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/ComposableSingletons$HttpLogDetailScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/ComposableSingletons$HttpLogDetailScreenKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/detail/ComposableSingletons$HttpLogDetailScreenKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/ComposableSingletons$HttpLogDetailScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$-1056946126$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1094198302$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1203194101$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1214480645$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1486149525$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$111411496$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1596565074$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1823701561$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1985212930$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$211523976$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1699013115$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-534410603$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-540071378$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-999926658$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1186272082$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1222066190$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1803640711$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$652173993$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$HttpLogItemContentKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$HttpLogItemContentKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/detail/component/ComposableSingletons$RuleMatchBannerKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/component/ComposableSingletons$RuleMatchBannerKt;
 	public fun <init> ()V
-	public final fun getLambda$-1180934712$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1291887893$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1323930522$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1347614744$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$914085265$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1727708543$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$2016190177$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$HttpLogListKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$HttpLogListKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$OverviewTabKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$OverviewTabKt;
 	public fun <init> ()V
-	public final fun getLambda$-2146386980$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-447719479$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1344670631$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$236510826$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$521584705$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1961306440$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$SourceChipKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/ComposableSingletons$SourceChipKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$RequestTabKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$RequestTabKt;
 	public fun <init> ()V
-	public final fun getLambda$-776698778$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-926107130$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1376459913$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$2115250568$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$OverviewTabKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$OverviewTabKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$ResponseTabKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/tabs/ComposableSingletons$ResponseTabKt;
 	public fun <init> ()V
-	public final fun getLambda$237330506$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1578996296$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-208637633$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$RequestTabKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$RequestTabKt;
+public final class dev/skymansandy/wiretap/ui/screens/http/list/ComposableSingletons$HttpLogListKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/list/ComposableSingletons$HttpLogListKt;
 	public fun <init> ()V
-	public final fun getLambda$-1260912329$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-734885962$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$246143038$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$ResponseTabKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/http/components/tabs/ComposableSingletons$ResponseTabKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$ActionBadgeKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$ActionBadgeKt;
 	public fun <init> ()V
-	public final fun getLambda$-1907399862$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$455693393$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1551648390$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-928764454$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/console/socket/ComposableSingletons$SocketDetailScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/console/socket/ComposableSingletons$SocketDetailScreenKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$MethodSelectorKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$MethodSelectorKt;
 	public fun <init> ()V
-	public final fun getLambda$-1430161685$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1598093526$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1820426664$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-215344922$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-825906506$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-998848345$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1093933308$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1234428180$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1834927485$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1919618781$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$808484185$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-756244228$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1966216622$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/ComposableSingletons$CreateRuleScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/ComposableSingletons$CreateRuleScreenKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$RegexTesterIconKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$RegexTesterIconKt;
 	public fun <init> ()V
-	public final fun getLambda$-1869283425$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-193915469$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-223615157$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-254137210$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-472422336$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-616093313$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-932844343$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1300541831$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$208192587$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1976695952$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1934815598$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/ComposableSingletons$RuleDetailScreenKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/ComposableSingletons$RuleDetailScreenKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$RegexTesterSheetKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$RegexTesterSheetKt;
 	public fun <init> ()V
-	public final fun getLambda$-18613128$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-2113897854$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-431101018$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-920101365$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1047803756$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1121388334$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$1753174919$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1931466712$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1923265368$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1440690890$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$MethodSelectorKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$MethodSelectorKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$SectionLabelKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$SectionLabelKt;
 	public fun <init> ()V
-	public final fun getLambda$1311973657$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1676889639$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1109346082$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$RegexTesterIconKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$RegexTesterIconKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$StepIndicatorKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/components/ComposableSingletons$StepIndicatorKt;
 	public fun <init> ()V
-	public final fun getLambda$-1028577573$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$923454617$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1357778733$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-148536494$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1060705745$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$RegexTesterSheetKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$RegexTesterSheetKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/create/ComposableSingletons$CreateRuleScreenViewKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/create/ComposableSingletons$CreateRuleScreenViewKt;
 	public fun <init> ()V
-	public final fun getLambda$-1813319431$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1921834149$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1074773693$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1643230294$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1941605560$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1045601059$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1118230278$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1285314347$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1653108382$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$22443313$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$736954095$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$SectionLabelKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$SectionLabelKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/create/step/request/ComposableSingletons$RequestStepKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/create/step/request/ComposableSingletons$RequestStepKt;
 	public fun <init> ()V
-	public final fun getLambda$-453396039$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1719517471$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-493475145$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-797332680$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$20892400$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$271903283$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$301529799$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$852246786$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
-public final class dev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$StepIndicatorKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rule/components/ComposableSingletons$StepIndicatorKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ResponseHeadersSectionKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ResponseHeadersSectionKt;
 	public fun <init> ()V
-	public final fun getLambda$-1826959026$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1260090095$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$52171920$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1158637531$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-739534001$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-777535327$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-96478$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-982309274$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1607702862$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1710415183$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$484540353$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$641697756$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$887562383$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class dev/skymansandy/wiretap/ui/socket/ComposableSingletons$SocketLogListKt {
-	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/socket/ComposableSingletons$SocketLogListKt;
+public final class dev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ResponseStepKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ResponseStepKt;
 	public fun <init> ()V
-	public final fun getLambda$-1259080703$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1820327364$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-546195088$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-729088114$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-108663506$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1861563287$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$780123493$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ThrottleDelayInputKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/create/step/response/ComposableSingletons$ThrottleDelayInputKt;
+	public fun <init> ()V
+	public final fun getLambda$-1168735554$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1458671539$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1478093402$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1709356121$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1723273211$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1955086211$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-261414406$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1171128461$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1758590732$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$185277230$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$187830265$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/rules/list/ComposableSingletons$RulesListScreenKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/list/ComposableSingletons$RulesListScreenKt;
+	public fun <init> ()V
+	public final fun getLambda$-1531384974$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-725994631$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$921438674$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/rules/view/ComposableSingletons$RuleDetailScreenViewKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/rules/view/ComposableSingletons$RuleDetailScreenViewKt;
+	public fun <init> ()V
+	public final fun getLambda$-1022273416$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1250693874$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1520569238$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1319366500$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$302618025$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$45213656$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$670773730$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$932253605$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/socket/components/ComposableSingletons$StatusChipKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/socket/components/ComposableSingletons$StatusChipKt;
+	public fun <init> ()V
+	public final fun getLambda$1631784442$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$65643885$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/socket/detail/ComposableSingletons$SocketDetailScreenKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/socket/detail/ComposableSingletons$SocketDetailScreenKt;
+	public fun <init> ()V
+	public final fun getLambda$-1572497558$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-162114978$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1738849609$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-28964992$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1096699172$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1173376343$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1259760540$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1480960905$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$965959214$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class dev/skymansandy/wiretap/ui/screens/socket/list/ComposableSingletons$SocketLogListKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/socket/list/ComposableSingletons$SocketLogListKt;
+	public fun <init> ()V
+	public final fun getLambda$1067810761$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1875436157$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$464566488$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$944478827$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 

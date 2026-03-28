@@ -1,19 +1,20 @@
-public final class dev/skymansandy/wiretap/Wiretap {
-	public static final field $stable I
-	public static final field INSTANCE Ldev/skymansandy/wiretap/Wiretap;
-	public final fun getKoinModule ()Lorg/koin/core/module/Module;
-	public final fun getKtorPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+public final class dev/skymansandy/wiretap/plugin/http/WiretapKtorHttpPluginKt {
+	public static final fun getWiretapKtorHttpPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
 }
 
-public final class dev/skymansandy/wiretap/di/WiretapModuleKt {
-	public static final fun getWiretapModule ()Lorg/koin/core/module/Module;
-}
-
-public final class dev/skymansandy/wiretap/plugin/WiretapKtorPluginKt {
-	public static final fun getWiretapKtorPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
-}
-
-public final class dev/skymansandy/wiretap/plugin/WiretapKtorWebSocketPluginKt {
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapKtorWebSocketPluginKt {
 	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public abstract interface class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession : io/ktor/websocket/DefaultWebSocketSession {
+	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession$DefaultImpls {
+	public static fun send (Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWrapKt {
+	public static final fun wiretapped (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;
 }
 
