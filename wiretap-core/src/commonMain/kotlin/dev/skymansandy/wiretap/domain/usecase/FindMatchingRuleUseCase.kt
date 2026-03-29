@@ -6,7 +6,6 @@ import dev.skymansandy.wiretap.domain.repository.RuleRepository
 class FindMatchingRuleUseCase internal constructor(
     private val ruleRepository: RuleRepository,
 ) {
-
     suspend operator fun invoke(
         url: String,
         method: String,

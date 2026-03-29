@@ -68,7 +68,7 @@ internal fun WiretapConsole(
         }
     }
 
-    KoinIsolatedContext(context = WiretapKoinContext.productionApp) {
+    KoinIsolatedContext(context = WiretapKoinContext.koinApp) {
         CompositionLocalProvider(
             LocalWideScreen provides isWideScreen,
             LocalWiretapNavigator provides navigator,
