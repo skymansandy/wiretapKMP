@@ -2,15 +2,15 @@
 
 === "Overview"
 
-    ![HTTP Overview](../assets/screenshots/http/overview.png){ width="300" }
+    ![HTTP Overview](../art/screenshots/http/overview.png){ width="300" }
 
 === "Request"
 
-    ![HTTP Request](../assets/screenshots/http/request.png){ width="300" }
+    ![HTTP Request](../art/screenshots/http/request.png){ width="300" }
 
 === "Response"
 
-    ![HTTP Response](../assets/screenshots/http/respose.png){ width="300" }
+    ![HTTP Response](../art/screenshots/http/respose.png){ width="300" }
 
 ## Two APIs
 

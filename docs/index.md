@@ -23,61 +23,61 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP and Web
 
 === "Overview"
 
-    ![HTTP Overview](assets/screenshots/http/overview.png){ width="300" }
+    ![HTTP Overview](art/screenshots/http/overview.png){ width="300" }
 
 === "Request"
 
-    ![HTTP Request](assets/screenshots/http/request.png){ width="300" }
+    ![HTTP Request](art/screenshots/http/request.png){ width="300" }
 
 === "Response"
 
-    ![HTTP Response](assets/screenshots/http/respose.png){ width="300" }
+    ![HTTP Response](art/screenshots/http/respose.png){ width="300" }
 
 ### WebSocket Inspector
 
 === "Connections"
 
-    ![WebSocket List](assets/screenshots/socket/socketlist.png){ width="300" }
+    ![WebSocket List](art/screenshots/socket/socketlist.png){ width="300" }
 
 === "Messages"
 
-    ![WebSocket Detail](assets/screenshots/socket/socketdetail.png){ width="300" }
+    ![WebSocket Detail](art/screenshots/socket/socketdetail.png){ width="300" }
 
 ### Rules Engine
 
 === "Swipe to Create"
 
-    ![Swipe to Create Rule](assets/screenshots/http/swipetocreaterule.png){ width="300" }
+    ![Swipe to Create Rule](art/screenshots/http/swipetocreaterule.png){ width="300" }
 
 === "Request Setup"
 
-    ![Rule Request Setup](assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+    ![Rule Request Setup](art/screenshots/http/rulecreate-requestsetup.png){ width="300" }
 
 === "Response Setup"
 
-    ![Rule Response Setup](assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+    ![Rule Response Setup](art/screenshots/http/rulecreate-responsesetup.png){ width="300" }
 
 === "Rules List"
 
-    ![Rules List](assets/screenshots/http/ruleslist.png){ width="300" }
+    ![Rules List](art/screenshots/http/ruleslist.png){ width="300" }
 
 === "Rule Details"
 
-    ![Rule Details](assets/screenshots/http/rule-view.png){ width="300" }
+    ![Rule Details](art/screenshots/http/rule-view.png){ width="300" }
 
 ### Notifications
 
 === "HTTP"
 
-    ![HTTP Notification](assets/screenshots/http/notification.png){ width="350" }
+    ![HTTP Notification](art/screenshots/http/notification.png){ width="350" }
 
 === "WebSocket"
 
-    ![WebSocket Notification](assets/screenshots/socket/notification.png){ width="350" }
+    ![WebSocket Notification](art/screenshots/socket/notification.png){ width="350" }
 
 ### List-Detail Pane (Tablet / Desktop)
 
-![List-Detail Pane](assets/screenshots/listdetailpane.png){ width="600" }
+![List-Detail Pane](art/screenshots/listdetailpane.png){ width="600" }
 
 ## HTTP Logging
 
@@ -106,15 +106,15 @@ Return fake responses without hitting the network. Rules match on method, URL, h
 
 === "Mocked Requests"
 
-    ![Mocked Requests](assets/screenshots/http/mocked requests.png){ width="300" }
+    ![Mocked Requests](art/screenshots/http/mocked requests.png){ width="300" }
 
 === "Mocked Response"
 
-    ![Mocked Response](assets/screenshots/http/mocked_response.png){ width="300" }
+    ![Mocked Response](art/screenshots/http/mocked_response.png){ width="300" }
 
 === "Mock Rule Setup"
 
-    ![Mock Rule](assets/screenshots/http/just mock.png){ width="300" }
+    ![Mock Rule](art/screenshots/http/just mock.png){ width="300" }
 
 ## Request Throttling
 
@@ -122,11 +122,11 @@ Add artificial delay before the request reaches the network. Supports fixed dela
 
 === "Throttle Rule Setup"
 
-    ![Throttle Rule](assets/screenshots/http/throttle only.png){ width="300" }
+    ![Throttle Rule](art/screenshots/http/throttle only.png){ width="300" }
 
 === "Mock + Throttle"
 
-    ![Mock + Throttle Rule](assets/screenshots/http/mock+throttle.png){ width="300" }
+    ![Mock + Throttle Rule](art/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Header Masking
 

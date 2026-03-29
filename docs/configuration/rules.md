@@ -48,15 +48,15 @@ Return a fake response without hitting the network. Mock responses bypass the ne
 
 === "Mocked Requests"
 
-    ![Mocked Requests](../assets/screenshots/http/mocked requests.png){ width="300" }
+    ![Mocked Requests](../art/screenshots/http/mocked requests.png){ width="300" }
 
 === "Mocked Response"
 
-    ![Mocked Response](../assets/screenshots/http/mocked_response.png){ width="300" }
+    ![Mocked Response](../art/screenshots/http/mocked_response.png){ width="300" }
 
 === "Mock Rule Setup"
 
-    ![Mock Rule](../assets/screenshots/http/just mock.png){ width="300" }
+    ![Mock Rule](../art/screenshots/http/just mock.png){ width="300" }
 
 ## Throttle Rules
 
@@ -67,11 +67,11 @@ Delay requests before they reach the network. Supports fixed delay, manual range
 
 === "Throttle Rule Setup"
 
-    ![Throttle Rule](../assets/screenshots/http/throttle only.png){ width="300" }
+    ![Throttle Rule](../art/screenshots/http/throttle only.png){ width="300" }
 
 === "Mock + Throttle"
 
-    ![Mock + Throttle Rule](../assets/screenshots/http/mock+throttle.png){ width="300" }
+    ![Mock + Throttle Rule](../art/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Managing Rules Programmatically
 
@@ -91,20 +91,20 @@ The Wiretap inspector includes a **Rules** tab where you can create, edit, enabl
 
 === "Swipe to Create"
 
-    ![Swipe to Create Rule](../assets/screenshots/http/swipetocreaterule.png){ width="300" }
+    ![Swipe to Create Rule](../art/screenshots/http/swipetocreaterule.png){ width="300" }
 
 === "Request Setup"
 
-    ![Rule Request Setup](../assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+    ![Rule Request Setup](../art/screenshots/http/rulecreate-requestsetup.png){ width="300" }
 
 === "Response Setup"
 
-    ![Rule Response Setup](../assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+    ![Rule Response Setup](../art/screenshots/http/rulecreate-responsesetup.png){ width="300" }
 
 === "Rules List"
 
-    ![Rules List](../assets/screenshots/http/ruleslist.png){ width="300" }
+    ![Rules List](../art/screenshots/http/ruleslist.png){ width="300" }
 
 === "Rule Details"
 
-    ![Rule Details](../assets/screenshots/http/rule-view.png){ width="300" }
+    ![Rule Details](../art/screenshots/http/rule-view.png){ width="300" }

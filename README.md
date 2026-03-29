@@ -1,7 +1,5 @@
-<h1 align="center">WiretapKMP</h1>
-
 <p align="center">
-  <img src="art/wiretap_icon.png" width="120" alt="WiretapKMP Icon"/>
+  <img src="docs/art/IntroImage.png" alt="WiretapKMP — Powerful, Cross-Platform Network Inspection for Kotlin Multiplatform"/>
 </p>
 
 <p align="center">
@@ -18,35 +16,35 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebS
 
 | Overview | Request | Response |
 |:--------:|:-------:|:--------:|
-| <img src="art/screenshots/http/overview.png" width="260"/> | <img src="art/screenshots/http/request.png" width="260"/> | <img src="art/screenshots/http/respose.png" width="260"/> |
+| <img src="docs/art/screenshots/http/overview.png" width="260"/> | <img src="docs/art/screenshots/http/request.png" width="260"/> | <img src="docs/art/screenshots/http/respose.png" width="260"/> |
 
 ### WebSocket Inspector
 
 | Connections | Messages |
 |:-----------:|:--------:|
-| <img src="art/screenshots/socket/socketlist.png" width="260"/> | <img src="art/screenshots/socket/socketdetail.png" width="260"/> |
+| <img src="docs/art/screenshots/socket/socketlist.png" width="260"/> | <img src="docs/art/screenshots/socket/socketdetail.png" width="260"/> |
 
 ### API Mocking & Throttling
 
 | Mocked Requests | Mocked Response | Mock Rule | Throttle Rule | Mock + Throttle |
 |:---------------:|:---------------:|:---------:|:-------------:|:---------------:|
-| <img src="art/screenshots/http/mocked requests.png" width="200"/> | <img src="art/screenshots/http/mocked_response.png" width="200"/> | <img src="art/screenshots/http/just mock.png" width="200"/> | <img src="art/screenshots/http/throttle only.png" width="200"/> | <img src="art/screenshots/http/mock+throttle.png" width="200"/> |
+| <img src="docs/art/screenshots/http/mocked requests.png" width="200"/> | <img src="docs/art/screenshots/http/mocked_response.png" width="200"/> | <img src="docs/art/screenshots/http/just mock.png" width="200"/> | <img src="docs/art/screenshots/http/throttle only.png" width="200"/> | <img src="docs/art/screenshots/http/mock+throttle.png" width="200"/> |
 
 ### Rules Engine
 
 | Swipe to Create | Request Setup | Response Setup | Rules List | Rule Details |
 |:---------------:|:-------------:|:--------------:|:----------:|:------------:|
-| <img src="art/screenshots/http/swipetocreaterule.png" width="200"/> | <img src="art/screenshots/http/rulecreate-requestsetup.png" width="200"/> | <img src="art/screenshots/http/rulecreate-responsesetup.png" width="200"/> | <img src="art/screenshots/http/ruleslist.png" width="200"/> | <img src="art/screenshots/http/rule-view.png" width="200"/> |
+| <img src="docs/art/screenshots/http/swipetocreaterule.png" width="200"/> | <img src="docs/art/screenshots/http/rulecreate-requestsetup.png" width="200"/> | <img src="docs/art/screenshots/http/rulecreate-responsesetup.png" width="200"/> | <img src="docs/art/screenshots/http/ruleslist.png" width="200"/> | <img src="docs/art/screenshots/http/rule-view.png" width="200"/> |
 
 ### Notifications
 
 | HTTP | WebSocket |
 |:----:|:---------:|
-| <img src="art/screenshots/http/notification.png" width="300"/> | <img src="art/screenshots/socket/notification.png" width="300"/> |
+| <img src="docs/art/screenshots/http/notification.png" width="300"/> | <img src="docs/art/screenshots/socket/notification.png" width="300"/> |
 
 ### List-Detail Pane (Tablet / Desktop)
 
-<img src="art/screenshots/listdetailpane.png" width="600"/>
+<img src="docs/art/screenshots/listdetailpane.png" width="600"/>
 
 ## 📱 Platforms
 

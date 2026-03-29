@@ -29,8 +29,8 @@ theme:
     - content.tabs.link
     - search.highlight
     - search.share
-  logo: assets/logo-white.png
-  favicon: assets/favicon.png
+  logo: art/logo-white.png
+  favicon: art/favicon.png
   icon:
     repo: fontawesome/brands/github
 

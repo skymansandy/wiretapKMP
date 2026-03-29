@@ -59,6 +59,7 @@ jobs:
   publish:
     name: Publish & Update
     needs: test-and-coverage
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
     runs-on: macos-latest
     environment: default
     steps:
@@ -85,7 +86,7 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
-        run: ./gradlew :wiretap-urlsession:kmmBridgePublish --no-configuration-cache -PENABLE_PUBLISHING=true
+        run: ./gradlew :wiretap-urlsession:kmmBridgePublish -x :wiretap-urlsession:publishKMMBridgeFrameworkPublicationToMavenCentralRepository --no-configuration-cache -PENABLE_PUBLISHING=true
 
       - name: Fix Package.swift Maven Central URL
         run: |
@@ -165,6 +166,7 @@ jobs:
   github-release:
     name: GitHub Release
     needs: publish
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
