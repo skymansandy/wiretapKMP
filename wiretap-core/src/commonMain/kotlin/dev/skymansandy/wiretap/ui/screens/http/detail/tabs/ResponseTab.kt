@@ -48,7 +48,12 @@ internal fun ResponseTab(
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Headers",
-            action = if (entry.responseHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.responseHeaders) }) else null,
+            action = if (entry.responseHeaders.isNotEmpty()) ({
+                CopyHeadersButton(
+                    headers = entry.responseHeaders,
+                    snackbarMessage = "Response headers copied to clipboard",
+                )
+            }) else null,
             expanded = headersExpanded,
             onToggleExpand = { headersExpanded = !headersExpanded },
         )
@@ -64,7 +69,12 @@ internal fun ResponseTab(
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Body",
-            action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
+            action = if (body != null) ({
+                CopyBodyButton(
+                    body = body,
+                    snackbarMessage = "Response body copied to clipboard",
+                )
+            }) else null,
         )
 
         if (isJson) {

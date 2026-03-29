@@ -19,11 +19,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +47,7 @@ import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareHttpLogs
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
 import dev.skymansandy.wiretap.ui.screens.http.detail.component.RuleMatchBanner
@@ -118,172 +122,176 @@ private fun HttpLogDetailScreenContent(
     }
 
     var showShareMenu by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive && supportsSearch) {
-                        SearchField(
-                            modifier = Modifier.focusRequester(searchFocusRequester),
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                        )
-                    } else {
-                        Column {
-                            Text(
-                                text = entry.method + " " + entry.statusText,
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        Scaffold(
+            modifier = modifier,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        if (isSearchActive && supportsSearch) {
+                            SearchField(
+                                modifier = Modifier.focusRequester(searchFocusRequester),
+                                query = searchQuery,
+                                onQueryChange = { searchQuery = it },
                             )
-
-                            Text(
-                                text = entry.url,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
-                                searchQuery = ""
-                            } else {
-                                navigator.pop()
-                            }
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-                actions = {
-                    if (supportsSearch) {
-                        if (isSearchActive) {
-                            IconButton(
-                                onClick = {
-                                    isSearchActive = false
-                                    searchQuery = ""
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Close search",
-                                )
-                            }
                         } else {
-                            IconButton(onClick = { isSearchActive = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
+                            Column {
+                                Text(
+                                    text = entry.method + " " + entry.statusText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+
+                                Text(
+                                    text = entry.url,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }
-                    }
-                    Box {
+                    },
+                    navigationIcon = {
                         IconButton(
                             onClick = {
-                                showShareMenu = true
+                                if (isSearchActive) {
+                                    isSearchActive = false
+                                    searchQuery = ""
+                                } else {
+                                    navigator.pop()
+                                }
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
                             )
                         }
-
-                        DropdownMenu(
-                            expanded = showShareMenu,
-                            onDismissRequest = { showShareMenu = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Share as text") },
-                                onClick = {
-                                    showShareMenu = false
-                                    shareHttpLogs(
-                                        subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
-                                        text = buildShareText(entry),
+                    },
+                    actions = {
+                        if (supportsSearch) {
+                            if (isSearchActive) {
+                                IconButton(
+                                    onClick = {
+                                        isSearchActive = false
+                                        searchQuery = ""
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Close search",
                                     )
-                                },
-                            )
-
-                            DropdownMenuItem(
-                                text = { Text("Share as cURL") },
-                                onClick = {
-                                    showShareMenu = false
-                                    shareHttpLogs(
-                                        subject = "cURL - ${entry.method} ${entry.url}",
-                                        text = buildCurlCommand(entry),
+                                }
+                            } else {
+                                IconButton(onClick = { isSearchActive = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = "Search",
                                     )
-                                },
-                            )
-                        }
-                    }
-                },
-            )
-        },
-    ) { padding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            TabRow(selectedTabIndex = selectedTab) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
+                                }
                             }
-                        },
-                        text = { Text(title) },
-                    )
-                }
-            }
+                        }
+                        Box {
+                            IconButton(
+                                onClick = {
+                                    showShareMenu = true
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Share",
+                                )
+                            }
 
-            if (entry.source != ResponseSource.Network) {
-                RuleMatchBanner(
-                    modifier = Modifier.fillMaxWidth(),
-                    source = entry.source,
-                    matchedRuleId = entry.matchedRuleId,
-                    onViewRule = { ruleId ->
-                        navigator.push(WiretapScreen.RuleDetailScreen(ruleId))
+                            DropdownMenu(
+                                expanded = showShareMenu,
+                                onDismissRequest = { showShareMenu = false },
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Share as text") },
+                                    onClick = {
+                                        showShareMenu = false
+                                        shareHttpLogs(
+                                            subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
+                                            text = buildShareText(entry),
+                                        )
+                                    },
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Share as cURL") },
+                                    onClick = {
+                                        showShareMenu = false
+                                        shareHttpLogs(
+                                            subject = "cURL - ${entry.method} ${entry.url}",
+                                            text = buildCurlCommand(entry),
+                                        )
+                                    },
+                                )
+                            }
+                        }
                     },
                 )
-            }
+            },
+        ) { padding ->
 
-            HorizontalPager(
-                modifier = Modifier.weight(1f),
-                state = pagerState,
-                beyondViewportPageCount = tabs.size,
-            ) { page ->
-                when (page) {
-                    0 -> OverviewTab(
-                        modifier = Modifier.fillMaxSize(),
-                        entry = entry,
-                    )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            ) {
+                TabRow(selectedTabIndex = selectedTab) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            },
+                            text = { Text(title) },
+                        )
+                    }
+                }
 
-                    1 -> RequestTab(
-                        modifier = Modifier.fillMaxSize(),
-                        entry = entry,
-                        searchQuery = debouncedQuery,
+                if (entry.source != ResponseSource.Network) {
+                    RuleMatchBanner(
+                        modifier = Modifier.fillMaxWidth(),
+                        source = entry.source,
+                        matchedRuleId = entry.matchedRuleId,
+                        onViewRule = { ruleId ->
+                            navigator.push(WiretapScreen.RuleDetailScreen(ruleId))
+                        },
                     )
+                }
 
-                    2 -> ResponseTab(
-                        modifier = Modifier.fillMaxSize(),
-                        entry = entry,
-                        searchQuery = debouncedQuery,
-                    )
+                HorizontalPager(
+                    modifier = Modifier.weight(1f),
+                    state = pagerState,
+                    beyondViewportPageCount = tabs.size,
+                ) { page ->
+                    when (page) {
+                        0 -> OverviewTab(
+                            modifier = Modifier.fillMaxSize(),
+                            entry = entry,
+                        )
+
+                        1 -> RequestTab(
+                            modifier = Modifier.fillMaxSize(),
+                            entry = entry,
+                            searchQuery = debouncedQuery,
+                        )
+
+                        2 -> ResponseTab(
+                            modifier = Modifier.fillMaxSize(),
+                            entry = entry,
+                            searchQuery = debouncedQuery,
+                        )
+                    }
                 }
             }
         }

@@ -7,23 +7,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.helper.util.copyToClipboard
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun CopyBodyButton(
     modifier: Modifier = Modifier,
     body: String,
+    snackbarMessage: String = "Body copied to clipboard",
+    snackbarHostState: SnackbarHostState? = LocalSnackbarHostState.current,
 ) {
+    val scope = rememberCoroutineScope()
     TextButton(
         modifier = modifier,
         onClick = {
             copyToClipboard(body)
+            snackbarHostState?.let { host ->
+                scope.launch { host.showSnackbar(snackbarMessage) }
+            }
         },
     ) {
         Icon(
