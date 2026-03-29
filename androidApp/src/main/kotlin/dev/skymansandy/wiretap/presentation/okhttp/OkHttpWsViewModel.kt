@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.okhttp.WiretapOkHttpWebSocketListener
+import dev.skymansandy.wiretap.okhttp.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.WsSampleActions
@@ -60,53 +60,50 @@ internal class OkHttpWsViewModel(
         messageLog.add(SampleMessage(MessageType.System, "Connecting to $wsUrl ..."))
 
         val request = Request.Builder().url(wsUrl).build()
-        webSocket = client.newWebSocket(
-            request,
-            WiretapOkHttpWebSocketListener(
-                object : WebSocketListener() {
+        val listener: WebSocketListener = object : WebSocketListener() {
 
-                    override fun onOpen(webSocket: WebSocket, response: Response) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            _isConnecting.value = false
-                            _isConnected.value = true
-                            messageLog.add(SampleMessage(MessageType.System, "Connected!"))
-                        }
-                    }
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    _isConnecting.value = false
+                    _isConnected.value = true
+                    messageLog.add(SampleMessage(MessageType.System, "Connected!"))
+                }
+            }
 
-                    override fun onMessage(webSocket: WebSocket, text: String) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            messageLog.add(SampleMessage(MessageType.Received, text))
-                        }
-                    }
+            override fun onMessage(webSocket: WebSocket, text: String) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    messageLog.add(SampleMessage(MessageType.Received, text))
+                }
+            }
 
-                    override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                        webSocket.close(1000, null)
-                        viewModelScope.launch(Dispatchers.Main) {
-                            _isConnected.value = false
-                            this@OkHttpWsViewModel.webSocket = null
-                            messageLog.add(SampleMessage(MessageType.System, "Connection closing: $code $reason"))
-                        }
-                    }
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                webSocket.close(1000, null)
+                viewModelScope.launch(Dispatchers.Main) {
+                    _isConnected.value = false
+                    this@OkHttpWsViewModel.webSocket = null
+                    messageLog.add(SampleMessage(MessageType.System, "Connection closing: $code $reason"))
+                }
+            }
 
-                    override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            _isConnected.value = false
-                            this@OkHttpWsViewModel.webSocket = null
-                            messageLog.add(SampleMessage(MessageType.System, "Connection closed"))
-                        }
-                    }
+            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    _isConnected.value = false
+                    this@OkHttpWsViewModel.webSocket = null
+                    messageLog.add(SampleMessage(MessageType.System, "Connection closed"))
+                }
+            }
 
-                    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                        viewModelScope.launch(Dispatchers.Main) {
-                            _isConnecting.value = false
-                            _isConnected.value = false
-                            this@OkHttpWsViewModel.webSocket = null
-                            messageLog.add(SampleMessage(MessageType.System, "Error: ${t.message}"))
-                        }
-                    }
-                },
-            ),
-        )
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    _isConnecting.value = false
+                    _isConnected.value = false
+                    this@OkHttpWsViewModel.webSocket = null
+                    messageLog.add(SampleMessage(MessageType.System, "Error: ${t.message}"))
+                }
+            }
+        }
+
+        webSocket = client.newWebSocket(request, listener.wiretapped())
     }
 
     private fun disconnect() {

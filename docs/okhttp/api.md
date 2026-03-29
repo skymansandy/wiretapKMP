@@ -50,6 +50,16 @@ class WiretapOkHttpWebSocketListener(
 
 Wraps a consumer's `WebSocketListener` to log all WebSocket events.
 
+### Installation
+
+```kotlin
+// Extension function (recommended)
+client.newWebSocket(request, myListener.wiretapped())
+
+// Constructor
+client.newWebSocket(request, WiretapOkHttpWebSocketListener(myListener))
+```
+
 ### Intercepted Callbacks
 
 | Callback | Logged As |
@@ -63,6 +73,16 @@ Wraps a consumer's `WebSocketListener` to log all WebSocket events.
 
 ---
 
+## wiretapped()
+
+```kotlin
+fun WebSocketListener.wiretapped(): WiretapOkHttpWebSocketListener
+```
+
+Extension function that wraps the receiver in a `WiretapOkHttpWebSocketListener`. Available in both the debug and noop modules.
+
+---
+
 ## WiretapConfig
 
 ```kotlin
@@ -71,6 +91,7 @@ class WiretapConfig {
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }
     var logRetention: LogRetention = LogRetention.Forever
+    var maxContentLength: Int = MAX_CONTENT_LENGTH  // 500 * 1024
 }
 ```
 

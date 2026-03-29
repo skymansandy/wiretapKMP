@@ -1,16 +1,26 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.domain.model
 
 /**
- * Action to perform when a [WiretapRule][dev.skymansandy.wiretap.data.db.entity.WiretapRule] matches a request.
+ * Action to perform when a [WiretapRule][WiretapRule] matches a request.
  *
  * @see Mock
  * @see Throttle
+ * @see MockAndThrottle
  */
-sealed class RuleAction {
+sealed interface RuleAction {
 
-    enum class Type { Mock, Throttle }
+    enum class Type(val label: String) {
 
-    abstract val type: Type
+        Mock("Mock"),
+        Throttle("Throttle"),
+        MockAndThrottle("Mock + Throttle"),
+    }
+
+    val type: Type
 
     val name: String get() = type.name
 
@@ -20,16 +30,13 @@ sealed class RuleAction {
      * @property responseCode HTTP status code for the mock response (default 200).
      * @property responseBody Optional response body string.
      * @property responseHeaders Optional response headers.
-     * @property throttleDelayMs Optional delay before returning the mock (simulates latency).
-     * @property throttleDelayMaxMs If set, delay is randomized between [throttleDelayMs] and this value.
      */
     data class Mock(
         val responseCode: Int = 200,
         val responseBody: String? = null,
         val responseHeaders: Map<String, String>? = null,
-        val throttleDelayMs: Long? = null,
-        val throttleDelayMaxMs: Long? = null,
-    ) : RuleAction() {
+    ) : RuleAction {
+
         override val type: Type = Type.Mock
     }
 
@@ -42,7 +49,30 @@ sealed class RuleAction {
     data class Throttle(
         val delayMs: Long = 0,
         val delayMaxMs: Long? = null,
-    ) : RuleAction() {
+    ) : RuleAction {
+
         override val type: Type = Type.Throttle
+    }
+
+    /**
+     * Delays the request, then returns a fake response without hitting the network.
+     *
+     * Combines [Mock] and [Throttle] — the throttle delay is required.
+     *
+     * @property responseCode HTTP status code for the mock response (default 200).
+     * @property responseBody Optional response body string.
+     * @property responseHeaders Optional response headers.
+     * @property delayMs Minimum delay in milliseconds before returning the mock.
+     * @property delayMaxMs If set, delay is randomized between [delayMs] and this value.
+     */
+    data class MockAndThrottle(
+        val responseCode: Int = 200,
+        val responseBody: String? = null,
+        val responseHeaders: Map<String, String>? = null,
+        val delayMs: Long = 1000,
+        val delayMaxMs: Long? = null,
+    ) : RuleAction {
+
+        override val type: Type = Type.MockAndThrottle
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.helper.launcher
 
 import android.content.Context
@@ -16,9 +20,12 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
     private var activeAcceleration = 10f
     private var currentAcceleration = SensorManager.GRAVITY_EARTH
     private var lastAcceleration = SensorManager.GRAVITY_EARTH
-    private val thresholdForAcceleration = 12f
+    private val thresholdForAcceleration = 20f
+    private var lastShakeTimestamp = 0L
+    private val shakeCooldownMs = 2000L
 
     private val sensorListener = object : SensorEventListener {
+
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) = Unit
         override fun onSensorChanged(event: SensorEvent) {
             val x = event.values[0]
@@ -29,8 +36,10 @@ internal class ShakeGestureListener : DefaultLifecycleObserver {
             val delta = currentAcceleration - lastAcceleration
             activeAcceleration = activeAcceleration * 0.9f + delta
 
-            if (activeAcceleration > thresholdForAcceleration) {
-                startWiretap()
+            val now = System.currentTimeMillis()
+            if (activeAcceleration > thresholdForAcceleration && now - lastShakeTimestamp > shakeCooldownMs) {
+                lastShakeTimestamp = now
+                launchWiretapConsole()
             }
         }
     }

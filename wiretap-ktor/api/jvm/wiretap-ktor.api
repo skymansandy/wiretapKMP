@@ -1,0 +1,20 @@
+public final class dev/skymansandy/wiretap/plugin/http/WiretapKtorHttpPluginKt {
+	public static final fun getWiretapKtorHttpPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapKtorWebSocketPluginKt {
+	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public abstract interface class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession : io/ktor/websocket/DefaultWebSocketSession {
+	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession$DefaultImpls {
+	public static fun send (Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWrapKt {
+	public static final fun wiretapped (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;
+}
+

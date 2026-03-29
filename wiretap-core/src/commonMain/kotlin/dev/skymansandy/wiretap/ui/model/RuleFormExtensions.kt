@@ -1,32 +1,13 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.model
 
-import androidx.compose.runtime.Composable
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
-import dev.skymansandy.wiretap.domain.model.BodyMatcher
-import dev.skymansandy.wiretap.domain.model.HeaderMatcher
-import dev.skymansandy.wiretap.domain.model.UrlMatcher
-
-@Composable
-internal fun UrlMatchMode.label() = when (this) {
-    UrlMatchMode.Exact -> "Exact"
-    UrlMatchMode.Contains -> "Contains"
-    UrlMatchMode.Regex -> "Regex"
-}
-
-@Composable
-internal fun BodyMatchMode.label() = when (this) {
-    BodyMatchMode.Exact -> "Exact"
-    BodyMatchMode.Contains -> "Contains"
-    BodyMatchMode.Regex -> "Regex"
-}
-
-@Composable
-internal fun HeaderEntryMode.label() = when (this) {
-    HeaderEntryMode.KeyExists -> "Key Exists"
-    HeaderEntryMode.ValueExact -> "Exact"
-    HeaderEntryMode.ValueContains -> "Contains"
-    HeaderEntryMode.ValueRegex -> "Regex"
-}
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 
 internal fun UrlMatchMode.isRegex() = this == UrlMatchMode.Regex
 
@@ -98,15 +79,7 @@ internal fun headerValuePlaceholder(mode: HeaderEntryMode) = when (mode) {
 }
 
 internal val ThrottleProfile.labelText: String
-    get() = when (this) {
-        ThrottleProfile.Gprs -> "2G (GPRS)"
-        ThrottleProfile.Edge -> "2G (EDGE)"
-        ThrottleProfile.Slow3g -> "3G (Slow)"
-        ThrottleProfile.Fast3g -> "3G"
-        ThrottleProfile.Slow4g -> "4G (Slow)"
-        ThrottleProfile.Lte -> "4G (LTE)"
-        ThrottleProfile.SlowWifi -> "Slow WiFi"
-    }
+    get() = label
 
 internal val ThrottleProfile.speedText: String
     get() = when (this) {

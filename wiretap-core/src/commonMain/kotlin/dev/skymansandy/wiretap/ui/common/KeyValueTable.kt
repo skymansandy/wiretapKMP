@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
@@ -20,12 +24,11 @@ internal fun KeyValueTable(
     modifier: Modifier = Modifier,
     rows: List<Pair<String, String>>,
 ) {
-    SelectionContainer {
+    SelectionContainer(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             rows.forEach { (key, value) ->
                 Row(

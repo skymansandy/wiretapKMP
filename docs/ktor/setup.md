@@ -25,10 +25,11 @@ sourceSets {
 
 ```kotlin
 val client = HttpClient {
-    install(WiretapKtorPlugin) {
+    install(WiretapKtorHttpPlugin) {
         enabled = true                                    // default
         shouldLog = { url, method -> true }               // default: log everything
         logRetention = LogRetention.Days(7)
+        maxContentLength = 100 * 1024                     // truncate bodies > 100 KB
         headerAction = { key ->
             when {
                 key.equals("Authorization", ignoreCase = true) -> HeaderAction.Mask()
@@ -48,14 +49,14 @@ All configuration properties are optional — with no configuration, Wiretap log
 val client = HttpClient {
     install(WebSockets)
     install(WiretapKtorWebSocketPlugin)  // WebSocket logging
-    install(WiretapKtorPlugin) {         // HTTP logging
+    install(WiretapKtorHttpPlugin) {         // HTTP logging
         logRetention = LogRetention.AppSession
     }
 }
 ```
 
 !!! important
-    Install `WiretapKtorWebSocketPlugin` **before** `WiretapKtorPlugin`. The HTTP plugin deletes 101 (Switching Protocols) entries to avoid duplicate logs.
+    Install `WiretapKtorWebSocketPlugin` **before** `WiretapKtorHttpPlugin`. The HTTP plugin deletes 101 (Switching Protocols) entries to avoid duplicate logs.
 
 ## DI Setup Example
 
@@ -65,7 +66,7 @@ val networkModule = module {
         HttpClient {
             install(WebSockets)
             install(WiretapKtorWebSocketPlugin)
-            install(WiretapKtorPlugin) {
+            install(WiretapKtorHttpPlugin) {
                 logRetention = LogRetention.AppSession
                 headerAction = { key ->
                     if (key.equals("Authorization", ignoreCase = true))
@@ -87,13 +88,14 @@ val networkModule = module {
 | `shouldLog` | `(url, method) -> Boolean` | `{ _, _ -> true }` | Filter which requests to capture |
 | `headerAction` | `(key) -> HeaderAction` | `{ Keep }` | Control how headers are logged |
 | `logRetention` | `LogRetention` | `Forever` | How long to keep log entries |
+| `maxContentLength` | `Int` | `512000` (500 KB) | Max characters for request/response bodies. `0` disables body logging. |
 
 ### `enabled`
 
 Disable Wiretap entirely — requests pass through without any interception or overhead:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     enabled = BuildConfig.DEBUG
 }
 ```
@@ -103,7 +105,7 @@ install(WiretapKtorPlugin) {
 Filter which requests appear in the inspector. Requests that don't pass the filter are still subject to mock/throttle rules — they just won't be stored in the database:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     shouldLog = { url, method ->
         url.contains("/api/") && method != "OPTIONS"
     }
@@ -115,7 +117,7 @@ install(WiretapKtorPlugin) {
 Control how each header key is treated in logged data. The original request/response is never mutated:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     headerAction = { key ->
         when {
             // Replace value with "***"
@@ -139,7 +141,7 @@ install(WiretapKtorPlugin) {
 Control how long log entries are retained in the SQLite database:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     // Keep all logs indefinitely (default)
     logRetention = LogRetention.Forever
 
@@ -148,5 +150,15 @@ install(WiretapKtorPlugin) {
 
     // Auto-prune entries older than N days
     logRetention = LogRetention.Days(7)
+}
+```
+
+### `maxContentLength`
+
+Control the maximum number of characters stored for request and response bodies. Bodies exceeding this limit are truncated before being saved to the database. Capped at 500 KB. Set to `0` to skip body logging entirely:
+
+```kotlin
+install(WiretapKtorHttpPlugin) {
+    maxContentLength = 100 * 1024  // 100 KB
 }
 ```

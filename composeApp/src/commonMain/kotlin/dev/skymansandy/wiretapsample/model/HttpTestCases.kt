@@ -14,9 +14,10 @@ sealed class HttpTestCase {
         override val statusPrefix: String,
         override val url: String,
         override val category: ActionCategory,
-        val method: HttpMethod = HttpMethod.GET,
+        val method: HttpMethod,
         val body: String? = null,
         val contentType: String? = null,
+        val headers: Map<String, String> = emptyMap(),
     ) : HttpTestCase()
 
     data class Timeout(
@@ -34,6 +35,23 @@ sealed class HttpTestCase {
         override val category: ActionCategory = ActionCategory.Cancel,
         val cancelAfterMs: Long,
     ) : HttpTestCase()
+
+    data class Burst(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
+        val intervalMs: Long,
+    ) : HttpTestCase()
+
+    data class RapidCancel(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Batch,
+        val count: Int,
+    ) : HttpTestCase()
 }
 
 @Suppress("MaxLineLength")
@@ -41,24 +59,28 @@ val httpTestCases = listOf(
     HttpTestCase.Request(
         label = "GET /get (HTTP)",
         statusPrefix = "GET /get",
+        method = HttpMethod.GET,
         url = "http://httpbin.org/get",
         category = ActionCategory.Success,
     ),
     HttpTestCase.Request(
         label = "GET /posts/1",
         statusPrefix = "GET /posts/1",
+        method = HttpMethod.GET,
         url = "https://jsonplaceholder.typicode.com/posts/1",
         category = ActionCategory.Success,
     ),
     HttpTestCase.Request(
         label = "GET large json",
         statusPrefix = "GET /users",
+        method = HttpMethod.GET,
         url = "https://gist.githubusercontent.com/gcollazo/884a489a50aec7b53765405f40c6fbd1/raw/49d1568c34090587ac82e80612a9c350108b62c5/sample.json",
         category = ActionCategory.Success,
     ),
     HttpTestCase.Request(
         label = "GET /comments",
         statusPrefix = "GET /posts/1/comments",
+        method = HttpMethod.GET,
         url = "https://jsonplaceholder.typicode.com/posts/1/comments",
         category = ActionCategory.Success,
     ),
@@ -72,20 +94,64 @@ val httpTestCases = listOf(
         contentType = "application/json",
     ),
     HttpTestCase.Request(
+        label = "GET /headers",
+        statusPrefix = "GET /headers (custom)",
+        method = HttpMethod.GET,
+        url = "https://httpbin.org/headers",
+        category = ActionCategory.Success,
+        headers = mapOf(
+            "X-Wiretap-Debug" to "true",
+            "X-Request-Source" to "WiretapSampleApp",
+            "X-Correlation-Id" to "abc-123-def-456",
+            "Accept-Language" to "en-US,en;q=0.9",
+        ),
+    ),
+    HttpTestCase.Request(
+        label = "POST /anything",
+        statusPrefix = "POST /anything (headers+body)",
+        url = "https://httpbin.org/anything",
+        category = ActionCategory.Success,
+        method = HttpMethod.POST,
+        body = """{"event":"purchase","item":"Wiretap Pro","quantity":3,"metadata":{"source":"sample-app","version":"1.0"}}""",
+        contentType = "application/json",
+        headers = mapOf(
+            "X-Api-Key" to "sample-key-12345",
+            "X-Idempotency-Key" to "idem-99887766",
+            "X-Custom-Trace" to "trace-aabbccdd",
+        ),
+    ),
+    HttpTestCase.Request(
+        label = "GET 64KB JSON",
+        statusPrefix = "GET /64KB.json",
+        method = HttpMethod.GET,
+        url = "https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json",
+        category = ActionCategory.Success,
+    ),
+    HttpTestCase.Request(
+        label = "GET 5MB JSON",
+        statusPrefix = "GET /5MB.json",
+        method = HttpMethod.GET,
+        url = "https://microsoftedge.github.io/Demos/json-dummy-data/5MB.json",
+        category = ActionCategory.Success,
+    ),
+    HttpTestCase.Request(
         label = "301 Redirect",
         statusPrefix = "GET /redirect/1",
+        method = HttpMethod.GET,
         url = "https://httpbin.org/redirect/1",
         category = ActionCategory.Redirect,
     ),
     HttpTestCase.Request(
         label = "404 Not Found",
         statusPrefix = "GET /status/404",
+        method = HttpMethod.GET,
         url = "https://httpbin.org/status/404",
         category = ActionCategory.ClientError,
     ),
     HttpTestCase.Request(
         label = "500 Error",
         statusPrefix = "GET /status/500",
+        method = HttpMethod.GET,
         url = "https://httpbin.org/status/500",
         category = ActionCategory.ServerError,
     ),
@@ -100,5 +166,18 @@ val httpTestCases = listOf(
         statusPrefix = "Starting request for cancellation",
         url = "https://httpbin.org/delay/10",
         cancelAfterMs = 1000,
+    ),
+    HttpTestCase.Burst(
+        label = "4 reqs @ 4s interval",
+        statusPrefix = "Burst: 4 requests at 4s intervals",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 4,
+        intervalMs = 4000,
+    ),
+    HttpTestCase.RapidCancel(
+        label = "10 reqs, cancel prev",
+        statusPrefix = "Rapid cancel: 10 requests, only last completes",
+        url = "https://jsonplaceholder.typicode.com/posts/",
+        count = 10,
     ),
 )

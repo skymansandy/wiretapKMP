@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.helper.launcher
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.awt.ComposePanel
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
+import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import java.awt.Dimension
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     SwingUtilities.invokeLater {
         JFrame("Wiretap").apply {
             defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE
@@ -17,8 +21,8 @@ actual fun startWiretap() {
 
             val composePanel = ComposePanel()
             composePanel.setContent {
-                MaterialTheme {
-                    WiretapScreen(
+                WiretapTheme {
+                    WiretapConsole(
                         onBack = {
                             dispose()
                         },
@@ -38,7 +42,7 @@ actual fun enableWiretapLauncher() {
             event.modifiersEx == (KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK) &&
             event.keyCode == KeyEvent.VK_D
         ) {
-            startWiretap()
+            launchWiretapConsole()
             true
         } else {
             false

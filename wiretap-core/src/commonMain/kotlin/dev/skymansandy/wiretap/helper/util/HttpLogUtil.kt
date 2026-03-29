@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.helper.util
 
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
 
-internal expect fun shareNetworkLog(subject: String, text: String)
+internal expect fun shareHttpLogs(subject: String, text: String)
 
-internal fun buildShareText(entry: HttpLogEntry): String = buildString {
+internal fun buildShareText(entry: HttpLog): String = buildString {
     appendLine("${entry.method} ${entry.responseCode}")
     appendLine(entry.url)
     appendLine("Duration: ${entry.durationMs}ms | Source: ${entry.source.name}")
@@ -37,7 +41,7 @@ internal fun buildShareText(entry: HttpLogEntry): String = buildString {
     append(entry.responseBody ?: "(none)")
 }
 
-internal fun buildCurlCommand(entry: HttpLogEntry): String = buildString {
+internal fun buildCurlCommand(entry: HttpLog): String = buildString {
     append("curl -X ${entry.method} '${entry.url}'")
     entry.requestHeaders.forEach { (k, v) ->
         append(" \\\n  -H '$k: $v'")

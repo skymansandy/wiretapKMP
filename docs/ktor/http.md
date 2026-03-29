@@ -1,8 +1,20 @@
 # Ktor — HTTP Logging
 
+=== "Overview"
+
+    ![HTTP Overview](../assets/screenshots/http/overview.png){ width="300" }
+
+=== "Request"
+
+    ![HTTP Request](../assets/screenshots/http/request.png){ width="300" }
+
+=== "Response"
+
+    ![HTTP Response](../assets/screenshots/http/respose.png){ width="300" }
+
 ## How It Works
 
-`WiretapKtorPlugin` hooks into three Ktor lifecycle points:
+`WiretapKtorHttpPlugin` hooks into three Ktor lifecycle points:
 
 1. **`onRequest`** — Captures timestamps (ms + ns) for duration measurement
 2. **`on(Send)`** — Intercepts the request before it reaches the network:
@@ -17,7 +29,7 @@
 Use `shouldLog` to control which requests are captured:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     shouldLog = { url, method ->
         url.contains("/api/") && method != "OPTIONS"
     }
@@ -31,7 +43,7 @@ Requests that don't pass `shouldLog` are still subject to rule evaluation (mock/
 Protect sensitive data in logs:
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     headerAction = { key ->
         when {
             key.equals("Authorization", ignoreCase = true) -> HeaderAction.Mask()
@@ -48,37 +60,31 @@ install(WiretapKtorPlugin) {
 
 ## Mock Rules
 
-When a request matches a mock rule, Wiretap creates a full `HttpClientCall` with `HttpResponseData` and returns it without hitting the network:
+When a request matches a mock rule, Wiretap creates a full `HttpClientCall` with `HttpResponseData` and returns it without hitting the network. Mock responses appear in the inspector with a **Mock** badge and near-zero duration.
 
-```kotlin
-val rule = WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": []}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-    ),
-)
-```
+=== "Mocked Requests"
 
-Mock responses appear in the inspector with a **Mock** badge and near-zero duration.
+    ![Mocked Requests](../assets/screenshots/http/mocked requests.png){ width="300" }
+
+=== "Mocked Response"
+
+    ![Mocked Response](../assets/screenshots/http/mocked_response.png){ width="300" }
+
+=== "Mock Rule Setup"
+
+    ![Mock Rule](../assets/screenshots/http/just mock.png){ width="300" }
 
 ## Throttle Rules
 
-Throttle rules call `kotlinx.coroutines.delay()` before `proceed(request)`:
+Throttle rules call `kotlinx.coroutines.delay()` before `proceed(request)`. The real network call still happens — throttling only adds delay.
 
-```kotlin
-val rule = WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 2000,
-        delayMaxMs = 5000,  // Random between 2–5 seconds
-    ),
-)
-```
+=== "Throttle Rule Setup"
 
-Throttled responses appear with a **Throttle** badge.
+    ![Throttle Rule](../assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](../assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Error Handling
 
@@ -93,7 +99,7 @@ Wiretap logs exceptions and re-throws them so your error handling works normally
 ## Log Retention
 
 ```kotlin
-install(WiretapKtorPlugin) {
+install(WiretapKtorHttpPlugin) {
     logRetention = LogRetention.Forever      // Keep all (default)
     logRetention = LogRetention.AppSession   // Clear on app restart
     logRetention = LogRetention.Days(7)      // Auto-prune after 7 days

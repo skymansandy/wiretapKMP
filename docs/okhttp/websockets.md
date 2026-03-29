@@ -1,8 +1,35 @@
 # OkHttp — WebSocket Logging
 
+=== "Connections"
+
+    ![WebSocket List](../assets/screenshots/socket/socketlist.png){ width="300" }
+
+=== "Messages"
+
+    ![WebSocket Detail](../assets/screenshots/socket/socketdetail.png){ width="300" }
+
 ## Setup
 
-Wrap your `WebSocketListener` with `WiretapOkHttpWebSocketListener`:
+### Extension function (recommended)
+
+Use the `wiretapped()` extension on any `WebSocketListener`:
+
+```kotlin
+val request = Request.Builder().url("wss://echo.websocket.org").build()
+client.newWebSocket(request, myListener.wiretapped())
+```
+
+### Constructor
+
+Alternatively, wrap your listener using the constructor directly:
+
+```kotlin
+val listener = WiretapOkHttpWebSocketListener(myListener)
+val request = Request.Builder().url("wss://echo.websocket.org").build()
+client.newWebSocket(request, listener)
+```
+
+### Full example
 
 ```kotlin
 val myListener = object : WebSocketListener() {
@@ -27,9 +54,8 @@ val myListener = object : WebSocketListener() {
     }
 }
 
-val listener = WiretapOkHttpWebSocketListener(myListener)
 val request = Request.Builder().url("wss://echo.websocket.org").build()
-client.newWebSocket(request, listener)
+client.newWebSocket(request, myListener.wiretapped())
 ```
 
 ## How It Works

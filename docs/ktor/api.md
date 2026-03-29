@@ -1,9 +1,9 @@
 # Ktor — API Reference
 
-## WiretapKtorPlugin
+## WiretapKtorHttpPlugin
 
 ```kotlin
-val WiretapKtorPlugin: ClientPlugin<WiretapConfig>
+val WiretapKtorHttpPlugin: ClientPlugin<WiretapConfig>
 ```
 
 Top-level Ktor client plugin for HTTP request/response logging with mock/throttle rule support.
@@ -12,12 +12,13 @@ Top-level Ktor client plugin for HTTP request/response logging with mock/throttl
 
 ```kotlin
 HttpClient {
-    install(WiretapKtorPlugin) {
+    install(WiretapKtorHttpPlugin) {
         // WiretapConfig DSL — all properties optional
         enabled = true
         shouldLog = { url, method -> true }
         headerAction = { key -> HeaderAction.Keep }
         logRetention = LogRetention.Forever
+        maxContentLength = 100 * 1024
     }
 }
 ```
@@ -42,13 +43,13 @@ Intercepts WebSocket upgrades (101 responses) to log connections.
 
 ---
 
-## wiretapWrap()
+## wiretapped()
 
 ```kotlin
-suspend fun DefaultClientWebSocketSession.wiretapWrap(): WiretapWebSocketSession
+suspend fun DefaultClientWebSocketSession.wiretapped(): WiretapWebSocketSession?
 ```
 
-Extension to wrap a Ktor WebSocket session for message logging.
+Extension to wrap a Ktor WebSocket session for message logging. Returns `null` if `WiretapKtorWebSocketPlugin` is not installed.
 
 ---
 
@@ -64,18 +65,14 @@ class WiretapWebSocketSession(
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `delegate` | `DefaultClientWebSocketSession` | The wrapped session |
-| `incoming` | `ReceiveChannel<Frame>` | Incoming frames from delegate |
+| `incoming` | `ReceiveChannel<Frame>` | Incoming frames with automatic logging (all frame types) |
 
 ### Methods
 
 | Method | Description |
 |--------|-------------|
 | `suspend fun send(frame: Frame)` | Logs the frame and sends via delegate |
-| `suspend fun logReceivedFrame(frame: Frame)` | Logs a received frame (Text/Binary) |
-| `suspend fun close()` | Graceful close, updates status |
-| `suspend fun markFailed(error: String)` | Mark connection as Failed |
-| `suspend fun markClosed(code: Short?, reason: String?)` | Mark connection as Closed |
+| `suspend fun close(code: Short, reason: String?)` | Logs status as Closed and closes the delegate |
 
 ---
 
@@ -87,6 +84,7 @@ class WiretapConfig {
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }
     var logRetention: LogRetention = LogRetention.Forever
+    var maxContentLength: Int = MAX_CONTENT_LENGTH  // 500 * 1024
 }
 ```
 
@@ -96,7 +94,7 @@ class WiretapConfig {
 
 | Component | Behavior |
 |-----------|----------|
-| `WiretapKtorPlugin` | Empty plugin body |
+| `WiretapKtorHttpPlugin` | Empty plugin body |
 | `WiretapKtorWebSocketPlugin` | Empty plugin body |
 | `wiretapModule` | Empty Koin module |
 

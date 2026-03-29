@@ -17,6 +17,68 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP and Web
 
 `wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM. It wraps `NSURLSession` with logging and rule support for native iOS projects.
 
+## Screenshots
+
+### HTTP Inspector
+
+=== "Overview"
+
+    ![HTTP Overview](assets/screenshots/http/overview.png){ width="300" }
+
+=== "Request"
+
+    ![HTTP Request](assets/screenshots/http/request.png){ width="300" }
+
+=== "Response"
+
+    ![HTTP Response](assets/screenshots/http/respose.png){ width="300" }
+
+### WebSocket Inspector
+
+=== "Connections"
+
+    ![WebSocket List](assets/screenshots/socket/socketlist.png){ width="300" }
+
+=== "Messages"
+
+    ![WebSocket Detail](assets/screenshots/socket/socketdetail.png){ width="300" }
+
+### Rules Engine
+
+=== "Swipe to Create"
+
+    ![Swipe to Create Rule](assets/screenshots/http/swipetocreaterule.png){ width="300" }
+
+=== "Request Setup"
+
+    ![Rule Request Setup](assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+
+=== "Response Setup"
+
+    ![Rule Response Setup](assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+
+=== "Rules List"
+
+    ![Rules List](assets/screenshots/http/ruleslist.png){ width="300" }
+
+=== "Rule Details"
+
+    ![Rule Details](assets/screenshots/http/rule-view.png){ width="300" }
+
+### Notifications
+
+=== "HTTP"
+
+    ![HTTP Notification](assets/screenshots/http/notification.png){ width="350" }
+
+=== "WebSocket"
+
+    ![WebSocket Notification](assets/screenshots/socket/notification.png){ width="350" }
+
+### List-Detail Pane (Tablet / Desktop)
+
+![List-Detail Pane](assets/screenshots/listdetailpane.png){ width="600" }
+
 ## HTTP Logging
 
 Every request and response is captured automatically when the plugin is installed. Logged data includes:
@@ -35,43 +97,36 @@ Full WebSocket lifecycle tracking:
 - Connection open/close/failure with status transitions
 - Close codes and reasons
 - Every sent and received message (text and binary) with timestamps and byte counts
-- Ktor: wrap session with `wiretapWrap()` for automatic message interception
+- Ktor: wrap session with `wiretapped()` for automatic message interception
 - OkHttp: wrap listener with `WiretapOkHttpWebSocketListener` for automatic event capture
 
 ## API Mocking
 
-Return fake responses without hitting the network. Rules match on method, URL, headers, and body using exact, contains, or regex matching. All criteria use AND logic.
+Return fake responses without hitting the network. Rules match on method, URL, headers, and body using exact, contains, or regex matching. All criteria use AND logic. Mock responses bypass the network entirely and appear in the inspector with a **Mock** badge.
 
-```kotlin
-WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": []}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-        throttleDelayMs = 500,  // optional: simulate latency on mock
-    ),
-)
-```
+=== "Mocked Requests"
 
-Mock responses bypass the network entirely. They appear in the inspector with a **Mock** badge.
+    ![Mocked Requests](assets/screenshots/http/mocked requests.png){ width="300" }
+
+=== "Mocked Response"
+
+    ![Mocked Response](assets/screenshots/http/mocked_response.png){ width="300" }
+
+=== "Mock Rule Setup"
+
+    ![Mock Rule](assets/screenshots/http/just mock.png){ width="300" }
 
 ## Request Throttling
 
-Add artificial delay before the request reaches the network. Supports fixed delay or random delay within a range.
+Add artificial delay before the request reaches the network. Supports fixed delay or random delay within a range. The real network call still happens — throttling only adds delay.
 
-```kotlin
-WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 2000,
-        delayMaxMs = 5000,  // random between 2–5 seconds
-    ),
-)
-```
+=== "Throttle Rule Setup"
 
-The real network call still happens — throttling only adds delay. Responses appear with a **Throttle** badge.
+    ![Throttle Rule](assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Header Masking
 

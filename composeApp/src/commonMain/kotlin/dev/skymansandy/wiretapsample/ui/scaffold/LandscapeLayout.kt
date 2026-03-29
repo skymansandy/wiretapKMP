@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,42 +26,43 @@ import dev.skymansandy.wiretapsample.model.TabItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LandscapeLayout(
+internal fun LandscapeLayout(
     title: String = "",
     tabs: List<TabItem>,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     content: @Composable (Modifier) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-
-        if (title.isNotEmpty()) {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = title,
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-            )
-        }
-
-        Row(modifier = Modifier.weight(1f)) {
-            NavigationRail {
-                tabs.forEachIndexed { index, tab ->
-                    NavigationRailItem(
-                        selected = selectedTab == index,
-                        onClick = { onTabSelected(index) },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                    )
-                }
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (title.isNotEmpty()) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            modifier = Modifier.fillMaxWidth(),
+                            text = title,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                )
             }
 
-            content(Modifier.weight(1f))
+            Row(modifier = Modifier.weight(1f)) {
+                NavigationRail {
+                    tabs.forEachIndexed { index, tab ->
+                        NavigationRailItem(
+                            selected = selectedTab == index,
+                            onClick = { onTabSelected(index) },
+                            icon = { Icon(tab.icon, contentDescription = tab.label) },
+                            label = { Text(tab.label) },
+                        )
+                    }
+                }
+
+                content(Modifier.weight(1f))
+            }
         }
     }
 }

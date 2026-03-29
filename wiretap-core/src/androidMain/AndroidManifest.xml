@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application>
         <provider
@@ -25,7 +26,7 @@
             android:name="dev.skymansandy.wiretap.helper.launcher.WiretapClearLogsReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="dev.skymansandy.wiretap.ACTION_CLEAR_LOGS" />
+                <action android:name="dev.skymansandy.wiretap.ACTION_CLEAR_HTTP_LOGS" />
             </intent-filter>
         </receiver>
     </application>

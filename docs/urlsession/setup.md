@@ -52,31 +52,92 @@ Add the WiretapKMP SPM package via its GitHub repository URL, then link the `Wir
           - package: WiretapURLSession
     ```
 
-!!! warning "Linker Flag Required"
-    Add `-lsqlite3` to **Other Linker Flags** in your Xcode target's Build Settings. WiretapKMP uses SQLite for log storage, and the iOS framework requires this system library to be linked.
+## Create a Session
 
-## Create the Interceptor
+Use `WiretapURLSession` in debug builds and plain `URLSession` in release — zero framework overhead in production:
 
 ```swift
+#if DEBUG
 import WiretapURLSession
+#endif
 
-let interceptor = WiretapURLSessionInterceptor(session: .shared) { config in
-    config.enabled = true
-    config.shouldLog = { url, method in
-        KotlinBoolean(value: url.contains("/api/"))
-    }
-    config.headerAction = { key in
-        if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-            return HeaderAction.Mask(mask: "***")
+class NetworkClient {
+
+    #if DEBUG
+    private let session: WiretapURLSession
+
+    init() {
+        session = WiretapURLSession(configuration: .default) { config in
+            config.enabled = true
+            config.shouldLog = { url, method in
+                KotlinBoolean(value: url.contains("/api/"))
+            }
+            config.headerAction = { key in
+                if key.caseInsensitiveCompare("Authorization") == .orderedSame {
+                    return HeaderActionMask(mask: "***")
+                }
+                if key.caseInsensitiveCompare("Cookie") == .orderedSame {
+                    return HeaderActionSkip.shared
+                }
+                return HeaderActionKeep.shared
+            }
+            config.logRetention = LogRetentionDays(days: 7)
+            config.maxContentLength = 100 * 1024
         }
-        if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-            return HeaderAction.Skip.shared
-        }
-        return HeaderAction.Keep.shared
     }
-    config.logRetention = LogRetention.Days(days: 7)
+    #else
+    private let session = URLSession.shared
+
+    init() {}
+    #endif
 }
 ```
+
+Then bridge the two session types with a pair of private helpers so the rest of your networking code stays `#if`-free:
+
+```swift
+private func execute(
+    _ request: URLRequest,
+    completion: @escaping (Data?, URLResponse?, Error?) -> Void
+) {
+    #if DEBUG
+    session.intercept(request: request) { data, response, error in
+        completion(data as Data?, response, error)
+    }
+    #else
+    session.dataTask(with: request) { data, response, error in
+        completion(data, response, error)
+    }.resume()
+    #endif
+}
+
+private func createTask(
+    _ request: URLRequest,
+    completion: @escaping (Data?, URLResponse?, Error?) -> Void
+) -> URLSessionDataTask {
+    #if DEBUG
+    session.dataTask(request: request) { data, response, error in
+        completion(data as Data?, response, error)
+    }
+    #else
+    session.dataTask(with: request) { data, response, error in
+        completion(data, response, error)
+    }
+    #endif
+}
+```
+
+All other methods just call `execute()` or `createTask()` — no `#if DEBUG` needed.
+
+??? note "Advanced: Using your own URLSession"
+    If you need a custom `URLSession` instance (e.g. custom delegate or shared session),
+    use `WiretapURLSessionInterceptor` directly:
+
+    ```swift
+    let interceptor = WiretapURLSessionInterceptor(session: mySession) { config in
+        config.enabled = true
+    }
+    ```
 
 ## Enable the Inspector UI
 
@@ -99,8 +160,9 @@ struct MyApp: App {
 |----------|-----------|---------|-------------|
 | `enabled` | `Bool` | `true` | Master switch — `false` disables all logging |
 | `shouldLog` | `(String, String) -> KotlinBoolean` | logs all | Filter which requests to capture |
-| `headerAction` | `(String) -> HeaderAction` | `Keep` | Control how headers are logged |
-| `logRetention` | `LogRetention` | `Forever` | How long to keep log entries |
+| `headerAction` | `(String) -> HeaderAction` | `HeaderActionKeep` | Control how headers are logged |
+| `logRetention` | `LogRetention` | `LogRetentionForever` | How long to keep log entries |
+| `maxContentLength` | `Int32` | `512000` (500 KB) | Max characters for request/response bodies. `0` disables body logging. |
 
 ### `enabled`
 
@@ -124,22 +186,30 @@ config.shouldLog = { url, method in
 ```swift
 config.headerAction = { key in
     if key.caseInsensitiveCompare("Authorization") == .orderedSame {
-        return HeaderAction.Mask(mask: "***")
+        return HeaderActionMask(mask: "***")
     }
     if key.caseInsensitiveCompare("Cookie") == .orderedSame {
-        return HeaderAction.Skip.shared
+        return HeaderActionSkip.shared
     }
-    return HeaderAction.Keep.shared
+    return HeaderActionKeep.shared
 }
 ```
 
 !!! note "Swift Singletons"
-    `Keep` and `Skip` are Kotlin objects — access them via `.shared` in Swift. `Mask` is a data class and is constructed normally.
+    `HeaderActionKeep` and `HeaderActionSkip` are Kotlin objects — access them via `.shared` in Swift. `HeaderActionMask` is a data class and is constructed normally.
 
 ### `logRetention`
 
 ```swift
-config.logRetention = LogRetention.Forever.shared
-config.logRetention = LogRetention.AppSession.shared
-config.logRetention = LogRetention.Days(days: 7)
+config.logRetention = LogRetentionForever.shared
+config.logRetention = LogRetentionAppSession.shared
+config.logRetention = LogRetentionDays(days: 7)
+```
+
+### `maxContentLength`
+
+Control the maximum number of characters stored for request and response bodies. Bodies exceeding this limit are truncated before being saved to the database. Capped at 500 KB. Set to `0` to skip body logging entirely:
+
+```swift
+config.maxContentLength = 100 * 1024  // 100 KB
 ```

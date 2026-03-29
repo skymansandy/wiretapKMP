@@ -1,31 +1,42 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.presentation
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationManager
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
+import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 
 class WiretapConsoleActivity : ComponentActivity() {
 
-    private var initialSocketId by mutableStateOf<Long?>(null)
+    private var deepLinkScreen by mutableStateOf<WiretapScreen?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initialSocketId = extractSocketId(intent)
-        enableEdgeToEdge()
+        deepLinkScreen = parseDeepLinkScreen(intent)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
+
         setContent {
-            MaterialTheme {
-                WiretapScreen(
+            WiretapTheme {
+                WiretapConsole(
+                    deepLinkScreen = deepLinkScreen,
+                    onDeepLinkConsumed = { deepLinkScreen = null },
                     onBack = { finish() },
-                    initialSocketId = initialSocketId,
-                    onInitialSocketConsumed = { initialSocketId = null },
                 )
             }
         }
@@ -33,11 +44,12 @@ class WiretapConsoleActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        extractSocketId(intent)?.let { initialSocketId = it }
+        parseDeepLinkScreen(intent)?.let { deepLinkScreen = it }
     }
 
-    private fun extractSocketId(intent: Intent?): Long? {
-        val id = intent?.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L) ?: -1L
-        return if (id > 0) id else null
+    private fun parseDeepLinkScreen(intent: Intent?): WiretapScreen? {
+        val socketId = intent?.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L) ?: -1L
+        if (socketId > 0) return WiretapScreen.SocketDetailScreen(socketId)
+        return null
     }
 }

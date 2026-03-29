@@ -44,54 +44,34 @@ BodyMatcher.Regex(""""action":\s*"delete"""")
 
 ## Mock Rules
 
-Return a fake response without hitting the network:
+Return a fake response without hitting the network. Mock responses bypass the network entirely and appear in the inspector with a **Mock** badge. Supports custom response codes for error simulation (400, 404, 500, etc.).
 
-```kotlin
-val rule = WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": [{"id": 1, "name": "Alice"}]}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-    ),
-)
-```
+=== "Mocked Requests"
 
-### Mock with Simulated Latency
+    ![Mocked Requests](../assets/screenshots/http/mocked requests.png){ width="300" }
 
-```kotlin
-RuleAction.Mock(
-    responseCode = 200,
-    responseBody = """{"status": "ok"}""",
-    throttleDelayMs = 500,       // Fixed 500ms delay
-    // throttleDelayMaxMs = 2000, // Or random between 500ms–2000ms
-)
-```
+=== "Mocked Response"
 
-### Error Simulation
+    ![Mocked Response](../assets/screenshots/http/mocked_response.png){ width="300" }
 
-```kotlin
-RuleAction.Mock(responseCode = 500, responseBody = "Internal Server Error")
-RuleAction.Mock(responseCode = 404, responseBody = """{"error": "Not found"}""")
-```
+=== "Mock Rule Setup"
+
+    ![Mock Rule](../assets/screenshots/http/just mock.png){ width="300" }
 
 ## Throttle Rules
 
-Delay requests before they reach the network:
-
-```kotlin
-val rule = WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 3000,         // Fixed 3-second delay
-        // delayMaxMs = 5000,   // Or random between 3–5 seconds
-    ),
-)
-```
+Delay requests before they reach the network. Supports fixed delay, manual range, or network profile presets (2G, 3G, etc.).
 
 !!! note
     Throttle rules still make the real network call — they just add delay.
+
+=== "Throttle Rule Setup"
+
+    ![Throttle Rule](../assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](../assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Managing Rules Programmatically
 
@@ -108,3 +88,23 @@ ruleRepository.deleteAll()                          // Clear all
 ## Built-in UI
 
 The Wiretap inspector includes a **Rules** tab where you can create, edit, enable/disable, and delete rules with a multi-step form — including conflict detection for overlapping rules.
+
+=== "Swipe to Create"
+
+    ![Swipe to Create Rule](../assets/screenshots/http/swipetocreaterule.png){ width="300" }
+
+=== "Request Setup"
+
+    ![Rule Request Setup](../assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+
+=== "Response Setup"
+
+    ![Rule Response Setup](../assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+
+=== "Rules List"
+
+    ![Rules List](../assets/screenshots/http/ruleslist.png){ width="300" }
+
+=== "Rule Details"
+
+    ![Rule Details](../assets/screenshots/http/rule-view.png){ width="300" }

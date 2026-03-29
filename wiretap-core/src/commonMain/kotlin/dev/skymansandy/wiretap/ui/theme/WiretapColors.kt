@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.theme
 
 import androidx.compose.ui.graphics.Color
@@ -14,6 +18,6 @@ internal object WiretapColors {
 
     val SearchHighlightBackground = Color(0xFFFFEB3B)
 
-    val HistoryClearedBackground = Color(0xFFFFF3E0)
-    val HistoryClearedText = Color(0xFFE65100)
+    val HistoryClearedBackground = Color(0xFF3E2723)
+    val HistoryClearedText = Color(0xFFFFAB40)
 }

@@ -71,21 +71,30 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Publish and release to Maven Central
+      - name: Publish and release to Maven Central (includes KMMBridge zip)
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
-        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache -PENABLE_PUBLISHING=true
 
-      - name: Publish KMMBridge SPM package
+      - name: Generate Package.swift for SPM
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.OSSRH_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
         run: ./gradlew :wiretap-urlsession:kmmBridgePublish --no-configuration-cache -PENABLE_PUBLISHING=true
+
+      - name: Fix Package.swift Maven Central URL
+        run: |
+          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          GROUP=$(grep 'wiretap.group=' gradle.properties | cut -d= -f2)
+          GROUP_PATH=$(echo "$GROUP" | tr '.' '/')
+          ARTIFACT="wiretap-urlsession-kmmbridge"
+          MAVEN_URL="https://repo1.maven.org/maven2/${GROUP_PATH}/${ARTIFACT}/${VERSION}/${ARTIFACT}-${VERSION}.zip"
+          sed -i '' "s|file:[^\"]*\.zip|${MAVEN_URL}|" Package.swift
 
       - name: Read version from gradle.properties
         id: version

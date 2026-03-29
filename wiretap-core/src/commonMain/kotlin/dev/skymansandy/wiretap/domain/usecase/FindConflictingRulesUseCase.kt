@@ -1,15 +1,21 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.domain.usecase
 
-import dev.skymansandy.wiretap.data.db.entity.WiretapRule
+import dev.skymansandy.wiretap.domain.model.WiretapRule
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import kotlinx.coroutines.flow.first
 
 class FindConflictingRulesUseCase internal constructor(
     private val ruleRepository: RuleRepository,
 ) {
-    suspend operator fun invoke(rule: WiretapRule): List<WiretapRule> {
-        return ruleRepository.getAll().first().filter { existing ->
-            existing.id != rule.id && RuleMatcher.rulesOverlap(existing, rule)
-        }
+
+    suspend operator fun invoke(other: WiretapRule): List<WiretapRule> {
+        return ruleRepository.flowAll().first()
+            .filter { existing ->
+                existing.id != other.id && RuleMatcher.rulesOverlap(existing, other)
+            }
     }
 }

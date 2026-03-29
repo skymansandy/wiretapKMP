@@ -25,7 +25,7 @@ import dev.skymansandy.wiretapsample.model.TabItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PortraitLayout(
+internal fun PortraitLayout(
     title: String = "",
     tabs: List<TabItem>,
     selectedTab: Int,

@@ -1,17 +1,25 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.okhttp
 
-import dev.skymansandy.wiretap.config.LogRetention
-import dev.skymansandy.wiretap.config.WiretapConfig
-import dev.skymansandy.wiretap.config.applyHeaderAction
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
 import dev.skymansandy.wiretap.di.WiretapDi
+import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.orchestrator.WiretapOrchestrator
+import dev.skymansandy.wiretap.domain.model.config.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
+import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
+import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.truncateBody
+import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
@@ -20,7 +28,9 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.security.cert.X509Certificate
+import java.io.IOException
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * OkHttp interceptor for Wiretap network inspection.
@@ -39,6 +49,7 @@ import java.security.cert.X509Certificate
  *     .build()
  * ```
  */
+@OptIn(ExperimentalAtomicApi::class)
 class WiretapOkHttpInterceptor(
     configure: WiretapConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent {
@@ -47,30 +58,32 @@ class WiretapOkHttpInterceptor(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val orchestrator: WiretapOrchestrator by inject()
+    private val httpLogManager: HttpLogManager by inject()
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
-    @Volatile private var sessionInitialized = false
+    private val sessionInitialized = AtomicBoolean(false)
+
+    // Retention cleanup: runs once per plugin installation
+    private suspend fun initSessionIfNeeded() {
+        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+            when (val logRetention = config.logRetention) {
+                LogRetention.Forever -> Unit
+                is LogRetention.AppSession -> httpLogManager.clearHttpLogs()
+                is LogRetention.Days -> {
+                    val cutoff = currentTimeMillis() - logRetention.days * 24L * 60 * 60 * 1000
+                    httpLogManager.purgeHttpLogsOlderThan(cutoff)
+                }
+            }
+        }
+    }
 
     @Suppress("LongMethod", "CyclomaticComplexMethod")
     override fun intercept(chain: Interceptor.Chain): Response = runBlocking {
-
-        if (!config.enabled) return@runBlocking chain.proceed(chain.request())
-
-        // AppSession: clear all previous logs once at first interception
-        if (!sessionInitialized) {
-            val shouldClear = synchronized(this@WiretapOkHttpInterceptor) {
-                if (!sessionInitialized) {
-                    sessionInitialized = true
-                    config.logRetention == LogRetention.AppSession
-                } else {
-                    false
-                }
-            }
-            if (shouldClear) {
-                orchestrator.clearHttpLogs()
-            }
+        if (!config.enabled) {
+            return@runBlocking chain.proceed(chain.request())
         }
+
+        initSessionIfNeeded()
 
         val request = chain.request()
 
@@ -95,61 +108,87 @@ class WiretapOkHttpInterceptor(
 
         val matchingRule = findMatchingRule(url, method, reqHeaders, requestBody)
 
-        // Days retention: prune old entries before each new capture
-        val retention = config.logRetention
-        if (retention is LogRetention.Days) {
-            val cutoff = currentTimeMillis() - retention.days * 24L * 60 * 60 * 1000
-            orchestrator.purgeHttpLogsOlderThan(cutoff)
-        }
-
-        // Log request immediately so it appears in the UI (gated by shouldLog)
+        // Log request immediately so it appears in the UI (gated by shouldLog).
+        // NonCancellable ensures the save completes and returns the ID even if the
+        // coroutine is canceled mid-flight, preventing orphaned "..." entries.
         val logEntryId = if (config.shouldLog(url, method)) {
-            orchestrator.logHttpAndGetId(
-                HttpLogEntry(
-                    url = url,
-                    method = method,
-                    requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
-                    timestamp = currentTimeMillis(),
-                ),
-            )
-        } else {
-            -1L
-        }
-
-        if (matchingRule?.action is RuleAction.Mock) {
-            val mock = matchingRule.action as RuleAction.Mock
-            val durationNs = currentNanoTime() - startNano
-            val body = (mock.responseBody ?: "")
-                .toResponseBody("application/json; charset=utf-8".toMediaType())
-            val mockResponse = Response.Builder()
-                .request(request)
-                .protocol(Protocol.HTTP_1_1)
-                .code(mock.responseCode)
-                .message("Mock")
-                .body(body)
-                .apply { mock.responseHeaders?.forEach { (k, v) -> addHeader(k, v) } }
-                .build()
-
-            if (logEntryId >= 0) {
-                val mockRespHeaders = mockResponse.headers.toMap()
-                orchestrator.updateHttp(
-                    HttpLogEntry(
-                        id = logEntryId,
+            withContext(NonCancellable) {
+                httpLogManager.logHttpAndGetId(
+                    HttpLog(
                         url = url,
                         method = method,
                         requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
-                        responseCode = mockResponse.code,
-                        responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                        responseBody = mock.responseBody,
-                        durationMs = durationNs / 1_000_000,
-                        durationNs = durationNs,
-                        source = ResponseSource.Mock,
+                        requestBody = requestBody.truncateBody(config.maxContentLength),
                         timestamp = currentTimeMillis(),
                     ),
                 )
             }
+        } else {
+            -1L
+        }
+
+        if (matchingRule?.action is RuleAction.Mock || matchingRule?.action is RuleAction.MockAndThrottle) {
+            val responseCode: Int
+            val mockBody: String?
+            val mockHeaders: Map<String, String>?
+            val source: ResponseSource
+
+            when (val action = matchingRule.action) {
+                is RuleAction.Mock -> {
+                    responseCode = action.responseCode
+                    mockBody = action.responseBody
+                    mockHeaders = action.responseHeaders
+                    source = ResponseSource.Mock
+                }
+
+                is RuleAction.MockAndThrottle -> {
+                    val minDelay = action.delayMs
+                    val maxDelay = action.delayMaxMs ?: minDelay
+                    val delayMs =
+                        if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
+                    if (delayMs > 0) Thread.sleep(delayMs)
+
+                    responseCode = action.responseCode
+                    mockBody = action.responseBody
+                    mockHeaders = action.responseHeaders
+                    source = ResponseSource.MockAndThrottle
+                }
+
+                else -> error("unreachable")
+            }
+
+            val body = (mockBody ?: "")
+                .toResponseBody("application/json; charset=utf-8".toMediaType())
+            val mockResponse = Response.Builder()
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .code(responseCode)
+                .message("Mock")
+                .body(body)
+                .apply { mockHeaders?.forEach { (k, v) -> addHeader(k, v) } }
+                .build()
+
+            if (logEntryId >= 0) {
+                val mockRespHeaders = mockResponse.headers.toMap()
+                val durationNs = currentNanoTime() - startNano
+                httpLogManager.updateHttp(
+                    HttpLog(
+                        id = logEntryId,
+                        url = url,
+                        method = method,
+                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = requestBody.truncateBody(config.maxContentLength),
+                        responseCode = mockResponse.code,
+                        responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
+                        responseBody = mockBody.truncateBody(config.maxContentLength),
+                        durationMs = durationNs / 1_000_000,
+                        durationNs = durationNs,
+                        source = source,
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+
             return@runBlocking mockResponse
         }
 
@@ -165,24 +204,27 @@ class WiretapOkHttpInterceptor(
             chain.proceed(request)
         } catch (e: Exception) {
             if (logEntryId >= 0) {
-                val durationNs = currentNanoTime() - startNano
-                val isCancelled = e is java.io.IOException && e.message == "Canceled"
-                orchestrator.updateHttp(
-                    HttpLogEntry(
-                        id = logEntryId,
-                        url = url,
-                        method = method,
-                        requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
-                        responseCode = if (isCancelled) -1 else 0,
-                        responseHeaders = emptyMap(),
-                        responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
-                        durationMs = (currentNanoTime() - startNano) / 1_000_000,
-                        durationNs = currentNanoTime() - startNano,
-                        source = ResponseSource.Network,
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+                val isCancelled = e is IOException && e.message == "Canceled"
+                withContext(NonCancellable) {
+                    val durationNs = currentNanoTime() - startNano
+                    httpLogManager.updateHttp(
+                        HttpLog(
+                            id = logEntryId,
+                            url = url,
+                            method = method,
+                            requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
+                            requestBody = requestBody.truncateBody(config.maxContentLength),
+                            responseCode = if (isCancelled) -1 else 0,
+                            responseHeaders = emptyMap(),
+                            responseBody = (e.message ?: e::class.simpleName ?: "Unknown error")
+                                .truncateBody(config.maxContentLength),
+                            durationMs = durationNs / 1_000_000,
+                            durationNs = durationNs,
+                            source = ResponseSource.Network,
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
             throw e
         }
@@ -190,67 +232,34 @@ class WiretapOkHttpInterceptor(
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 
-        val responseHeaders = response.headers.toMap()
-        val responseBody = try {
-            response.peekBody(Long.MAX_VALUE).string()
-        } catch (_: Exception) {
-            null
-        }
-
         val source = when (matchingRule?.action) {
             is RuleAction.Throttle -> ResponseSource.Throttle
             else -> ResponseSource.Network
         }
 
-        val protocol = response.protocol.toString()
-        val remoteAddress = try {
-            chain.connection()?.route()?.socketAddress?.let { "${it.hostName}:${it.port}" }
-        } catch (_: Exception) {
-            null
-        }
-
-        val handshake = response.handshake
-        val tlsProtocol = handshake?.tlsVersion?.javaName
-        val cipherSuite = handshake?.cipherSuite?.javaName
-        val peerCert = try {
-            handshake?.peerCertificates?.firstOrNull() as? X509Certificate
-        } catch (_: Exception) {
-            null
-        }
-        val certificateCn = peerCert?.subjectX500Principal?.name
-            ?.split(",")
-            ?.firstOrNull { it.trimStart().startsWith("CN=") }
-            ?.substringAfter("CN=")
-            ?.trim()
-        val issuerCn = peerCert?.issuerX500Principal?.name
-            ?.split(",")
-            ?.firstOrNull { it.trimStart().startsWith("CN=") }
-            ?.substringAfter("CN=")
-            ?.trim()
-        val certificateExpiry = peerCert?.notAfter?.toString()
-
         if (logEntryId >= 0) {
-            orchestrator.updateHttp(
-                HttpLogEntry(
+            val meta = extractResponseMetadata(response, chain)
+            httpLogManager.updateHttp(
+                HttpLog(
                     id = logEntryId,
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
                     requestBody = null,
                     responseCode = response.code,
-                    responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
-                    responseBody = responseBody,
+                    responseHeaders = meta.responseHeaders.applyHeaderAction(config.headerAction),
+                    responseBody = meta.responseBody.truncateBody(config.maxContentLength),
                     durationMs = durationMs,
                     durationNs = durationNs,
                     source = source,
                     timestamp = currentTimeMillis(),
-                    protocol = protocol,
-                    remoteAddress = remoteAddress,
-                    tlsProtocol = tlsProtocol,
-                    cipherSuite = cipherSuite,
-                    certificateCn = certificateCn,
-                    issuerCn = issuerCn,
-                    certificateExpiry = certificateExpiry,
+                    protocol = meta.protocol,
+                    remoteAddress = meta.remoteAddress,
+                    tlsProtocol = meta.tlsProtocol,
+                    cipherSuite = meta.cipherSuite,
+                    certificateCn = meta.certificateCn,
+                    issuerCn = meta.issuerCn,
+                    certificateExpiry = meta.certificateExpiry,
                 ),
             )
         }

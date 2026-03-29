@@ -1,10 +1,17 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.data.repository
 
 import app.cash.paging.Pager
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.dao.SocketDao
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
+import dev.skymansandy.wiretap.data.db.room.entity.SocketMessageEntity
+import dev.skymansandy.wiretap.data.mappers.toDomain
+import dev.skymansandy.wiretap.data.mappers.toRoomEntity
+import dev.skymansandy.wiretap.domain.model.SocketConnection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,60 +19,85 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
 internal class SocketRepositoryImpl(
-    private val socketDao: SocketDao,
+    private val socketLogsDao: SocketLogsDao,
 ) : SocketRepository {
 
     internal val invalidationSignal = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-    override suspend fun openConnection(entry: SocketEntry): Long {
-        val id = socketDao.insertAndGetId(entry)
-        invalidationSignal.tryEmit(Unit)
-        return id
-    }
-
-    override suspend fun reopenConnection(entry: SocketEntry) {
-        socketDao.insertWithId(entry)
-        invalidationSignal.tryEmit(Unit)
-    }
-
-    override suspend fun updateConnection(entry: SocketEntry) {
-        socketDao.update(entry)
-        invalidationSignal.tryEmit(Unit)
-    }
-
-    override suspend fun logMessage(message: SocketMessage) {
-        socketDao.insertMessage(message)
-        socketDao.incrementMessageCount(message.socketId)
-        invalidationSignal.tryEmit(Unit)
-    }
-
-    override suspend fun getById(id: Long): SocketEntry? = socketDao.getById(id)
-
-    override fun getByIdFlow(id: Long): Flow<SocketEntry?> =
+    override fun flowById(id: Long): Flow<SocketConnection?> =
         invalidationSignal
             .onStart { emit(Unit) }
-            .map { socketDao.getById(id) }
+            .map { socketLogsDao.getSocketLogById(id)?.toDomain() }
 
-    override fun getMessages(socketId: Long): Flow<List<SocketMessage>> = socketDao.getMessages(socketId)
+    override fun flowMessagesForId(socketId: Long): Flow<List<SocketMessage>> =
+        socketLogsDao.getSocketMessagesBySocketId(socketId)
+            .map { entities -> entities.map { it.toDomain() } }
 
-    override fun getAll(): Flow<List<SocketEntry>> = socketDao.getAll()
+    override fun flowAll(): Flow<List<SocketConnection>> =
+        socketLogsDao.getAllSocketLogs()
+            .map { entities -> entities.map { it.toDomain() } }
 
-    override fun getPagedConnections(query: String): Flow<PagingData<SocketEntry>> =
+    override fun flowForSearchQuery(query: String): Flow<PagingData<SocketConnection>> =
         Pager(config = defaultPagingConfig) {
             SocketLogPagingSource(
-                dao = socketDao,
+                roomDao = socketLogsDao,
                 query = query,
                 invalidationSignal = invalidationSignal,
             )
         }.flow
 
+    override suspend fun logNew(socket: SocketConnection): Long {
+        val id = socketLogsDao.insertSocketLog(socket.toRoomEntity())
+        invalidationSignal.tryEmit(Unit)
+        return id
+    }
+
+    override suspend fun markReopened(socket: SocketConnection) {
+        socketLogsDao.insertSocketLogWithId(socket.toRoomEntity())
+        invalidationSignal.tryEmit(Unit)
+    }
+
+    override suspend fun update(socket: SocketConnection) {
+        socketLogsDao.updateSocketLog(
+            status = socket.status.name,
+            closeCode = socket.closeCode?.toLong(),
+            closeReason = socket.closeReason,
+            failureMessage = socket.failureMessage,
+            closedAt = socket.closedAt,
+            protocol = socket.protocol,
+            remoteAddress = socket.remoteAddress,
+            id = socket.id,
+        )
+        invalidationSignal.tryEmit(Unit)
+    }
+
+    override suspend fun logSocketMsg(message: SocketMessage) {
+        socketLogsDao.insertSocketMessage(
+            SocketMessageEntity(
+                socketId = message.socketId,
+                direction = message.direction.name,
+                contentType = message.contentType.name,
+                content = message.content,
+                byteCount = message.byteCount,
+                timestamp = message.timestamp,
+            ),
+        )
+        socketLogsDao.incrementSocketMessageCount(message.socketId)
+        invalidationSignal.tryEmit(Unit)
+    }
+
+    override suspend fun getById(id: Long): SocketConnection? =
+        socketLogsDao.getSocketLogById(id)?.toDomain()
+
     override suspend fun clearAll() {
-        socketDao.deleteAll()
+        socketLogsDao.deleteAllSocketMessages()
+        socketLogsDao.deleteAllSocketLogs()
         invalidationSignal.tryEmit(Unit)
     }
 
     override suspend fun clearClosed() {
-        socketDao.deleteClosed()
+        socketLogsDao.deleteClosedSocketMessages()
+        socketLogsDao.deleteClosedSocketLogs()
         invalidationSignal.tryEmit(Unit)
     }
 }

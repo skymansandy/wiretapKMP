@@ -1,0 +1,333 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
+package dev.skymansandy.wiretap.ui.screens.rules.create
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.domain.model.WiretapRule
+import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
+import dev.skymansandy.wiretap.domain.repository.RuleRepository
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.CreateRuleScreen
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
+import dev.skymansandy.wiretap.ui.screens.rules.components.RegexTesterSheet
+import dev.skymansandy.wiretap.ui.screens.rules.components.StepIndicator
+import dev.skymansandy.wiretap.ui.screens.rules.create.step.request.RequestStep
+import dev.skymansandy.wiretap.ui.screens.rules.create.step.response.ResponseStep
+import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun CreateRuleScreenView(
+    existingRuleId: Long = 0L,
+    prefillFromLogId: Long = 0L,
+    modifier: Modifier = Modifier,
+    viewModel: CreateRuleViewModel = koinViewModel {
+        parametersOf(
+            existingRuleId,
+            prefillFromLogId,
+        )
+    },
+) {
+    val loaded by viewModel.loaded.collectAsStateWithLifecycle()
+    if (!loaded) return
+
+    val navigator = LocalWiretapNavigator.current
+    val step by viewModel.step.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.resetStep()
+    }
+
+    // Regex tester
+    val regexTesterPattern by viewModel.regexTesterPattern.collectAsStateWithLifecycle()
+    val regexTesterLabel by viewModel.regexTesterLabel.collectAsStateWithLifecycle()
+    val showRegexTester by viewModel.showRegexTester.collectAsStateWithLifecycle()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Conflict
+    val conflictingRules by viewModel.conflictingRules.collectAsStateWithLifecycle()
+    val showConflictDialog by viewModel.showConflictDialog.collectAsStateWithLifecycle()
+
+    // Validation
+    val canProceedToResponse by viewModel.canProceedToResponse.collectAsStateWithLifecycle()
+    val canSaveRule by viewModel.canSaveRule.collectAsStateWithLifecycle()
+
+    val testInputLabel = "Test Input"
+
+    if (showRegexTester) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.closeRegexTester() },
+            sheetState = bottomSheetState,
+        ) {
+            RegexTesterSheet(
+                pattern = regexTesterPattern,
+                testInputLabel = regexTesterLabel.ifEmpty { testInputLabel },
+                onDismiss = { viewModel.closeRegexTester() },
+            )
+        }
+    }
+
+    PlatformBackHandler(enabled = step > 1) {
+        viewModel.prevStep()
+    }
+
+    if (showConflictDialog && conflictingRules.isNotEmpty()) {
+        ConflictDialog(
+            conflictingRules = conflictingRules,
+            ruleRepository = viewModel.ruleRepository,
+            onDismiss = { viewModel.dismissConflictDialog() },
+            onEditConflictingRule = { conflictRule ->
+                navigator.replaceTop(
+                    CreateRuleScreen(existingRuleId = conflictRule.id),
+                )
+            },
+        )
+    }
+
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(if (viewModel.isEditing) "Edit Rule" else "Create Rule") },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        if (step > 1) {
+                            viewModel.prevStep()
+                        } else {
+                            viewModel.resetStep()
+                            navigator.pop()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                },
+            )
+        },
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+        ) {
+            StepIndicator(
+                currentStep = step,
+                labels = remember { listOf("Request", "Response") },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            )
+
+            HorizontalDivider()
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            ) {
+                when (step) {
+                    1 -> RequestStep(viewModel = viewModel)
+                    2 -> ResponseStep(viewModel = viewModel)
+                }
+            }
+
+            HorizontalDivider()
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+            ) {
+                if (step > 1) {
+                    OutlinedButton(
+                        onClick = { viewModel.prevStep() },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Back")
+                    }
+                }
+                if (step < 2) {
+                    Button(
+                        onClick = { viewModel.nextStep() },
+                        enabled = canProceedToResponse,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Next: Response")
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            viewModel.saveRule { savedRule ->
+                                if (savedRule != null) {
+                                    navigator.replaceTop(WiretapScreen.RuleDetailScreen(savedRule.id))
+                                } else {
+                                    navigator.pop()
+                                }
+                            }
+                        },
+                        enabled = canSaveRule,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Save Rule")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConflictDialog(
+    conflictingRules: List<WiretapRule>,
+    ruleRepository: RuleRepository,
+    onEditConflictingRule: ((WiretapRule) -> Unit)?,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val firstConflict = conflictingRules.first()
+    val anyMethodLabel = "Any"
+    val conflictSummary = remember(conflictingRules) {
+        conflictingRules.joinToString("\n") { rule ->
+            buildString {
+                append(if (rule.method == "*") anyMethodLabel else rule.method)
+                rule.urlMatcher?.let { append(" ${it.pattern}") }
+                append(" → ${rule.action.name}")
+            }
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Rule Conflict") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = when (conflictingRules.size) {
+                        1 -> "An existing rule already matches the same requests:"
+                        else -> "${conflictingRules.size} existing rules already match the same requests:"
+                    },
+                )
+
+                Text(
+                    text = conflictSummary,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+        },
+        confirmButton = {
+            if (onEditConflictingRule != null) {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        scope.launch {
+                            val ruleToEdit = ruleRepository.getById(firstConflict.id)
+                            if (ruleToEdit != null) {
+                                onEditConflictingRule(ruleToEdit)
+                            }
+                        }
+                    },
+                ) {
+                    Text("Edit Existing Rule")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Go Back")
+            }
+        },
+    )
+}
+
+@Preview
+@Composable
+private fun Preview_ConflictDialogSingle() {
+    MaterialTheme {
+        ConflictDialog(
+            conflictingRules = listOf(
+                WiretapRule(
+                    id = 1,
+                    method = "GET",
+                    urlMatcher = UrlMatcher.Contains("/api/users"),
+                    action = RuleAction.Mock(responseCode = 200),
+                    enabled = true,
+                ),
+            ),
+            ruleRepository = RuleRepository.NoOp,
+            onEditConflictingRule = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_ConflictDialogMultiple() {
+    MaterialTheme {
+        ConflictDialog(
+            conflictingRules = listOf(
+                WiretapRule(
+                    id = 1,
+                    method = "GET",
+                    urlMatcher = UrlMatcher.Contains("/api/users"),
+                    action = RuleAction.Mock(responseCode = 200),
+                    enabled = true,
+                ),
+                WiretapRule(
+                    id = 2,
+                    method = "*",
+                    urlMatcher = UrlMatcher.Regex("/api/.*"),
+                    action = RuleAction.Throttle(delayMs = 1000),
+                    enabled = true,
+                ),
+            ),
+            ruleRepository = RuleRepository.NoOp,
+            onEditConflictingRule = {},
+            onDismiss = {},
+        )
+    }
+}

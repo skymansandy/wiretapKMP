@@ -1,26 +1,37 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.domain.repository
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.HttpLogEntry
+import dev.skymansandy.wiretap.domain.model.HttpLog
+import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import kotlinx.coroutines.flow.Flow
 
 interface HttpRepository {
 
-    suspend fun save(entry: HttpLogEntry)
+    fun flowAll(): Flow<List<HttpLog>>
 
-    suspend fun saveAndGetId(entry: HttpLogEntry): Long
+    fun flowDistinctHosts(): Flow<List<String>>
 
-    suspend fun update(entry: HttpLogEntry)
+    fun flowPagesLogs(query: String, filter: HttpLogFilter = HttpLogFilter()): Flow<PagingData<HttpLog>>
 
-    fun getAll(): Flow<List<HttpLogEntry>>
+    fun flowById(id: Long): Flow<HttpLog?>
 
-    fun getPagedLogs(query: String): Flow<PagingData<HttpLogEntry>>
+    suspend fun save(log: HttpLog)
 
-    suspend fun getById(id: Long): HttpLogEntry?
+    suspend fun saveAndGetId(log: HttpLog): Long
+
+    suspend fun update(log: HttpLog)
+
+    suspend fun getById(id: Long): HttpLog?
 
     suspend fun deleteById(id: Long)
 
     suspend fun deleteOlderThan(timestamp: Long)
 
     suspend fun clearAll()
+
+    suspend fun markCancelledIfInProgress(id: Long)
 }

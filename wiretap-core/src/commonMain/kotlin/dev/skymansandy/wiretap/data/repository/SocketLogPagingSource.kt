@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.data.repository
 
 import app.cash.paging.PagingSource
@@ -6,8 +10,9 @@ import app.cash.paging.PagingSourceLoadResult
 import app.cash.paging.PagingSourceLoadResultError
 import app.cash.paging.PagingSourceLoadResultPage
 import app.cash.paging.PagingState
-import dev.skymansandy.wiretap.data.db.dao.SocketDao
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
+import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
+import dev.skymansandy.wiretap.data.mappers.toDomain
+import dev.skymansandy.wiretap.domain.model.SocketConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -16,10 +21,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 internal class SocketLogPagingSource(
-    private val dao: SocketDao,
+    private val roomDao: SocketLogsDao,
     private val query: String,
     invalidationSignal: SharedFlow<Unit>,
-) : PagingSource<Long, SocketEntry>() {
+) : PagingSource<Long, SocketConnection>() {
 
     private val listenerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -35,10 +40,11 @@ internal class SocketLogPagingSource(
         }
     }
 
-    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketEntry> {
+    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketConnection> {
         val afterId = params.key
         return try {
-            val items = dao.getPage(query, params.loadSize.toLong(), afterId)
+            val items = roomDao.getSocketLogsPage(query, afterId, params.loadSize.toLong())
+                .map { it.toDomain() }
             PagingSourceLoadResultPage(
                 data = items,
                 prevKey = null,
@@ -49,5 +55,5 @@ internal class SocketLogPagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Long, SocketEntry>): Long? = null
+    override fun getRefreshKey(state: PagingState<Long, SocketConnection>): Long? = null
 }

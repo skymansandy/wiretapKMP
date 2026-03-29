@@ -1,8 +1,17 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.common
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,11 +26,16 @@ internal fun SectionTitle(
     modifier: Modifier = Modifier,
     text: String,
     action: (@Composable () -> Unit)? = null,
+    expanded: Boolean? = null,
+    onToggleExpand: (() -> Unit)? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .fillMaxWidth()
+            .then(
+                if (onToggleExpand != null) Modifier.clickable(onClick = onToggleExpand)
+                else Modifier,
+            )
             .padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 4.dp),
     ) {
         Text(
@@ -32,6 +46,14 @@ internal fun SectionTitle(
         )
 
         action?.invoke()
+
+        if (expanded != null) {
+            Icon(
+                imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                contentDescription = if (expanded) "Collapse" else "Expand",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -39,7 +61,10 @@ internal fun SectionTitle(
 @Composable
 private fun Preview_SectionTitle() {
     MaterialTheme {
-        SectionTitle(text = "Request Headers")
+        SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Request Headers",
+        )
     }
 }
 
@@ -48,6 +73,7 @@ private fun Preview_SectionTitle() {
 private fun Preview_SectionTitleWithAction() {
     MaterialTheme {
         SectionTitle(
+            modifier = Modifier.fillMaxWidth(),
             text = "Response Body",
             action = {
                 Text(

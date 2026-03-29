@@ -23,11 +23,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.skymansandy.wiretap.iosSample
         PRODUCT_NAME: "Wiretap Sample"
-        INFOPLIST_FILE: iosSampleApp/Info.plist
+        INFOPLIST_FILE: iosSampleApp/Resources/Info.plist
         SWIFT_VERSION: "5.9"
         OTHER_LDFLAGS:
           - "-ObjC"
-          - "-lsqlite3"
     dependencies:
       - package: WiretapURLSession
     preBuildScripts:

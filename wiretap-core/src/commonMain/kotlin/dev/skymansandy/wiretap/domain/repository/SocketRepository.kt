@@ -1,29 +1,33 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.domain.repository
 
 import app.cash.paging.PagingData
-import dev.skymansandy.wiretap.data.db.entity.SocketEntry
-import dev.skymansandy.wiretap.data.db.entity.SocketMessage
+import dev.skymansandy.wiretap.domain.model.SocketConnection
+import dev.skymansandy.wiretap.domain.model.SocketMessage
 import kotlinx.coroutines.flow.Flow
 
 interface SocketRepository {
 
-    suspend fun openConnection(entry: SocketEntry): Long
+    fun flowById(id: Long): Flow<SocketConnection?>
 
-    suspend fun reopenConnection(entry: SocketEntry)
+    fun flowMessagesForId(socketId: Long): Flow<List<SocketMessage>>
 
-    suspend fun updateConnection(entry: SocketEntry)
+    fun flowAll(): Flow<List<SocketConnection>>
 
-    suspend fun logMessage(message: SocketMessage)
+    fun flowForSearchQuery(query: String): Flow<PagingData<SocketConnection>>
 
-    suspend fun getById(id: Long): SocketEntry?
+    suspend fun logNew(socket: SocketConnection): Long
 
-    fun getByIdFlow(id: Long): Flow<SocketEntry?>
+    suspend fun markReopened(socket: SocketConnection)
 
-    fun getMessages(socketId: Long): Flow<List<SocketMessage>>
+    suspend fun update(socket: SocketConnection)
 
-    fun getAll(): Flow<List<SocketEntry>>
+    suspend fun logSocketMsg(message: SocketMessage)
 
-    fun getPagedConnections(query: String): Flow<PagingData<SocketEntry>>
+    suspend fun getById(id: Long): SocketConnection?
 
     suspend fun clearAll()
 

@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.helper.launcher
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.window.ComposeUIViewController
 import dev.skymansandy.wiretap.shake.ShakeDetector
-import dev.skymansandy.wiretap.ui.WiretapScreen
+import dev.skymansandy.wiretap.ui.screens.WiretapConsole
+import dev.skymansandy.wiretap.ui.theme.WiretapTheme
 import platform.UIKit.UIApplication
 import platform.UIKit.UIModalPresentationFullScreen
 import platform.UIKit.UINavigationController
@@ -16,8 +20,8 @@ private var wiretapViewControllerInstance: UIViewController? = null
 
 fun WiretapViewController(): UIViewController {
     return ComposeUIViewController {
-        MaterialTheme {
-            WiretapScreen(
+        WiretapTheme {
+            WiretapConsole(
                 onBack = {
                     wiretapViewControllerInstance = null
                     getTopMostViewController()?.dismissViewControllerAnimated(
@@ -32,7 +36,7 @@ fun WiretapViewController(): UIViewController {
     }
 }
 
-actual fun startWiretap() {
+actual fun launchWiretapConsole() {
     if (wiretapViewControllerInstance != null) return
 
     val topVc = getTopMostViewController() ?: return
@@ -45,7 +49,7 @@ actual fun enableWiretapLauncher() {
     ShakeDetector.enable {
         if (wiretapViewControllerInstance != null) return@enable
 
-        startWiretap()
+        launchWiretapConsole()
     }
 }
 
