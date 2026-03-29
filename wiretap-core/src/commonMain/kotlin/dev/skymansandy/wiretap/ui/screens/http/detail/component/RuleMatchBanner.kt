@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.screens.http.detail.component
 
 import androidx.compose.foundation.background

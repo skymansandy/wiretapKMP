@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.screens.rules.view
 
 import androidx.lifecycle.ViewModel

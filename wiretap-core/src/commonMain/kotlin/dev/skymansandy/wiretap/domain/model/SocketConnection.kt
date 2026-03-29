@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.domain.model
 
 import dev.skymansandy.wiretap.ui.theme.WiretapColors

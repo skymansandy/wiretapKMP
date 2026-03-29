@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.okhttp
 
 import dev.skymansandy.wiretap.domain.model.SocketContentType

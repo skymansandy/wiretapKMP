@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.navigation.impl
 
 import androidx.navigation3.runtime.NavBackStack

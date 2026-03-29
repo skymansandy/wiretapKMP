@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.urlsession
 
 import dev.skymansandy.wiretap.di.WiretapDi

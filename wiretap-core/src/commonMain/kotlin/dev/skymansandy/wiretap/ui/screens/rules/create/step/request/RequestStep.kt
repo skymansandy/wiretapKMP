@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
 package dev.skymansandy.wiretap.ui.screens.rules.create.step.request
 
 import androidx.compose.foundation.layout.Arrangement
