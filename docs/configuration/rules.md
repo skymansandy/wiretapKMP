@@ -108,3 +108,23 @@ ruleRepository.deleteAll()                          // Clear all
 ## Built-in UI
 
 The Wiretap inspector includes a **Rules** tab where you can create, edit, enable/disable, and delete rules with a multi-step form — including conflict detection for overlapping rules.
+
+=== "Swipe to Create"
+
+    ![Swipe to Create Rule](../assets/screenshots/http/swipetocreaterule.png){ width="300" }
+
+=== "Request Setup"
+
+    ![Rule Request Setup](../assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+
+=== "Response Setup"
+
+    ![Rule Response Setup](../assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+
+=== "Rules List"
+
+    ![Rules List](../assets/screenshots/http/ruleslist.png){ width="300" }
+
+=== "Rule Details"
+
+    ![Rule Details](../assets/screenshots/http/rule-view.png){ width="300" }

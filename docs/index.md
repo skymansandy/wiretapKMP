@@ -17,6 +17,68 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP and Web
 
 `wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM. It wraps `NSURLSession` with logging and rule support for native iOS projects.
 
+## Screenshots
+
+### HTTP Inspector
+
+=== "Overview"
+
+    ![HTTP Overview](assets/screenshots/http/overview.png){ width="300" }
+
+=== "Request"
+
+    ![HTTP Request](assets/screenshots/http/request.png){ width="300" }
+
+=== "Response"
+
+    ![HTTP Response](assets/screenshots/http/respose.png){ width="300" }
+
+### WebSocket Inspector
+
+=== "Connections"
+
+    ![WebSocket List](assets/screenshots/socket/socketlist.png){ width="300" }
+
+=== "Messages"
+
+    ![WebSocket Detail](assets/screenshots/socket/socketdetail.png){ width="300" }
+
+### Rules Engine
+
+=== "Swipe to Create"
+
+    ![Swipe to Create Rule](assets/screenshots/http/swipetocreaterule.png){ width="300" }
+
+=== "Request Setup"
+
+    ![Rule Request Setup](assets/screenshots/http/rulecreate-requestsetup.png){ width="300" }
+
+=== "Response Setup"
+
+    ![Rule Response Setup](assets/screenshots/http/rulecreate-responsesetup.png){ width="300" }
+
+=== "Rules List"
+
+    ![Rules List](assets/screenshots/http/ruleslist.png){ width="300" }
+
+=== "Rule Details"
+
+    ![Rule Details](assets/screenshots/http/rule-view.png){ width="300" }
+
+### Notifications
+
+=== "HTTP"
+
+    ![HTTP Notification](assets/screenshots/http/notification.png){ width="350" }
+
+=== "WebSocket"
+
+    ![WebSocket Notification](assets/screenshots/socket/notification.png){ width="350" }
+
+### List-Detail Pane (Tablet / Desktop)
+
+![List-Detail Pane](assets/screenshots/listdetailpane.png){ width="600" }
+
 ## HTTP Logging
 
 Every request and response is captured automatically when the plugin is installed. Logged data includes:

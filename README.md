@@ -12,6 +12,36 @@
 
 Kotlin Multiplatform network inspection and mocking SDK. Intercept HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed.
 
+## 📸 Screenshots
+
+### HTTP Inspector
+
+| Overview | Request | Response |
+|:--------:|:-------:|:--------:|
+| <img src="art/screenshots/http/overview.png" width="260"/> | <img src="art/screenshots/http/request.png" width="260"/> | <img src="art/screenshots/http/respose.png" width="260"/> |
+
+### WebSocket Inspector
+
+| Connections | Messages |
+|:-----------:|:--------:|
+| <img src="art/screenshots/socket/socketlist.png" width="260"/> | <img src="art/screenshots/socket/socketdetail.png" width="260"/> |
+
+### Rules Engine
+
+| Swipe to Create | Request Setup | Response Setup | Rules List | Rule Details |
+|:---------------:|:-------------:|:--------------:|:----------:|:------------:|
+| <img src="art/screenshots/http/swipetocreaterule.png" width="200"/> | <img src="art/screenshots/http/rulecreate-requestsetup.png" width="200"/> | <img src="art/screenshots/http/rulecreate-responsesetup.png" width="200"/> | <img src="art/screenshots/http/ruleslist.png" width="200"/> | <img src="art/screenshots/http/rule-view.png" width="200"/> |
+
+### Notifications
+
+| HTTP | WebSocket |
+|:----:|:---------:|
+| <img src="art/screenshots/http/notification.png" width="300"/> | <img src="art/screenshots/socket/notification.png" width="300"/> |
+
+### List-Detail Pane (Tablet / Desktop)
+
+<img src="art/screenshots/listdetailpane.png" width="600"/>
+
 ## 📱 Platforms
 
 ### KMP Plugins

@@ -1,5 +1,13 @@
 # Ktor — WebSocket Logging
 
+=== "Connections"
+
+    ![WebSocket List](../assets/screenshots/socket/socketlist.png){ width="300" }
+
+=== "Messages"
+
+    ![WebSocket Detail](../assets/screenshots/socket/socketdetail.png){ width="300" }
+
 ## Setup
 
 Install both the standard WebSocket plugin and the Wiretap WebSocket plugin:

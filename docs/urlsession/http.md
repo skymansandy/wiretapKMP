@@ -1,5 +1,17 @@
 # URLSession — HTTP Logging
 
+=== "Overview"
+
+    ![HTTP Overview](../assets/screenshots/http/overview.png){ width="300" }
+
+=== "Request"
+
+    ![HTTP Request](../assets/screenshots/http/request.png){ width="300" }
+
+=== "Response"
+
+    ![HTTP Response](../assets/screenshots/http/respose.png){ width="300" }
+
 ## Two APIs
 
 `WiretapURLSession` provides two ways to make requests:

@@ -1,5 +1,13 @@
 # OkHttp — WebSocket Logging
 
+=== "Connections"
+
+    ![WebSocket List](../assets/screenshots/socket/socketlist.png){ width="300" }
+
+=== "Messages"
+
+    ![WebSocket Detail](../assets/screenshots/socket/socketdetail.png){ width="300" }
+
 ## Setup
 
 ### Extension function (recommended)
