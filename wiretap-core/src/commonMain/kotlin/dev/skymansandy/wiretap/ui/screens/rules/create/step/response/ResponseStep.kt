@@ -13,17 +13,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.jsoncmp.JsonCMP
-import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
-import dev.skymansandy.jsoncmp.helper.annotation.ExperimentalJsonCmpApi
+import dev.skymansandy.jsoncmp.domain.ExperimentalJsonCmpApi
+import dev.skymansandy.jsoncmp.ui.editor.JsonEditorCMP
+import dev.skymansandy.jsoncmp.ui.editor.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleViewModel
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalJsonCmpApi::class)
 @Composable
@@ -121,7 +126,7 @@ internal fun ResponseStep(
     }
 }
 
-@OptIn(ExperimentalJsonCmpApi::class)
+@OptIn(ExperimentalJsonCmpApi::class, FlowPreview::class)
 @Composable
 private fun MockResponseFields(
     mockResponseCode: String,
@@ -159,13 +164,19 @@ private fun MockResponseFields(
 
     val editorState = rememberJsonEditorState(
         initialJson = mockResponseBody.ifBlank { "{}" },
-        isEditing = true,
     )
 
-    JsonCMP(
-        state = editorState,
+    LaunchedEffect(Unit) {
+        snapshotFlow { editorState.json }
+            .debounce(450.milliseconds)
+            .collect {
+                viewModel.updateMockResponseBody(editorState.json)
+            }
+    }
+
+    JsonEditorCMP(
         modifier = Modifier.fillMaxWidth().height(300.dp),
-        onJsonChange = { json, _, _ -> viewModel.updateMockResponseBody(json) },
+        state = editorState,
     )
 
     // Response headers with Key/Value ↔ Bulk Edit toggle

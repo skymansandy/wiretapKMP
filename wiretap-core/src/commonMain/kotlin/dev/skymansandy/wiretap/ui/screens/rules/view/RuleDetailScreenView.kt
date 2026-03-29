@@ -3,10 +3,10 @@ package dev.skymansandy.wiretap.ui.screens.rules.view
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -36,8 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.skymansandy.jsoncmp.JsonCMP
-import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
+import dev.skymansandy.jsoncmp.domain.ExperimentalJsonCmpApi
+import dev.skymansandy.jsoncmp.ui.viewer.JsonViewerCMP
+import dev.skymansandy.jsoncmp.ui.viewer.rememberJsonViewerState
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.matchers.BodyMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
@@ -286,6 +287,7 @@ private fun DetailRow(
     }
 }
 
+@OptIn(ExperimentalJsonCmpApi::class)
 @Composable
 private fun MockResponseDetail(
     responseCode: Int,
@@ -302,13 +304,13 @@ private fun MockResponseDetail(
         )
         Spacer(Modifier.height(4.dp))
         if (looksLikeJson(responseBody)) {
-            val editorState = rememberJsonEditorState(initialJson = responseBody)
-            JsonCMP(
-                state = editorState,
+            val jsonState = rememberJsonViewerState(json = responseBody)
+            JsonViewerCMP(
+                state = jsonState,
                 modifier = Modifier
                     .padding(vertical = 4.dp)
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = 100.dp),
+                    .heightIn(min = 100.dp, max = 400.dp),
             )
         } else {
             CodeBlock(

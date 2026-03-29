@@ -85,9 +85,9 @@ private fun HttpLogDetailScreenContent(
     val searchFocusRequester = remember { FocusRequester() }
     val tabs = remember {
         listOf(
-            "Overview",
-            "Request",
-            "Response",
+            "OVERVIEW",
+            "REQUEST",
+            "RESPONSE",
         )
     }
 
