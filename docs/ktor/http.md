@@ -60,37 +60,31 @@ install(WiretapKtorHttpPlugin) {
 
 ## Mock Rules
 
-When a request matches a mock rule, Wiretap creates a full `HttpClientCall` with `HttpResponseData` and returns it without hitting the network:
+When a request matches a mock rule, Wiretap creates a full `HttpClientCall` with `HttpResponseData` and returns it without hitting the network. Mock responses appear in the inspector with a **Mock** badge and near-zero duration.
 
-```kotlin
-val rule = WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": []}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-    ),
-)
-```
+=== "Mocked Requests"
 
-Mock responses appear in the inspector with a **Mock** badge and near-zero duration.
+    ![Mocked Requests](../assets/screenshots/http/mocked requests.png){ width="300" }
+
+=== "Mocked Response"
+
+    ![Mocked Response](../assets/screenshots/http/mocked_response.png){ width="300" }
+
+=== "Mock Rule Setup"
+
+    ![Mock Rule](../assets/screenshots/http/just mock.png){ width="300" }
 
 ## Throttle Rules
 
-Throttle rules call `kotlinx.coroutines.delay()` before `proceed(request)`:
+Throttle rules call `kotlinx.coroutines.delay()` before `proceed(request)`. The real network call still happens — throttling only adds delay.
 
-```kotlin
-val rule = WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 2000,
-        delayMaxMs = 5000,  // Random between 2–5 seconds
-    ),
-)
-```
+=== "Throttle Rule Setup"
 
-Throttled responses appear with a **Throttle** badge.
+    ![Throttle Rule](../assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](../assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Error Handling
 

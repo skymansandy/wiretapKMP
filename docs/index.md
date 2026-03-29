@@ -102,38 +102,31 @@ Full WebSocket lifecycle tracking:
 
 ## API Mocking
 
-Return fake responses without hitting the network. Rules match on method, URL, headers, and body using exact, contains, or regex matching. All criteria use AND logic.
+Return fake responses without hitting the network. Rules match on method, URL, headers, and body using exact, contains, or regex matching. All criteria use AND logic. Mock responses bypass the network entirely and appear in the inspector with a **Mock** badge.
 
-```kotlin
-WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": []}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-        throttleDelayMs = 500,  // optional: simulate latency on mock
-    ),
-)
-```
+=== "Mocked Requests"
 
-Mock responses bypass the network entirely. They appear in the inspector with a **Mock** badge.
+    ![Mocked Requests](assets/screenshots/http/mocked requests.png){ width="300" }
+
+=== "Mocked Response"
+
+    ![Mocked Response](assets/screenshots/http/mocked_response.png){ width="300" }
+
+=== "Mock Rule Setup"
+
+    ![Mock Rule](assets/screenshots/http/just mock.png){ width="300" }
 
 ## Request Throttling
 
-Add artificial delay before the request reaches the network. Supports fixed delay or random delay within a range.
+Add artificial delay before the request reaches the network. Supports fixed delay or random delay within a range. The real network call still happens — throttling only adds delay.
 
-```kotlin
-WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 2000,
-        delayMaxMs = 5000,  // random between 2–5 seconds
-    ),
-)
-```
+=== "Throttle Rule Setup"
 
-The real network call still happens — throttling only adds delay. Responses appear with a **Throttle** badge.
+    ![Throttle Rule](assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Header Masking
 

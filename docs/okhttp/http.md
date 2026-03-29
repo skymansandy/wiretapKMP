@@ -69,35 +69,31 @@ WiretapOkHttpInterceptor {
 
 ## Mock Rules
 
-When a request matches a mock rule, the interceptor builds a fake OkHttp `Response`:
+When a request matches a mock rule, the interceptor builds a fake OkHttp `Response` using `Protocol.HTTP_1_1` and `"Mock"` as the message. Mock responses appear in the inspector with a **Mock** badge.
 
-```kotlin
-val rule = WiretapRule(
-    method = "GET",
-    urlMatcher = UrlMatcher.Contains("/api/users"),
-    action = RuleAction.Mock(
-        responseCode = 200,
-        responseBody = """{"users": []}""",
-        responseHeaders = mapOf("Content-Type" to "application/json"),
-    ),
-)
-```
+=== "Mocked Requests"
 
-The mock response uses `Protocol.HTTP_1_1` and `"Mock"` as the message.
+    ![Mocked Requests](../assets/screenshots/http/mocked requests.png){ width="300" }
+
+=== "Mocked Response"
+
+    ![Mocked Response](../assets/screenshots/http/mocked_response.png){ width="300" }
+
+=== "Mock Rule Setup"
+
+    ![Mock Rule](../assets/screenshots/http/just mock.png){ width="300" }
 
 ## Throttle Rules
 
-Throttle rules use `Thread.sleep()` (blocking) before `chain.proceed()`:
+Throttle rules use `Thread.sleep()` (blocking) before `chain.proceed()`. The real network call still happens — throttling only adds delay.
 
-```kotlin
-val rule = WiretapRule(
-    urlMatcher = UrlMatcher.Contains("/api/"),
-    action = RuleAction.Throttle(
-        delayMs = 2000,
-        delayMaxMs = 5000,
-    ),
-)
-```
+=== "Throttle Rule Setup"
+
+    ![Throttle Rule](../assets/screenshots/http/throttle only.png){ width="300" }
+
+=== "Mock + Throttle"
+
+    ![Mock + Throttle Rule](../assets/screenshots/http/mock+throttle.png){ width="300" }
 
 ## Error Handling
 
