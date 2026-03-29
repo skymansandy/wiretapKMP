@@ -197,6 +197,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build sample app APK
+        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Upload sample APK to release
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          APK_PATH=$(find androidApp/build/outputs/apk/debug -name '*.apk' | head -1)
+          if [ -n "$APK_PATH" ]; then
+            gh release upload "v${VERSION}" "$APK_PATH#wiretap-sample-v${VERSION}.apk" --clobber
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-docs:
     name: Deploy Docs
     needs: test-and-coverage
