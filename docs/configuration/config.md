@@ -57,6 +57,16 @@ Controls how long log entries are retained. See [Log Retention](retention.md) fo
 logRetention = LogRetention.Days(7)
 ```
 
+### `maxContentLength`
+
+**Type:** `Int` — **Default:** `512000` (500 KB)
+
+Maximum number of characters to store for request and response bodies. Bodies exceeding this limit are truncated before being saved to the database. Capped at `500 * 1024` (500 KB). Set to `0` to skip body logging entirely.
+
+```kotlin
+maxContentLength = 100 * 1024 // 100 KB
+```
+
 ## Usage by Plugin
 
 === "Ktor"
@@ -67,6 +77,7 @@ logRetention = LogRetention.Days(7)
         shouldLog = { url, _ -> url.contains("/api/") }
         headerAction = { key -> HeaderAction.Keep }
         logRetention = LogRetention.AppSession
+        maxContentLength = 100 * 1024
     }
     ```
 
@@ -78,5 +89,6 @@ logRetention = LogRetention.Days(7)
         shouldLog = { url, _ -> url.contains("/api/") }
         headerAction = { key -> HeaderAction.Keep }
         logRetention = LogRetention.AppSession
+        maxContentLength = 100 * 1024
     }
     ```

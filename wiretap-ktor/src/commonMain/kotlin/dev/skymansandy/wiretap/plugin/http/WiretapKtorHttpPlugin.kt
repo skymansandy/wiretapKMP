@@ -12,6 +12,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.truncateBody
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
@@ -139,7 +140,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
                         url = url,
                         method = method,
                         requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                        requestBody = requestBody,
+                        requestBody = requestBody.truncateBody(config.maxContentLength),
                         timestamp = currentTimeMillis(),
                     ),
                 )
@@ -213,10 +214,11 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
                             url = url,
                             method = method,
                             requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                            requestBody = requestBody,
+                            requestBody = requestBody.truncateBody(config.maxContentLength),
                             responseCode = if (e is CancellationException) -1 else 0,
                             responseHeaders = emptyMap(),
-                            responseBody = e.message ?: e::class.simpleName ?: "Unknown error",
+                            responseBody = (e.message ?: e::class.simpleName ?: "Unknown error")
+                                .truncateBody(config.maxContentLength),
                             durationMs = durationNs / 1_000_000,
                             durationNs = durationNs,
                             source = ResponseSource.Network,
@@ -277,7 +279,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
                     requestBody = null,
                     responseCode = response.status.value,
                     responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
-                    responseBody = responseBody,
+                    responseBody = responseBody.truncateBody(config.maxContentLength),
                     durationMs = durationMs,
                     durationNs = durationNs,
                     source = source,
@@ -345,10 +347,10 @@ private suspend fun buildMockCall(
                 url = url,
                 method = method,
                 requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                requestBody = requestBody,
+                requestBody = requestBody.truncateBody(config.maxContentLength),
                 responseCode = statusCode.value,
                 responseHeaders = mockRespHeaders.applyHeaderAction(config.headerAction),
-                responseBody = responseBody,
+                responseBody = responseBody.truncateBody(config.maxContentLength),
                 durationMs = durationNs / 1_000_000,
                 durationNs = durationNs,
                 source = source,

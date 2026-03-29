@@ -82,6 +82,7 @@ class NetworkClient {
                 return HeaderActionKeep.shared
             }
             config.logRetention = LogRetentionDays(days: 7)
+            config.maxContentLength = 100 * 1024
         }
     }
     #else
@@ -161,6 +162,7 @@ struct MyApp: App {
 | `shouldLog` | `(String, String) -> KotlinBoolean` | logs all | Filter which requests to capture |
 | `headerAction` | `(String) -> HeaderAction` | `HeaderActionKeep` | Control how headers are logged |
 | `logRetention` | `LogRetention` | `LogRetentionForever` | How long to keep log entries |
+| `maxContentLength` | `Int32` | `512000` (500 KB) | Max characters for request/response bodies. `0` disables body logging. |
 
 ### `enabled`
 
@@ -202,4 +204,12 @@ config.headerAction = { key in
 config.logRetention = LogRetentionForever.shared
 config.logRetention = LogRetentionAppSession.shared
 config.logRetention = LogRetentionDays(days: 7)
+```
+
+### `maxContentLength`
+
+Control the maximum number of characters stored for request and response bodies. Bodies exceeding this limit are truncated before being saved to the database. Capped at 500 KB. Set to `0` to skip body logging entirely:
+
+```swift
+config.maxContentLength = 100 * 1024  // 100 KB
 ```

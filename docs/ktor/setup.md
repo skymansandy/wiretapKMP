@@ -29,6 +29,7 @@ val client = HttpClient {
         enabled = true                                    // default
         shouldLog = { url, method -> true }               // default: log everything
         logRetention = LogRetention.Days(7)
+        maxContentLength = 100 * 1024                     // truncate bodies > 100 KB
         headerAction = { key ->
             when {
                 key.equals("Authorization", ignoreCase = true) -> HeaderAction.Mask()
@@ -87,6 +88,7 @@ val networkModule = module {
 | `shouldLog` | `(url, method) -> Boolean` | `{ _, _ -> true }` | Filter which requests to capture |
 | `headerAction` | `(key) -> HeaderAction` | `{ Keep }` | Control how headers are logged |
 | `logRetention` | `LogRetention` | `Forever` | How long to keep log entries |
+| `maxContentLength` | `Int` | `512000` (500 KB) | Max characters for request/response bodies. `0` disables body logging. |
 
 ### `enabled`
 
@@ -148,5 +150,15 @@ install(WiretapKtorHttpPlugin) {
 
     // Auto-prune entries older than N days
     logRetention = LogRetention.Days(7)
+}
+```
+
+### `maxContentLength`
+
+Control the maximum number of characters stored for request and response bodies. Bodies exceeding this limit are truncated before being saved to the database. Capped at 500 KB. Set to `0` to skip body logging entirely:
+
+```kotlin
+install(WiretapKtorHttpPlugin) {
+    maxContentLength = 100 * 1024  // 100 KB
 }
 ```

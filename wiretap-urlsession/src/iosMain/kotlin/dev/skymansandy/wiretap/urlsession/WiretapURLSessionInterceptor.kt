@@ -12,6 +12,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.util.truncateBody
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -105,7 +106,7 @@ class WiretapURLSessionInterceptor(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
+                    requestBody = requestBody.truncateBody(config.maxContentLength),
                     timestamp = currentTimeMillis(),
                 ),
             )
@@ -179,7 +180,7 @@ class WiretapURLSessionInterceptor(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
+                    requestBody = requestBody.truncateBody(config.maxContentLength),
                     timestamp = currentTimeMillis(),
                 ),
             )
@@ -323,10 +324,10 @@ class WiretapURLSessionInterceptor(
                     url = url,
                     method = method,
                     requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = requestBody,
+                    requestBody = requestBody.truncateBody(config.maxContentLength),
                     responseCode = mockCode,
                     responseHeaders = mockHeaders.applyHeaderAction(config.headerAction),
-                    responseBody = mockBody,
+                    responseBody = mockBody.truncateBody(config.maxContentLength),
                     durationMs = durationNs / 1_000_000,
                     durationNs = durationNs,
                     source = source,
@@ -383,10 +384,10 @@ class WiretapURLSessionInterceptor(
                 url = url,
                 method = method,
                 requestHeaders = reqHeaders.applyHeaderAction(config.headerAction),
-                requestBody = requestBody,
+                requestBody = requestBody.truncateBody(config.maxContentLength),
                 responseCode = responseCode,
                 responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
-                responseBody = responseBody,
+                responseBody = responseBody.truncateBody(config.maxContentLength),
                 durationMs = durationNs / 1_000_000,
                 durationNs = durationNs,
                 source = source,

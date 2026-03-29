@@ -15,9 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.skymansandy.jsoncmp.JsonCMP
-import dev.skymansandy.jsoncmp.config.rememberJsonEditorState
-import dev.skymansandy.jsoncmp.helper.annotation.ExperimentalJsonCmpApi
+import dev.skymansandy.jsoncmp.domain.ExperimentalJsonCmpApi
+import dev.skymansandy.jsoncmp.ui.viewer.JsonViewerCMP
+import dev.skymansandy.jsoncmp.ui.viewer.rememberJsonViewerState
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.ui.common.CodeBlock
@@ -41,12 +41,19 @@ internal fun RequestTab(
     var headersExpanded by remember { mutableStateOf(true) }
 
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier.then(
+            if (isJson) Modifier else Modifier.verticalScroll(rememberScrollState()),
+        ),
     ) {
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Headers",
-            action = if (entry.requestHeaders.isNotEmpty()) ({ CopyHeadersButton(headers = entry.requestHeaders) }) else null,
+            action = if (entry.requestHeaders.isNotEmpty()) ({
+                CopyHeadersButton(
+                    headers = entry.requestHeaders,
+                    snackbarMessage = "Request headers copied to clipboard",
+                )
+            }) else null,
             expanded = headersExpanded,
             onToggleExpand = { headersExpanded = !headersExpanded },
         )
@@ -62,15 +69,22 @@ internal fun RequestTab(
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Body",
-            action = if (body != null) ({ CopyBodyButton(body = body) }) else null,
+            action = if (body != null) ({
+                CopyBodyButton(
+                    body = body,
+                    snackbarMessage = "Request body copied to clipboard",
+                )
+            }) else null,
         )
 
         if (isJson) {
-            val editorState = rememberJsonEditorState(initialJson = body!!)
-            JsonCMP(
-                state = editorState,
+            val jsonState = rememberJsonViewerState(json = body!!)
+            JsonViewerCMP(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
+                state = jsonState,
                 searchQuery = searchQuery,
-                modifier = Modifier.padding(8.dp),
             )
         } else {
             CodeBlock(

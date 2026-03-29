@@ -129,7 +129,7 @@ internal fun HttpTabScreen(
                                 httpSubTab = HttpSubTab.Logs
                                 searchQuery = ""
                             },
-                            text = { Text("Logs") },
+                            text = { Text("LOGS") },
                         )
                         Tab(
                             selected = httpSubTab == HttpSubTab.Rules,
@@ -137,7 +137,7 @@ internal fun HttpTabScreen(
                                 httpSubTab = HttpSubTab.Rules
                                 searchQuery = ""
                             },
-                            text = { Text("Rules") },
+                            text = { Text("RULES") },
                         )
                     }
                 }

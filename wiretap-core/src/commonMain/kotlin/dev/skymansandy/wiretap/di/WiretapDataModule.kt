@@ -11,7 +11,6 @@ import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.runBlocking
 import org.koin.dsl.module
 
 internal val wiretapDataModule = module {
@@ -22,12 +21,6 @@ internal val wiretapDataModule = module {
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()
-            .also { db ->
-                runBlocking(Dispatchers.IO) {
-                    db.httpRoomDao().closeStaleHttpLogs()
-                    db.socketRoomDao().closeStaleSocketLogs()
-                }
-            }
     }
 
     single<HttpRepository> {
