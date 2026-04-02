@@ -53,10 +53,10 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.kotlin.stdlib)
-                api(libs.jsonCmp)
-                api(libs.koin.core)
-                api(libs.koin.compose)
-                api(libs.koin.compose.viewmodel)
+                implementation(libs.jsonCmp)
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
                 api(libs.kotlinx.coroutines.core)
                 implementation(libs.stately.concurrent.collections)
 

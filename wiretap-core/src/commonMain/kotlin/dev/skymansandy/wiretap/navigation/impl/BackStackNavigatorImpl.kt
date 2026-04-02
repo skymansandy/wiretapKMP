@@ -27,19 +27,19 @@ internal class BackStackNavigatorImpl(
     }
 
     override fun pop() {
-        if (backStack.size > 1) backStack.removeLast()
+        if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
     }
 
     override fun popUntil(predicate: (WiretapScreen) -> Boolean) {
         while (backStack.size > 1) {
             val last = backStack.lastOrNull() as? WiretapScreen ?: break
             if (predicate(last)) break
-            backStack.removeLast()
+            backStack.removeAt(backStack.lastIndex)
         }
     }
 
     override fun replaceTop(screen: WiretapScreen) {
-        backStack.removeLastOrNull()
+        if (backStack.isNotEmpty()) backStack.removeAt(backStack.lastIndex)
         backStack.add(screen)
     }
 }

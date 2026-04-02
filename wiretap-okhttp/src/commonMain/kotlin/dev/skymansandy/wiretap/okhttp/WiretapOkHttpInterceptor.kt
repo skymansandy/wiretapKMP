@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.okhttp
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
@@ -29,8 +30,6 @@ import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.IOException
-import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * OkHttp interceptor for Wiretap network inspection.
@@ -49,7 +48,6 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  *     .build()
  * ```
  */
-@OptIn(ExperimentalAtomicApi::class)
 class WiretapOkHttpInterceptor(
     configure: WiretapConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent {
@@ -65,7 +63,7 @@ class WiretapOkHttpInterceptor(
 
     // Retention cleanup: runs once per plugin installation
     private suspend fun initSessionIfNeeded() {
-        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+        if (sessionInitialized.compareAndSet(expected = false, new = true)) {
             when (val logRetention = config.logRetention) {
                 LogRetention.Forever -> Unit
                 is LogRetention.AppSession -> httpLogManager.clearHttpLogs()

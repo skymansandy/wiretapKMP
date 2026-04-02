@@ -25,6 +25,8 @@ kotlin {
         iosMain {
             dependencies {
                 api(projects.wiretapCore)
+                implementation(libs.stately.concurrency)
+                implementation(libs.koin.core)
             }
         }
 

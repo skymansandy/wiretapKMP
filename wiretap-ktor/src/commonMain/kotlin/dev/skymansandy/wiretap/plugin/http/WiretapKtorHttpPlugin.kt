@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.plugin.http
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
@@ -42,8 +43,6 @@ import kotlinx.coroutines.withContext
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
 private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTimestamp")
@@ -76,7 +75,7 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
  * @see WiretapConfig
  * @see dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
  */
-@OptIn(InternalAPI::class, ExperimentalAtomicApi::class)
+@OptIn(InternalAPI::class)
 val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
     val config = pluginConfig
     val deps = WiretapDeps()
@@ -84,7 +83,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
 
     // Retention cleanup: runs once per plugin installation
     suspend fun initSessionIfNeeded() {
-        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+        if (sessionInitialized.compareAndSet(expected = false, new = true)) {
             when (val logRetention = config.logRetention) {
                 LogRetention.Forever -> Unit
                 is LogRetention.AppSession -> deps.httpLogManager.clearHttpLogs()
