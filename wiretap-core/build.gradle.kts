@@ -58,6 +58,7 @@ kotlin {
                 api(libs.koin.compose)
                 api(libs.koin.compose.viewmodel)
                 api(libs.kotlinx.coroutines.core)
+                implementation(libs.stately.concurrent.collections)
 
                 implementation(libs.room.runtime)
                 implementation(libs.sqlite.bundled)

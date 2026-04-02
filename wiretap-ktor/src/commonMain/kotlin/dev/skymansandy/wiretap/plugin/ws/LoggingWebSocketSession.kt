@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.plugin.ws
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
@@ -26,7 +27,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.runBlocking
-import kotlin.concurrent.Volatile
 
 /**
  * [WiretapWebSocketSession] implementation that logs all sent and received messages.
@@ -50,8 +50,7 @@ internal class LoggingWebSocketSession(
         }
     }
 
-    @Volatile
-    private var statusUpdated = false
+    private val statusUpdated = AtomicBoolean(false)
 
     init {
         installAutoClose()
@@ -60,9 +59,8 @@ internal class LoggingWebSocketSession(
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun installAutoClose() {
         delegate.coroutineContext[Job]?.invokeOnCompletion { cause ->
-            if (statusUpdated) return@invokeOnCompletion
+            if (!statusUpdated.compareAndSet(expected = false, new = true)) return@invokeOnCompletion
 
-            statusUpdated = true
             val url = delegate.call.request.url.toString().toWebSocketUrl()
             runBlocking {
                 if (cause != null && cause !is CancellationException) {
@@ -100,7 +98,7 @@ internal class LoggingWebSocketSession(
     }
 
     suspend fun close(code: Short = 1000.toShort(), reason: String? = null) {
-        statusUpdated = true
+        statusUpdated.value = true
 
         val url = delegate.call.request.url.toString().toWebSocketUrl()
         socketLogManager.updateSocket(
