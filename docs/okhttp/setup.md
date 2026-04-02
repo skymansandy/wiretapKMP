@@ -5,8 +5,8 @@
 ## Dependencies
 
 ```kotlin
-debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-preview")
-releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-preview")
+debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC6")
+releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC6")
 ```
 
 ## Install the Interceptor
