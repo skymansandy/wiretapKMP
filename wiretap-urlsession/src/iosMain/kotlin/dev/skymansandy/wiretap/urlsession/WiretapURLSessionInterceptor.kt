@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.urlsession
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
@@ -45,8 +46,6 @@ import platform.darwin.DISPATCH_TIME_NOW
 import platform.darwin.dispatch_after
 import platform.darwin.dispatch_get_global_queue
 import platform.darwin.dispatch_time
-import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 /**
  * Low-level URLSession interceptor for Wiretap network inspection on iOS.
@@ -61,7 +60,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
  * - [intercept]: Fire-and-forget execution with full mock/throttle rule support.
  * - [dataTask]: Returns an NSURLSessionDataTask with logging (no mock/throttle).
  */
-@OptIn(ExperimentalAtomicApi::class, ExperimentalForeignApi::class, BetaInteropApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
     configure: WiretapConfig.() -> Unit = {},
@@ -275,7 +274,7 @@ class WiretapURLSessionInterceptor(
 
     // Retention cleanup: runs once per plugin installation
     private suspend fun initSessionIfNeeded() {
-        if (sessionInitialized.compareAndSet(expectedValue = false, newValue = true)) {
+        if (sessionInitialized.compareAndSet(expected = false, new = true)) {
             when (val logRetention = config.logRetention) {
                 LogRetention.Forever -> Unit
                 is LogRetention.AppSession -> httpLogManager.clearHttpLogs()

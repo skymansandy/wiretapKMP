@@ -41,6 +41,8 @@ kotlin {
                 api(projects.wiretapCore)
                 api(libs.ktor.client.core)
                 implementation(libs.ktor.client.websockets)
+                implementation(libs.stately.concurrency)
+                implementation(libs.koin.core)
             }
         }
 

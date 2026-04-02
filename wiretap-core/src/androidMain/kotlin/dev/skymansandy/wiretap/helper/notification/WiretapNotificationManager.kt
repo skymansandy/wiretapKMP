@@ -15,6 +15,9 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import co.touchlab.stately.collections.ConcurrentMutableList
+import co.touchlab.stately.collections.ConcurrentMutableMap
+import co.touchlab.stately.collections.ConcurrentMutableSet
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
@@ -40,16 +43,16 @@ internal object WiretapNotificationManager {
         IconCompat.createWithBitmap(WiretapIconFactory.notificationBitmap)
     }
 
-    private val recentHttpEntries = mutableListOf<HttpLog>()
+    private val recentHttpEntries = ConcurrentMutableList<HttpLog>()
 
     // Per-socket recent messages: socketId -> list of formatted message strings
-    private val socketMessages = mutableMapOf<Long, MutableList<String>>()
+    private val socketMessages = ConcurrentMutableMap<Long, ConcurrentMutableList<String>>()
 
     // Socket entries for status tracking
-    private val socketEntries = mutableMapOf<Long, SocketConnection>()
+    private val socketEntries = ConcurrentMutableMap<Long, SocketConnection>()
 
     // Track active socket notification IDs for cleanup
-    private val activeSocketNotificationIds = mutableSetOf<Int>()
+    private val activeSocketNotificationIds = ConcurrentMutableSet<Int>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -95,7 +98,7 @@ internal object WiretapNotificationManager {
         if (!canPostNotifications(context)) return
 
         socketEntries[entry.id] = entry
-        val messages = socketMessages.getOrPut(entry.id) { mutableListOf() }
+        val messages = socketMessages.getOrPut(entry.id) { ConcurrentMutableList() }
         if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeAt(0)
         messages.add(NotificationFormatUtil.formatSocketMessage(message))
         postSocketMessageNotification(context, entry, messages)

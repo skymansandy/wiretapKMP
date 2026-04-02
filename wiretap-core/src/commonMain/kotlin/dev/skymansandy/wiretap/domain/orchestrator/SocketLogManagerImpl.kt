@@ -5,6 +5,7 @@
 package dev.skymansandy.wiretap.domain.orchestrator
 
 import app.cash.paging.PagingData
+import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketStatus
@@ -21,7 +22,7 @@ internal class SocketLogManagerImpl(
 ) : SocketLogManager {
 
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
-    private val activeConnections = mutableMapOf<Long, SocketConnection>()
+    private val activeConnections = ConcurrentMutableMap<Long, SocketConnection>()
 
     override suspend fun createSocket(entry: SocketConnection): Long {
         val id = socketRepository.logNew(entry)

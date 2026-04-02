@@ -20,6 +20,7 @@ import okio.ByteString
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.concurrent.Volatile
 
 /**
  * Wraps a consumer's WebSocketListener to log all WebSocket events via Wiretap.
@@ -43,6 +44,7 @@ class WiretapOkHttpWebSocketListener(
 
     private val socketLogManager: SocketLogManager by inject()
 
+    @Volatile
     private var socketId: Long = -1
     private val isSocketActive
         get() = socketId >= 0
