@@ -96,20 +96,9 @@ internal fun WiretapConsole(
                         if (backStack.size <= 1) onBack() else navigator.pop()
                     },
                     sceneStrategy = sceneStrategy,
-                    transitionSpec = {
-                        if (isWideScreen) {
-                            ContentTransform(EnterTransition.None, ExitTransition.None)
-                        } else {
-                            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                        }
-                    },
-                    popTransitionSpec = {
-                        if (isWideScreen) {
-                            ContentTransform(EnterTransition.None, ExitTransition.None)
-                        } else {
-                            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-                        }
-                    },
+                    transitionSpec = { wiretapSlideTransition(isWideScreen, isPop = false) },
+                    popTransitionSpec = { wiretapSlideTransition(isWideScreen, isPop = true) },
+                    predictivePopTransitionSpec = { wiretapSlideTransition(isWideScreen, isPop = true) },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),
@@ -167,3 +156,10 @@ internal fun WiretapConsole(
         }
     }
 }
+
+private fun wiretapSlideTransition(isWideScreen: Boolean, isPop: Boolean): ContentTransform =
+    when {
+        isWideScreen -> ContentTransform(EnterTransition.None, ExitTransition.None)
+        isPop -> slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        else -> slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+    }
