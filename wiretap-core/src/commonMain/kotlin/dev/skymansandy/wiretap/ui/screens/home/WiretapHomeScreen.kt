@@ -39,7 +39,6 @@ internal fun WiretapHomeScreen(
     modifier: Modifier = Modifier,
     initialTab: HomeTab? = null,
     viewModel: WiretapHomeViewModel = koinViewModel(),
-    onBack: () -> Unit,
 ) {
     val isWideScreen = LocalWideScreen.current
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
@@ -113,13 +112,11 @@ internal fun WiretapHomeScreen(
             HomeTab.Http -> HttpTabScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 navigationRail = navigationRail,
-                onBack = onBack,
             )
 
             HomeTab.WebSocket -> SocketTabScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 navigationRail = navigationRail,
-                onBack = onBack,
             )
         }
     }

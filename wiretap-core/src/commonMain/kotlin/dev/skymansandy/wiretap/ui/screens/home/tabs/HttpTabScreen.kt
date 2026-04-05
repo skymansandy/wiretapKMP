@@ -47,7 +47,6 @@ internal fun HttpTabScreen(
     httpListViewModel: HttpLogListViewModel = koinViewModel(),
     rulesListViewModel: RulesListViewModel = koinViewModel(),
     navigationRail: (@Composable () -> Unit)? = null,
-    onBack: () -> Unit,
 ) {
     val hasHttpLogs by httpListViewModel.hasLogs.collectAsStateWithLifecycle()
 
@@ -101,13 +100,13 @@ internal fun HttpTabScreen(
             searchFocusRequester = searchFocusRequester,
             showClearAction = httpSubTab == HttpSubTab.Logs && hasHttpLogs,
             showFilterAction = httpSubTab == HttpSubTab.Logs,
+            showBackButton = false,
             activeFilterCount = filter.activeCount,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->
                 isSearchActive = active
                 if (!active) searchQuery = ""
             },
-            onBack = onBack,
             onFilter = { showFilterSheet = true },
             onClear = { showClearConfirmation = true },
         )

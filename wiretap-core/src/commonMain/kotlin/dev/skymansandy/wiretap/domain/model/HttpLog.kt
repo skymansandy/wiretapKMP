@@ -47,7 +47,7 @@ data class HttpLog(
         isInProgress -> "..."
         responseCode > 0 -> responseCode.toString()
         responseCode == -1 -> "!!!"
-        else -> "ERR"
+        else -> "!!!"
     }
 
     val statusColor: Color = when {
@@ -56,7 +56,7 @@ data class HttpLog(
         responseCode in 300..399 -> WiretapColors.StatusBlue
         responseCode in 400..499 -> WiretapColors.StatusAmber
         responseCode >= 500 -> WiretapColors.StatusRed
-        else -> WiretapColors.StatusGray
+        else -> WiretapColors.StatusRed
     }
 
     companion object {

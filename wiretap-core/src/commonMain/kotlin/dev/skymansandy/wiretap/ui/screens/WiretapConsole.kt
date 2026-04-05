@@ -4,6 +4,9 @@
 
 package dev.skymansandy.wiretap.ui.screens
 
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -90,6 +93,12 @@ internal fun WiretapConsole(
                         if (backStack.size <= 1) onBack() else navigator.pop()
                     },
                     sceneStrategy = sceneStrategy,
+                    transitionSpec = {
+                        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                    },
+                    popTransitionSpec = {
+                        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                    },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),
@@ -106,7 +115,6 @@ internal fun WiretapConsole(
 
                             WiretapHomeScreen(
                                 initialTab = initialTab,
-                                onBack = onBack,
                             )
                         }
 

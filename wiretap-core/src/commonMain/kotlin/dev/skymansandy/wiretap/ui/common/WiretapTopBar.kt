@@ -32,10 +32,11 @@ internal fun WiretapTopBar(
     searchFocusRequester: FocusRequester,
     showClearAction: Boolean,
     showFilterAction: Boolean = false,
+    showBackButton: Boolean = true,
     activeFilterCount: Int = 0,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
-    onBack: () -> Unit,
+    onBack: () -> Unit = {},
     onFilter: () -> Unit = {},
     onClear: () -> Unit,
 ) {
@@ -53,17 +54,19 @@ internal fun WiretapTopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = {
-                if (isSearchActive) {
-                    onSearchActiveChange(false)
-                } else {
-                    onBack()
+            if (isSearchActive || showBackButton) {
+                IconButton(onClick = {
+                    if (isSearchActive) {
+                        onSearchActiveChange(false)
+                    } else {
+                        onBack()
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                    )
                 }
-            }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                )
             }
         },
         actions = {

@@ -29,7 +29,6 @@ internal fun SocketTabScreen(
     modifier: Modifier = Modifier,
     viewModel: SocketLogListViewModel = koinViewModel(),
     navigationRail: (@Composable () -> Unit)? = null,
-    onBack: () -> Unit,
 ) {
     val navigator = LocalWiretapNavigator.current
     val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
@@ -57,12 +56,12 @@ internal fun SocketTabScreen(
             searchQuery = searchQuery,
             searchFocusRequester = searchFocusRequester,
             showClearAction = socketLogs.isNotEmpty(),
+            showBackButton = false,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->
                 isSearchActive = active
                 if (!active) searchQuery = ""
             },
-            onBack = onBack,
             onClear = { showClearConfirmation = true },
         )
 
