@@ -165,7 +165,7 @@ internal fun CreateRuleScreenView(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(vertical = 16.dp),
             ) {
                 when (step) {
                     1 -> RequestStep(viewModel = viewModel)

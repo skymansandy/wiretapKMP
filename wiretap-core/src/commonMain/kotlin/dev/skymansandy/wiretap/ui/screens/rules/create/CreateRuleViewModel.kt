@@ -204,12 +204,7 @@ internal class CreateRuleViewModel(
     }
 
     fun updateUrlMode(mode: UrlMatchMode?) {
-        requestState.updateRequest {
-            copy(
-                urlMode = mode,
-                urlPattern = if (mode == null) "" else urlPattern,
-            )
-        }
+        requestState.updateRequest { copy(urlMode = mode) }
     }
 
     fun updateUrlPattern(pattern: String) {
@@ -233,12 +228,7 @@ internal class CreateRuleViewModel(
     }
 
     fun updateBodyMode(mode: BodyMatchMode?) {
-        requestState.updateRequest {
-            copy(
-                bodyMode = mode,
-                bodyPattern = if (mode == null) "" else bodyPattern,
-            )
-        }
+        requestState.updateRequest { copy(bodyMode = mode) }
     }
 
     fun updateBodyPattern(pattern: String) {
