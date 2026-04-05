@@ -14,6 +14,15 @@ import dev.skymansandy.wiretap.ui.model.UrlMatchMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
+// -------------------- Prefill config ---------------------------
+internal data class PrefillConfig(
+    val logId: Long = 0L,
+    val includeUrl: Boolean = true,
+    val includeHeaders: Boolean = true,
+    val includeBody: Boolean = true,
+    val selectedHeaderKeys: String = "",
+)
+
 // -------------------- Request state ----------------------------
 internal data class RequestStepState(
     val method: String = "*",

@@ -58,12 +58,14 @@ import org.koin.core.parameter.parametersOf
 @Composable
 internal fun CreateRuleScreenView(
     existingRuleId: Long = 0L,
-    prefillFromLogId: Long = 0L,
+    prefillConfig: PrefillConfig = PrefillConfig(),
     modifier: Modifier = Modifier,
-    viewModel: CreateRuleViewModel = koinViewModel {
+    viewModel: CreateRuleViewModel = koinViewModel(
+        key = "$existingRuleId-$prefillConfig",
+    ) {
         parametersOf(
             existingRuleId,
-            prefillFromLogId,
+            prefillConfig,
         )
     },
 ) {

@@ -7,7 +7,6 @@ package dev.skymansandy.wiretap.ui.screens.socket.list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -44,7 +43,10 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.ui.common.EmptyStateSetupView
 import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
+import dev.skymansandy.wiretap.ui.common.StatusText
+import dev.skymansandy.wiretap.ui.common.WiretapConstants
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
@@ -60,13 +62,17 @@ internal fun SocketLogList(
     val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
 
     if (socketLogs.isEmpty()) {
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "No WebSocket connections yet",
-                style = MaterialTheme.typography.bodyLarge,
+        if (searchQuery.isNotBlank()) {
+            StatusText(
+                modifier = modifier,
+                text = "No results found",
+            )
+        } else {
+            EmptyStateSetupView(
+                modifier = modifier,
+                description = "This tab displays WebSocket connections captured by Wiretap." +
+                    " Add a Wiretap plugin to your Socket client to start capturing traffic.",
+                linkUrl = WiretapConstants.SETUP_URL,
             )
         }
     } else {

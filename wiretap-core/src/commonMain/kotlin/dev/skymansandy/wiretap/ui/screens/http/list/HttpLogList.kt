@@ -33,9 +33,11 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
+import dev.skymansandy.wiretap.ui.common.EmptyStateSetupView
 import dev.skymansandy.wiretap.ui.common.LoaderView
 import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
 import dev.skymansandy.wiretap.ui.common.StatusText
+import dev.skymansandy.wiretap.ui.common.WiretapConstants
 import dev.skymansandy.wiretap.ui.screens.http.components.SwipeableHttpLogItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,14 +87,24 @@ internal fun HttpLogList(
             }
 
             is LoadStateNotLoading if isEmpty -> {
-                StatusText(
-                    modifier = Modifier.fillMaxSize(),
-                    text = when {
-                        filter.isActive -> "No results match filters"
-                        searchQuery.isNotBlank() -> "No results found"
-                        else -> "No HTTP logs yet"
-                    },
-                )
+                when {
+                    filter.isActive -> StatusText(
+                        modifier = Modifier.fillMaxSize(),
+                        text = "No results match filters",
+                    )
+
+                    searchQuery.isNotBlank() -> StatusText(
+                        modifier = Modifier.fillMaxSize(),
+                        text = "No results found",
+                    )
+
+                    else -> EmptyStateSetupView(
+                        modifier = Modifier.fillMaxSize(),
+                        description = "This tab displays HTTP requests captured by Wiretap." +
+                            " Add a Wiretap plugin to your HTTP client to start capturing traffic.",
+                        linkUrl = WiretapConstants.SETUP_URL,
+                    )
+                }
             }
 
             is LoadStateError if isEmpty -> {
@@ -157,8 +169,8 @@ private fun HttpLogListView(
                 },
                 onCreateRule = {
                     onRevealedItemIdChange(null)
-                    navigator.pushDetailPane(
-                        WiretapScreen.CreateRuleScreen(prefillFromLogId = entry.id),
+                    navigator.push(
+                        WiretapScreen.SelectRuleCriteriaSheet(logId = entry.id),
                     )
                 },
                 onViewRule = {

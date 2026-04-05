@@ -8,6 +8,8 @@ import dev.skymansandy.wiretap.ui.screens.home.WiretapHomeViewModel
 import dev.skymansandy.wiretap.ui.screens.http.detail.HttpLogDetailViewModel
 import dev.skymansandy.wiretap.ui.screens.http.list.HttpLogListViewModel
 import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleViewModel
+import dev.skymansandy.wiretap.ui.screens.rules.create.PrefillConfig
+import dev.skymansandy.wiretap.ui.screens.rules.criteria.SelectRuleCriteriaViewModel
 import dev.skymansandy.wiretap.ui.screens.rules.list.RulesListViewModel
 import dev.skymansandy.wiretap.ui.screens.rules.view.RuleDetailViewModel
 import dev.skymansandy.wiretap.ui.screens.socket.detail.SocketDetailViewModel
@@ -51,12 +53,19 @@ internal val wiretapViewModelModule = module {
         )
     }
 
-    viewModel<CreateRuleViewModel> { (existingRuleId: Long, prefillFromLogId: Long) ->
+    viewModel<SelectRuleCriteriaViewModel> { (logId: Long) ->
+        SelectRuleCriteriaViewModel(
+            logId = logId,
+            httpLogManager = get(),
+        )
+    }
+
+    viewModel<CreateRuleViewModel> { (existingRuleId: Long, prefillConfig: PrefillConfig) ->
         CreateRuleViewModel(
             httpLogManager = get(),
             findConflictingRules = get(),
             existingRuleId = existingRuleId,
-            prefillFromLogId = prefillFromLogId,
+            prefillConfig = prefillConfig,
             ruleRepository = get(),
         )
     }

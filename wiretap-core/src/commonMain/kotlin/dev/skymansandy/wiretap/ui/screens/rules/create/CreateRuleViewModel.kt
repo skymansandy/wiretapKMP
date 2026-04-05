@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 @Suppress("TooManyFunctions")
 internal class CreateRuleViewModel(
     private val existingRuleId: Long,
-    private val prefillFromLogId: Long,
+    private val prefillConfig: PrefillConfig = PrefillConfig(),
     private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
     val ruleRepository: RuleRepository,
@@ -114,7 +114,7 @@ internal class CreateRuleViewModel(
             val existingRule =
                 if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
             val prefillFromLog =
-                if (prefillFromLogId > 0) httpLogManager.getHttpLogById(prefillFromLogId) else null
+                if (prefillConfig.logId > 0) httpLogManager.getHttpLogById(prefillConfig.logId) else null
 
             if (existingRule != null) {
                 loadedRuleId = existingRule.id
@@ -169,15 +169,33 @@ internal class CreateRuleViewModel(
                     },
                 )
             } else if (prefillFromLog != null) {
+                val criteria = prefillConfig
+                val allowedHeaderKeys = criteria.selectedHeaderKeys
+                    .split("|")
+                    .filter { it.isNotEmpty() }
+                    .toSet()
+
                 requestState.value = RequestStepState(
                     method = prefillFromLog.method,
-                    urlMode = UrlMatchMode.Exact,
-                    urlPattern = prefillFromLog.url,
-                    headerEntries = prefillFromLog.requestHeaders?.map { (k, v) ->
-                        HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
-                    } ?: emptyList(),
-                    bodyMode = if (prefillFromLog.requestBody != null) BodyMatchMode.Exact else null,
-                    bodyPattern = prefillFromLog.requestBody ?: "",
+                    urlMode = if (criteria.includeUrl) UrlMatchMode.Exact else null,
+                    urlPattern = if (criteria.includeUrl) prefillFromLog.url else "",
+                    headerEntries = if (criteria.includeHeaders) {
+                        prefillFromLog.requestHeaders
+                            .filter { (k, _) ->
+                                allowedHeaderKeys.isEmpty() || k in allowedHeaderKeys
+                            }
+                            .map { (k, v) ->
+                                HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                            }
+                    } else {
+                        emptyList()
+                    },
+                    bodyMode = if (criteria.includeBody && prefillFromLog.requestBody != null) {
+                        BodyMatchMode.Exact
+                    } else {
+                        null
+                    },
+                    bodyPattern = if (criteria.includeBody) prefillFromLog.requestBody ?: "" else "",
                 )
             }
 
