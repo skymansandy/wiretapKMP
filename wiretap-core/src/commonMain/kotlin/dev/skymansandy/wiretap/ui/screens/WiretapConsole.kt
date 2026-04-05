@@ -109,6 +109,9 @@ internal fun WiretapConsole(
                         ) {
                             val initialTab = when (backStack.lastOrNull()) {
                                 is HttpDetailScreen -> HomeTab.Http
+                                is RuleDetailScreen,
+                                is CreateRuleScreen,
+                                -> HomeTab.Http
                                 is SocketDetailScreen -> HomeTab.WebSocket
                                 else -> null
                             }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -50,7 +51,7 @@ internal fun HttpTabScreen(
 ) {
     val hasHttpLogs by httpListViewModel.hasLogs.collectAsStateWithLifecycle()
 
-    var httpSubTab by remember { mutableStateOf(HttpSubTab.Logs) }
+    var httpSubTab by rememberSaveable { mutableStateOf(HttpSubTab.Logs) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val searchFocusRequester = remember { FocusRequester() }
