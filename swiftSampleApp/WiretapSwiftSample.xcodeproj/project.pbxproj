@@ -28,7 +28,7 @@
 		BD74C0CF299E36CDABF5FC15 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C8531D58822B1C18F11CE8E5 /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
 		CD2CE6417538EDEB787E7C9E /* WiretapSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiretapSampleApp.swift; sourceTree = "<group>"; };
-		D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WiretapSwiftSample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D164E8DCF035E82421CEEEFD /* WiretapSwiftSample.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; name = WiretapSwiftSample.app; path = "Wiretap Sample.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E97A2C9002821FDDA5E7A1EB /* ApiAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApiAction.swift; sourceTree = "<group>"; };
 		F0E1703E9CEC4AB58A0838F7 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		FE16D342E357D452FC47FEDA /* StatusWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusWindow.swift; sourceTree = "<group>"; };
@@ -176,7 +176,6 @@
 			mainGroup = 2F62A9A798462A9AF98CA90F;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				35F5D2DC83A7B8740C16F276 /* XCLocalSwiftPackageReference ".." */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C380C1C68734F4BB9827B83C /* Products */;
@@ -307,9 +306,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.skymansandy.wiretap.iosSample;
 				PRODUCT_NAME = "Wiretap Sample";
 				SDKROOT = iphoneos;
@@ -392,9 +389,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.skymansandy.wiretap.iosSample;
 				PRODUCT_NAME = "Wiretap Sample";
 				SDKROOT = iphoneos;
@@ -425,13 +420,6 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		35F5D2DC83A7B8740C16F276 /* XCLocalSwiftPackageReference ".." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
-		};
-/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		C16E5D8503307AD6D647B276 /* WiretapURLSession */ = {

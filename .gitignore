@@ -10,6 +10,8 @@ site/
 
 # Log/OS Files
 *.log
+.DS_Store
+composeApp/wiretap.db*
 
 # Android Studio generated files and folders
 captures/

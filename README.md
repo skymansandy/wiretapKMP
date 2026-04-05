@@ -6,6 +6,7 @@
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-0%25-red" alt="Coverage"/></a>
   <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC7-blue" alt="Maven Central"/></a>
+  <a href="https://androidweekly.net/issues/issue-721"><img src="https://androidweekly.net/issues/issue-721/badge" alt="Featured in Android Weekly #721"/></a>
 </p>
 
 WiretapKMP is a network inspection and mocking SDK for **Kotlin Multiplatform** and **Swift**. Add it to your app to capture HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed. It works with **Ktor**, **OkHttp**, and **URLSession**.
