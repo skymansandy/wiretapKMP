@@ -20,24 +20,6 @@ Pick the plugin that matches your HTTP client and add it to your project:
 | **OkHttp** | [`wiretap-okhttp`](wiretap-okhttp/README.md) | Android, JVM |
 | **URLSession** | [`wiretap-urlsession`](wiretap-urlsession/README.md) | iOS |
 
-### Quick Example (Ktor)
-
-```kotlin
-// 1. Add the dependency
-debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC6")
-releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC6")
-
-// 2. Install the plugin
-val client = HttpClient {
-    install(WiretapKtorHttpPlugin)
-}
-
-// 3. Open the inspector (shake to launch)
-enableWiretapLauncher()
-```
-
-That's it — all HTTP requests are now captured and browsable in the built-in inspector.
-
 For full setup instructions including OkHttp and URLSession, see the [**Getting Started guide**](https://skymansandy.dev/wiretapKMP/getting-started/).
 
 ## Screenshots
@@ -123,7 +105,7 @@ Contributions are welcome! Here's how to get started:
 ## License
 
 ```
-Copyright 2025 skymansandy
+Copyright 2026 skymansandy
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
