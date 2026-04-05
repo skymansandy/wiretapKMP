@@ -4,6 +4,12 @@
 
 package dev.skymansandy.wiretap.ui.screens
 
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -29,6 +35,7 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen.CreateRuleScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HomeScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HttpDetailScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.RuleDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SelectRuleCriteriaSheet
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SocketDetailScreen
 import dev.skymansandy.wiretap.navigation.api.screenSerializersModule
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
@@ -37,12 +44,17 @@ import dev.skymansandy.wiretap.navigation.impl.buildSyntheticBackStack
 import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.common.WIDE_SCREEN_BREAKPOINT
 import dev.skymansandy.wiretap.ui.model.HomeTab
+import dev.skymansandy.wiretap.ui.scenes.BottomSheetScene
+import dev.skymansandy.wiretap.ui.scenes.BottomSheetSceneStrategy
 import dev.skymansandy.wiretap.ui.scenes.WiretapListDetailSceneStrategy
+import dev.skymansandy.wiretap.ui.scenes.bottomSheet
 import dev.skymansandy.wiretap.ui.scenes.detailPane
 import dev.skymansandy.wiretap.ui.scenes.listPane
 import dev.skymansandy.wiretap.ui.screens.home.WiretapHomeScreen
 import dev.skymansandy.wiretap.ui.screens.http.detail.HttpLogDetailScreen
 import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleScreenView
+import dev.skymansandy.wiretap.ui.screens.rules.create.PrefillConfig
+import dev.skymansandy.wiretap.ui.screens.rules.criteria.SelectRuleCriteriaSheetView
 import dev.skymansandy.wiretap.ui.screens.rules.view.RuleDetailScreenView
 import dev.skymansandy.wiretap.ui.screens.socket.detail.SocketDetailScreenView
 import org.koin.compose.KoinIsolatedContext
@@ -61,7 +73,9 @@ internal fun WiretapConsole(
     val density = LocalDensity.current
     var isWideScreen by rememberSaveable { mutableStateOf(false) }
     val sceneStrategy = remember(isWideScreen) {
-        WiretapListDetailSceneStrategy(isWideScreen).then(SinglePaneSceneStrategy())
+        WiretapListDetailSceneStrategy(isWideScreen)
+            .then(BottomSheetSceneStrategy())
+            .then(SinglePaneSceneStrategy())
     }
 
     // Handle subsequent deep-links (e.g. onNewIntent) after the initial composition
@@ -90,6 +104,27 @@ internal fun WiretapConsole(
                         if (backStack.size <= 1) onBack() else navigator.pop()
                     },
                     sceneStrategy = sceneStrategy,
+                    transitionSpec = {
+                        if (initialState is BottomSheetScene || targetState is BottomSheetScene) {
+                            ContentTransform(EnterTransition.None, ExitTransition.None)
+                        } else {
+                            wiretapSlideTransition(isWideScreen, isPop = false)
+                        }
+                    },
+                    popTransitionSpec = {
+                        if (initialState is BottomSheetScene || targetState is BottomSheetScene) {
+                            ContentTransform(EnterTransition.None, ExitTransition.None)
+                        } else {
+                            wiretapSlideTransition(isWideScreen, isPop = true)
+                        }
+                    },
+                    predictivePopTransitionSpec = {
+                        if (initialState is BottomSheetScene || targetState is BottomSheetScene) {
+                            ContentTransform(EnterTransition.None, ExitTransition.None)
+                        } else {
+                            wiretapSlideTransition(isWideScreen, isPop = true)
+                        }
+                    },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                         rememberViewModelStoreNavEntryDecorator(),
@@ -100,13 +135,15 @@ internal fun WiretapConsole(
                         ) {
                             val initialTab = when (backStack.lastOrNull()) {
                                 is HttpDetailScreen -> HomeTab.Http
+                                is RuleDetailScreen,
+                                is CreateRuleScreen,
+                                -> HomeTab.Http
                                 is SocketDetailScreen -> HomeTab.WebSocket
                                 else -> null
                             }
 
                             WiretapHomeScreen(
                                 initialTab = initialTab,
-                                onBack = onBack,
                             )
                         }
 
@@ -139,7 +176,21 @@ internal fun WiretapConsole(
                         ) { key ->
                             CreateRuleScreenView(
                                 existingRuleId = key.existingRuleId,
-                                prefillFromLogId = key.prefillFromLogId,
+                                prefillConfig = PrefillConfig(
+                                    logId = key.prefillFromLogId,
+                                    includeUrl = key.includeUrl,
+                                    includeHeaders = key.includeHeaders,
+                                    includeBody = key.includeBody,
+                                    selectedHeaderKeys = key.selectedHeaderKeys,
+                                ),
+                            )
+                        }
+
+                        entry<SelectRuleCriteriaSheet>(
+                            metadata = bottomSheet(),
+                        ) { key ->
+                            SelectRuleCriteriaSheetView(
+                                logId = key.logId,
                             )
                         }
                     },
@@ -148,3 +199,10 @@ internal fun WiretapConsole(
         }
     }
 }
+
+private fun wiretapSlideTransition(isWideScreen: Boolean, isPop: Boolean): ContentTransform =
+    when {
+        isWideScreen -> ContentTransform(EnterTransition.None, ExitTransition.None)
+        isPop -> slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+        else -> slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+    }

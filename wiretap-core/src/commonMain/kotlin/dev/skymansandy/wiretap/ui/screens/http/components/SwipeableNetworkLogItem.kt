@@ -102,10 +102,7 @@ internal fun SwipeableHttpLogItem(
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
                     textAlign = TextAlign.Center,
-                    text = when {
-                        hasMatchedRule -> "View Rule"
-                        else -> "Create Rule"
-                    },
+                    text = if (hasMatchedRule) "View Rule" else "Create Rule",
                 )
             }
         }

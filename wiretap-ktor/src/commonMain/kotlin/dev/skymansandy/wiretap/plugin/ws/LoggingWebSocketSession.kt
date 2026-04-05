@@ -22,11 +22,15 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 /**
  * [WiretapWebSocketSession] implementation that logs all sent and received messages.
@@ -50,6 +54,7 @@ internal class LoggingWebSocketSession(
         }
     }
 
+    private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val statusUpdated = AtomicBoolean(false)
 
     init {
@@ -62,7 +67,7 @@ internal class LoggingWebSocketSession(
             if (!statusUpdated.compareAndSet(expected = false, new = true)) return@invokeOnCompletion
 
             val url = delegate.call.request.url.toString().toWebSocketUrl()
-            runBlocking {
+            logScope.launch {
                 if (cause != null && cause !is CancellationException) {
                     socketLogManager.updateSocket(
                         SocketConnection(

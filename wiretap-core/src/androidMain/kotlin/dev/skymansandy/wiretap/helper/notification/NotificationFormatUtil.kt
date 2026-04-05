@@ -13,7 +13,7 @@ import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 internal object NotificationFormatUtil {
 
     fun formatHttpEntry(entry: HttpLog): String {
-        return "${entry.method}  ${entry.statusText}  ${entry.url}"
+        return "${entry.statusText}  ${entry.method}  ${entry.url}"
     }
 
     fun formatSocketMessage(message: SocketMessage): String {

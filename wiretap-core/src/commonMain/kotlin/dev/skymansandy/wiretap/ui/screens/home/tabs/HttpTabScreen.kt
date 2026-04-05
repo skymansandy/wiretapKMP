@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -47,11 +48,10 @@ internal fun HttpTabScreen(
     httpListViewModel: HttpLogListViewModel = koinViewModel(),
     rulesListViewModel: RulesListViewModel = koinViewModel(),
     navigationRail: (@Composable () -> Unit)? = null,
-    onBack: () -> Unit,
 ) {
     val hasHttpLogs by httpListViewModel.hasLogs.collectAsStateWithLifecycle()
 
-    var httpSubTab by remember { mutableStateOf(HttpSubTab.Logs) }
+    var httpSubTab by rememberSaveable { mutableStateOf(HttpSubTab.Logs) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val searchFocusRequester = remember { FocusRequester() }
@@ -101,13 +101,13 @@ internal fun HttpTabScreen(
             searchFocusRequester = searchFocusRequester,
             showClearAction = httpSubTab == HttpSubTab.Logs && hasHttpLogs,
             showFilterAction = httpSubTab == HttpSubTab.Logs,
+            showBackButton = false,
             activeFilterCount = filter.activeCount,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->
                 isSearchActive = active
                 if (!active) searchQuery = ""
             },
-            onBack = onBack,
             onFilter = { showFilterSheet = true },
             onClear = { showClearConfirmation = true },
         )

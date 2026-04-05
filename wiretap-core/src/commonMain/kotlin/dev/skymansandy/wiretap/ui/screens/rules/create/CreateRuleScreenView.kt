@@ -58,12 +58,14 @@ import org.koin.core.parameter.parametersOf
 @Composable
 internal fun CreateRuleScreenView(
     existingRuleId: Long = 0L,
-    prefillFromLogId: Long = 0L,
+    prefillConfig: PrefillConfig = PrefillConfig(),
     modifier: Modifier = Modifier,
-    viewModel: CreateRuleViewModel = koinViewModel {
+    viewModel: CreateRuleViewModel = koinViewModel(
+        key = "$existingRuleId-$prefillConfig",
+    ) {
         parametersOf(
             existingRuleId,
-            prefillFromLogId,
+            prefillConfig,
         )
     },
 ) {
@@ -165,7 +167,7 @@ internal fun CreateRuleScreenView(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(vertical = 16.dp),
             ) {
                 when (step) {
                     1 -> RequestStep(viewModel = viewModel)

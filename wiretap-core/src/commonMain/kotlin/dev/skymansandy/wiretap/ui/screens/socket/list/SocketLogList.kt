@@ -7,7 +7,6 @@ package dev.skymansandy.wiretap.ui.screens.socket.list
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,12 +38,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.cash.paging.LoadStateNotLoading
+import app.cash.paging.compose.collectAsLazyPagingItems
+import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.ui.common.EmptyStateSetupView
 import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
+import dev.skymansandy.wiretap.ui.common.StatusText
+import dev.skymansandy.wiretap.ui.common.WiretapConstants
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
@@ -57,33 +61,38 @@ internal fun SocketLogList(
     onDismissSearch: () -> Unit,
     onSocketClick: (SocketConnection) -> Unit,
 ) {
-    val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
+    val lazyItems = viewModel.socketLogs.collectAsLazyPagingItems()
+    val isEmpty = lazyItems.itemCount == 0
 
-    if (socketLogs.isEmpty()) {
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "No WebSocket connections yet",
-                style = MaterialTheme.typography.bodyLarge,
+    if (isEmpty && lazyItems.loadState.refresh is LoadStateNotLoading) {
+        if (searchQuery.isNotBlank()) {
+            StatusText(
+                modifier = modifier,
+                text = "No results found",
+            )
+        } else {
+            EmptyStateSetupView(
+                modifier = modifier,
+                description = "This tab displays WebSocket connections captured by Wiretap." +
+                    " Add a Wiretap plugin to your Socket client to start capturing traffic.",
+                linkUrl = WiretapConstants.SETUP_URL,
             )
         }
-    } else {
+    } else if (!isEmpty) {
         val listState = rememberLazyListState()
         val scope = rememberCoroutineScope()
-        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
+        var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
         val isAtTop by remember {
             derivedStateOf {
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
         }
 
-        LaunchedEffect(socketLogs.size) {
-            if (socketLogs.size > lastItemCount && isAtTop) {
+        LaunchedEffect(lazyItems.itemCount) {
+            if (lazyItems.itemCount > lastItemCount && isAtTop) {
                 scope.launch { listState.scrollToItem(0) }
             }
-            lastItemCount = socketLogs.size
+            lastItemCount = lazyItems.itemCount
         }
 
         ScrollToTopButton(
@@ -95,15 +104,16 @@ internal fun SocketLogList(
                 state = listState,
             ) {
                 items(
-                    count = socketLogs.size,
-                    key = { index -> socketLogs[index].id },
+                    count = lazyItems.itemCount,
+                    key = lazyItems.itemKey { it.id },
                 ) { index ->
+                    val socket = lazyItems[index] ?: return@items
                     SocketLogItemContent(
-                        socket = socketLogs[index],
+                        socket = socket,
                         searchQuery = searchQuery,
                         onClick = {
                             onDismissSearch()
-                            onSocketClick(socketLogs[index])
+                            onSocketClick(socket)
                         },
                     )
                 }
@@ -118,10 +128,10 @@ private fun SocketLogItemContent(
     searchQuery: String,
     onClick: () -> Unit,
 ) {
-    val isSecure = socket.url.startsWith("wss://", ignoreCase = true)
-    val withoutScheme = socket.url.substringAfter("://")
-    val host = withoutScheme.substringBefore("/").substringBefore("?")
-    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
+    val isSecure = remember(socket.url) { socket.url.startsWith("wss://", ignoreCase = true) }
+    val withoutScheme = remember(socket.url) { socket.url.substringAfter("://") }
+    val host = remember(withoutScheme) { withoutScheme.substringBefore("/").substringBefore("?") }
+    val path = remember(withoutScheme, host) { withoutScheme.removePrefix(host).ifEmpty { "/" } }
 
     Column(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),

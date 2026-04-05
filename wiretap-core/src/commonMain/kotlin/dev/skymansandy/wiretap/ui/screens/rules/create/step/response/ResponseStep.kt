@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +29,9 @@ import dev.skymansandy.jsoncmp.domain.ExperimentalJsonCmpApi
 import dev.skymansandy.jsoncmp.ui.editor.JsonEditorCMP
 import dev.skymansandy.jsoncmp.ui.editor.rememberJsonEditorState
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry
+import dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode
+import dev.skymansandy.wiretap.ui.screens.rules.components.ExpandableSection
 import dev.skymansandy.wiretap.ui.screens.rules.create.CreateRuleViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -56,12 +59,14 @@ internal fun ResponseStep(
     ) {
         Text(
             text = "Action",
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp),
         )
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             FilterChip(
                 selected = action is RuleAction.Mock,
@@ -85,6 +90,7 @@ internal fun ResponseStep(
         when (action) {
             is RuleAction.Mock -> {
                 MockResponseFields(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     mockResponseCode = mockResponseCode,
                     mockResponseBody = mockResponseBody,
                     responseHeaderEntries = responseHeaderEntries,
@@ -96,6 +102,7 @@ internal fun ResponseStep(
 
             is RuleAction.Throttle -> {
                 ThrottleDelayInput(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     throttleDelayMs = throttleDelayMs,
                     onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
                     throttleDelayMaxMs = throttleDelayMaxMs,
@@ -108,6 +115,7 @@ internal fun ResponseStep(
 
             is RuleAction.MockAndThrottle -> {
                 ThrottleDelayInput(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     throttleDelayMs = throttleDelayMs,
                     onThrottleDelayMsChange = { viewModel.updateThrottleDelayMs(it) },
                     throttleDelayMaxMs = throttleDelayMaxMs,
@@ -118,6 +126,7 @@ internal fun ResponseStep(
                 )
 
                 MockResponseFields(
+                    modifier = Modifier.padding(horizontal = 16.dp),
                     mockResponseCode = mockResponseCode,
                     mockResponseBody = mockResponseBody,
                     responseHeaderEntries = responseHeaderEntries,
@@ -133,11 +142,12 @@ internal fun ResponseStep(
 @OptIn(ExperimentalJsonCmpApi::class, FlowPreview::class)
 @Composable
 private fun MockResponseFields(
+    modifier: Modifier = Modifier,
     mockResponseCode: String,
     mockResponseBody: String,
-    responseHeaderEntries: List<dev.skymansandy.wiretap.ui.model.ResponseHeaderEntry>,
+    responseHeaderEntries: List<ResponseHeaderEntry>,
     responseHeadersBulk: String,
-    responseHeadersMode: dev.skymansandy.wiretap.ui.model.ResponseHeadersEditMode,
+    responseHeadersMode: ResponseHeadersEditMode,
     viewModel: CreateRuleViewModel,
 ) {
     val codeInt = mockResponseCode.toIntOrNull()
@@ -147,7 +157,7 @@ private fun MockResponseFields(
         value = mockResponseCode,
         onValueChange = { viewModel.updateMockResponseCode(it) },
         label = { Text("Response Code") },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         singleLine = true,
         isError = isError,
         supportingText = if (isError) {
@@ -158,41 +168,53 @@ private fun MockResponseFields(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 
-    Text(
-        "Response Body",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    // ── Response Body ────────────────────────────────────────────────────────
+    ExpandableSection(
+        title = "Response Body",
+        subtitle = when {
+            mockResponseBody.isNotBlank() && mockResponseBody != "{}" -> "Configured"
+            else -> null
+        },
+        initiallyExpanded = true,
+    ) {
+        val editorState = rememberJsonEditorState(
+            initialJson = mockResponseBody.ifBlank { "{}" },
+        )
 
-    Spacer(Modifier.height(4.dp))
+        LaunchedEffect(Unit) {
+            snapshotFlow { editorState.json }
+                .debounce(450.milliseconds)
+                .collect {
+                    viewModel.updateMockResponseBody(editorState.json)
+                }
+        }
 
-    val editorState = rememberJsonEditorState(
-        initialJson = mockResponseBody.ifBlank { "{}" },
-    )
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { editorState.json }
-            .debounce(450.milliseconds)
-            .collect {
-                viewModel.updateMockResponseBody(editorState.json)
-            }
+        JsonEditorCMP(
+            modifier = Modifier.fillMaxWidth().height(300.dp),
+            state = editorState,
+        )
     }
 
-    JsonEditorCMP(
-        modifier = Modifier.fillMaxWidth().height(300.dp),
-        state = editorState,
-    )
-
-    // Response headers with Key/Value ↔ Bulk Edit toggle
-    ResponseHeadersSection(
-        modifier = Modifier.fillMaxWidth(),
-        entries = responseHeaderEntries,
-        onAdd = { viewModel.addResponseHeader() },
-        onUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
-        onRemove = { idx -> viewModel.removeResponseHeader(idx) },
-        bulk = responseHeadersBulk,
-        onBulkChange = { viewModel.updateResponseHeadersBulk(it) },
-        mode = responseHeadersMode,
-        onModeChange = { viewModel.updateResponseHeadersMode(it) },
-    )
+    // ── Response Headers ─────────────────────────────────────────────────────
+    ExpandableSection(
+        title = "Response Headers",
+        subtitle = when {
+            responseHeaderEntries.isNotEmpty() -> "${responseHeaderEntries.size} header${if (responseHeaderEntries.size != 1) "s" else ""}"
+            responseHeadersBulk.isNotBlank() -> "Configured"
+            else -> null
+        },
+        initiallyExpanded = responseHeaderEntries.isNotEmpty() || responseHeadersBulk.isNotBlank(),
+    ) {
+        ResponseHeadersSection(
+            modifier = Modifier.fillMaxWidth(),
+            entries = responseHeaderEntries,
+            onAdd = { viewModel.addResponseHeader() },
+            onUpdate = { idx, e -> viewModel.updateResponseHeader(idx, e) },
+            onRemove = { idx -> viewModel.removeResponseHeader(idx) },
+            bulk = responseHeadersBulk,
+            onBulkChange = { viewModel.updateResponseHeadersBulk(it) },
+            mode = responseHeadersMode,
+            onModeChange = { viewModel.updateResponseHeadersMode(it) },
+        )
+    }
 }

@@ -19,6 +19,7 @@ import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.util.truncateBody
 import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
@@ -144,7 +145,7 @@ class WiretapOkHttpInterceptor(
                     val maxDelay = action.delayMaxMs ?: minDelay
                     val delayMs =
                         if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
-                    if (delayMs > 0) Thread.sleep(delayMs)
+                    if (delayMs > 0) delay(delayMs)
 
                     responseCode = action.responseCode
                     mockBody = action.responseBody
@@ -155,13 +156,19 @@ class WiretapOkHttpInterceptor(
                 else -> error("unreachable")
             }
 
+            val contentType = mockHeaders
+                ?.entries
+                ?.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }
+                ?.value
+                ?: "application/json; charset=utf-8"
             val body = (mockBody ?: "")
-                .toResponseBody("application/json; charset=utf-8".toMediaType())
+                .toResponseBody(contentType.toMediaType())
             val mockResponse = Response.Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
                 .code(responseCode)
                 .message("Mock")
+                .addHeader("Content-Type", contentType)
                 .body(body)
                 .apply { mockHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()
@@ -183,6 +190,7 @@ class WiretapOkHttpInterceptor(
                         durationNs = durationNs,
                         source = source,
                         timestamp = currentTimeMillis(),
+                        matchedRuleId = matchingRule.id,
                     ),
                 )
             }
@@ -195,7 +203,7 @@ class WiretapOkHttpInterceptor(
             val minDelay = throttle.delayMs
             val maxDelay = throttle.delayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
-            if (delayMs > 0) Thread.sleep(delayMs)
+            if (delayMs > 0) delay(delayMs)
         }
 
         val response = try {
@@ -236,7 +244,7 @@ class WiretapOkHttpInterceptor(
         }
 
         if (logEntryId >= 0) {
-            val meta = extractResponseMetadata(response, chain)
+            val meta = extractResponseMetadata(response, chain, config.maxContentLength)
             httpLogManager.updateHttp(
                 HttpLog(
                     id = logEntryId,
@@ -251,6 +259,7 @@ class WiretapOkHttpInterceptor(
                     durationNs = durationNs,
                     source = source,
                     timestamp = currentTimeMillis(),
+                    matchedRuleId = matchingRule?.id,
                     protocol = meta.protocol,
                     remoteAddress = meta.remoteAddress,
                     tlsProtocol = meta.tlsProtocol,

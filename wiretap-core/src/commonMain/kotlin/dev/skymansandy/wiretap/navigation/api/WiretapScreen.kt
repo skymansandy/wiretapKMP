@@ -19,6 +19,9 @@ internal sealed interface WiretapScreen : NavKey {
     /** Marker for screens that appear in the detail pane. */
     interface DetailPane
 
+    /** Marker for screens that appear as a bottom sheet overlay. */
+    interface BottomSheetPane
+
     @Serializable
     data object HomeScreen : WiretapScreen, ListPane
 
@@ -35,5 +38,12 @@ internal sealed interface WiretapScreen : NavKey {
     data class CreateRuleScreen(
         val existingRuleId: Long = 0L,
         val prefillFromLogId: Long = 0L,
+        val includeUrl: Boolean = true,
+        val includeHeaders: Boolean = true,
+        val includeBody: Boolean = true,
+        val selectedHeaderKeys: String = "",
     ) : WiretapScreen, DetailPane
+
+    @Serializable
+    data class SelectRuleCriteriaSheet(val logId: Long) : WiretapScreen, BottomSheetPane
 }

@@ -6,18 +6,22 @@ package dev.skymansandy.wiretap.ui.screens.socket.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import app.cash.paging.PagingData
+import app.cash.paging.cachedIn
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 internal class SocketLogListViewModel(
     private val socketLogManager: SocketLogManager,
 ) : ViewModel() {
@@ -32,24 +36,11 @@ internal class SocketLogListViewModel(
             initialValue = "",
         )
 
-    val socketLogs: StateFlow<List<SocketConnection>> = combine(
-        socketLogManager.flowAllSockets(),
-        debouncedQuery,
-    ) { logs, query ->
-        when {
-            query.isEmpty() -> logs
-            else -> logs.filter {
-                it.url.contains(query, ignoreCase = true) || it.status.name.contains(
-                    other = query,
-                    ignoreCase = true,
-                )
-            }
+    val socketLogs: Flow<PagingData<SocketConnection>> = debouncedQuery
+        .flatMapLatest { query ->
+            socketLogManager.flowPagedSocketsForSearchQuery(query)
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList(),
-    )
+        .cachedIn(viewModelScope)
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query

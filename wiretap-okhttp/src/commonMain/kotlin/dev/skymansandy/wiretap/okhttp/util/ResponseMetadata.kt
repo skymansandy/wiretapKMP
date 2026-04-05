@@ -23,10 +23,11 @@ internal data class ResponseMetadata(
 internal fun extractResponseMetadata(
     response: Response,
     chain: Interceptor.Chain,
+    maxContentLength: Int = 500 * 1024,
 ): ResponseMetadata {
     val responseHeaders = response.headers.toMap()
     val responseBody = try {
-        response.peekBody(Long.MAX_VALUE).string()
+        response.peekBody(maxContentLength.toLong()).string()
     } catch (_: Exception) {
         null
     }

@@ -14,10 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.ui.theme.ruleColor
 
 @Composable
 internal fun RuleMatchBanner(
@@ -26,28 +26,14 @@ internal fun RuleMatchBanner(
     matchedRuleId: Long?,
     onViewRule: ((ruleId: Long) -> Unit)?,
 ) {
-    val bgColor: Color
-    val contentColor: Color
-    val label: String
-    when (source) {
-        ResponseSource.Mock -> {
-            bgColor = MaterialTheme.colorScheme.secondaryContainer
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-            label = "Mocked by rule"
-        }
+    if (source == ResponseSource.Network) return
 
-        ResponseSource.Throttle -> {
-            bgColor = MaterialTheme.colorScheme.tertiaryContainer
-            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-            label = "Throttled by rule"
-        }
-
-        ResponseSource.MockAndThrottle -> {
-            bgColor = MaterialTheme.colorScheme.errorContainer
-            contentColor = MaterialTheme.colorScheme.onErrorContainer
-            label = "Mocked + throttled by rule"
-        }
-
+    val contentColor = source.ruleColor
+    val bgColor = contentColor.copy(alpha = 0.15f)
+    val label = when (source) {
+        ResponseSource.Mock -> "Mocked by rule"
+        ResponseSource.Throttle -> "Throttled by rule"
+        ResponseSource.MockAndThrottle -> "Mocked + throttled by rule"
         ResponseSource.Network -> return
     }
 
@@ -67,6 +53,7 @@ internal fun RuleMatchBanner(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
+            modifier = Modifier.weight(1f),
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = contentColor,
@@ -74,7 +61,7 @@ internal fun RuleMatchBanner(
 
         if (clickable) {
             Text(
-                text = "View Rule \u2192",
+                text = "⚡ View Rule",
                 style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
             )

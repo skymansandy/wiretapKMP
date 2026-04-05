@@ -59,6 +59,88 @@ internal fun testRegex(pattern: String, input: String): RegexTestResult {
     }
 }
 
+internal val URL_SECTION_INFO = """
+    |Match requests whose URL meets the selected condition.
+    |
+    |• Exact — URL must match the full value exactly
+    |• Contains — URL must include the given substring
+    |• Regex — URL must match the regular expression pattern
+""".trimMargin()
+
+internal val HEADERS_SECTION_INFO = """
+    |Match requests that have specific HTTP headers.
+    |
+    |• Key Exists — matches if the header key is present, regardless of value
+    |• Exact — header value must match exactly
+    |• Contains — header value must include the given substring
+    |• Regex — header value must match the regular expression pattern
+""".trimMargin()
+
+internal val BODY_SECTION_INFO = """
+    |Match requests whose body content meets the selected condition.
+    |
+    |• Exact — body must match the full value exactly
+    |• Contains — body must include the given substring
+    |• Regex — body must match the regular expression pattern
+""".trimMargin()
+
+internal fun urlFieldLabel(mode: UrlMatchMode) = when (mode) {
+    UrlMatchMode.Exact -> "URL is"
+    UrlMatchMode.Contains -> "URL contains"
+    UrlMatchMode.Regex -> "URL looks like"
+}
+
+internal fun bodyFieldLabel(mode: BodyMatchMode) = when (mode) {
+    BodyMatchMode.Exact -> "Body is"
+    BodyMatchMode.Contains -> "Body contains"
+    BodyMatchMode.Regex -> "Body looks like"
+}
+
+internal fun urlWarning(
+    mode: UrlMatchMode?,
+    pattern: String,
+): String? = when {
+    mode == null -> null
+    pattern.isBlank() -> when (mode) {
+        UrlMatchMode.Exact -> "Enter the exact URL to match"
+        UrlMatchMode.Contains -> "Enter a substring the URL should contain"
+        UrlMatchMode.Regex -> "Enter a regex pattern to match the URL"
+    }
+    else -> null
+}
+
+internal fun bodyWarning(
+    mode: BodyMatchMode?,
+    pattern: String,
+): String? = when {
+    mode == null -> null
+    pattern.isBlank() -> when (mode) {
+        BodyMatchMode.Exact -> "Enter the exact body to match"
+        BodyMatchMode.Contains -> "Enter a substring the body should contain"
+        BodyMatchMode.Regex -> "Enter a regex pattern to match the body"
+    }
+    else -> null
+}
+
+internal fun headersWarning(entries: List<HeaderEntry>): String? {
+    if (entries.isEmpty()) return null
+    for (entry in entries) {
+        if (entry.key.isBlank()) return "Header key is missing"
+        if (entry.mode.hasValue() && entry.value.isBlank()) {
+            return when (entry.mode) {
+                HeaderEntryMode.ValueExact ->
+                    "Enter the exact header value for \"${entry.key}\""
+                HeaderEntryMode.ValueContains ->
+                    "Enter a substring for header \"${entry.key}\""
+                HeaderEntryMode.ValueRegex ->
+                    "Enter a regex pattern for header \"${entry.key}\""
+                else -> null
+            }
+        }
+    }
+    return null
+}
+
 internal fun urlPlaceholder(mode: UrlMatchMode) = when (mode) {
     UrlMatchMode.Exact -> "https://api.example.com/users/123"
     UrlMatchMode.Contains -> "/users/"

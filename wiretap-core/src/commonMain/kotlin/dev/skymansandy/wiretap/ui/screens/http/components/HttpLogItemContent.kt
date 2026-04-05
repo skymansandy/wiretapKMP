@@ -67,14 +67,14 @@ internal fun HttpLogItemContent(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = entry.statusColor,
-                modifier = Modifier.width(44.dp),
+                modifier = Modifier.width(36.dp),
             )
 
             Column(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
                     color = entry.statusColor,
                     maxLines = 3,
@@ -126,22 +126,22 @@ internal fun HttpLogItemContent(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "${entry.durationMs} ms",
-                        style = MaterialTheme.typography.labelSmall,
+                        text = formatTime(entry.timestamp),
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     if (formattedSize != null) {
                         Text(
                             text = formattedSize,
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
                     Text(
-                        text = formatTime(entry.timestamp),
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "${entry.durationMs} ms",
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }

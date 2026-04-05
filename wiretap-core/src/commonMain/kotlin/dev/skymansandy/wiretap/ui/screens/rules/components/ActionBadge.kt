@@ -14,17 +14,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.RuleAction
+import dev.skymansandy.wiretap.ui.theme.ruleColor
 
 @Composable
 internal fun ActionBadge(
     modifier: Modifier = Modifier,
     action: RuleAction,
 ) {
-    val color = when (action) {
-        is RuleAction.Mock -> MaterialTheme.colorScheme.error
-        is RuleAction.Throttle -> MaterialTheme.colorScheme.tertiary
-        is RuleAction.MockAndThrottle -> MaterialTheme.colorScheme.secondary
-    }
+    val color = action.type.ruleColor
 
     Surface(
         modifier = modifier,

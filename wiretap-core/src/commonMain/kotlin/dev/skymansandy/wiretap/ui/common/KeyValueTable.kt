@@ -25,10 +25,10 @@ internal fun KeyValueTable(
     rows: List<Pair<String, String>>,
 ) {
     SelectionContainer(
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             rows.forEach { (key, value) ->
                 Row(
@@ -37,14 +37,14 @@ internal fun KeyValueTable(
                 ) {
                     Text(
                         text = key,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(0.35f),
                     )
 
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(0.65f),
                     )
                 }

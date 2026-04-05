@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.ui.common
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,17 +24,18 @@ import dev.skymansandy.wiretap.helper.util.copyToClipboard
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun CopyBodyButton(
+internal fun CopyButton(
     modifier: Modifier = Modifier,
-    body: String,
-    snackbarMessage: String = "Body copied to clipboard",
+    text: String,
+    snackbarMessage: String = "Copied to clipboard",
     snackbarHostState: SnackbarHostState? = LocalSnackbarHostState.current,
 ) {
     val scope = rememberCoroutineScope()
     TextButton(
         modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
         onClick = {
-            copyToClipboard(body)
+            copyToClipboard(text)
             snackbarHostState?.let { host ->
                 scope.launch { host.showSnackbar(snackbarMessage) }
             }
@@ -41,13 +43,11 @@ internal fun CopyBodyButton(
     ) {
         Icon(
             imageVector = Icons.Filled.ContentCopy,
-            contentDescription = "Copy body",
+            contentDescription = "Copy",
             modifier = Modifier.size(14.dp),
         )
 
-        Spacer(
-            modifier = Modifier.width(4.dp),
-        )
+        Spacer(modifier = Modifier.width(4.dp))
 
         Text(
             text = "Copy",
@@ -58,10 +58,10 @@ internal fun CopyBodyButton(
 
 @Preview
 @Composable
-private fun Preview_CopyBodyButton() {
+private fun Preview_CopyButton() {
     MaterialTheme {
-        CopyBodyButton(
-            body = """{"name":"John"}""",
+        CopyButton(
+            text = """{"name":"John"}""",
         )
     }
 }

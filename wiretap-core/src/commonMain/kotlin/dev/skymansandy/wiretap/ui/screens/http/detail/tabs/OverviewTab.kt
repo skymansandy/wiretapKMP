@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.formatSize
+import dev.skymansandy.wiretap.helper.util.httpStatusReason
 import dev.skymansandy.wiretap.ui.common.KeyValueTable
 
 @Composable
@@ -32,7 +33,13 @@ internal fun OverviewTab(
                 buildList {
                     add("URL" to entry.url)
                     add("Method" to entry.method)
-                    add("Status" to if (entry.isInProgress) "In Progress" else entry.responseCode.toString())
+                    add("Status" to if (entry.isInProgress) {
+                        "In Progress"
+                    } else {
+                        val code = entry.responseCode
+                        val reason = httpStatusReason(code)
+                        if (reason != null) "$code $reason" else code.toString()
+                    })
                     add("Duration" to if (entry.isInProgress) "..." else "${entry.durationMs}ms")
                     add("Source" to entry.source.label)
                     add("Request Size" to formatSize(entry.requestBody?.encodeToByteArray()?.size?.toLong()))

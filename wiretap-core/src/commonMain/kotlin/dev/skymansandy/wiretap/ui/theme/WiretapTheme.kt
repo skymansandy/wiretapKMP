@@ -9,11 +9,17 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val ToolbarGrey = Color(0xFF2C2C2C)
+private val ColorPrimary = Color(0xFF90A4AE)
+private val SurfaceDark = Color(0xFF1C1C1C)
+private val BackgroundDark = Color(0xFF121212)
 
 private val WiretapDarkColorScheme = darkColorScheme(
-    surface = ToolbarGrey,
-    surfaceContainer = ToolbarGrey,
+    primary = ColorPrimary,
+    onPrimary = Color.Black,
+    secondary = ColorPrimary,
+    surface = SurfaceDark,
+    surfaceContainer = SurfaceDark,
+    background = BackgroundDark,
 )
 
 @Composable

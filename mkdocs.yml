@@ -60,6 +60,7 @@ plugins:
 nav:
   - Overview:
       - Home: index.md
+  - Getting Started: getting-started.md
   - Architecture:
       - High-Level Overview: architecture/overview.md
       - Module Structure: architecture/modules.md

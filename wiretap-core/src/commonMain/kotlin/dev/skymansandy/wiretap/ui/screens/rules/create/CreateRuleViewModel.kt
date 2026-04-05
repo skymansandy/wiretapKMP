@@ -28,17 +28,20 @@ import dev.skymansandy.wiretap.ui.model.toBodyMode
 import dev.skymansandy.wiretap.ui.model.toDomain
 import dev.skymansandy.wiretap.ui.model.toEntry
 import dev.skymansandy.wiretap.ui.model.toUrlMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Suppress("TooManyFunctions")
 internal class CreateRuleViewModel(
     private val existingRuleId: Long,
-    private val prefillFromLogId: Long,
+    private val prefillConfig: PrefillConfig = PrefillConfig(),
     private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
     val ruleRepository: RuleRepository,
@@ -111,10 +114,12 @@ internal class CreateRuleViewModel(
 
     init {
         viewModelScope.launch {
-            val existingRule =
+            val existingRule = withContext(Dispatchers.IO) {
                 if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
-            val prefillFromLog =
-                if (prefillFromLogId > 0) httpLogManager.getHttpLogById(prefillFromLogId) else null
+            }
+            val prefillFromLog = withContext(Dispatchers.IO) {
+                if (prefillConfig.logId > 0) httpLogManager.getHttpLogById(prefillConfig.logId) else null
+            }
 
             if (existingRule != null) {
                 loadedRuleId = existingRule.id
@@ -169,15 +174,33 @@ internal class CreateRuleViewModel(
                     },
                 )
             } else if (prefillFromLog != null) {
+                val criteria = prefillConfig
+                val allowedHeaderKeys = criteria.selectedHeaderKeys
+                    .split("|")
+                    .filter { it.isNotEmpty() }
+                    .toSet()
+
                 requestState.value = RequestStepState(
                     method = prefillFromLog.method,
-                    urlMode = UrlMatchMode.Exact,
-                    urlPattern = prefillFromLog.url,
-                    headerEntries = prefillFromLog.requestHeaders?.map { (k, v) ->
-                        HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
-                    } ?: emptyList(),
-                    bodyMode = if (prefillFromLog.requestBody != null) BodyMatchMode.Exact else null,
-                    bodyPattern = prefillFromLog.requestBody ?: "",
+                    urlMode = if (criteria.includeUrl) UrlMatchMode.Exact else null,
+                    urlPattern = if (criteria.includeUrl) prefillFromLog.url else "",
+                    headerEntries = if (criteria.includeHeaders) {
+                        prefillFromLog.requestHeaders
+                            .filter { (k, _) ->
+                                allowedHeaderKeys.isEmpty() || k in allowedHeaderKeys
+                            }
+                            .map { (k, v) ->
+                                HeaderEntry(key = k, value = v, mode = HeaderEntryMode.ValueExact)
+                            }
+                    } else {
+                        emptyList()
+                    },
+                    bodyMode = if (criteria.includeBody && prefillFromLog.requestBody != null) {
+                        BodyMatchMode.Exact
+                    } else {
+                        null
+                    },
+                    bodyPattern = if (criteria.includeBody) prefillFromLog.requestBody ?: "" else "",
                 )
             }
 
@@ -204,12 +227,7 @@ internal class CreateRuleViewModel(
     }
 
     fun updateUrlMode(mode: UrlMatchMode?) {
-        requestState.updateRequest {
-            copy(
-                urlMode = mode,
-                urlPattern = if (mode == null) "" else urlPattern,
-            )
-        }
+        requestState.updateRequest { copy(urlMode = mode) }
     }
 
     fun updateUrlPattern(pattern: String) {
@@ -233,12 +251,7 @@ internal class CreateRuleViewModel(
     }
 
     fun updateBodyMode(mode: BodyMatchMode?) {
-        requestState.updateRequest {
-            copy(
-                bodyMode = mode,
-                bodyPattern = if (mode == null) "" else bodyPattern,
-            )
-        }
+        requestState.updateRequest { copy(bodyMode = mode) }
     }
 
     fun updateBodyPattern(pattern: String) {
@@ -352,18 +365,19 @@ internal class CreateRuleViewModel(
     fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
             val rule = buildRuleFromForm()
-            val conflicts = findConflictingRules(rule)
+            val conflicts = withContext(Dispatchers.IO) { findConflictingRules(rule) }
             if (conflicts.isNotEmpty()) {
                 conflictingRules.value = conflicts
                 showConflictDialog.value = true
             } else {
-                if (isEditing) {
-                    ruleRepository.updateRule(rule)
-                    onSaved(rule)
-                } else {
-                    ruleRepository.addRule(rule)
-                    onSaved(null)
+                withContext(Dispatchers.IO) {
+                    if (isEditing) {
+                        ruleRepository.updateRule(rule)
+                    } else {
+                        ruleRepository.addRule(rule)
+                    }
                 }
+                onSaved(if (isEditing) rule else null)
             }
         }
     }
