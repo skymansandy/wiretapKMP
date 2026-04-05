@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,8 +26,7 @@ import dev.skymansandy.jsoncmp.ui.viewer.rememberJsonViewerState
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.util.looksLikeJson
 import dev.skymansandy.wiretap.ui.common.CodeBlock
-import dev.skymansandy.wiretap.ui.common.CopyBodyButton
-import dev.skymansandy.wiretap.ui.common.CopyHeadersButton
+import dev.skymansandy.wiretap.ui.common.CopyButton
 import dev.skymansandy.wiretap.ui.common.HeadersList
 import dev.skymansandy.wiretap.ui.common.SectionTitle
 
@@ -53,8 +53,8 @@ internal fun ResponseTab(
             modifier = Modifier.fillMaxWidth(),
             text = "Headers",
             action = if (entry.responseHeaders.isNotEmpty()) ({
-                CopyHeadersButton(
-                    headers = entry.responseHeaders,
+                CopyButton(
+                    text = entry.responseHeaders.entries.joinToString("\n") { "${it.key}: ${it.value}" },
                     snackbarMessage = "Response headers copied to clipboard",
                 )
             }) else null,
@@ -70,12 +70,14 @@ internal fun ResponseTab(
             )
         }
 
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Body",
             action = if (body != null) ({
-                CopyBodyButton(
-                    body = body,
+                CopyButton(
+                    text = body,
                     snackbarMessage = "Response body copied to clipboard",
                 )
             }) else null,
