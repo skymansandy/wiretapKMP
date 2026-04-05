@@ -155,13 +155,19 @@ class WiretapOkHttpInterceptor(
                 else -> error("unreachable")
             }
 
+            val contentType = mockHeaders
+                ?.entries
+                ?.firstOrNull { it.key.equals("Content-Type", ignoreCase = true) }
+                ?.value
+                ?: "application/json; charset=utf-8"
             val body = (mockBody ?: "")
-                .toResponseBody("application/json; charset=utf-8".toMediaType())
+                .toResponseBody(contentType.toMediaType())
             val mockResponse = Response.Builder()
                 .request(request)
                 .protocol(Protocol.HTTP_1_1)
                 .code(responseCode)
                 .message("Mock")
+                .addHeader("Content-Type", contentType)
                 .body(body)
                 .apply { mockHeaders?.forEach { (k, v) -> addHeader(k, v) } }
                 .build()

@@ -68,7 +68,8 @@ internal object WiretapNotificationManager {
     fun notifyHttpLog(context: Context, log: HttpLog) {
         if (!canPostNotifications(context)) return
 
-        val existingIndex = recentHttpEntries.indexOfFirst { it.id == log.id }
+        // Snapshot to avoid ConcurrentModificationException during indexOfFirst iteration
+        val existingIndex = recentHttpEntries.toList().indexOfFirst { it.id == log.id }
         if (existingIndex >= 0) {
             recentHttpEntries[existingIndex] = log
         } else {
@@ -88,7 +89,7 @@ internal object WiretapNotificationManager {
         socketEntries[entry.id] = entry
         val messages = socketMessages[entry.id]
         if (messages != null) {
-            postSocketMessageNotification(context, entry, messages)
+            postSocketMessageNotification(context, entry, messages.toList())
         }
 
         postSummaryIfNeeded(context)
@@ -101,7 +102,7 @@ internal object WiretapNotificationManager {
         val messages = socketMessages.getOrPut(entry.id) { ConcurrentMutableList() }
         if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeAt(0)
         messages.add(NotificationFormatUtil.formatSocketMessage(message))
-        postSocketMessageNotification(context, entry, messages)
+        postSocketMessageNotification(context, entry, messages.toList())
 
         postSummaryIfNeeded(context)
     }
@@ -122,7 +123,8 @@ internal object WiretapNotificationManager {
         socketEntries.clear()
 
         val manager = NotificationManagerCompat.from(context)
-        activeSocketNotificationIds.forEach { manager.cancel(it) }
+        // Snapshot to avoid ConcurrentModificationException during forEach
+        activeSocketNotificationIds.toList().forEach { manager.cancel(it) }
         activeSocketNotificationIds.clear()
 
         // Update or cancel summary
@@ -164,17 +166,20 @@ internal object WiretapNotificationManager {
     @SuppressLint("MissingPermission")
     private fun postHttpNotification(context: Context) {
         if (!canPostNotifications(context)) return
-        if (recentHttpEntries.isEmpty()) return
+
+        // Snapshot to avoid ConcurrentModificationException during forEach
+        val snapshot = recentHttpEntries.toList()
+        if (snapshot.isEmpty()) return
 
         val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle("View network traffic")
-        recentHttpEntries.forEach { entry ->
+        snapshot.forEach { entry ->
             inboxStyle.addLine(NotificationFormatUtil.formatHttpEntry(entry))
         }
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(notificationIcon)
             .setContentTitle("View network traffic")
-            .setContentText(NotificationFormatUtil.formatHttpEntry(recentHttpEntries.last()))
+            .setContentText(NotificationFormatUtil.formatHttpEntry(snapshot.last()))
             .setStyle(inboxStyle)
             .setOnlyAlertOnce(true)
             .setGroup(GROUP_KEY)
@@ -202,17 +207,18 @@ internal object WiretapNotificationManager {
         val isActive =
             socket.status == SocketStatus.Open || socket.status == SocketStatus.Connecting
 
+        val messageSnapshot = messages.toList()
         val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle(title)
-        messages.forEach { inboxStyle.addLine(it) }
+        messageSnapshot.forEach { inboxStyle.addLine(it) }
 
-        if (socket.messageCount > messages.size) {
+        if (socket.messageCount > messageSnapshot.size) {
             inboxStyle.setSummaryText("${socket.messageCount} messages total")
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(notificationIcon)
             .setContentTitle(title)
-            .setContentText(messages.lastOrNull() ?: "No messages")
+            .setContentText(messageSnapshot.lastOrNull() ?: "No messages")
             .setStyle(inboxStyle)
             .setOnlyAlertOnce(true)
             .setOngoing(isActive)
