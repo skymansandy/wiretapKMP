@@ -42,7 +42,7 @@ internal fun RequestTab(
         body != null && looksLikeJson(body)
     }
 
-    var headersExpanded by remember { mutableStateOf(true) }
+    var headersExpanded by remember { mutableStateOf(body.isNullOrBlank()) }
 
     Column(
         modifier = modifier.then(

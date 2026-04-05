@@ -4,7 +4,6 @@
 
 package dev.skymansandy.wiretap.ui.common
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,7 +32,7 @@ internal fun HeadersList(
         Text(
             modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             text = emptyText,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
         )
 
         return
@@ -43,7 +42,6 @@ internal fun HeadersList(
         modifier = modifier,
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -59,7 +57,7 @@ internal fun HeadersList(
                 }
 
                 Text(
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     text = headerText,
                 )
             }

@@ -7,6 +7,7 @@ package dev.skymansandy.wiretap.ui.common
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -36,7 +37,8 @@ internal fun SectionTitle(
                 if (onToggleExpand != null) Modifier.clickable(onClick = onToggleExpand)
                 else Modifier,
             )
-            .padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 4.dp),
+            .height(40.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
     ) {
         Text(
             text = text,

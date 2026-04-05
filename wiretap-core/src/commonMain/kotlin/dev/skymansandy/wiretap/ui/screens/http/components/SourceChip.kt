@@ -14,25 +14,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.ui.theme.ruleColor
 
 @Composable
 internal fun SourceChip(
     modifier: Modifier = Modifier,
     source: ResponseSource,
 ) {
-    val bgColor = when (source) {
-        ResponseSource.Mock -> MaterialTheme.colorScheme.secondaryContainer
-        ResponseSource.Throttle -> MaterialTheme.colorScheme.tertiaryContainer
-        ResponseSource.MockAndThrottle -> MaterialTheme.colorScheme.errorContainer
-        ResponseSource.Network -> return
-    }
+    if (source == ResponseSource.Network) return
 
-    val textColor = when (source) {
-        ResponseSource.Mock -> MaterialTheme.colorScheme.onSecondaryContainer
-        ResponseSource.Throttle -> MaterialTheme.colorScheme.onTertiaryContainer
-        ResponseSource.MockAndThrottle -> MaterialTheme.colorScheme.onErrorContainer
-        ResponseSource.Network -> return
-    }
+    val textColor = source.ruleColor
+    val bgColor = textColor.copy(alpha = 0.15f)
 
     Text(
         text = source.label,
