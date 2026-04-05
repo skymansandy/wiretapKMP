@@ -183,6 +183,7 @@ class WiretapOkHttpInterceptor(
                         durationNs = durationNs,
                         source = source,
                         timestamp = currentTimeMillis(),
+                        matchedRuleId = matchingRule.id,
                     ),
                 )
             }
@@ -251,6 +252,7 @@ class WiretapOkHttpInterceptor(
                     durationNs = durationNs,
                     source = source,
                     timestamp = currentTimeMillis(),
+                    matchedRuleId = matchingRule?.id,
                     protocol = meta.protocol,
                     remoteAddress = meta.remoteAddress,
                     tlsProtocol = meta.tlsProtocol,

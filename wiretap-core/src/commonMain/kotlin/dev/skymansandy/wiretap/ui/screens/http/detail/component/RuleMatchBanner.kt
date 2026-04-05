@@ -67,6 +67,7 @@ internal fun RuleMatchBanner(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
+            modifier = Modifier.weight(1f),
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = contentColor,
