@@ -32,8 +32,8 @@ Add the dependency:
 
 ```kotlin
 // Debug only — use wiretap-ktor-noop for release builds
-debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC6")
-releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC6")
+debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC7")
+releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC7")
 ```
 
 Install the plugin on your HttpClient:
@@ -53,8 +53,8 @@ That's it — all HTTP requests through this client are now captured.
 Add the dependency:
 
 ```kotlin
-debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC6")
-releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC6")
+debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC7")
+releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC7")
 ```
 
 Add the interceptor to your OkHttpClient:
