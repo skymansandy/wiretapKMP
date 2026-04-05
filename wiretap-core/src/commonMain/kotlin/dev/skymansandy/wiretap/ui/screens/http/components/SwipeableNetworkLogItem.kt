@@ -13,12 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,11 +85,10 @@ internal fun SwipeableHttpLogItem(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    imageVector = if (hasMatchedRule) Icons.Default.Visibility else Icons.Default.Add,
-                    contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(20.dp),
+                Text(
+                    text = if (hasMatchedRule) "👁" else "＋",
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
                 )
 
                 Text(
@@ -102,10 +96,7 @@ internal fun SwipeableHttpLogItem(
                     fontWeight = FontWeight.SemiBold,
                     color = contentColor,
                     textAlign = TextAlign.Center,
-                    text = when {
-                        hasMatchedRule -> "View Rule"
-                        else -> "Create Rule"
-                    },
+                    text = if (hasMatchedRule) "View Rule" else "Create Rule",
                 )
             }
         }

@@ -4,6 +4,9 @@
 
 package dev.skymansandy.wiretap.ui.screens
 
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -94,10 +97,18 @@ internal fun WiretapConsole(
                     },
                     sceneStrategy = sceneStrategy,
                     transitionSpec = {
-                        slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                        if (isWideScreen) {
+                            ContentTransform(EnterTransition.None, ExitTransition.None)
+                        } else {
+                            slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                        }
                     },
                     popTransitionSpec = {
-                        slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                        if (isWideScreen) {
+                            ContentTransform(EnterTransition.None, ExitTransition.None)
+                        } else {
+                            slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                        }
                     },
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
