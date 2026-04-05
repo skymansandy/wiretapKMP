@@ -75,7 +75,7 @@ internal fun RuleMatchBanner(
 
         if (clickable) {
             Text(
-                text = "View Rule \u2192",
+                text = "⚡ View Rule",
                 style = MaterialTheme.typography.labelMedium,
                 color = contentColor,
             )
