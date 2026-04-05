@@ -9,7 +9,10 @@ import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okhttp3.WebSocket
 import okio.ByteString
 
@@ -22,8 +25,10 @@ internal class WiretapWebSocket(
     private val socketLogManager: SocketLogManager,
 ) : WebSocket by delegate {
 
+    private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun send(text: String): Boolean {
-        runBlocking {
+        logScope.launch {
             socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
@@ -39,7 +44,7 @@ internal class WiretapWebSocket(
     }
 
     override fun send(bytes: ByteString): Boolean {
-        runBlocking {
+        logScope.launch {
             socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,

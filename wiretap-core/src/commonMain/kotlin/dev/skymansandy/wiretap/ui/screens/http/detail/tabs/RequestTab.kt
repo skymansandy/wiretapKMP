@@ -49,12 +49,15 @@ internal fun RequestTab(
             if (isJson) Modifier else Modifier.verticalScroll(rememberScrollState()),
         ),
     ) {
+        val headersCopyText = remember(entry.requestHeaders) {
+            entry.requestHeaders.entries.joinToString("\n") { "${it.key}: ${it.value}" }
+        }
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Headers",
             action = if (entry.requestHeaders.isNotEmpty()) ({
                 CopyButton(
-                    text = entry.requestHeaders.entries.joinToString("\n") { "${it.key}: ${it.value}" },
+                    text = headersCopyText,
                     snackbarMessage = "Request headers copied to clipboard",
                 )
             }) else null,

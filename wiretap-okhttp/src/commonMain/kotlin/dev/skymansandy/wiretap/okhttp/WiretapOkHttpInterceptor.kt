@@ -19,6 +19,7 @@ import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.util.truncateBody
 import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Interceptor
@@ -144,7 +145,7 @@ class WiretapOkHttpInterceptor(
                     val maxDelay = action.delayMaxMs ?: minDelay
                     val delayMs =
                         if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
-                    if (delayMs > 0) Thread.sleep(delayMs)
+                    if (delayMs > 0) delay(delayMs)
 
                     responseCode = action.responseCode
                     mockBody = action.responseBody
@@ -202,7 +203,7 @@ class WiretapOkHttpInterceptor(
             val minDelay = throttle.delayMs
             val maxDelay = throttle.delayMaxMs ?: minDelay
             val delayMs = if (maxDelay > minDelay) (minDelay..maxDelay).random() else minDelay
-            if (delayMs > 0) Thread.sleep(delayMs)
+            if (delayMs > 0) delay(delayMs)
         }
 
         val response = try {
@@ -243,7 +244,7 @@ class WiretapOkHttpInterceptor(
         }
 
         if (logEntryId >= 0) {
-            val meta = extractResponseMetadata(response, chain)
+            val meta = extractResponseMetadata(response, chain, config.maxContentLength)
             httpLogManager.updateHttp(
                 HttpLog(
                     id = logEntryId,

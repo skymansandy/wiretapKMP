@@ -28,12 +28,15 @@ import dev.skymansandy.wiretap.ui.model.toBodyMode
 import dev.skymansandy.wiretap.ui.model.toDomain
 import dev.skymansandy.wiretap.ui.model.toEntry
 import dev.skymansandy.wiretap.ui.model.toUrlMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Suppress("TooManyFunctions")
 internal class CreateRuleViewModel(
@@ -111,10 +114,12 @@ internal class CreateRuleViewModel(
 
     init {
         viewModelScope.launch {
-            val existingRule =
+            val existingRule = withContext(Dispatchers.IO) {
                 if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
-            val prefillFromLog =
+            }
+            val prefillFromLog = withContext(Dispatchers.IO) {
                 if (prefillConfig.logId > 0) httpLogManager.getHttpLogById(prefillConfig.logId) else null
+            }
 
             if (existingRule != null) {
                 loadedRuleId = existingRule.id
@@ -360,18 +365,19 @@ internal class CreateRuleViewModel(
     fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
             val rule = buildRuleFromForm()
-            val conflicts = findConflictingRules(rule)
+            val conflicts = withContext(Dispatchers.IO) { findConflictingRules(rule) }
             if (conflicts.isNotEmpty()) {
                 conflictingRules.value = conflicts
                 showConflictDialog.value = true
             } else {
-                if (isEditing) {
-                    ruleRepository.updateRule(rule)
-                    onSaved(rule)
-                } else {
-                    ruleRepository.addRule(rule)
-                    onSaved(null)
+                withContext(Dispatchers.IO) {
+                    if (isEditing) {
+                        ruleRepository.updateRule(rule)
+                    } else {
+                        ruleRepository.addRule(rule)
+                    }
                 }
+                onSaved(if (isEditing) rule else null)
             }
         }
     }

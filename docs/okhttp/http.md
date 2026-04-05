@@ -21,7 +21,7 @@
 3. **Evaluate rules** — `FindMatchingRuleUseCase` checks for matching mock/throttle rules
 4. **Log request** — Entry appears immediately in the inspector (gated by `shouldLog`)
 5. **Mock check** — If a mock rule matches, builds a fake `Response` and returns immediately
-6. **Throttle check** — If a throttle rule matches, `Thread.sleep()` before proceeding
+6. **Throttle check** — If a throttle rule matches, `delay()` before proceeding
 7. **Execute request** — `chain.proceed(request)` for real network call
 8. **Capture response** — Status, headers, body (via `peekBody()`), duration, TLS details
 9. **Update log** — Complete the entry with response data
@@ -85,7 +85,7 @@ When a request matches a mock rule, the interceptor builds a fake OkHttp `Respon
 
 ## Throttle Rules
 
-Throttle rules use `Thread.sleep()` (blocking) before `chain.proceed()`. The real network call still happens — throttling only adds delay.
+Throttle rules use coroutine `delay()` (non-blocking) before `chain.proceed()`. The real network call still happens ��� throttling only adds delay.
 
 === "Throttle Rule Setup"
 

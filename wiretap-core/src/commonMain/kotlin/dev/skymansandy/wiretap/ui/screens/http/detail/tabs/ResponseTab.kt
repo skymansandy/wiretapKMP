@@ -49,12 +49,15 @@ internal fun ResponseTab(
             if (isJson) Modifier else Modifier.verticalScroll(rememberScrollState()),
         ),
     ) {
+        val headersCopyText = remember(entry.responseHeaders) {
+            entry.responseHeaders.entries.joinToString("\n") { "${it.key}: ${it.value}" }
+        }
         SectionTitle(
             modifier = Modifier.fillMaxWidth(),
             text = "Headers",
             action = if (entry.responseHeaders.isNotEmpty()) ({
                 CopyButton(
-                    text = entry.responseHeaders.entries.joinToString("\n") { "${it.key}: ${it.value}" },
+                    text = headersCopyText,
                     snackbarMessage = "Response headers copied to clipboard",
                 )
             }) else null,

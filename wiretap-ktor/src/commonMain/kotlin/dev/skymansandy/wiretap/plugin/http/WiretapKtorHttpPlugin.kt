@@ -35,10 +35,15 @@ import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.readRemaining
 import io.ktor.utils.io.readText
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
@@ -48,6 +53,7 @@ private val RequestTimestampKey = AttributeKey<Long>("WiretapRequestTimestamp")
 private val RequestNanoTimestampKey = AttributeKey<Long>("WiretapRequestNanoTimestamp")
 private val MatchedRuleKey = AttributeKey<WiretapRule>("WiretapMatchedRule")
 private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
+private val RequestHeadersKey = AttributeKey<Map<String, String>>("WiretapRequestHeaders")
 
 /**
  * Ktor client plugin for Wiretap network inspection.
@@ -79,6 +85,7 @@ private val LogEntryIdKey = AttributeKey<Long>("WiretapLogEntryId")
 val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
     val config = pluginConfig
     val deps = WiretapDeps()
+    val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val sessionInitialized = AtomicBoolean(false)
 
     // Retention cleanup: runs once per plugin installation
@@ -118,6 +125,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
         val method = request.method.value
         val requestHeaders = request.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
+        request.attributes.put(RequestHeadersKey, requestHeaders)
         val requestBody = try {
             when (val body = request.body) {
                 is OutgoingContent.ByteArrayContent -> body.bytes().decodeToString()
@@ -161,7 +169,7 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
             // so it won't overwrite a legitimate response logged by onResponse.
             coroutineContext[Job]?.invokeOnCompletion { cause ->
                 if (cause != null) {
-                    runBlocking {
+                    logScope.launch {
                         deps.httpLogManager.markHttpCancelledIfInProgress(logEntryId)
                     }
                 }
@@ -250,8 +258,8 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
 
         val url = request.url.toString()
         val method = request.method.value
-        val requestHeaders = request.headers.entries()
-            .associate { (key, values) -> key to values.joinToString(", ") }
+        val requestHeaders = request.attributes.getOrNull(RequestHeadersKey)
+            ?: request.headers.entries().associate { (key, values) -> key to values.joinToString(", ") }
         val responseHeaders = response.headers.entries()
             .associate { (key, values) -> key to values.joinToString(", ") }
 
@@ -335,7 +343,7 @@ private suspend fun buildMockCall(
             headers = mockHeaders,
             version = HttpProtocolVersion.HTTP_1_1,
             body = ByteReadChannel(body),
-            callContext = kotlin.coroutines.coroutineContext + Job(),
+            callContext = currentCoroutineContext() + Job(),
         ),
     )
 

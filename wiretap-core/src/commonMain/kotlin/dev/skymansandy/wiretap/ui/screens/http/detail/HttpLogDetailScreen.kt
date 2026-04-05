@@ -276,7 +276,7 @@ private fun HttpLogDetailScreenContent(
                 HorizontalPager(
                     modifier = Modifier.weight(1f),
                     state = pagerState,
-                    beyondViewportPageCount = tabs.size,
+                    beyondViewportPageCount = 1,
                 ) { page ->
                     when (page) {
                         0 -> OverviewTab(

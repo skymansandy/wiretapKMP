@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.cash.paging.compose.collectAsLazyPagingItems
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.ClearLogsConfirmationDialog
@@ -31,7 +31,7 @@ internal fun SocketTabScreen(
     navigationRail: (@Composable () -> Unit)? = null,
 ) {
     val navigator = LocalWiretapNavigator.current
-    val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
+    val lazyItems = viewModel.socketLogs.collectAsLazyPagingItems()
 
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -55,7 +55,7 @@ internal fun SocketTabScreen(
             isSearchActive = isSearchActive,
             searchQuery = searchQuery,
             searchFocusRequester = searchFocusRequester,
-            showClearAction = socketLogs.isNotEmpty(),
+            showClearAction = lazyItems.itemCount > 0,
             showBackButton = false,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->

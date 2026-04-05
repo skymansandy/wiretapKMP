@@ -38,7 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.cash.paging.LoadStateNotLoading
+import app.cash.paging.compose.collectAsLazyPagingItems
+import app.cash.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
@@ -59,9 +61,10 @@ internal fun SocketLogList(
     onDismissSearch: () -> Unit,
     onSocketClick: (SocketConnection) -> Unit,
 ) {
-    val socketLogs by viewModel.socketLogs.collectAsStateWithLifecycle()
+    val lazyItems = viewModel.socketLogs.collectAsLazyPagingItems()
+    val isEmpty = lazyItems.itemCount == 0
 
-    if (socketLogs.isEmpty()) {
+    if (isEmpty && lazyItems.loadState.refresh is LoadStateNotLoading) {
         if (searchQuery.isNotBlank()) {
             StatusText(
                 modifier = modifier,
@@ -75,21 +78,21 @@ internal fun SocketLogList(
                 linkUrl = WiretapConstants.SETUP_URL,
             )
         }
-    } else {
+    } else if (!isEmpty) {
         val listState = rememberLazyListState()
         val scope = rememberCoroutineScope()
-        var lastItemCount by remember { mutableIntStateOf(socketLogs.size) }
+        var lastItemCount by remember { mutableIntStateOf(lazyItems.itemCount) }
         val isAtTop by remember {
             derivedStateOf {
                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
             }
         }
 
-        LaunchedEffect(socketLogs.size) {
-            if (socketLogs.size > lastItemCount && isAtTop) {
+        LaunchedEffect(lazyItems.itemCount) {
+            if (lazyItems.itemCount > lastItemCount && isAtTop) {
                 scope.launch { listState.scrollToItem(0) }
             }
-            lastItemCount = socketLogs.size
+            lastItemCount = lazyItems.itemCount
         }
 
         ScrollToTopButton(
@@ -101,15 +104,16 @@ internal fun SocketLogList(
                 state = listState,
             ) {
                 items(
-                    count = socketLogs.size,
-                    key = { index -> socketLogs[index].id },
+                    count = lazyItems.itemCount,
+                    key = lazyItems.itemKey { it.id },
                 ) { index ->
+                    val socket = lazyItems[index] ?: return@items
                     SocketLogItemContent(
-                        socket = socketLogs[index],
+                        socket = socket,
                         searchQuery = searchQuery,
                         onClick = {
                             onDismissSearch()
-                            onSocketClick(socketLogs[index])
+                            onSocketClick(socket)
                         },
                     )
                 }
@@ -124,10 +128,10 @@ private fun SocketLogItemContent(
     searchQuery: String,
     onClick: () -> Unit,
 ) {
-    val isSecure = socket.url.startsWith("wss://", ignoreCase = true)
-    val withoutScheme = socket.url.substringAfter("://")
-    val host = withoutScheme.substringBefore("/").substringBefore("?")
-    val path = withoutScheme.removePrefix(host).ifEmpty { "/" }
+    val isSecure = remember(socket.url) { socket.url.startsWith("wss://", ignoreCase = true) }
+    val withoutScheme = remember(socket.url) { socket.url.substringAfter("://") }
+    val host = remember(withoutScheme) { withoutScheme.substringBefore("/").substringBefore("?") }
+    val path = remember(withoutScheme, host) { withoutScheme.removePrefix(host).ifEmpty { "/" } }
 
     Column(
         modifier = Modifier.background(MaterialTheme.colorScheme.background),

@@ -82,10 +82,11 @@ internal fun SelectRuleCriteriaSheetView(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Include in rule...",
+                text = "Select what to include in rule…",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.weight(1f),
             )
+
             IconButton(onClick = { showInfoDialog = true }) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
