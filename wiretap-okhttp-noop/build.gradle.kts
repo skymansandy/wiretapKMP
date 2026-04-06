@@ -5,10 +5,6 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xexplicit-backing-fields")
-    }
-
     android {
         namespace = "dev.skymansandy.wiretap.okhttp.noop"
         compileSdk {

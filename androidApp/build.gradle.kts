@@ -3,12 +3,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xskip-prerelease-check", "-Xexplicit-backing-fields")
-    }
-}
-
 android {
     namespace = "dev.skymansandy.wiretap"
     compileSdk {

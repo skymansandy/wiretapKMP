@@ -34,19 +34,19 @@ internal class RuleDetailViewModel(
             initialValue = false,
         )
 
-    val showDeleteConfirm: StateFlow<Boolean>
-        field = MutableStateFlow(false)
+    private val _showDeleteConfirm = MutableStateFlow(false)
+    val showDeleteConfirm: StateFlow<Boolean> = _showDeleteConfirm
 
     fun toggleEnabled(value: Boolean) {
         viewModelScope.launch { ruleRepository.setEnabled(ruleId, value) }
     }
 
     fun requestDelete() {
-        showDeleteConfirm.value = true
+        _showDeleteConfirm.value = true
     }
 
     fun dismissDelete() {
-        showDeleteConfirm.value = false
+        _showDeleteConfirm.value = false
     }
 
     fun confirmDelete(onDeleted: () -> Unit) {

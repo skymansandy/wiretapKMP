@@ -10,10 +10,6 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
-    }
-
     android {
         namespace = "dev.skymansandy.wiretapsample"
         compileSdk { version = release(36) }

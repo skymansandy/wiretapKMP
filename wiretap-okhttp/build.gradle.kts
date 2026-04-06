@@ -7,10 +7,6 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xskip-prerelease-check")
-    }
-
     android {
         namespace = "dev.skymansandy.wiretap.okhttp"
         compileSdk {
