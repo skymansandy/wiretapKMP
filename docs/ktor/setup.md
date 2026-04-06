@@ -21,8 +21,39 @@ sourceSets {
 }
 ```
 
-!!! tip "Multi-Module Apps"
-    Using multiple Gradle modules? See [Multi-Module Setup](../configuration/multi-module.md) for how to use `wiretap-ktor-api` in feature modules.
+??? tip "Multi-Module Apps"
+    In apps with multiple Gradle modules, feature modules that create `HttpClient` instances can't access `WiretapKtorHttpPlugin` if it's only a `debugImplementation` in the app module.
+
+    Use the lightweight **API module** in feature modules — it's no-op by default and activates automatically when `wiretap-ktor` is on the classpath (debug builds):
+
+    ```kotlin
+    // feature/build.gradle.kts
+    dependencies {
+        implementation("dev.skymansandy:wiretap-ktor-api:1.0.0-RC7")
+    }
+
+    // app/build.gradle.kts
+    dependencies {
+        debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC7")
+        releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC7")
+    }
+    ```
+
+    Feature modules use `WiretapKtorHttpPlugin` and `WiretapKtorWebSocketPlugin` as normal:
+
+    ```kotlin
+    // feature module
+    val client = HttpClient {
+        install(WiretapKtorHttpPlugin)
+    }
+    ```
+
+    **Platform-specific registration:**
+
+    - **Android** — No extra setup. Koin delegates register automatically via App Startup.
+    - **JVM Desktop** — Call `WiretapKtor.initialize()` manually at app startup.
+
+    Single-module consumers don't need to change anything — `wiretap-ktor` transitively includes the API module.
 
 ## Install the Plugin
 

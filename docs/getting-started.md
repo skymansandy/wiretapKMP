@@ -46,7 +46,7 @@ val client = HttpClient {
 
 That's it — all HTTP requests through this client are now captured.
 
-[:material-arrow-right: Full Ktor setup guide](ktor/setup.md) · [Multi-module setup](configuration/multi-module.md)
+[→Full Ktor setup guide](ktor/setup.md)
 
 ### OkHttp (Android / JVM)
 
@@ -65,7 +65,7 @@ val client = OkHttpClient.Builder()
     .build()
 ```
 
-[:material-arrow-right: Full OkHttp setup guide](okhttp/setup.md) · [Multi-module setup](configuration/multi-module.md)
+[→Full OkHttp setup guide](okhttp/setup.md)
 
 ### URLSession (Swift / iOS)
 
@@ -80,7 +80,7 @@ let session = URLSession.shared
 #endif
 ```
 
-[:material-arrow-right: Full URLSession setup guide](urlsession/setup.md)
+[→Full URLSession setup guide](urlsession/setup.md)
 
 ## Open the Inspector
 

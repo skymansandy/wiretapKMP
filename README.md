@@ -93,7 +93,7 @@ debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC7")
 releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC7")
 ```
 
-See the [Multi-Module Setup guide](https://skymansandy.dev/wiretapKMP/configuration/multi-module/) for details.
+See the [Ktor setup guide](https://skymansandy.dev/wiretapKMP/ktor/setup/) or [OkHttp setup guide](https://skymansandy.dev/wiretapKMP/okhttp/setup/) for details.
 
 ## Documentation
 

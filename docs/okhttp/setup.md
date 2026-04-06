@@ -9,8 +9,39 @@ debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC7")
 releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC7")
 ```
 
-!!! tip "Multi-Module Apps"
-    Using multiple Gradle modules? See [Multi-Module Setup](../configuration/multi-module.md) for how to use `wiretap-okhttp-api` in feature modules.
+??? tip "Multi-Module Apps"
+    In apps with multiple Gradle modules, feature modules that create `OkHttpClient` instances can't access `WiretapOkHttpInterceptor` if it's only a `debugImplementation` in the app module.
+
+    Use the lightweight **API module** in feature modules — it's no-op by default and activates automatically when `wiretap-okhttp` is on the classpath (debug builds):
+
+    ```kotlin
+    // feature/build.gradle.kts
+    dependencies {
+        implementation("dev.skymansandy:wiretap-okhttp-api:1.0.0-RC7")
+    }
+
+    // app/build.gradle.kts
+    dependencies {
+        debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC7")
+        releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC7")
+    }
+    ```
+
+    Feature modules use `WiretapOkHttpInterceptor` and `WiretapOkHttpWebSocketListener` as normal:
+
+    ```kotlin
+    // feature module
+    val client = OkHttpClient.Builder()
+        .addInterceptor(WiretapOkHttpInterceptor())
+        .build()
+    ```
+
+    **Platform-specific registration:**
+
+    - **Android** — No extra setup. Koin delegates register automatically via App Startup.
+    - **JVM Desktop** — Call `WiretapOkHttp.initialize()` manually at app startup.
+
+    Single-module consumers don't need to change anything — `wiretap-okhttp` transitively includes the API module.
 
 ## Install the Interceptor
 

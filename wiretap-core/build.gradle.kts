@@ -16,11 +16,11 @@ kotlin {
     android {
         namespace = "dev.skymansandy.wiretap"
         compileSdk {
-            version = release(36) {
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
                 minorApiLevel = 1
             }
         }
-        minSdk = 24
+        minSdk = libs.versions.android.minSdk.get().toInt()
 
         withDeviceTestBuilder {
         }.configure {
