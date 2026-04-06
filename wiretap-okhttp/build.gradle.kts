@@ -22,10 +22,17 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapOkhttpApi)
                 api(projects.wiretapCore)
                 api(libs.okhttp)
                 implementation(libs.stately.concurrency)
                 implementation(libs.koin.core)
+            }
+        }
+
+        androidMain {
+            dependencies {
+                implementation(libs.androidx.startup.runtime)
             }
         }
 

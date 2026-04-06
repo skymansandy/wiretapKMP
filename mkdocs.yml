@@ -67,6 +67,7 @@ nav:
       - Request Flow: architecture/request-flow.md
   - Configuration:
       - WiretapConfig: configuration/config.md
+      - Multi-Module Setup: configuration/multi-module.md
       - Shake to Launch: configuration/shake.md
       - Header Actions: configuration/headers.md
       - Log Retention: configuration/retention.md

@@ -15,7 +15,7 @@ import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.setResourceReaderAndroidContext
 
-internal class WiretapInitializer : Initializer<Unit> {
+class WiretapInitializer : Initializer<Unit> {
 
     @OptIn(ExperimentalResourceApi::class)
     override fun create(context: Context) {

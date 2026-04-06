@@ -12,6 +12,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
+import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import kotlin.concurrent.Volatile
 
@@ -32,6 +33,10 @@ internal object WiretapKoinContext {
                 db.socketRoomDao().closeStaleSocketLogs()
             }
         }
+    }
+
+    fun loadModules(modules: List<Module>) {
+        koin.loadModules(modules)
     }
 
     fun setTestKoin(koin: Koin?) {
