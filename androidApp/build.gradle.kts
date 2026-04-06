@@ -6,15 +6,15 @@ plugins {
 android {
     namespace = "dev.skymansandy.wiretap"
     compileSdk {
-        version = release(36) {
+        version = release(libs.versions.android.compileSdk.get().toInt()) {
             minorApiLevel = 1
         }
     }
 
     defaultConfig {
         applicationId = "dev.skymansandy.wiretapsample"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 

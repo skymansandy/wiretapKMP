@@ -12,7 +12,7 @@ plugins {
 kotlin {
     android {
         namespace = "dev.skymansandy.wiretapsample"
-        compileSdk { version = release(36) }
+        compileSdk { version = release(libs.versions.android.compileSdk.get().toInt()) }
     }
 
     listOf(
