@@ -21,6 +21,9 @@ sourceSets {
 }
 ```
 
+!!! tip "Multi-Module Apps"
+    Using multiple Gradle modules? See [Multi-Module Setup](../configuration/multi-module.md) for how to use `wiretap-ktor-api` in feature modules.
+
 ## Install the Plugin
 
 ```kotlin

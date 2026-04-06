@@ -34,6 +34,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapKtorApi)
                 api(projects.wiretapCore)
                 api(libs.ktor.client.core)
                 implementation(libs.ktor.client.websockets)
@@ -45,6 +46,7 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.ktor.client.android)
+                implementation(libs.androidx.startup.runtime)
             }
         }
 

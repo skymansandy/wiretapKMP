@@ -21,7 +21,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -82,19 +81,18 @@ internal fun SelectRuleCriteriaSheetView(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Select what to include in rule…",
+                text = "Match criteria",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f),
             )
-
-            IconButton(onClick = { showInfoDialog = true }) {
-                Icon(
-                    imageVector = Icons.Outlined.Info,
-                    contentDescription = "Info",
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = "Info",
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(18.dp)
+                    .clickable { showInfoDialog = true },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
 
         Text(

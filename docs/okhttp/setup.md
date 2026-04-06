@@ -9,6 +9,9 @@ debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC7")
 releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC7")
 ```
 
+!!! tip "Multi-Module Apps"
+    Using multiple Gradle modules? See [Multi-Module Setup](../configuration/multi-module.md) for how to use `wiretap-okhttp-api` in feature modules.
+
 ## Install the Interceptor
 
 ```kotlin

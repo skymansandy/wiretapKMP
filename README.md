@@ -80,6 +80,21 @@ Swap dependencies for release builds — no conditional code needed:
 
 For URLSession, use `WiretapURLSession` in debug and plain `URLSession` in release.
 
+## Multi-Module Apps
+
+For apps with multiple Gradle modules, use the API modules so feature modules can reference Wiretap types:
+
+```kotlin
+// feature/build.gradle.kts
+implementation("dev.skymansandy:wiretap-ktor-api:1.0.0-RC7")   // or wiretap-okhttp-api
+
+// app/build.gradle.kts
+debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC7")
+releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC7")
+```
+
+See the [Multi-Module Setup guide](https://skymansandy.dev/wiretapKMP/configuration/multi-module/) for details.
+
 ## Documentation
 
 [Full documentation](https://skymansandy.dev/wiretapKMP/) · [Getting Started](https://skymansandy.dev/wiretapKMP/getting-started/)
