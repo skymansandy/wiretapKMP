@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretapsample.model
 
+import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -37,6 +38,11 @@ val ktorHttpActions: List<KtorApiAction> = httpTestCases.map { case ->
     KtorApiAction(case.label, case.category) { client, onStatus ->
         onStatus("${case.statusPrefix} ...")
         when (case) {
+            is HttpTestCase.DeserializeJson -> {
+                val post = client.get(case.url).body<Post>()
+                onStatus("Deserialized post #${post.id}: \"${post.title}\"")
+            }
+
             is HttpTestCase.Request -> {
                 val response = when (case.method) {
                     HttpMethod.GET -> client.get(case.url) {

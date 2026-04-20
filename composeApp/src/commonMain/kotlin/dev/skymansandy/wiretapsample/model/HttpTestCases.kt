@@ -52,10 +52,22 @@ sealed class HttpTestCase {
         override val category: ActionCategory = ActionCategory.Batch,
         val count: Int,
     ) : HttpTestCase()
+
+    data class DeserializeJson(
+        override val label: String,
+        override val statusPrefix: String,
+        override val url: String,
+        override val category: ActionCategory = ActionCategory.Serialization,
+    ) : HttpTestCase()
 }
 
 @Suppress("MaxLineLength")
 val httpTestCases = listOf(
+    HttpTestCase.DeserializeJson(
+        label = "GET /posts/1 (streaming deserialize)",
+        statusPrefix = "GET /posts/1",
+        url = "https://jsonplaceholder.typicode.com/posts/1",
+    ),
     HttpTestCase.Request(
         label = "GET /get (HTTP)",
         statusPrefix = "GET /get",

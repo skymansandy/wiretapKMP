@@ -6,7 +6,9 @@ import dev.skymansandy.wiretapsample.viewmodel.KtorHttpViewModel
 import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.serialization.kotlinx.json.json
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
@@ -18,6 +20,10 @@ val sampleAppModule = module {
             install(HttpTimeout)
             install(WebSockets) {
                 pingIntervalMillis = 5.seconds.inWholeMilliseconds
+            }
+
+            install(ContentNegotiation) {
+                json()
             }
 
             install(WiretapKtorWebSocketPlugin)

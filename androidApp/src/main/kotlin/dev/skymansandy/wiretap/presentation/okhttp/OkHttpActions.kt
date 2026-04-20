@@ -40,6 +40,11 @@ internal val okHttpActions: List<OkHttpApiAction> = httpTestCases.map { case ->
     OkHttpApiAction(case.label, case.category) { client, onStatus ->
         onStatus("${case.statusPrefix} ...")
         when (case) {
+            is HttpTestCase.DeserializeJson -> {
+                val request = Request.Builder().url(case.url).get().build()
+                onStatus(client.newCall(request).execute().format())
+            }
+
             is HttpTestCase.Request -> {
                 val request = Request.Builder().url(case.url).apply {
                     when (case.method) {
