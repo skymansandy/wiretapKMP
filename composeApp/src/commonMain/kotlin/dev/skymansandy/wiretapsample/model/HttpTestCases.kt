@@ -1,6 +1,17 @@
 package dev.skymansandy.wiretapsample.model
 
-enum class HttpMethod { GET, POST }
+enum class Endpoint {
+    HttpBinGet,
+    JsonPlaceholderGetPost,
+    JsonPlaceholderGetComments,
+    JsonPlaceholderCreatePost,
+    HttpBinGetHeaders,
+    HttpBinPostAnything,
+    HttpBinStatus404,
+    HttpBinStatus500,
+    HttpBinRedirect,
+    ExternalUrl,
+}
 
 sealed class HttpTestCase {
 
@@ -14,9 +25,8 @@ sealed class HttpTestCase {
         override val statusPrefix: String,
         override val url: String,
         override val category: ActionCategory,
-        val method: HttpMethod,
+        val endpoint: Endpoint,
         val body: String? = null,
-        val contentType: String? = null,
         val headers: Map<String, String> = emptyMap(),
     ) : HttpTestCase()
 
@@ -64,53 +74,52 @@ sealed class HttpTestCase {
 @Suppress("MaxLineLength")
 val httpTestCases = listOf(
     HttpTestCase.DeserializeJson(
-        label = "GET /posts/1 (streaming deserialize)",
+        label = "GET /posts/1 (deserialize)",
         statusPrefix = "GET /posts/1",
         url = "https://jsonplaceholder.typicode.com/posts/1",
     ),
     HttpTestCase.Request(
         label = "GET /get (HTTP)",
         statusPrefix = "GET /get",
-        method = HttpMethod.GET,
         url = "http://httpbin.org/get",
         category = ActionCategory.Success,
+        endpoint = Endpoint.HttpBinGet,
     ),
     HttpTestCase.Request(
         label = "GET /posts/1",
         statusPrefix = "GET /posts/1",
-        method = HttpMethod.GET,
         url = "https://jsonplaceholder.typicode.com/posts/1",
         category = ActionCategory.Success,
+        endpoint = Endpoint.JsonPlaceholderGetPost,
     ),
     HttpTestCase.Request(
         label = "GET large json",
         statusPrefix = "GET /users",
-        method = HttpMethod.GET,
         url = "https://gist.githubusercontent.com/gcollazo/884a489a50aec7b53765405f40c6fbd1/raw/49d1568c34090587ac82e80612a9c350108b62c5/sample.json",
         category = ActionCategory.Success,
+        endpoint = Endpoint.ExternalUrl,
     ),
     HttpTestCase.Request(
         label = "GET /comments",
         statusPrefix = "GET /posts/1/comments",
-        method = HttpMethod.GET,
         url = "https://jsonplaceholder.typicode.com/posts/1/comments",
         category = ActionCategory.Success,
+        endpoint = Endpoint.JsonPlaceholderGetComments,
     ),
     HttpTestCase.Request(
         label = "POST /posts",
         statusPrefix = "POST /posts",
         url = "https://jsonplaceholder.typicode.com/posts",
         category = ActionCategory.Success,
-        method = HttpMethod.POST,
+        endpoint = Endpoint.JsonPlaceholderCreatePost,
         body = """{"title":"Wiretap Test","body":"Hello from Wiretap!","userId":1}""",
-        contentType = "application/json",
     ),
     HttpTestCase.Request(
         label = "GET /headers",
         statusPrefix = "GET /headers (custom)",
-        method = HttpMethod.GET,
         url = "https://httpbin.org/headers",
         category = ActionCategory.Success,
+        endpoint = Endpoint.HttpBinGetHeaders,
         headers = mapOf(
             "X-Wiretap-Debug" to "true",
             "X-Request-Source" to "WiretapSampleApp",
@@ -123,9 +132,8 @@ val httpTestCases = listOf(
         statusPrefix = "POST /anything (headers+body)",
         url = "https://httpbin.org/anything",
         category = ActionCategory.Success,
-        method = HttpMethod.POST,
+        endpoint = Endpoint.HttpBinPostAnything,
         body = """{"event":"purchase","item":"Wiretap Pro","quantity":3,"metadata":{"source":"sample-app","version":"1.0"}}""",
-        contentType = "application/json",
         headers = mapOf(
             "X-Api-Key" to "sample-key-12345",
             "X-Idempotency-Key" to "idem-99887766",
@@ -135,37 +143,37 @@ val httpTestCases = listOf(
     HttpTestCase.Request(
         label = "GET 64KB JSON",
         statusPrefix = "GET /64KB.json",
-        method = HttpMethod.GET,
         url = "https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json",
         category = ActionCategory.Success,
+        endpoint = Endpoint.ExternalUrl,
     ),
     HttpTestCase.Request(
         label = "GET 5MB JSON",
         statusPrefix = "GET /5MB.json",
-        method = HttpMethod.GET,
         url = "https://microsoftedge.github.io/Demos/json-dummy-data/5MB.json",
         category = ActionCategory.Success,
+        endpoint = Endpoint.ExternalUrl,
     ),
     HttpTestCase.Request(
         label = "301 Redirect",
         statusPrefix = "GET /redirect/1",
-        method = HttpMethod.GET,
         url = "https://httpbin.org/redirect/1",
         category = ActionCategory.Redirect,
+        endpoint = Endpoint.HttpBinRedirect,
     ),
     HttpTestCase.Request(
         label = "404 Not Found",
         statusPrefix = "GET /status/404",
-        method = HttpMethod.GET,
         url = "https://httpbin.org/status/404",
         category = ActionCategory.ClientError,
+        endpoint = Endpoint.HttpBinStatus404,
     ),
     HttpTestCase.Request(
         label = "500 Error",
         statusPrefix = "GET /status/500",
-        method = HttpMethod.GET,
         url = "https://httpbin.org/status/500",
         category = ActionCategory.ServerError,
+        endpoint = Endpoint.HttpBinStatus500,
     ),
     HttpTestCase.Timeout(
         label = "Timeout (3s)",

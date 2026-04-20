@@ -6,7 +6,13 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.ktorfit)
+}
+
+ktorfit {
+    compilerPluginVersion.set("-")
 }
 
 kotlin {
@@ -52,6 +58,7 @@ kotlin {
             implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktorfit.lib)
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {

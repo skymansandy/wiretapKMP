@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.kover)
     alias(libs.plugins.mavenPublish) apply false
     alias(libs.plugins.bcv) apply false
+    alias(libs.plugins.ktorfit) apply false
 }
 
 dependencies {
