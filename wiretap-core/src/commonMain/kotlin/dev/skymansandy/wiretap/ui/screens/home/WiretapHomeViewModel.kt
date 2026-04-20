@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 internal class WiretapHomeViewModel : ViewModel() {
 
-    val selectedTab: StateFlow<HomeTab>
-        field = MutableStateFlow(HomeTab.Http)
+    private val _selectedTab: MutableStateFlow<HomeTab> = MutableStateFlow(HomeTab.Http)
+    val selectedTab: StateFlow<HomeTab> get() = _selectedTab
 
     fun selectTab(tab: HomeTab) {
-        selectedTab.value = tab
+        _selectedTab.value = tab
     }
 }

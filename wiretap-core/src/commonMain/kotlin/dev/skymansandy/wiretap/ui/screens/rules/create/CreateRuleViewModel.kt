@@ -52,12 +52,12 @@ internal class CreateRuleViewModel(
     private var loadedCreatedAt: Long? = null
     private var loadedEnabled: Boolean? = null
 
-    val loaded: StateFlow<Boolean>
-        field = MutableStateFlow(false)
+    private val _loaded: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loaded: StateFlow<Boolean> get() = _loaded
 
     // Step
-    val step: StateFlow<Int>
-        field = MutableStateFlow(1)
+    private val _step: MutableStateFlow<Int> = MutableStateFlow(1)
+    val step: StateFlow<Int> get() = _step
 
     // Request state
     val requestState = MutableStateFlow(RequestStepState())
@@ -66,21 +66,21 @@ internal class CreateRuleViewModel(
     val responseState = MutableStateFlow(ResponseStepState())
 
     // Regex tester
-    val regexTesterPattern: StateFlow<String>
-        field = MutableStateFlow("")
+    private val _regexTesterPattern: MutableStateFlow<String> = MutableStateFlow("")
+    val regexTesterPattern: StateFlow<String> get() = _regexTesterPattern
 
-    val regexTesterLabel: StateFlow<String>
-        field = MutableStateFlow("")
+    private val _regexTesterLabel: MutableStateFlow<String> = MutableStateFlow("")
+    val regexTesterLabel: StateFlow<String> get() = _regexTesterLabel
 
-    val showRegexTester: StateFlow<Boolean>
-        field = MutableStateFlow(false)
+    private val _showRegexTester: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showRegexTester: StateFlow<Boolean> get() = _showRegexTester
 
     // Conflict state
-    val conflictingRules: StateFlow<List<WiretapRule>>
-        field = MutableStateFlow(emptyList())
+    private val _conflictingRules: MutableStateFlow<List<WiretapRule>> = MutableStateFlow(emptyList())
+    val conflictingRules: StateFlow<List<WiretapRule>> get() = _conflictingRules
 
-    val showConflictDialog: StateFlow<Boolean>
-        field = MutableStateFlow(false)
+    private val _showConflictDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showConflictDialog: StateFlow<Boolean> get() = _showConflictDialog
 
     // Validation
     val canProceedToResponse: StateFlow<Boolean> = requestState.map { req ->
@@ -204,20 +204,20 @@ internal class CreateRuleViewModel(
                 )
             }
 
-            loaded.value = true
+            _loaded.value = true
         }
     }
 
     fun nextStep() {
-        step.value++
+        _step.value++
     }
 
     fun resetStep() {
-        step.value = 1
+        _step.value = 1
     }
 
     fun prevStep() {
-        step.value--
+        _step.value--
     }
 
     // ── Request updates ─────────────────────────────────────────────────────────
@@ -346,20 +346,20 @@ internal class CreateRuleViewModel(
     // ── Regex tester ────────────────────────────────────────────────────────────
 
     fun openRegexTester(pattern: String, label: String) {
-        regexTesterPattern.value = pattern
-        regexTesterLabel.value = label
-        showRegexTester.value = true
+        _regexTesterPattern.value = pattern
+        _regexTesterLabel.value = label
+        _showRegexTester.value = true
     }
 
     fun closeRegexTester() {
-        showRegexTester.value = false
+        _showRegexTester.value = false
     }
 
     // ── Conflict ────────────────────────────────────────────────────────────────
 
     fun dismissConflictDialog() {
-        showConflictDialog.value = false
-        conflictingRules.value = emptyList()
+        _showConflictDialog.value = false
+        _conflictingRules.value = emptyList()
     }
 
     fun saveRule(onSaved: (WiretapRule?) -> Unit) {
@@ -367,8 +367,8 @@ internal class CreateRuleViewModel(
             val rule = buildRuleFromForm()
             val conflicts = withContext(Dispatchers.IO) { findConflictingRules(rule) }
             if (conflicts.isNotEmpty()) {
-                conflictingRules.value = conflicts
-                showConflictDialog.value = true
+                _conflictingRules.value = conflicts
+                _showConflictDialog.value = true
             } else {
                 withContext(Dispatchers.IO) {
                     if (isEditing) {
