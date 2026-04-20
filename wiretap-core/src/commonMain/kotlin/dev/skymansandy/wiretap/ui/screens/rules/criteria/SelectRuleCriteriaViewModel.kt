@@ -37,15 +37,15 @@ internal class SelectRuleCriteriaViewModel(
     private val httpLogManager: HttpLogManager,
 ) : ViewModel() {
 
-    val state: StateFlow<SelectRuleCriteriaState>
-        field = MutableStateFlow(SelectRuleCriteriaState())
+    private val _state: MutableStateFlow<SelectRuleCriteriaState> = MutableStateFlow(SelectRuleCriteriaState())
+    val state: StateFlow<SelectRuleCriteriaState> get() = _state
 
     init {
         viewModelScope.launch {
             val log = withContext(Dispatchers.IO) {
                 httpLogManager.getHttpLogById(logId)
             } ?: return@launch
-            state.value = SelectRuleCriteriaState(
+            _state.value = SelectRuleCriteriaState(
                 httpLog = log,
                 includeUrl = true,
                 selectedHeaderKeys = emptySet(),
@@ -55,11 +55,11 @@ internal class SelectRuleCriteriaViewModel(
     }
 
     fun toggleUrl() {
-        state.update { it.copy(includeUrl = !it.includeUrl) }
+        _state.update { it.copy(includeUrl = !it.includeUrl) }
     }
 
     fun toggleAllHeaders() {
-        state.update {
+        _state.update {
             if (it.allHeadersSelected) {
                 it.copy(selectedHeaderKeys = emptySet())
             } else {
@@ -69,7 +69,7 @@ internal class SelectRuleCriteriaViewModel(
     }
 
     fun toggleHeaderKey(key: String) {
-        state.update {
+        _state.update {
             it.copy(
                 selectedHeaderKeys = if (key in it.selectedHeaderKeys) {
                     it.selectedHeaderKeys - key
@@ -81,6 +81,6 @@ internal class SelectRuleCriteriaViewModel(
     }
 
     fun toggleBody() {
-        state.update { it.copy(includeBody = !it.includeBody) }
+        _state.update { it.copy(includeBody = !it.includeBody) }
     }
 }

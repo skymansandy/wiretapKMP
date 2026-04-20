@@ -20,8 +20,8 @@ internal class SocketDetailViewModel(
     private val socketLogManager: SocketLogManager,
 ) : ViewModel() {
 
-    val initialEntry: StateFlow<SocketConnection?>
-        field = MutableStateFlow(null)
+    private val _initialEntry: MutableStateFlow<SocketConnection?> = MutableStateFlow(null)
+    val initialEntry: StateFlow<SocketConnection?> get() = _initialEntry
 
     val liveEntry: StateFlow<SocketConnection?> = socketLogManager.flowSocketById(socketId)
         .stateIn(
@@ -39,7 +39,7 @@ internal class SocketDetailViewModel(
 
     init {
         viewModelScope.launch {
-            initialEntry.value = socketLogManager.getSocketById(socketId)
+            _initialEntry.value = socketLogManager.getSocketById(socketId)
         }
     }
 }
