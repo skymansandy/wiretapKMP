@@ -48,6 +48,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
+import dev.skymansandy.wiretap.helper.util.shareHttpLogAsFile
 import dev.skymansandy.wiretap.helper.util.shareHttpLogs
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
@@ -219,10 +220,11 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as text") },
                                     onClick = {
                                         showShareMenu = false
-                                        shareHttpLogs(
+                                        val message = shareHttpLogs(
                                             subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
                                             text = buildShareText(entry),
                                         )
+                                        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
                                 )
 
@@ -230,9 +232,20 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as cURL") },
                                     onClick = {
                                         showShareMenu = false
-                                        shareHttpLogs(
+                                        val message = shareHttpLogs(
                                             subject = "cURL - ${entry.method} ${entry.url}",
                                             text = buildCurlCommand(entry),
+                                        )
+                                        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
+                                    },
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Share as file") },
+                                    onClick = {
+                                        showShareMenu = false
+                                        shareHttpLogAsFile(
+                                            content = buildShareText(entry),
                                         )
                                     },
                                 )

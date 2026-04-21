@@ -14,6 +14,12 @@
                 android:value="androidx.startup" />
         </provider>
 
+        <provider
+            android:name="dev.skymansandy.wiretap.helper.util.WiretapFileProvider"
+            android:authorities="${applicationId}.wiretap.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
         <activity
             android:name="dev.skymansandy.wiretap.presentation.WiretapConsoleActivity"
             android:exported="false"

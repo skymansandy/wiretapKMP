@@ -160,6 +160,7 @@ Compose Multiplatform UI with:
 - Rule management (create, edit, enable/disable, delete) with conflict detection
 - Two-pane layout on wide screens
 - Copy buttons for headers and bodies
+- Share as file — export any HTTP log as a text file via the platform share sheet (Android/iOS) or open directly (Desktop)
 
 ## Shake to Launch
 

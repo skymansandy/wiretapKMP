@@ -53,7 +53,7 @@ actual fun enableWiretapLauncher() {
     }
 }
 
-private fun getTopMostViewController(
+internal fun getTopMostViewController(
     base: UIViewController? = UIApplication.sharedApplication.topWindow?.rootViewController,
 ): UIViewController? {
     if (base == null) return null
@@ -73,7 +73,7 @@ private fun getTopMostViewController(
     }
 }
 
-private val UIApplication.topWindow: UIWindow?
+internal val UIApplication.topWindow: UIWindow?
     get() = connectedScenes
         .asSequence()
         .mapNotNull { it as? UIWindowScene }

@@ -65,6 +65,7 @@ For full setup instructions including OkHttp and URLSession, see the [**Getting 
 - **Request Throttling** — simulate slow connections with fixed or random delays
 - **Header Masking** — redact sensitive headers from logs
 - **Log Retention** — keep logs forever, per session, or auto-prune after N days
+- **Share as File** — export any HTTP log as a text file and share it via the platform share sheet (Android/iOS) or open it directly (Desktop)
 - **Built-in Inspector UI** — Compose Multiplatform UI for browsing logs and managing rules
 - **No-op Variants** — drop-in release replacements with zero overhead
 
