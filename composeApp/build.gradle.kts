@@ -11,6 +11,10 @@ plugins {
     alias(libs.plugins.ktorfit)
 }
 
+ktorfit {
+    compilerPluginVersion.set("-")
+}
+
 kotlin {
     android {
         namespace = "dev.skymansandy.wiretapsample"
@@ -26,9 +30,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
