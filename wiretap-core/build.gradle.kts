@@ -36,7 +36,6 @@ kotlin {
             isStatic = true
             linkerOpts("-lsqlite3")
             export(projects.wiretapShake)
-            freeCompilerArgs += listOf("-Xdisable-phases=Devirtualization")
         }
         iosTarget.binaries.all {
             linkerOpts("-lsqlite3")

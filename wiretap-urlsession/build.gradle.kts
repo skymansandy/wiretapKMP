@@ -14,7 +14,6 @@ kotlin {
             baseName = "WiretapURLSession"
             isStatic = true
             export(projects.wiretapCore)
-            freeCompilerArgs += listOf("-Xdisable-phases=Devirtualization")
         }
     }
 
