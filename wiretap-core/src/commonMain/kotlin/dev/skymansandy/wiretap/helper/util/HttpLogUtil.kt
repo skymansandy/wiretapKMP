@@ -6,7 +6,9 @@ package dev.skymansandy.wiretap.helper.util
 
 import dev.skymansandy.wiretap.domain.model.HttpLog
 
-internal expect fun shareHttpLogs(subject: String, text: String)
+internal expect fun shareHttpLogs(subject: String, text: String): String?
+
+internal expect fun shareHttpLogAsFile(content: String)
 
 internal fun buildShareText(entry: HttpLog): String = buildString {
     appendLine("${entry.method} ${entry.responseCode}")
