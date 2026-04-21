@@ -3,10 +3,10 @@ package dev.skymansandy.wiretapsample.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretapsample.model.HttpSampleActions
+import dev.skymansandy.wiretapsample.model.KtorfitApis
 import dev.skymansandy.wiretapsample.model.SampleAction
 import dev.skymansandy.wiretapsample.model.ktorHttpActions
 import dev.skymansandy.wiretapsample.ui.theme.actionColor
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class KtorHttpViewModel(
-    private val client: HttpClient,
+    private val apis: KtorfitApis,
 ) : ViewModel(), HttpSampleActions {
 
     private val _statusLog = MutableStateFlow("")
@@ -32,7 +32,7 @@ class KtorHttpViewModel(
         val action = ktorHttpActions[index]
         viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
             try {
-                action.action(client) { _statusLog.value = it }
+                action.action(apis) { _statusLog.value = it }
             } catch (e: Exception) {
                 _statusLog.value = "Error: ${e.message}"
             }

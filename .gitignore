@@ -28,6 +28,9 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
+# Local Xcode config (contains developer Team ID)
+**/Local.xcconfig
+
 # Keystore files
 *.jks
 *.keystore
