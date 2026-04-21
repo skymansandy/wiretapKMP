@@ -1,4 +1,8 @@
-package dev.skymansandy.wiretapsample.di
+/*
+ * Copyright (c) 2026 skymansandy. All rights reserved.
+ */
+
+package dev.skymansandy.wiretapsample.util.serialiser
 
 import io.ktor.http.ContentType
 import io.ktor.http.content.OutgoingContent

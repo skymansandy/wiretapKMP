@@ -7,6 +7,7 @@ import dev.skymansandy.wiretapsample.api._ExternalApiProvider
 import dev.skymansandy.wiretapsample.api._HttpBinApiProvider
 import dev.skymansandy.wiretapsample.api._JsonPlaceholderApiProvider
 import dev.skymansandy.wiretapsample.model.KtorfitApis
+import dev.skymansandy.wiretapsample.util.serialiser.CustomKotlinxSerializationConverter
 import dev.skymansandy.wiretapsample.viewmodel.KtorHttpViewModel
 import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient
