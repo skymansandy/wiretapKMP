@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.ktorfit)
 }
 
+// FIXME: Temporary, remove after a compatible ktorfit will be released with KSP support
 ktorfit {
     compilerPluginVersion.set("-")
 }
