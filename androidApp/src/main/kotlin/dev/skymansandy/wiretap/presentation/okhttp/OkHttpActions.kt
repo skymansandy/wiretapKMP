@@ -2,7 +2,7 @@ package dev.skymansandy.wiretap.presentation.okhttp
 
 import dev.skymansandy.wiretap.okhttp.WiretapOkHttpInterceptor
 import dev.skymansandy.wiretapsample.model.ActionCategory
-import dev.skymansandy.wiretapsample.model.HttpMethod
+import dev.skymansandy.wiretapsample.model.Endpoint
 import dev.skymansandy.wiretapsample.model.HttpTestCase
 import dev.skymansandy.wiretapsample.model.httpTestCases
 import kotlinx.coroutines.Dispatchers
@@ -36,19 +36,31 @@ private fun Response.format(): String =
         append(body.string())
     }
 
+private fun buildOkHttpRequest(case: HttpTestCase.Request): Request {
+    return Request.Builder().url(case.url).apply {
+        case.headers.forEach { (k, v) -> addHeader(k, v) }
+        when (case.endpoint) {
+            Endpoint.JsonPlaceholderCreatePost,
+            Endpoint.HttpBinPostAnything,
+            -> post(
+                (case.body ?: "").toRequestBody("application/json".toMediaType()),
+            )
+            else -> get()
+        }
+    }.build()
+}
+
 internal val okHttpActions: List<OkHttpApiAction> = httpTestCases.map { case ->
     OkHttpApiAction(case.label, case.category) { client, onStatus ->
         onStatus("${case.statusPrefix} ...")
         when (case) {
+            is HttpTestCase.DeserializeJson -> {
+                val request = Request.Builder().url(case.url).get().build()
+                onStatus(client.newCall(request).execute().format())
+            }
+
             is HttpTestCase.Request -> {
-                val request = Request.Builder().url(case.url).apply {
-                    when (case.method) {
-                        HttpMethod.GET -> get()
-                        HttpMethod.POST -> post(
-                            case.body!!.toRequestBody(case.contentType!!.toMediaType()),
-                        )
-                    }
-                }.build()
+                val request = buildOkHttpRequest(case)
                 onStatus(client.newCall(request).execute().format())
             }
 

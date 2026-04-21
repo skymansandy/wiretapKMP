@@ -14,6 +14,7 @@ internal val ColorWsSent = Color(0xFF7E57C2)
 
 val actionColor = mapOf(
     ActionCategory.Success to ColorSuccess,
+    ActionCategory.Serialization to ColorSuccess,
     ActionCategory.Redirect to ColorRedirect,
     ActionCategory.ClientError to ColorClientError,
     ActionCategory.ServerError to ColorServerError,

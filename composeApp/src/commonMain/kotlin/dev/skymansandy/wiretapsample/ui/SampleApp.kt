@@ -280,7 +280,10 @@ private fun groupActions(actions: List<SampleAction>): List<ActionGroup> {
     return actions.mapIndexed { index, action -> index to action }
         .groupBy { (_, action) ->
             when (action.category) {
-                ActionCategory.Success -> "Success"
+                ActionCategory.Success,
+                ActionCategory.Serialization,
+                -> "Success"
+
                 ActionCategory.Redirect,
                 ActionCategory.ClientError,
                 ActionCategory.ServerError,
