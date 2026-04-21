@@ -2,7 +2,6 @@ package dev.skymansandy.wiretapsample.api
 
 import de.jensklingenberg.ktorfit.http.Body
 import de.jensklingenberg.ktorfit.http.GET
-import de.jensklingenberg.ktorfit.http.Header
 import de.jensklingenberg.ktorfit.http.HeaderMap
 import de.jensklingenberg.ktorfit.http.Headers
 import de.jensklingenberg.ktorfit.http.POST

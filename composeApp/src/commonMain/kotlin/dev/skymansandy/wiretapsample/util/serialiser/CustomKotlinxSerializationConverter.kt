@@ -41,7 +41,7 @@ internal class CustomKotlinxSerializationConverter(
             if (type.arguments.isEmpty()) null
             else json.serializersModule.serializerOrNull(type)
         } ?: json.serializersModule.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
-        ?: typeInfo.type.serializer().maybeNullable(typeInfo)
+            ?: typeInfo.type.serializer().maybeNullable(typeInfo)
 
         val parsingBlock = suspend {
             val jsonText = content.readRemaining().readString()
