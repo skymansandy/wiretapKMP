@@ -11,6 +11,11 @@ plugins {
     alias(libs.plugins.ktorfit)
 }
 
+// FIXME: Temporary, remove after a compatible ktorfit will be released with KSP support
+ktorfit {
+    compilerPluginVersion.set("-")
+}
+
 kotlin {
     android {
         namespace = "dev.skymansandy.wiretapsample"
@@ -26,9 +31,9 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)

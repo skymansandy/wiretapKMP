@@ -807,6 +807,7 @@ public final class dev/skymansandy/wiretap/ui/screens/http/components/Composable
 public final class dev/skymansandy/wiretap/ui/screens/http/detail/ComposableSingletons$HttpLogDetailScreenKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/http/detail/ComposableSingletons$HttpLogDetailScreenKt;
 	public fun <init> ()V
+	public final fun getLambda$-1680818611$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-384476162$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-509970603$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-66330939$wiretap_core ()Lkotlin/jvm/functions/Function2;
