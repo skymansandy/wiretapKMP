@@ -13,12 +13,26 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.http.ContentType
+import io.ktor.serialization.ContentConverter
+import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 
 val sampleAppModule = module {
+
+    single<Json> {
+        Json {
+            ignoreUnknownKeys = true
+        }
+    }
+
+    single<ContentConverter> {
+        CustomKotlinxSerializationConverter(
+            json = get(),
+        )
+    }
 
     single {
         HttpClient {
@@ -27,12 +41,15 @@ val sampleAppModule = module {
                 pingIntervalMillis = 5.seconds.inWholeMilliseconds
             }
 
-            install(ContentNegotiation) {
-                json()
-            }
-
             install(WiretapKtorWebSocketPlugin)
             install(WiretapKtorHttpPlugin)
+
+            install(ContentNegotiation) {
+                register(
+                    contentType = ContentType.Application.Json,
+                    converter = get<ContentConverter>(),
+                )
+            }
         }
     }
 
