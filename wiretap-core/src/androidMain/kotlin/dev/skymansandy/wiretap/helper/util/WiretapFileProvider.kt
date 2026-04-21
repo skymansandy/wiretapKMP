@@ -22,7 +22,7 @@ import java.io.File
 internal class WiretapFileProvider : ContentProvider() {
 
     private fun getShareDir(): File {
-        val dir = File(context!!.cacheDir, "wiretap_share")
+        val dir = File(context!!.cacheDir, SHARE_DIR_NAME)
         dir.mkdirs()
         return dir
     }

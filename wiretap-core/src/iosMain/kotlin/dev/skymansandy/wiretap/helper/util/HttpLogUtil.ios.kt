@@ -59,7 +59,7 @@ internal actual fun shareHttpLogs(subject: String, text: String): String? {
 internal actual fun shareHttpLogAsFile(content: String) {
     dispatch_async(dispatch_get_main_queue()) {
         try {
-            val shareDir = NSTemporaryDirectory() + "wiretap_share/"
+            val shareDir = NSTemporaryDirectory() + "$SHARE_DIR_NAME/"
             NSFileManager.defaultManager.createDirectoryAtPath(
                 shareDir,
                 withIntermediateDirectories = true,
@@ -67,7 +67,7 @@ internal actual fun shareHttpLogAsFile(content: String) {
                 error = null,
             )
 
-            val filePath = shareDir + "wiretap_http_log.txt"
+            val filePath = shareDir + HTTP_LOG_FILE_NAME
             val nsContent = NSString.create(string = content)
             val written = nsContent.writeToFile(
                 filePath,

@@ -25,8 +25,8 @@ internal actual fun shareHttpLogs(subject: String, text: String): String? {
 internal actual fun shareHttpLogAsFile(content: String) {
     CoroutineScope(Dispatchers.IO).launch {
         try {
-            val shareDir = File(System.getProperty("java.io.tmpdir"), "wiretap_share").apply { mkdirs() }
-            val file = File(shareDir, "wiretap_http_log.txt")
+            val shareDir = File(System.getProperty("java.io.tmpdir"), SHARE_DIR_NAME).apply { mkdirs() }
+            val file = File(shareDir, HTTP_LOG_FILE_NAME)
             file.writeText(content, Charsets.UTF_8)
 
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {

@@ -5,7 +5,7 @@
 package dev.skymansandy.wiretap.helper.util
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,18 +29,16 @@ internal actual fun shareHttpLogs(subject: String, text: String): String? {
     return null
 }
 
-private const val FILE_NAME = "wiretap_http_log.txt"
-
 internal actual fun shareHttpLogAsFile(content: String) {
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val context = WiretapContextProvider.context
-            val shareDir = File(context.cacheDir, "wiretap_share").apply { mkdirs() }
-            val file = File(shareDir, FILE_NAME)
+            val shareDir = File(context.cacheDir, SHARE_DIR_NAME).apply { mkdirs() }
+            val file = File(shareDir, HTTP_LOG_FILE_NAME)
             file.writeText(content, Charsets.UTF_8)
 
             val authority = "${context.packageName}.wiretap.fileprovider"
-            val uri = Uri.parse("content://$authority/$FILE_NAME")
+            val uri = "content://$authority/$HTTP_LOG_FILE_NAME".toUri()
 
             withContext(Dispatchers.Main) {
                 val intent = Intent(Intent.ACTION_SEND).apply {
