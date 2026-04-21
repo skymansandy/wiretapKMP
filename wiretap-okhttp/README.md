@@ -1,6 +1,6 @@
 # wiretap-okhttp
 
-OkHttp interceptor for WiretapKMP. Logs HTTP requests, responses, and WebSocket connections to the Wiretap database for inspection via the built-in Compose UI.
+OkHttp interceptor for WiretapKMP. Logs HTTP requests, responses, WebSocket connections, and SSE (Server-Sent Events) streams to the Wiretap database for inspection via the built-in Compose UI.
 
 **Platforms:** Android, JVM
 
@@ -21,6 +21,7 @@ The noop module has an identical API surface — `WiretapOkHttpInterceptor` simp
 
 - [HTTP Interceptor (`WiretapOkHttpInterceptor`)](#-http-interceptor-wiretapokhttpinterceptor)
 - [WebSocket Listener (`WiretapOkHttpWebSocketListener`)](#-websocket-listener-wiretapokhttpwebsocketlistener)
+- [SSE Listener (`WiretapOkHttpEventSourceListener`)](#-sse-listener-wiretapokhttpeventsourcelistener)
 
 ---
 
@@ -176,3 +177,42 @@ client.newWebSocket(
 | `onFailure(throwable)`         | Status updated to `Failed` with error  |
 
 The noop module (`wiretap-okhttp-noop`) provides the same `WiretapOkHttpWebSocketListener` class and `wiretapped()` extension but delegates all callbacks directly without logging.
+
+---
+
+## 📡 SSE Listener (`WiretapOkHttpEventSourceListener`)
+
+### ⚙️ How It Works
+
+`WiretapOkHttpEventSourceListener` wraps your `EventSourceListener` to log all SSE connection lifecycle events and incoming events.
+
+1. **On open** — Creates an SSE connection entry with URL, request headers, and status `Open`.
+2. **On event** — Logs each incoming event with type, data, ID, and byte count.
+3. **On close/failure** — Connection status is updated to `Closed` or `Failed` with error message.
+
+### 🔧 Usage
+
+#### Extension function (recommended)
+
+```kotlin
+val factory = EventSources.createFactory(client)
+val source = factory.newEventSource(request, myListener.wiretapped())
+```
+
+#### Constructor
+
+```kotlin
+val listener = WiretapOkHttpEventSourceListener(myListener)
+val source = factory.newEventSource(request, listener)
+```
+
+### What Gets Logged
+
+| Event                          | Logged as                              |
+|--------------------------------|----------------------------------------|
+| `onOpen()`                     | Connection with status `Open`          |
+| `onEvent(id, type, data)`      | Event type, data payload, event ID, byte count |
+| `onClosed()`                   | Status updated to `Closed`             |
+| `onFailure(throwable)`         | Status updated to `Failed` with error  |
+
+The noop module (`wiretap-okhttp-noop`) provides the same `WiretapOkHttpEventSourceListener` class and `wiretapped()` extension but delegates all callbacks directly without logging.

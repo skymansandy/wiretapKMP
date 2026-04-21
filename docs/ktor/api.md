@@ -90,12 +90,51 @@ class WiretapConfig {
 
 ---
 
+## WiretapKtorSsePlugin
+
+```kotlin
+val WiretapKtorSsePlugin: ClientPlugin<Unit>
+```
+
+Placeholder plugin for SSE inspection. SSE connection tracking is handled by the `wiretapped()` extension on `ClientSSESession`.
+
+---
+
+## wiretapped() (SSE)
+
+```kotlin
+suspend fun ClientSSESession.wiretapped(): WiretapSseSession
+```
+
+Extension to wrap a Ktor SSE session for event logging. Creates a connection entry in Wiretap and returns a `WiretapSseSession` that intercepts incoming events.
+
+---
+
+## WiretapSseSession
+
+```kotlin
+interface WiretapSseSession {
+    val call: HttpClientCall
+    val incoming: Flow<ServerSentEvent>
+}
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `call` | `HttpClientCall` | The underlying HTTP call for this SSE connection |
+| `incoming` | `Flow<ServerSentEvent>` | Incoming events with automatic logging |
+
+---
+
 ## No-op (wiretap-ktor-noop)
 
 | Component | Behavior |
 |-----------|----------|
 | `WiretapKtorHttpPlugin` | Empty plugin body |
 | `WiretapKtorWebSocketPlugin` | Empty plugin body |
+| `WiretapKtorSsePlugin` | Empty plugin body |
 | `wiretapModule` | Empty Koin module |
 
 Same function signatures — zero overhead, safe to install.

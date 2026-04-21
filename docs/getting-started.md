@@ -1,6 +1,6 @@
 # Getting Started
 
-WiretapKMP is a network inspection SDK for Kotlin Multiplatform and Swift. It captures HTTP and WebSocket traffic from your app, stores it locally, and gives you a built-in UI to browse requests, responses, and WebSocket messages — no proxy server needed.
+WiretapKMP is a network inspection SDK for Kotlin Multiplatform and Swift. It captures HTTP, WebSocket, and SSE (Server-Sent Events) traffic from your app, stores it locally, and gives you a built-in UI to browse requests, responses, WebSocket messages, and SSE events — no proxy server needed.
 
 ## How It Works
 
@@ -110,6 +110,7 @@ Once Wiretap is set up, you can:
 
 - **Browse HTTP logs** — see every request and response with headers, bodies, status codes, and timing
 - **Inspect WebSocket connections** — view connection lifecycle and every message sent/received
+- **Inspect SSE connections** — view SSE connection lifecycle and every incoming event with type, data, and ID
 - **Mock API responses** — create rules that return fake responses without hitting the network
 - **Throttle requests** — add artificial delay to simulate slow connections
 - **Mask sensitive headers** — redact Authorization, Cookie, or any header from logs
@@ -119,6 +120,6 @@ Once Wiretap is set up, you can:
 
 Each plugin has detailed documentation covering configuration, WebSocket support, mock/throttle rules, and more:
 
-- [Ktor Plugin](ktor/setup.md) — HTTP plugin, WebSocket plugin, configuration reference
-- [OkHttp Interceptor](okhttp/setup.md) — HTTP interceptor, WebSocket listener, configuration reference
+- [Ktor Plugin](ktor/setup.md) — HTTP plugin, WebSocket plugin, SSE plugin, configuration reference
+- [OkHttp Interceptor](okhttp/setup.md) — HTTP interceptor, WebSocket listener, SSE listener, configuration reference
 - [URLSession Wrapper](urlsession/setup.md) — WiretapURLSession, SPM setup, Swift type bridging

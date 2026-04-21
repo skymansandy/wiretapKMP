@@ -8,7 +8,7 @@
   <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC9-blue" alt="Maven Central"/></a>
 </p>
 
-WiretapKMP is a network inspection and mocking SDK for **Kotlin Multiplatform** and **Swift**. Add it to your app to capture HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed. It works with **Ktor**, **OkHttp**, and **URLSession**.
+WiretapKMP is a network inspection and mocking SDK for **Kotlin Multiplatform** and **Swift**. Add it to your app to capture HTTP, WebSocket, and SSE (Server-Sent Events) traffic, mock API responses, and throttle requests — no proxy server needed. It works with **Ktor**, **OkHttp**, and **URLSession**.
 
 ## Getting Started
 
@@ -60,7 +60,7 @@ For full setup instructions including OkHttp and URLSession, see the [**Getting 
 
 ## Features
 
-- **HTTP & WebSocket Logging** — capture URLs, headers, bodies, status codes, timing, and TLS details
+- **HTTP, WebSocket & SSE Logging** — capture URLs, headers, bodies, status codes, timing, and TLS details. SSE connections log event type, data, event ID, and retry intervals.
 - **API Mocking** — return fake responses without hitting the network
 - **Request Throttling** — simulate slow connections with fixed or random delays
 - **Header Masking** — redact sensitive headers from logs

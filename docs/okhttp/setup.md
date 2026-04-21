@@ -50,6 +50,29 @@ val listener = WiretapOkHttpWebSocketListener(myWebSocketListener)
 client.newWebSocket(request, listener)
 ```
 
+## With SSE Support
+
+Use the `wiretapped()` extension on your `EventSourceListener`:
+
+```kotlin
+val client = OkHttpClient.Builder()
+    .addInterceptor(WiretapOkHttpInterceptor())
+    .build()
+
+val factory = EventSources.createFactory(client)
+val request = Request.Builder().url("https://example.com/events").build()
+factory.newEventSource(request, myEventSourceListener.wiretapped())
+```
+
+Or use the constructor directly:
+
+```kotlin
+val listener = WiretapOkHttpEventSourceListener(myEventSourceListener)
+factory.newEventSource(request, listener)
+```
+
+[:material-arrow-right: Full SSE logging guide](sse.md)
+
 ## DI Setup Example
 
 ```kotlin

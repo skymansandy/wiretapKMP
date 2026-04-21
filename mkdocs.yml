@@ -75,11 +75,13 @@ nav:
       - Setup: ktor/setup.md
       - HTTP Logging: ktor/http.md
       - WebSocket Logging: ktor/websockets.md
+      - SSE Logging: ktor/sse.md
       - API Reference: ktor/api.md
   - OkHttp Interceptor:
       - Setup: okhttp/setup.md
       - HTTP Logging: okhttp/http.md
       - WebSocket Logging: okhttp/websockets.md
+      - SSE Logging: okhttp/sse.md
       - API Reference: okhttp/api.md
   - URLSession Wrapper (Swift):
       - Setup: urlsession/setup.md
