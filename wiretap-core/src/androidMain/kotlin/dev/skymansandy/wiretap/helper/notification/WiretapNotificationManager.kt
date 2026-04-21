@@ -15,13 +15,13 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import co.touchlab.stately.collections.ConcurrentMutableList
-import co.touchlab.stately.collections.ConcurrentMutableMap
-import co.touchlab.stately.collections.ConcurrentMutableSet
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.SseConnection
+import dev.skymansandy.wiretap.domain.model.SseEvent
+import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.helper.launcher.WiretapIconFactory
 import dev.skymansandy.wiretap.helper.launcher.getLaunchIntent
 import dev.skymansandy.wiretap.helper.util.PermissionUtil.canPostNotifications
@@ -33,26 +33,30 @@ internal object WiretapNotificationManager {
     private const val SUMMARY_NOTIFICATION_ID = 9000
     private const val HTTP_NOTIFICATION_ID = 9001
     private const val SOCKET_NOTIFICATION_ID_BASE = 10000
+    private const val SSE_NOTIFICATION_ID_BASE = 20000
     private const val MAX_ENTRIES = 6
     private const val MAX_SOCKET_MESSAGES = 6
+    private const val MAX_SSE_EVENTS = 6
 
     internal const val ACTION_CLEAR_HTTP_LOGS = "dev.skymansandy.wiretap.ACTION_CLEAR_HTTP_LOGS"
     internal const val EXTRA_SOCKET_ID = "wiretap_socket_id"
+    internal const val EXTRA_SSE_CONNECTION_ID = "wiretap_sse_connection_id"
 
     private val notificationIcon by lazy {
         IconCompat.createWithBitmap(WiretapIconFactory.notificationBitmap)
     }
 
-    private val recentHttpEntries = ConcurrentMutableList<HttpLog>()
+    private val lock = Any()
 
-    // Per-socket recent messages: socketId -> list of formatted message strings
-    private val socketMessages = ConcurrentMutableMap<Long, ConcurrentMutableList<String>>()
+    private val recentHttpEntries = mutableListOf<HttpLog>()
 
-    // Socket entries for status tracking
-    private val socketEntries = ConcurrentMutableMap<Long, SocketConnection>()
+    private val socketMessages = mutableMapOf<Long, MutableList<String>>()
+    private val socketEntries = mutableMapOf<Long, SocketConnection>()
+    private val activeSocketNotificationIds = mutableSetOf<Int>()
 
-    // Track active socket notification IDs for cleanup
-    private val activeSocketNotificationIds = ConcurrentMutableSet<Int>()
+    private val sseEvents = mutableMapOf<Long, MutableList<String>>()
+    private val sseEntries = mutableMapOf<Long, SseConnection>()
+    private val activeSseNotificationIds = mutableSetOf<Int>()
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -68,29 +72,29 @@ internal object WiretapNotificationManager {
     fun notifyHttpLog(context: Context, log: HttpLog) {
         if (!canPostNotifications(context)) return
 
-        // Snapshot to avoid ConcurrentModificationException during indexOfFirst iteration
-        val existingIndex = recentHttpEntries.toList().indexOfFirst { it.id == log.id }
-        if (existingIndex >= 0) {
-            recentHttpEntries[existingIndex] = log
-        } else {
-            if (recentHttpEntries.size >= MAX_ENTRIES) recentHttpEntries.removeAt(0)
-            recentHttpEntries.add(log)
+        synchronized(lock) {
+            val existingIndex = recentHttpEntries.indexOfFirst { it.id == log.id }
+            if (existingIndex >= 0) {
+                recentHttpEntries[existingIndex] = log
+            } else {
+                if (recentHttpEntries.size >= MAX_ENTRIES) recentHttpEntries.removeAt(0)
+                recentHttpEntries.add(log)
+            }
         }
 
         postHttpNotification(context)
-
         postSummaryIfNeeded(context)
     }
 
     fun notifyNewSocket(context: Context, entry: SocketConnection) {
         if (!canPostNotifications(context)) return
 
-        // Update socket message notification with latest status (ongoing/closed)
-        socketEntries[entry.id] = entry
-        val messages = socketMessages[entry.id]
-        if (messages != null) {
-            postSocketMessageNotification(context, entry, messages.toList())
+        val snapshot: List<String>
+        synchronized(lock) {
+            socketEntries[entry.id] = entry
+            snapshot = socketMessages[entry.id]?.toList() ?: emptyList()
         }
+        postSocketMessageNotification(context, entry, snapshot)
 
         postSummaryIfNeeded(context)
     }
@@ -98,37 +102,119 @@ internal object WiretapNotificationManager {
     fun notifySocketMessage(context: Context, entry: SocketConnection, message: SocketMessage) {
         if (!canPostNotifications(context)) return
 
-        socketEntries[entry.id] = entry
-        val messages = socketMessages.getOrPut(entry.id) { ConcurrentMutableList() }
-        if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeAt(0)
-        messages.add(NotificationFormatUtil.formatSocketMessage(message))
-        postSocketMessageNotification(context, entry, messages.toList())
+        val snapshot: List<String>
+        synchronized(lock) {
+            socketEntries[entry.id] = entry
+            val messages = socketMessages.getOrPut(entry.id) { mutableListOf() }
+            if (messages.size >= MAX_SOCKET_MESSAGES) messages.removeAt(0)
+            messages.add(NotificationFormatUtil.formatSocketMessage(message))
+            snapshot = messages.toList()
+        }
+        postSocketMessageNotification(context, entry, snapshot)
 
         postSummaryIfNeeded(context)
     }
 
+    fun removeHttpEntry(context: Context, id: Long) {
+        val removed = synchronized(lock) {
+            val index = recentHttpEntries.indexOfFirst { it.id == id }
+            if (index >= 0) {
+                recentHttpEntries.removeAt(index)
+                true
+            } else {
+                false
+            }
+        }
+        if (removed) {
+            val snapshot = synchronized(lock) { recentHttpEntries.toList() }
+            if (snapshot.isEmpty()) {
+                NotificationManagerCompat.from(context).cancel(HTTP_NOTIFICATION_ID)
+            } else {
+                postHttpNotification(context)
+            }
+        }
+    }
+
     fun clearHttpNotifications(context: Context) {
-        recentHttpEntries.clear()
+        synchronized(lock) {
+            recentHttpEntries.clear()
+        }
         val manager = NotificationManagerCompat.from(context)
         manager.cancel(HTTP_NOTIFICATION_ID)
 
-        // Update or cancel summary
-        if (activeSocketNotificationIds.isEmpty()) {
+        val cancelSummary = synchronized(lock) {
+            activeSocketNotificationIds.isEmpty() && activeSseNotificationIds.isEmpty()
+        }
+        if (cancelSummary) {
             manager.cancel(SUMMARY_NOTIFICATION_ID)
         }
     }
 
     fun clearSockets(context: Context) {
-        socketMessages.clear()
-        socketEntries.clear()
+        val idsToCancel: List<Int>
+        synchronized(lock) {
+            socketMessages.clear()
+            socketEntries.clear()
+            idsToCancel = activeSocketNotificationIds.toList()
+            activeSocketNotificationIds.clear()
+        }
 
         val manager = NotificationManagerCompat.from(context)
-        // Snapshot to avoid ConcurrentModificationException during forEach
-        activeSocketNotificationIds.toList().forEach { manager.cancel(it) }
-        activeSocketNotificationIds.clear()
+        idsToCancel.forEach { manager.cancel(it) }
 
-        // Update or cancel summary
-        if (recentHttpEntries.isEmpty()) {
+        val cancelSummary = synchronized(lock) {
+            recentHttpEntries.isEmpty() && activeSseNotificationIds.isEmpty()
+        }
+        if (cancelSummary) {
+            manager.cancel(SUMMARY_NOTIFICATION_ID)
+        }
+    }
+
+    fun notifyNewSse(context: Context, entry: SseConnection) {
+        if (!canPostNotifications(context)) return
+
+        val snapshot: List<String>
+        synchronized(lock) {
+            sseEntries[entry.id] = entry
+            snapshot = sseEvents[entry.id]?.toList() ?: emptyList()
+        }
+        postSseEventNotification(context, entry, snapshot)
+
+        postSummaryIfNeeded(context)
+    }
+
+    fun notifySseEvent(context: Context, entry: SseConnection, event: SseEvent) {
+        if (!canPostNotifications(context)) return
+
+        val snapshot: List<String>
+        synchronized(lock) {
+            sseEntries[entry.id] = entry
+            val events = sseEvents.getOrPut(entry.id) { mutableListOf() }
+            if (events.size >= MAX_SSE_EVENTS) events.removeAt(0)
+            events.add(NotificationFormatUtil.formatSseEvent(event))
+            snapshot = events.toList()
+        }
+        postSseEventNotification(context, entry, snapshot)
+
+        postSummaryIfNeeded(context)
+    }
+
+    fun clearSse(context: Context) {
+        val idsToCancel: List<Int>
+        synchronized(lock) {
+            sseEvents.clear()
+            sseEntries.clear()
+            idsToCancel = activeSseNotificationIds.toList()
+            activeSseNotificationIds.clear()
+        }
+
+        val manager = NotificationManagerCompat.from(context)
+        idsToCancel.forEach { manager.cancel(it) }
+
+        val cancelSummary = synchronized(lock) {
+            recentHttpEntries.isEmpty() && activeSocketNotificationIds.isEmpty()
+        }
+        if (cancelSummary) {
             manager.cancel(SUMMARY_NOTIFICATION_ID)
         }
     }
@@ -136,16 +222,23 @@ internal object WiretapNotificationManager {
     private fun socketNotificationId(socketId: Long): Int =
         SOCKET_NOTIFICATION_ID_BASE + (socketId % 1000).toInt()
 
-    /**
-     * Posts the group summary. Only needed when there are multiple child notifications
-     * (HTTP + at least one socket). Without children, the HTTP notification shows standalone.
-     */
+    private fun sseNotificationId(connectionId: Long): Int =
+        SSE_NOTIFICATION_ID_BASE + (connectionId % 1000).toInt()
+
     @SuppressLint("MissingPermission")
     private fun postSummaryIfNeeded(context: Context) {
         if (!canPostNotifications(context)) return
-        if (activeSocketNotificationIds.isEmpty() || recentHttpEntries.isEmpty()) return
+        val (hasMultipleGroups, total) = synchronized(lock) {
+            val groups = listOf(
+                recentHttpEntries.isNotEmpty(),
+                activeSocketNotificationIds.isNotEmpty(),
+                activeSseNotificationIds.isNotEmpty(),
+            ).count { it }
+            val total = recentHttpEntries.size + socketEntries.size + sseEntries.size
+            (groups >= 2) to total
+        }
+        if (!hasMultipleGroups) return
 
-        val total = recentHttpEntries.size + socketEntries.size
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(notificationIcon)
             .setContentTitle("Wiretap")
@@ -159,16 +252,11 @@ internal object WiretapNotificationManager {
         NotificationManagerCompat.from(context).notify(SUMMARY_NOTIFICATION_ID, notification)
     }
 
-    /**
-     * Single notification for all HTTP traffic, shown as InboxStyle with recent entries.
-     * When socket notifications exist, this becomes a child in the group.
-     */
     @SuppressLint("MissingPermission")
     private fun postHttpNotification(context: Context) {
         if (!canPostNotifications(context)) return
 
-        // Snapshot to avoid ConcurrentModificationException during forEach
-        val snapshot = recentHttpEntries.toList()
+        val snapshot = synchronized(lock) { recentHttpEntries.toList() }
         if (snapshot.isEmpty()) return
 
         val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle("View network traffic")
@@ -198,7 +286,7 @@ internal object WiretapNotificationManager {
         if (!canPostNotifications(context)) return
 
         val notificationId = socketNotificationId(socket.id)
-        activeSocketNotificationIds.add(notificationId)
+        synchronized(lock) { activeSocketNotificationIds.add(notificationId) }
 
         val urlDisplay = NotificationFormatUtil.socketUrlDisplay(socket.url)
         val statusLabel = socket.status.name
@@ -207,23 +295,61 @@ internal object WiretapNotificationManager {
         val isActive =
             socket.status == SocketStatus.Open || socket.status == SocketStatus.Connecting
 
-        val messageSnapshot = messages.toList()
         val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle(title)
-        messageSnapshot.forEach { inboxStyle.addLine(it) }
+        messages.forEach { inboxStyle.addLine(it) }
 
-        if (socket.messageCount > messageSnapshot.size) {
+        if (socket.messageCount > messages.size) {
             inboxStyle.setSummaryText("${socket.messageCount} messages total")
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(notificationIcon)
             .setContentTitle(title)
-            .setContentText(messageSnapshot.lastOrNull() ?: "No messages")
+            .setContentText(messages.lastOrNull() ?: "No messages")
             .setStyle(inboxStyle)
             .setOnlyAlertOnce(true)
             .setOngoing(isActive)
             .setGroup(GROUP_KEY)
             .setContentIntent(openSocketDetailIntent(context, socket.id))
+            .build()
+
+        NotificationManagerCompat.from(context).notify(notificationId, notification)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun postSseEventNotification(
+        context: Context,
+        connection: SseConnection,
+        events: List<String>,
+    ) {
+        if (!canPostNotifications(context)) return
+
+        val notificationId = sseNotificationId(connection.id)
+        synchronized(lock) { activeSseNotificationIds.add(notificationId) }
+
+        val urlDisplay = NotificationFormatUtil.sseUrlDisplay(connection.url)
+        val statusLabel = connection.status.name
+        val title = "SSE $urlDisplay [$statusLabel]"
+
+        val isActive =
+            connection.status == SseStatus.Open || connection.status == SseStatus.Connecting
+
+        val inboxStyle = NotificationCompat.InboxStyle().setBigContentTitle(title)
+        events.forEach { inboxStyle.addLine(it) }
+
+        if (connection.eventCount > events.size) {
+            inboxStyle.setSummaryText("${connection.eventCount} events total")
+        }
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(notificationIcon)
+            .setContentTitle(title)
+            .setContentText(events.lastOrNull() ?: "No events")
+            .setStyle(inboxStyle)
+            .setOnlyAlertOnce(true)
+            .setOngoing(isActive)
+            .setGroup(GROUP_KEY)
+            .setContentIntent(openSseDetailIntent(context, connection.id))
             .build()
 
         NotificationManagerCompat.from(context).notify(notificationId, notification)
@@ -240,10 +366,23 @@ internal object WiretapNotificationManager {
     private fun openSocketDetailIntent(context: Context, socketId: Long): PendingIntent =
         PendingIntent.getActivity(
             /* context = */ context,
-            /* requestCode = */ socketId.toInt(),
+            /* requestCode = */ SOCKET_NOTIFICATION_ID_BASE + socketId.toInt(),
             /* intent = */
             getLaunchIntent().apply {
                 putExtra(EXTRA_SOCKET_ID, socketId)
+                removeExtra(EXTRA_SSE_CONNECTION_ID)
+            },
+            /* flags = */ PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+
+    private fun openSseDetailIntent(context: Context, connectionId: Long): PendingIntent =
+        PendingIntent.getActivity(
+            /* context = */ context,
+            /* requestCode = */ SSE_NOTIFICATION_ID_BASE + connectionId.toInt(),
+            /* intent = */
+            getLaunchIntent().apply {
+                putExtra(EXTRA_SSE_CONNECTION_ID, connectionId)
+                removeExtra(EXTRA_SOCKET_ID)
             },
             /* flags = */ PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )

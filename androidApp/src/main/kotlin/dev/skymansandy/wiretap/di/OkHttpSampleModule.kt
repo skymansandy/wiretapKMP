@@ -1,5 +1,6 @@
 package dev.skymansandy.wiretap.di
 
+import dev.skymansandy.wiretap.presentation.okhttp.OkHttpSseViewModel
 import dev.skymansandy.wiretap.presentation.okhttp.OkHttpViewModel
 import dev.skymansandy.wiretap.presentation.okhttp.OkHttpWsViewModel
 import dev.skymansandy.wiretap.presentation.okhttp.createOkHttpClient
@@ -12,4 +13,6 @@ internal val okHttpSampleModule = module {
     viewModelOf(::OkHttpViewModel)
 
     viewModelOf(::OkHttpWsViewModel)
+
+    viewModelOf(::OkHttpSseViewModel)
 }

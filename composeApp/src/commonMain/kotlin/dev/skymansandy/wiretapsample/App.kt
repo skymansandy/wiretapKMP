@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import dev.skymansandy.wiretapsample.di.sampleAppModule
 import dev.skymansandy.wiretapsample.ui.SampleApp
 import dev.skymansandy.wiretapsample.viewmodel.KtorHttpViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorSseViewModel
 import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
@@ -20,6 +21,7 @@ fun App(title: String = "") {
             title = title,
             httpActions = koinViewModel<KtorHttpViewModel>(),
             wsActions = koinViewModel<KtorWebSocketViewModel>(),
+            sseActions = koinViewModel<KtorSseViewModel>(),
         )
     }
 }

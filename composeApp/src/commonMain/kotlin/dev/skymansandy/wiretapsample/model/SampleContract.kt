@@ -36,3 +36,14 @@ interface WsSampleActions {
     fun toggleConnection()
     fun sendMessage(text: String)
 }
+
+interface SseSampleActions {
+
+    val isConnected: StateFlow<Boolean>
+    val isConnecting: StateFlow<Boolean>
+    val servers: List<Pair<String, String>>
+    val selectedServerIndex: StateFlow<Int>
+    val eventLog: SnapshotStateList<SampleMessage>
+    fun selectServer(index: Int)
+    fun toggleConnection()
+}

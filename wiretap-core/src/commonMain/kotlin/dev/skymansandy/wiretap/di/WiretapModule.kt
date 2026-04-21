@@ -8,6 +8,8 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManagerImpl
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManagerImpl
+import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.SseLogManagerImpl
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import org.koin.dsl.module
@@ -28,6 +30,13 @@ internal val wiretapModule = module {
     single<SocketLogManager> {
         SocketLogManagerImpl(
             socketRepository = get(),
+            wiretapLogger = get(),
+        )
+    }
+
+    single<SseLogManager> {
+        SseLogManagerImpl(
+            sseRepository = get(),
             wiretapLogger = get(),
         )
     }

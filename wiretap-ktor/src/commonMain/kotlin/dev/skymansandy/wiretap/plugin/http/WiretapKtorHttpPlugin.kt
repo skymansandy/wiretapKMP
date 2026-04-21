@@ -121,6 +121,12 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
             urlString.startsWith("ws://") || urlString.startsWith("wss://")
         if (isWebSocketUpgrade || isWebSocketScheme) return@on proceed(request)
 
+        // Skip SSE requests — handled by WiretapKtorSsePlugin / wiretapped()
+        val acceptHeader = request.headers.getAll("Accept")
+        val isSseRequest =
+            acceptHeader?.any { it.contains("text/event-stream", ignoreCase = true) } == true
+        if (isSseRequest) return@on proceed(request)
+
         val url = request.url.buildString()
         val method = request.method.value
         val requestHeaders = request.headers.entries()
@@ -248,6 +254,13 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig)
 
         // WebSocket upgrade (101) — remove any HTTP log entry; socket plugin handles it
         if (response.status.value == 101) {
+            deps.httpLogManager.deleteHttpLog(logEntryId)
+            return@onResponse
+        }
+
+        // SSE stream — remove the HTTP log entry; SSE plugin handles it
+        val contentType = response.headers["Content-Type"]
+        if (contentType != null && contentType.contains("text/event-stream", ignoreCase = true)) {
             deps.httpLogManager.deleteHttpLog(logEntryId)
             return@onResponse
         }

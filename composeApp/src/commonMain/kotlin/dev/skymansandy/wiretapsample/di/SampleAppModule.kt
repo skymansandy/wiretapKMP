@@ -2,6 +2,7 @@ package dev.skymansandy.wiretapsample.di
 
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.skymansandy.wiretap.plugin.http.WiretapKtorHttpPlugin
+import dev.skymansandy.wiretap.plugin.sse.WiretapKtorSsePlugin
 import dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
 import dev.skymansandy.wiretapsample.api._ExternalApiProvider
 import dev.skymansandy.wiretapsample.api._HttpBinApiProvider
@@ -9,10 +10,12 @@ import dev.skymansandy.wiretapsample.api._JsonPlaceholderApiProvider
 import dev.skymansandy.wiretapsample.model.KtorfitApis
 import dev.skymansandy.wiretapsample.util.serialiser.CustomKotlinxSerializationConverter
 import dev.skymansandy.wiretapsample.viewmodel.KtorHttpViewModel
+import dev.skymansandy.wiretapsample.viewmodel.KtorSseViewModel
 import dev.skymansandy.wiretapsample.viewmodel.KtorWebSocketViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
 import io.ktor.serialization.ContentConverter
@@ -42,7 +45,9 @@ val sampleAppModule = module {
                 pingIntervalMillis = 5.seconds.inWholeMilliseconds
             }
 
+            install(SSE)
             install(WiretapKtorWebSocketPlugin)
+            install(WiretapKtorSsePlugin)
             install(WiretapKtorHttpPlugin)
 
             install(ContentNegotiation) {
@@ -93,4 +98,6 @@ val sampleAppModule = module {
     viewModelOf(::KtorHttpViewModel)
 
     viewModelOf(::KtorWebSocketViewModel)
+
+    viewModelOf(::KtorSseViewModel)
 }

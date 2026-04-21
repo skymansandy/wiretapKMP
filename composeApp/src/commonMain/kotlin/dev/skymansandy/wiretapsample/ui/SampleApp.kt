@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ButtonDefaults
@@ -60,6 +61,7 @@ import dev.skymansandy.wiretapsample.model.ActionCategory
 import dev.skymansandy.wiretapsample.model.HttpSampleActions
 import dev.skymansandy.wiretapsample.model.SampleAction
 import dev.skymansandy.wiretapsample.model.SampleMessage
+import dev.skymansandy.wiretapsample.model.SseSampleActions
 import dev.skymansandy.wiretapsample.model.TabItem
 import dev.skymansandy.wiretapsample.model.WsSampleActions
 import dev.skymansandy.wiretapsample.resources.Res
@@ -71,9 +73,11 @@ import dev.skymansandy.wiretapsample.resources.http_requests
 import dev.skymansandy.wiretapsample.resources.received_indicator
 import dev.skymansandy.wiretapsample.resources.send
 import dev.skymansandy.wiretapsample.resources.sent_indicator
+import dev.skymansandy.wiretapsample.resources.sse_title
 import dev.skymansandy.wiretapsample.resources.status_label
 import dev.skymansandy.wiretapsample.resources.status_ready
 import dev.skymansandy.wiretapsample.resources.tab_http
+import dev.skymansandy.wiretapsample.resources.tab_sse
 import dev.skymansandy.wiretapsample.resources.tab_websocket
 import dev.skymansandy.wiretapsample.resources.type_message
 import dev.skymansandy.wiretapsample.resources.websocket_title
@@ -91,6 +95,7 @@ fun SampleApp(
     title: String = "",
     httpActions: HttpSampleActions,
     wsActions: WsSampleActions,
+    sseActions: SseSampleActions,
 ) {
     LaunchedEffect(Unit) {
         enableWiretapLauncher()
@@ -106,6 +111,10 @@ fun SampleApp(
         TabItem(
             icon = Icons.Default.Wifi,
             label = stringResource(Res.string.tab_websocket),
+        ),
+        TabItem(
+            icon = Icons.Default.CloudSync,
+            label = stringResource(Res.string.tab_sse),
         ),
     )
 
@@ -126,6 +135,7 @@ fun SampleApp(
                             selectedTab = selectedTab,
                             httpActions = httpActions,
                             wsActions = wsActions,
+                            sseActions = sseActions,
                         )
                     },
                 )
@@ -141,6 +151,7 @@ fun SampleApp(
                             selectedTab = selectedTab,
                             httpActions = httpActions,
                             wsActions = wsActions,
+                            sseActions = sseActions,
                         )
                     },
                 )
@@ -155,10 +166,12 @@ private fun TabContent(
     selectedTab: Int,
     httpActions: HttpSampleActions,
     wsActions: WsSampleActions,
+    sseActions: SseSampleActions,
 ) {
     when (selectedTab) {
         0 -> HttpTab(modifier = modifier, httpActions = httpActions)
         1 -> WsTab(modifier = modifier, wsActions = wsActions)
+        2 -> SseTab(modifier = modifier, sseActions = sseActions)
     }
 }
 
@@ -340,7 +353,7 @@ private fun StatusWindow(
 
 // endregion
 
-// region WebSocket Tab
+// region WebSocket Tab (and shared message log)
 
 @Composable
 private fun WsTab(
@@ -646,6 +659,172 @@ private fun WsMessageItem(entry: SampleMessage) {
                     color = textColor,
                 )
             }
+        }
+    }
+}
+
+// endregion
+
+// region SSE Tab
+
+@Composable
+private fun SseTab(
+    sseActions: SseSampleActions,
+    modifier: Modifier = Modifier,
+) {
+    val isConnected by sseActions.isConnected.collectAsStateWithLifecycle()
+    val isConnecting by sseActions.isConnecting.collectAsStateWithLifecycle()
+    val selectedServerIndex by sseActions.selectedServerIndex.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
+
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItems = listState.layoutInfo.totalItemsCount
+            totalItems == 0 || lastVisibleItem >= totalItems - 2
+        }
+    }
+
+    LaunchedEffect(sseActions.eventLog.size) {
+        if (sseActions.eventLog.isNotEmpty() && isAtBottom) {
+            listState.animateScrollToItem(sseActions.eventLog.size - 1)
+        }
+    }
+
+    val isWideScreen = LocalWideScreen.current
+
+    if (isWideScreen) {
+        Row(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(Res.string.sse_title),
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                SseServerSelector(
+                    sseActions = sseActions,
+                    selectedServerIndex = selectedServerIndex,
+                )
+
+                SseConnectionControl(
+                    sseActions = sseActions,
+                    isConnected = isConnected,
+                    isConnecting = isConnecting,
+                )
+            }
+
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                listState = listState,
+                messageLog = sseActions.eventLog,
+            )
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = stringResource(Res.string.sse_title),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+
+            SseServerSelector(
+                sseActions = sseActions,
+                selectedServerIndex = selectedServerIndex,
+            )
+
+            SseConnectionControl(
+                sseActions = sseActions,
+                isConnected = isConnected,
+                isConnecting = isConnecting,
+            )
+
+            WsMessageLog(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                listState = listState,
+                messageLog = sseActions.eventLog,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SseServerSelector(
+    sseActions: SseSampleActions,
+    selectedServerIndex: Int,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        sseActions.servers.forEachIndexed { index, (_, label) ->
+            OutlinedButton(
+                onClick = { sseActions.selectServer(index) },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = when (selectedServerIndex) {
+                        index -> MaterialTheme.colorScheme.primaryContainer
+                        else -> Color.Transparent
+                    },
+                ),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SseConnectionControl(
+    sseActions: SseSampleActions,
+    isConnected: Boolean,
+    isConnecting: Boolean,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedButton(
+            onClick = { sseActions.toggleConnection() },
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (isConnected) ColorServerError else ColorSuccess,
+            ),
+            enabled = !isConnecting,
+        ) {
+            Text(
+                text = when {
+                    isConnecting -> stringResource(Res.string.connecting)
+                    isConnected -> stringResource(Res.string.disconnect)
+                    else -> stringResource(Res.string.connect)
+                },
+                fontWeight = FontWeight.Bold,
+            )
+        }
+
+        if (isConnected) {
+            Text(
+                text = stringResource(Res.string.connected),
+                style = MaterialTheme.typography.labelMedium,
+                color = ColorSuccess,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }

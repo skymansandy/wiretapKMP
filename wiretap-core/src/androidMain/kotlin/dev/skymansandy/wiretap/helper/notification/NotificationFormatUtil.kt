@@ -8,6 +8,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 
 internal object NotificationFormatUtil {
@@ -26,5 +27,12 @@ internal object NotificationFormatUtil {
         return "$direction $content"
     }
 
+    fun formatSseEvent(event: SseEvent): String {
+        val type = event.eventType?.let { "[$it] " } ?: ""
+        return "▼ $type${event.data.take(100)}"
+    }
+
     fun socketUrlDisplay(url: String): String = formatUrlDisplay(url)
+
+    fun sseUrlDisplay(url: String): String = formatUrlDisplay(url)
 }

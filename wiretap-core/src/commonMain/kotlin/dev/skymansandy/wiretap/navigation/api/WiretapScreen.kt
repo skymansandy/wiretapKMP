@@ -45,5 +45,8 @@ internal sealed interface WiretapScreen : NavKey {
     ) : WiretapScreen, DetailPane
 
     @Serializable
+    data class SseDetailScreen(val connectionId: Long) : WiretapScreen, DetailPane
+
+    @Serializable
     data class SelectRuleCriteriaSheet(val logId: Long) : WiretapScreen, BottomSheetPane
 }

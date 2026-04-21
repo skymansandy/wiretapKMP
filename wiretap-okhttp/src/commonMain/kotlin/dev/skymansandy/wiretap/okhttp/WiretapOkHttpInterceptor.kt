@@ -235,6 +235,15 @@ class WiretapOkHttpInterceptor(
             throw e
         }
 
+        // SSE stream — remove the HTTP log entry; SSE listener handles it
+        val respContentType = response.header("Content-Type")
+        if (respContentType != null && respContentType.contains("text/event-stream", ignoreCase = true)) {
+            if (logEntryId >= 0) {
+                httpLogManager.deleteHttpLog(logEntryId)
+            }
+            return@runBlocking response
+        }
+
         val durationNs = currentNanoTime() - startNano
         val durationMs = durationNs / 1_000_000
 

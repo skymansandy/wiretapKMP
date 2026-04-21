@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
@@ -32,6 +33,7 @@ import dev.skymansandy.wiretap.ui.common.LocalWideScreen
 import dev.skymansandy.wiretap.ui.model.HomeTab
 import dev.skymansandy.wiretap.ui.screens.home.tabs.HttpTabScreen
 import dev.skymansandy.wiretap.ui.screens.home.tabs.SocketTabScreen
+import dev.skymansandy.wiretap.ui.screens.home.tabs.SseTabScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -79,6 +81,12 @@ internal fun WiretapHomeScreen(
                         icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
                         label = { Text("WebSocket") },
                     )
+                    NavigationBarItem(
+                        selected = selectedTab == HomeTab.SSE,
+                        onClick = { viewModel.selectTab(HomeTab.SSE) },
+                        icon = { Icon(Icons.Default.CloudSync, contentDescription = null) },
+                        label = { Text("SSE") },
+                    )
                 }
             }
         },
@@ -100,6 +108,12 @@ internal fun WiretapHomeScreen(
                             icon = { Icon(Icons.Default.Wifi, contentDescription = null) },
                             label = { Text("WebSocket") },
                         )
+                        NavigationRailItem(
+                            selected = selectedTab == HomeTab.SSE,
+                            onClick = { viewModel.selectTab(HomeTab.SSE) },
+                            icon = { Icon(Icons.Default.CloudSync, contentDescription = null) },
+                            label = { Text("SSE") },
+                        )
                     }
                 }
             }
@@ -115,6 +129,11 @@ internal fun WiretapHomeScreen(
             )
 
             HomeTab.WebSocket -> SocketTabScreen(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                navigationRail = navigationRail,
+            )
+
+            HomeTab.SSE -> SseTabScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 navigationRail = navigationRail,
             )

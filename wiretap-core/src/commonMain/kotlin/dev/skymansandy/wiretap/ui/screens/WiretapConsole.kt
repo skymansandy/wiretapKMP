@@ -37,6 +37,7 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HttpDetailScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.RuleDetailScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SelectRuleCriteriaSheet
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SocketDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SseDetailScreen
 import dev.skymansandy.wiretap.navigation.api.screenSerializersModule
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.navigation.impl.BackStackNavigatorImpl
@@ -57,6 +58,7 @@ import dev.skymansandy.wiretap.ui.screens.rules.create.PrefillConfig
 import dev.skymansandy.wiretap.ui.screens.rules.criteria.SelectRuleCriteriaSheetView
 import dev.skymansandy.wiretap.ui.screens.rules.view.RuleDetailScreenView
 import dev.skymansandy.wiretap.ui.screens.socket.detail.SocketDetailScreenView
+import dev.skymansandy.wiretap.ui.screens.sse.detail.SseDetailScreenView
 import org.koin.compose.KoinIsolatedContext
 
 @Composable
@@ -139,6 +141,7 @@ internal fun WiretapConsole(
                                 is CreateRuleScreen,
                                 -> HomeTab.Http
                                 is SocketDetailScreen -> HomeTab.WebSocket
+                                is SseDetailScreen -> HomeTab.SSE
                                 else -> null
                             }
 
@@ -160,6 +163,14 @@ internal fun WiretapConsole(
                         ) { key ->
                             SocketDetailScreenView(
                                 socketId = key.socketId,
+                            )
+                        }
+
+                        entry<SseDetailScreen>(
+                            metadata = detailPane(),
+                        ) { key ->
+                            SseDetailScreenView(
+                                connectionId = key.connectionId,
                             )
                         }
 
