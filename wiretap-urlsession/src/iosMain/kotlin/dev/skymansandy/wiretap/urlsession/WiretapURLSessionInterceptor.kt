@@ -10,9 +10,9 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
-import dev.skymansandy.wiretap.domain.model.config.LogRetention
-import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
-import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
+import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
+import dev.skymansandy.wiretap.domain.model.config.http.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
@@ -63,10 +63,10 @@ import platform.darwin.dispatch_time
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) : KoinComponent {
 
-    private val config = WiretapConfig().apply(configure)
+    private val config = WiretapHttpConfig().apply(configure)
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 

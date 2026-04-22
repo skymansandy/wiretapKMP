@@ -2,12 +2,12 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.domain.model.config
+package dev.skymansandy.wiretap.domain.model.config.http
 
 /**
  * Controls how long network logs are retained.
  *
- * @see WiretapConfig.logRetention
+ * @see WiretapHttpConfig.logRetention
  */
 sealed interface LogRetention {
 

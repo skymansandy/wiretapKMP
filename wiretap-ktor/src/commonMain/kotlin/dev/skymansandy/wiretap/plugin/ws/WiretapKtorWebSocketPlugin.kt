@@ -6,7 +6,7 @@ package dev.skymansandy.wiretap.plugin.ws
 
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.domain.model.config.WiretapWsConfig
+import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.plugin.ws.util.WsPluginDeps
 import dev.skymansandy.wiretap.plugin.ws.util.toWebSocketUrl

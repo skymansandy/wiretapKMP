@@ -4,7 +4,7 @@
 
 ```kotlin
 class WiretapOkHttpInterceptor(
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent
 ```
 
@@ -14,14 +14,14 @@ OkHttp `Interceptor` for HTTP request/response logging with mock/throttle rule s
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
+| `configure` | `WiretapHttpConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
 ### Installation
 
 ```kotlin
 OkHttpClient.Builder()
     .addInterceptor(WiretapOkHttpInterceptor {
-        // WiretapConfig properties — all optional
+        // WiretapHttpConfig properties — all optional
     })
     .build()
 ```
@@ -83,10 +83,10 @@ Extension function that wraps the receiver in a `WiretapOkHttpWebSocketListener`
 
 ---
 
-## WiretapConfig
+## WiretapHttpConfig
 
 ```kotlin
-class WiretapConfig {
+class WiretapHttpConfig {
     var enabled: Boolean = true
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }

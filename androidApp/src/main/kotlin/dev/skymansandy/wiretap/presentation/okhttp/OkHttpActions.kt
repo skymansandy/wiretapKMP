@@ -1,6 +1,6 @@
 package dev.skymansandy.wiretap.presentation.okhttp
 
-import dev.skymansandy.wiretap.okhttp.WiretapOkHttpInterceptor
+import dev.skymansandy.wiretap.okhttp.http.WiretapOkHttpInterceptor
 import dev.skymansandy.wiretapsample.model.ActionCategory
 import dev.skymansandy.wiretapsample.model.Endpoint
 import dev.skymansandy.wiretapsample.model.HttpTestCase

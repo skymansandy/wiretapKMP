@@ -5,7 +5,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
-import dev.skymansandy.wiretap.okhttp.wiretapped
+import dev.skymansandy.wiretap.okhttp.sse.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.SseSampleActions

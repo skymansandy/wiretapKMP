@@ -10,9 +10,9 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
 import dev.skymansandy.wiretap.domain.model.WiretapRule
-import dev.skymansandy.wiretap.domain.model.config.LogRetention
-import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
-import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
+import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
+import dev.skymansandy.wiretap.domain.model.config.http.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
@@ -78,11 +78,11 @@ private val RequestHeadersKey = AttributeKey<Map<String, String>>("WiretapReques
  *
  * WebSocket upgrade requests (101) are skipped — use [dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin] for those.
  *
- * @see WiretapConfig
+ * @see WiretapHttpConfig
  * @see dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
  */
 @OptIn(InternalAPI::class)
-val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapConfig) {
+val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapHttpConfig) {
     val config = pluginConfig
     val deps = WiretapDeps()
     val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -338,7 +338,7 @@ private suspend fun buildMockCall(
     requestBody: String?,
     request: io.ktor.client.request.HttpRequestBuilder,
     matchingRule: WiretapRule,
-    config: WiretapConfig,
+    config: WiretapHttpConfig,
     deps: WiretapDeps,
     httpClient: io.ktor.client.HttpClient,
 ): HttpClientCall {

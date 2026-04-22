@@ -3,7 +3,7 @@
 ## WiretapKtorHttpPlugin
 
 ```kotlin
-val WiretapKtorHttpPlugin: ClientPlugin<WiretapConfig>
+val WiretapKtorHttpPlugin: ClientPlugin<WiretapHttpConfig>
 ```
 
 Top-level Ktor client plugin for HTTP request/response logging with mock/throttle rule support.
@@ -13,7 +13,7 @@ Top-level Ktor client plugin for HTTP request/response logging with mock/throttl
 ```kotlin
 HttpClient {
     install(WiretapKtorHttpPlugin) {
-        // WiretapConfig DSL — all properties optional
+        // WiretapHttpConfig DSL — all properties optional
         enabled = true
         shouldLog = { url, method -> true }
         headerAction = { key -> HeaderAction.Keep }
@@ -76,10 +76,10 @@ class WiretapWebSocketSession(
 
 ---
 
-## WiretapConfig
+## WiretapHttpConfig
 
 ```kotlin
-class WiretapConfig {
+class WiretapHttpConfig {
     var enabled: Boolean = true
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }

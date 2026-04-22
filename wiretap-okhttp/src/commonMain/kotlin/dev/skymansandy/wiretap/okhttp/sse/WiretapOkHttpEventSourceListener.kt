@@ -2,12 +2,13 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp
+package dev.skymansandy.wiretap.okhttp.sse
 
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
+import dev.skymansandy.wiretap.domain.model.config.sse.WiretapSseConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
@@ -27,22 +28,16 @@ import kotlin.concurrent.Volatile
 /**
  * Wraps a consumer's [EventSourceListener] to log all SSE events via Wiretap.
  *
- * Usage — extension function:
+ * Use the [wiretapped] extension to create an instance:
  * ```kotlin
  * val factory = EventSources.createFactory(client)
  * val source = factory.newEventSource(request, myListener.wiretapped())
  * ```
- *
- * Usage — constructor:
- * ```kotlin
- * val listener = WiretapOkHttpEventSourceListener(myListener)
- * val source = factory.newEventSource(request, listener)
- * ```
  */
 @ExperimentalWiretapSseApi
-class WiretapOkHttpEventSourceListener(
+internal class WiretapOkHttpEventSourceListener(
     private val delegate: EventSourceListener,
-    private val enabled: Boolean = true,
+    private val config: WiretapSseConfig,
 ) : EventSourceListener(), KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
@@ -56,7 +51,7 @@ class WiretapOkHttpEventSourceListener(
         get() = connectionId >= 0
 
     override fun onOpen(eventSource: EventSource, response: Response) {
-        if (!enabled) {
+        if (!config.enabled) {
             delegate.onOpen(eventSource, response)
             return
         }
@@ -123,7 +118,8 @@ class WiretapOkHttpEventSourceListener(
                         id = connectionId,
                         url = eventSource.request().url.toString(),
                         status = SseStatus.Failed,
-                        failureMessage = t?.message ?: t?.let { it::class.simpleName } ?: "Unknown error",
+                        failureMessage = t?.message ?: t?.let { it::class.simpleName }
+                            ?: "Unknown error",
                         closedAt = currentTimeMillis(),
                         timestamp = currentTimeMillis(),
                     ),
@@ -143,5 +139,21 @@ class WiretapOkHttpEventSourceListener(
  * ```
  */
 @ExperimentalWiretapSseApi
-fun EventSourceListener.wiretapped(enabled: Boolean = true): WiretapOkHttpEventSourceListener =
-    WiretapOkHttpEventSourceListener(this, enabled)
+@Deprecated(
+    message = "Use wiretapped() with config builder instead.",
+    replaceWith = ReplaceWith("wiretapped { enabled = true }"),
+)
+fun EventSourceListener.wiretapped(
+    enabled: Boolean = true,
+): EventSourceListener = WiretapOkHttpEventSourceListener(
+    delegate = this,
+    config = WiretapSseConfig().apply { this.enabled = enabled },
+)
+
+@ExperimentalWiretapSseApi
+fun EventSourceListener.wiretapped(
+    configure: WiretapSseConfig.() -> Unit,
+): EventSourceListener = WiretapOkHttpEventSourceListener(
+    delegate = this,
+    config = WiretapSseConfig().apply(configure),
+)

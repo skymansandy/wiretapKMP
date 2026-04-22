@@ -2,7 +2,7 @@
 flowchart TD
     WiretapPlugin["WiretapKtorHttpPlugin)"]
     WireTapOrchestrator["WireTapOrchestrator"]
-    WiretapConfig["WiretapConfig"]
+    WiretapHttpConfig["WiretapHttpConfig"]
     NetworkRepository["NetworkRepository"]
     NetworkLogger["NetworkLogger"]
     NetworkDao["NetworkDao"]
@@ -16,7 +16,7 @@ flowchart TD
 
     WiretapPlugin --> WireTapOrchestrator
 
-    WireTapOrchestrator --> WiretapConfig
+    WireTapOrchestrator --> WiretapHttpConfig
     WireTapOrchestrator --> NetworkRepository
     WireTapOrchestrator --> NetworkLogger
     WireTapOrchestrator --> RuleEngine

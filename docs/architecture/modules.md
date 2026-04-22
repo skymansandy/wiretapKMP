@@ -24,7 +24,7 @@ The core module contains everything except client-specific plugins:
 
 | Package | Contents |
 |---------|----------|
-| `config` | `WiretapConfig`, `HeaderAction`, `LogRetention` |
+| `config` | `WiretapHttpConfig`, `HeaderAction`, `LogRetention` |
 | `domain.orchestrator` | `WiretapOrchestrator`, `HttpOrchestrator`, `SocketOrchestrator`, `SseLogManager` |
 | `domain.repository` | `HttpRepository`, `SocketRepository`, `RuleRepository` |
 | `domain.usecase` | `FindMatchingRuleUseCase`, `FindConflictingRulesUseCase` |

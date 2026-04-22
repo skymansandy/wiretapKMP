@@ -15,6 +15,14 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP, WebSoc
 |--------|:---:|
 | **URLSession** | ✅ |
 
+## Inspection Support
+
+| Client | HTTP | WebSocket | SSE |
+|--------|:----:|:---------:|:---:|
+| **Ktor** | ✅ | ✅ | ✅ |
+| **OkHttp** | ✅ | ✅ | ✅ |
+| **URLSession** | ✅ | — | — |
+
 `wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM. It wraps `NSURLSession` with logging and rule support for native iOS projects.
 
 ## Screenshots

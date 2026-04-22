@@ -25,7 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,9 +45,12 @@ internal fun WiretapHomeScreen(
     val isWideScreen = LocalWideScreen.current
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
 
-    // Sync home tab when navigating to a detail route
-    LaunchedEffect(initialTab) {
-        if (initialTab != null) {
+    // Sync home tab when navigating to a detail route.
+    // Uses SideEffect (not LaunchedEffect) so the tab is set synchronously
+    // during composition — this prevents a race where the deep-link detail
+    // is popped before the suspended LaunchedEffect can execute.
+    if (initialTab != null) {
+        SideEffect {
             viewModel.selectTab(initialTab)
         }
     }

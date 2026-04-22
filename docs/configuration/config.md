@@ -1,6 +1,6 @@
-# WiretapConfig
+# WiretapHttpConfig
 
-`WiretapConfig` is the shared configuration class used by both Ktor and OkHttp plugins.
+`WiretapHttpConfig` is the shared configuration class used by both Ktor and OkHttp plugins.
 
 ## Properties
 

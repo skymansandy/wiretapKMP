@@ -4,7 +4,7 @@
 
 package dev.skymansandy.wiretap.plugin.sse
 
-import dev.skymansandy.wiretap.domain.model.config.WiretapSseConfig
+import dev.skymansandy.wiretap.domain.model.config.sse.WiretapSseConfig
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import io.ktor.client.plugins.api.createClientPlugin
 

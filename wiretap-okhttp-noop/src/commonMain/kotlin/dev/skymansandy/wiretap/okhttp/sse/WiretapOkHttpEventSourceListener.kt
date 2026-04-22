@@ -1,9 +1,12 @@
+@file:Suppress("UnusedParameter")
+
 /*
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp
+package dev.skymansandy.wiretap.okhttp.sse
 
+import dev.skymansandy.wiretap.domain.model.config.sse.WiretapSseConfig
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import okhttp3.Response
 import okhttp3.sse.EventSource
@@ -14,9 +17,8 @@ import okhttp3.sse.EventSourceListener
  * Pure pass-through to the delegate listener.
  */
 @ExperimentalWiretapSseApi
-class WiretapOkHttpEventSourceListener(
+internal class WiretapOkHttpEventSourceListener(
     private val delegate: EventSourceListener,
-    private val enabled: Boolean = true,
 ) : EventSourceListener() {
 
     override fun onOpen(eventSource: EventSource, response: Response) {
@@ -40,5 +42,15 @@ class WiretapOkHttpEventSourceListener(
  * No-op: returns the listener wrapped in [WiretapOkHttpEventSourceListener] for API parity.
  */
 @ExperimentalWiretapSseApi
-fun EventSourceListener.wiretapped(enabled: Boolean = true): WiretapOkHttpEventSourceListener =
-    WiretapOkHttpEventSourceListener(this, enabled)
+@Deprecated(
+    message = "Use wiretapped() with config builder instead.",
+    replaceWith = ReplaceWith("wiretapped { enabled = true }"),
+)
+fun EventSourceListener.wiretapped(
+    enabled: Boolean = true,
+): EventSourceListener = WiretapOkHttpEventSourceListener(this)
+
+@ExperimentalWiretapSseApi
+fun EventSourceListener.wiretapped(
+    configure: WiretapSseConfig.() -> Unit,
+): EventSourceListener = WiretapOkHttpEventSourceListener(this)

@@ -10,23 +10,11 @@
 
 ## Setup
 
-### Extension function (recommended)
-
 Use the `wiretapped()` extension on any `WebSocketListener`:
 
 ```kotlin
 val request = Request.Builder().url("wss://echo.websocket.org").build()
 client.newWebSocket(request, myListener.wiretapped())
-```
-
-### Constructor
-
-Alternatively, wrap your listener using the constructor directly:
-
-```kotlin
-val listener = WiretapOkHttpWebSocketListener(myListener)
-val request = Request.Builder().url("wss://echo.websocket.org").build()
-client.newWebSocket(request, listener)
 ```
 
 ### Full example
@@ -105,3 +93,23 @@ All other `WebSocket` methods (`close()`, `cancel()`, `request()`, `queueSize()`
 - Content (text or `[Binary: N bytes]`)
 - Byte count
 - Timestamp
+
+## Configuration
+
+Use the config DSL overload to configure WebSocket logging:
+
+```kotlin
+client.newWebSocket(request, myListener.wiretapped {
+    enabled = BuildConfig.DEBUG
+})
+```
+
+Or use the simple `enabled` parameter:
+
+```kotlin
+client.newWebSocket(request, myListener.wiretapped(enabled = false))
+```
+
+## No-op
+
+The noop module (`wiretap-okhttp-noop`) provides the same `wiretapped()` extensions but delegates all callbacks directly without logging.

@@ -5,24 +5,12 @@
 
 ## Setup
 
-### Extension function (recommended)
-
 Use the `wiretapped()` extension on any `EventSourceListener`:
 
 ```kotlin
 @OptIn(ExperimentalWiretapSseApi::class)
 val factory = EventSources.createFactory(client)
 val source = factory.newEventSource(request, myListener.wiretapped())
-```
-
-### Constructor
-
-Alternatively, wrap your listener using the constructor directly:
-
-```kotlin
-@OptIn(ExperimentalWiretapSseApi::class)
-val listener = WiretapOkHttpEventSourceListener(myListener)
-val source = factory.newEventSource(request, listener)
 ```
 
 ### Full example
@@ -87,6 +75,24 @@ All events are delegated to your original listener after logging.
 - Byte count
 - Timestamp
 
+## Configuration
+
+Use the config DSL overload to configure SSE logging:
+
+```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
+factory.newEventSource(request, myListener.wiretapped {
+    enabled = BuildConfig.DEBUG
+})
+```
+
+Or use the simple `enabled` parameter:
+
+```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
+factory.newEventSource(request, myListener.wiretapped(enabled = false))
+```
+
 ## No-op
 
-The noop module (`wiretap-okhttp-noop`) provides the same `WiretapOkHttpEventSourceListener` class and `wiretapped()` extension but delegates all callbacks directly without logging.
+The noop module (`wiretap-okhttp-noop`) provides the same `wiretapped()` extensions but delegates all callbacks directly without logging.

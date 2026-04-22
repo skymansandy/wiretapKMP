@@ -2,7 +2,7 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp.util
+package dev.skymansandy.wiretap.okhttp.http
 
 import okhttp3.Interceptor
 import okhttp3.Response

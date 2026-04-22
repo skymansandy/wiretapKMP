@@ -2,7 +2,7 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp
+package dev.skymansandy.wiretap.okhttp.ws
 
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.SocketConnection
@@ -10,6 +10,7 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.CoroutineScope
@@ -29,20 +30,14 @@ import kotlin.concurrent.Volatile
 /**
  * Wraps a consumer's WebSocketListener to log all WebSocket events via Wiretap.
  *
- * Usage — extension function:
+ * Use the [wiretapped] extension to create an instance:
  * ```kotlin
  * client.newWebSocket(request, myListener.wiretapped())
  * ```
- *
- * Usage — constructor:
- * ```kotlin
- * val listener = WiretapOkHttpWebSocketListener(myListener)
- * client.newWebSocket(request, listener)
- * ```
  */
-class WiretapOkHttpWebSocketListener(
+internal class WiretapOkHttpWebSocketListener(
     private val delegate: WebSocketListener,
-    private val enabled: Boolean = true,
+    private val config: WiretapWsConfig,
 ) : WebSocketListener(), KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
@@ -56,7 +51,7 @@ class WiretapOkHttpWebSocketListener(
         get() = socketId >= 0
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-        if (!enabled) {
+        if (!config.enabled) {
             delegate.onOpen(webSocket, response)
             return
         }
@@ -184,5 +179,20 @@ class WiretapOkHttpWebSocketListener(
  * client.newWebSocket(request, myListener.wiretapped())
  * ```
  */
-fun WebSocketListener.wiretapped(enabled: Boolean = true): WiretapOkHttpWebSocketListener =
-    WiretapOkHttpWebSocketListener(this, enabled)
+@Deprecated(
+    message = "Use wiretapped() with config builder instead.",
+    replaceWith = ReplaceWith("wiretapped { enabled = true }"),
+)
+fun WebSocketListener.wiretapped(
+    enabled: Boolean = true,
+): WebSocketListener = WiretapOkHttpWebSocketListener(
+    delegate = this,
+    config = WiretapWsConfig().apply { this.enabled = enabled },
+)
+
+fun WebSocketListener.wiretapped(
+    configure: WiretapWsConfig.() -> Unit,
+): WebSocketListener = WiretapOkHttpWebSocketListener(
+    delegate = this,
+    config = WiretapWsConfig().apply(configure),
+)

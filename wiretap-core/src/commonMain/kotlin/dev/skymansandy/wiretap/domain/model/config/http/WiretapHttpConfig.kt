@@ -2,12 +2,12 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.domain.model.config
+package dev.skymansandy.wiretap.domain.model.config.http
 
-import dev.skymansandy.wiretap.domain.model.config.WiretapConfig.Companion.MAX_CONTENT_LENGTH
+import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig.Companion.MAX_CONTENT_LENGTH
 
 /**
- * Configuration for Wiretap network inspection plugins.
+ * Configuration for Wiretap HTTP inspection plugins.
  *
  * Each plugin (Ktor, OkHttp, NSURLSession) accepts this config at installation/construction time.
  * All properties are mutable so the class can be used directly as a Ktor DSL config block.
@@ -34,7 +34,7 @@ import dev.skymansandy.wiretap.domain.model.config.WiretapConfig.Companion.MAX_C
  * }
  * ```
  */
-class WiretapConfig {
+class WiretapHttpConfig {
 
     /** Master switch. When `false`, the plugin passes requests through without any logging. */
     var enabled: Boolean = true
