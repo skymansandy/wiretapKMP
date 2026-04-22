@@ -33,6 +33,7 @@ internal class OkHttpSampleActivity : ComponentActivity() {
                         title = "OkHttp Sample",
                         httpActions = koinViewModel<OkHttpViewModel>(),
                         wsActions = koinViewModel<OkHttpWsViewModel>(),
+                        sseActions = koinViewModel<OkHttpSseViewModel>(),
                     )
                 }
             }

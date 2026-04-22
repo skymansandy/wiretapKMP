@@ -24,17 +24,17 @@ The core module contains everything except client-specific plugins:
 
 | Package | Contents |
 |---------|----------|
-| `config` | `WiretapConfig`, `HeaderAction`, `LogRetention` |
-| `domain.orchestrator` | `WiretapOrchestrator`, `HttpOrchestrator`, `SocketOrchestrator` |
+| `config` | `WiretapHttpConfig`, `HeaderAction`, `LogRetention` |
+| `domain.orchestrator` | `WiretapOrchestrator`, `HttpOrchestrator`, `SocketOrchestrator`, `SseLogManager` |
 | `domain.repository` | `HttpRepository`, `SocketRepository`, `RuleRepository` |
 | `domain.usecase` | `FindMatchingRuleUseCase`, `FindConflictingRulesUseCase` |
-| `domain.model` | `RuleAction`, `UrlMatcher`, `HeaderMatcher`, `BodyMatcher`, `ResponseSource`, enums |
-| `data.db.entity` | `HttpLogEntry`, `SocketEntry`, `SocketMessage`, `WiretapRule` |
-| `data.db.dao` | `HttpDao`, `SocketDao`, `RuleDao` (internal) |
-| `data.repository` | `HttpRepositoryImpl`, `SocketRepositoryImpl`, `RuleRepositoryImpl` (internal) |
+| `domain.model` | `RuleAction`, `UrlMatcher`, `HeaderMatcher`, `BodyMatcher`, `ResponseSource`, `SseConnection`, `SseEvent`, `SseStatus`, enums |
+| `data.db.entity` | `HttpLogEntry`, `SocketEntry`, `SocketMessage`, `WiretapRule`, `SseLogEntity`, `SseEventEntity` |
+| `data.db.dao` | `HttpDao`, `SocketDao`, `RuleDao`, `SseLogsDao` (internal) |
+| `data.repository` | `HttpRepositoryImpl`, `SocketRepositoryImpl`, `RuleRepositoryImpl`, `SseRepositoryImpl` (internal) |
 | `di` | `wiretapModule`, `WiretapDi`, `WiretapKoinContext` |
 | `helper.logger` | `WiretapLogger`, `WiretapLoggerImpl` |
-| `ui` | `WiretapScreen`, `HttpLogDetailScreen`, `SocketDetailScreen`, rule screens |
+| `ui` | `WiretapScreen`, `HttpLogDetailScreen`, `SocketDetailScreen`, `SseDetailScreen`, `SseTabScreen`, rule screens |
 
 **Dependencies exposed as `api()`:** Koin, Coroutines, SQLDelight runtime
 
@@ -47,6 +47,8 @@ The core module contains everything except client-specific plugins:
 | `WiretapKtorHttpPlugin` | HTTP request/response logging + rule evaluation |
 | `WiretapKtorWebSocketPlugin` | WebSocket connection/message logging |
 | `WiretapWebSocketSession` | Session wrapper for message interception |
+| `WiretapKtorSsePlugin` | SSE plugin placeholder for API consistency |
+| `WiretapSseSession` | SSE session wrapper for event interception |
 
 **Dependencies exposed as `api()`:** wiretap-core, ktor-client-core
 
@@ -64,6 +66,7 @@ Same API surface with empty implementations. Same package (`dev.skymansandy.wire
 |-----------|-------------|
 | `WiretapOkHttpInterceptor` | HTTP logging + rule evaluation + TLS details |
 | `WiretapOkHttpWebSocketListener` | WebSocket event logging |
+| `WiretapOkHttpEventSourceListener` | SSE event logging |
 | `WiretapWebSocket` | Internal outgoing message logger |
 
 **Dependencies exposed as `api()`:** wiretap-core, okhttp

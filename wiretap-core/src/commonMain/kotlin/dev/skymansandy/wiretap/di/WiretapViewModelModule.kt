@@ -14,6 +14,8 @@ import dev.skymansandy.wiretap.ui.screens.rules.list.RulesListViewModel
 import dev.skymansandy.wiretap.ui.screens.rules.view.RuleDetailViewModel
 import dev.skymansandy.wiretap.ui.screens.socket.detail.SocketDetailViewModel
 import dev.skymansandy.wiretap.ui.screens.socket.list.SocketLogListViewModel
+import dev.skymansandy.wiretap.ui.screens.sse.detail.SseDetailViewModel
+import dev.skymansandy.wiretap.ui.screens.sse.list.SseLogListViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -44,6 +46,19 @@ internal val wiretapViewModelModule = module {
         SocketDetailViewModel(
             socketId = socketId,
             socketLogManager = get(),
+        )
+    }
+
+    viewModel<SseLogListViewModel> {
+        SseLogListViewModel(
+            sseLogManager = get(),
+        )
+    }
+
+    viewModel<SseDetailViewModel> { (connectionId: Long) ->
+        SseDetailViewModel(
+            connectionId = connectionId,
+            sseLogManager = get(),
         )
     }
 

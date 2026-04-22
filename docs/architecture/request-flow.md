@@ -74,6 +74,36 @@ sequenceDiagram
     end
 ```
 
+## SSE Lifecycle
+
+```mermaid
+sequenceDiagram
+    participant App as App
+    participant Plugin as Plugin
+    participant SseManager as SseLogManager
+    participant DB as WiretapDatabase
+
+    App->>Plugin: Open SSE connection
+
+    Plugin->>SseManager: createConnection(entry)
+    SseManager->>DB: INSERT (status=Open)
+    SseManager-->>Plugin: connectionId
+
+    loop Incoming Events
+        Plugin-->>App: receive(event)
+        Plugin->>SseManager: logEvent(event)
+        SseManager->>DB: INSERT event
+    end
+
+    alt Graceful Close
+        Plugin->>SseManager: updateConnection(Closed)
+        SseManager->>DB: UPDATE status=Closed
+    else Error
+        Plugin->>SseManager: updateConnection(Failed)
+        SseManager->>DB: UPDATE status=Failed
+    end
+```
+
 ## Response Status Codes
 
 | Code | Meaning |

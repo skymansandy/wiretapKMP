@@ -4,101 +4,100 @@
 
 <p align="center">
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
-  <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-0%25-red" alt="Coverage"/></a>
-  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC9-blue" alt="Maven Central"/></a>
+  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC10-blue" alt="Maven Central"/></a>
 </p>
 
-WiretapKMP is a network inspection and mocking SDK for **Kotlin Multiplatform** and **Swift**. Add it to your app to capture HTTP and WebSocket traffic, mock API responses, and throttle requests — no proxy server needed. It works with **Ktor**, **OkHttp**, and **URLSession**.
+**WiretapKMP** is a drop-in network inspector and mocker for **Kotlin Multiplatform** apps. Add one dependency, install the plugin, and inspect every HTTP request, WebSocket message, and SSE event — or mock and throttle them — all from a built-in UI. No proxy needed.
 
-## Getting Started
+> **Early Preview** — We're looking for early adopters and feedback! [Open an issue](https://github.com/skymansandy/wiretapKMP/issues) or [start a discussion](https://github.com/skymansandy/wiretapKMP/discussions).
 
-Pick the plugin that matches your HTTP client and add it to your project:
+## Quick Start
 
-| Your HTTP Client | Wiretap Plugin | Platforms |
-|------------------|---------------|-----------|
-| **Ktor** | [`wiretap-ktor`](wiretap-ktor/README.md) | Android, iOS, JVM |
-| **OkHttp** | [`wiretap-okhttp`](wiretap-okhttp/README.md) | Android, JVM |
-| **URLSession** | [`wiretap-urlsession`](wiretap-urlsession/README.md) | iOS |
+```kotlin
+// Ktor
+val client = HttpClient {
+    install(WiretapKtorHttpPlugin)
+}
 
-For full setup instructions including OkHttp and URLSession, see the [**Getting Started guide**](https://skymansandy.dev/wiretapKMP/getting-started/).
+// OkHttp
+val client = OkHttpClient.Builder()
+    .addInterceptor(WiretapOkHttpInterceptor())
+    .build()
+```
+
+That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on desktop) to launch the inspector.
+
+## What You Get
+
+| | HTTP | WebSocket | SSE |
+|--|:----:|:---------:|:---:|
+| **Ktor** | ✅ | ✅ | ✅ |
+| **OkHttp** | ✅ | ✅ | ✅ |
+| **URLSession** | ✅ | — | — |
+
+| | Android | iOS | JVM Desktop |
+|--|:-------:|:---:|:-----------:|
+| **Ktor** | ✅ | ✅ | ✅ |
+| **OkHttp** | ✅ | — | ✅ |
+| **URLSession** | — | ✅ | — |
 
 ## Screenshots
-
-### HTTP Inspector
 
 | Overview | Request | Response |
 |:--------:|:-------:|:--------:|
 | <img src="docs/art/screenshots/http/overview.png" width="260"/> | <img src="docs/art/screenshots/http/request.png" width="260"/> | <img src="docs/art/screenshots/http/respose.png" width="260"/> |
 
-### WebSocket Inspector
+| WebSocket | Messages | Notifications |
+|:---------:|:--------:|:-------------:|
+| <img src="docs/art/screenshots/socket/socketlist.png" width="260"/> | <img src="docs/art/screenshots/socket/socketdetail.png" width="260"/> | <img src="docs/art/screenshots/http/notification.png" width="260"/> |
 
-| Connections | Messages |
-|:-----------:|:--------:|
-| <img src="docs/art/screenshots/socket/socketlist.png" width="260"/> | <img src="docs/art/screenshots/socket/socketdetail.png" width="260"/> |
+## Key Features
 
-### API Mocking & Throttling
+- **Zero-config logging** — install the plugin and all traffic is captured automatically
+- **API mocking** — return fake responses without hitting the network. Match on method, URL, headers, and body
+- **Request throttling** — simulate slow connections with fixed or random delays
+- **Header masking** — redact `Authorization`, `Cookie`, or any sensitive header from logs
+- **Shake to launch** — built-in gesture to open the inspector (no UI code required)
+- **No-op variants** — swap to `wiretap-ktor-noop` / `wiretap-okhttp-noop` for release builds with zero overhead
+- **Share as file** — export any log entry via the platform share sheet
 
-| Mocked Requests | Mocked Response | Mock Rule | Throttle Rule | Mock + Throttle |
-|:---------------:|:---------------:|:---------:|:-------------:|:---------------:|
-| <img src="docs/art/screenshots/http/mocked requests.png" width="200"/> | <img src="docs/art/screenshots/http/mocked_response.png" width="200"/> | <img src="docs/art/screenshots/http/just mock.png" width="200"/> | <img src="docs/art/screenshots/http/throttle only.png" width="200"/> | <img src="docs/art/screenshots/http/mock+throttle.png" width="200"/> |
+<details>
+<summary><strong>More screenshots</strong></summary>
 
-### Rules Engine
+### API Mocking & Rules Engine
 
-| Swipe to Create | Request Setup | Response Setup | Rules List | Rule Details |
-|:---------------:|:-------------:|:--------------:|:----------:|:------------:|
-| <img src="docs/art/screenshots/http/swipetocreaterule.png" width="200"/> | <img src="docs/art/screenshots/http/rulecreate-requestsetup.png" width="200"/> | <img src="docs/art/screenshots/http/rulecreate-responsesetup.png" width="200"/> | <img src="docs/art/screenshots/http/ruleslist.png" width="200"/> | <img src="docs/art/screenshots/http/rule-view.png" width="200"/> |
-
-### Notifications
-
-| HTTP | WebSocket |
-|:----:|:---------:|
-| <img src="docs/art/screenshots/http/notification.png" width="300"/> | <img src="docs/art/screenshots/socket/notification.png" width="300"/> |
+| Mocked Requests | Mock Rule | Rules List |
+|:---------------:|:---------:|:----------:|
+| <img src="docs/art/screenshots/http/mocked requests.png" width="260"/> | <img src="docs/art/screenshots/http/just mock.png" width="260"/> | <img src="docs/art/screenshots/http/ruleslist.png" width="260"/> |
 
 ### List-Detail Pane (Tablet / Desktop)
 
 <img src="docs/art/screenshots/listdetailpane.png" width="600"/>
 
-## Features
+</details>
 
-- **HTTP & WebSocket Logging** — capture URLs, headers, bodies, status codes, timing, and TLS details
-- **API Mocking** — return fake responses without hitting the network
-- **Request Throttling** — simulate slow connections with fixed or random delays
-- **Header Masking** — redact sensitive headers from logs
-- **Log Retention** — keep logs forever, per session, or auto-prune after N days
-- **Share as File** — export any HTTP log as a text file and share it via the platform share sheet (Android/iOS) or open it directly (Desktop)
-- **Built-in Inspector UI** — Compose Multiplatform UI for browsing logs and managing rules
-- **No-op Variants** — drop-in release replacements with zero overhead
+## Installation
 
-## No-op Variants
+```kotlin
+// build.gradle.kts
+debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC10")
+releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC10")
 
-Swap dependencies for release builds — no conditional code needed:
+// or for OkHttp
+debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC10")
+releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC10")
+```
 
-| Debug | Release |
-|-------|---------|
-| `wiretap-ktor` | `wiretap-ktor-noop` |
-| `wiretap-okhttp` | `wiretap-okhttp-noop` |
-
-For URLSession, use `WiretapURLSession` in debug and plain `URLSession` in release.
+For full setup including URLSession and advanced configuration, see the [**Getting Started guide**](https://skymansandy.dev/wiretapKMP/getting-started/).
 
 ## Documentation
 
-[Full documentation](https://skymansandy.dev/wiretapKMP/) · [Getting Started](https://skymansandy.dev/wiretapKMP/getting-started/)
+[Full docs](https://skymansandy.dev/wiretapKMP/) · [Getting Started](https://skymansandy.dev/wiretapKMP/getting-started/) · [API Reference](https://skymansandy.dev/wiretapKMP/ktor/api/)
 
 ## Contributing
 
-Contributions are welcome! Here's how to get started:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/my-feature`)
-3. **Commit** your changes (`git commit -m 'Add my feature'`)
-4. **Push** to the branch (`git push origin feature/my-feature`)
-5. **Open** a Pull Request
+Contributions are welcome! Fork the repo, create a feature branch, and open a PR.
 
 ## Acknowledgements
 
-- [JetBrains](https://www.jetbrains.com/) — for [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html), [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/), and [Ktor](https://ktor.io/)
-- [Android Jetpack](https://developer.android.com/jetpack) — for [Room](https://developer.android.com/kotlin/multiplatform/room), [App Startup](https://developer.android.com/topic/libraries/app-startup), and [Compose](https://developer.android.com/develop/ui/compose)
-- [Koin](https://insert-koin.io/) — lightweight dependency injection for KMP
-- [OkHttp](https://square.github.io/okhttp/) — by Square, for the HTTP client and interceptor APIs
-- [SKIE](https://skie.touchlab.co/) — by Touchlab, for Swift-friendly KMP interop
-- [KMMBridge](https://kmmbridge.touchlab.co/) — by Touchlab, for SPM publishing of KMP frameworks
+[Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) · [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) · [Ktor](https://ktor.io/) · [Room](https://developer.android.com/kotlin/multiplatform/room) · [Koin](https://insert-koin.io/) · [OkHttp](https://square.github.io/okhttp/) · [SKIE](https://skie.touchlab.co/) · [KMMBridge](https://kmmbridge.touchlab.co/)

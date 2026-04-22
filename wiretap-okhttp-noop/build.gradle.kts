@@ -21,6 +21,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(libs.okhttp)
+                implementation(libs.okhttp.sse)
                 implementation(projects.wiretapCore)
             }
         }

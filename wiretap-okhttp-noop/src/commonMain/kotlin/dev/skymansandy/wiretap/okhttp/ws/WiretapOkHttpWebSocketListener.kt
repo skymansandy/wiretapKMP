@@ -1,16 +1,19 @@
+@file:Suppress("UnusedParameter")
+
 /*
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp
+package dev.skymansandy.wiretap.okhttp.ws
 
+import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import okhttp3.WebSocketListener
 
 /**
  * No-op WebSocket listener for release builds.
  * Pure pass-through to the delegate listener.
  */
-class WiretapOkHttpWebSocketListener(
+internal class WiretapOkHttpWebSocketListener(
     private val delegate: WebSocketListener,
 ) : WebSocketListener() {
 
@@ -34,7 +37,11 @@ class WiretapOkHttpWebSocketListener(
         delegate.onClosed(webSocket, code, reason)
     }
 
-    override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
+    override fun onFailure(
+        webSocket: okhttp3.WebSocket,
+        t: Throwable,
+        response: okhttp3.Response?,
+    ) {
         delegate.onFailure(webSocket, t, response)
     }
 }
@@ -42,5 +49,14 @@ class WiretapOkHttpWebSocketListener(
 /**
  * No-op: returns the listener as-is (wrapped in [WiretapOkHttpWebSocketListener] for API parity).
  */
-fun WebSocketListener.wiretapped(): WiretapOkHttpWebSocketListener =
-    WiretapOkHttpWebSocketListener(this)
+@Deprecated(
+    message = "Use wiretapped() with config builder instead.",
+    replaceWith = ReplaceWith("wiretapped { enabled = true }"),
+)
+fun WebSocketListener.wiretapped(
+    enabled: Boolean = true,
+): WebSocketListener = WiretapOkHttpWebSocketListener(this)
+
+fun WebSocketListener.wiretapped(
+    configure: WiretapWsConfig.() -> Unit,
+): WebSocketListener = WiretapOkHttpWebSocketListener(this)

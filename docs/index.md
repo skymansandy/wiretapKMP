@@ -1,6 +1,6 @@
 # WiretapKMP
 
-Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP and WebSocket traffic from Ktor, OkHttp, and URLSession clients. Logs to local SQLite. Built-in Compose UI for inspection. Mock and throttle rules engine. No proxy server needed.
+Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP, WebSocket, and SSE (Server-Sent Events) traffic from Ktor, OkHttp, and URLSession clients. Logs to local SQLite. Built-in Compose UI for inspection. Mock and throttle rules engine. No proxy server needed.
 
 ## KMP Plugins
 
@@ -14,6 +14,14 @@ Kotlin Multiplatform network inspection and mocking SDK. Intercepts HTTP and Web
 | Client | iOS |
 |--------|:---:|
 | **URLSession** | ✅ |
+
+## Inspection Support
+
+| Client | HTTP | WebSocket | SSE |
+|--------|:----:|:---------:|:---:|
+| **Ktor** | ✅ | ✅ | ✅ |
+| **OkHttp** | ✅ | ✅ | ✅ |
+| **URLSession** | ✅ | — | — |
 
 `wiretap-urlsession` is a dedicated Swift wrapper exported as an XCFramework via KMMBridge/SPM. It wraps `NSURLSession` with logging and rule support for native iOS projects.
 
@@ -100,6 +108,15 @@ Full WebSocket lifecycle tracking:
 - Ktor: wrap session with `wiretapped()` for automatic message interception
 - OkHttp: wrap listener with `WiretapOkHttpWebSocketListener` for automatic event capture
 
+## SSE (Server-Sent Events) Logging
+
+Full SSE connection lifecycle tracking:
+
+- Connection open/close/failure with status transitions
+- Every incoming event with event type, data payload, event ID, retry interval, and byte count
+- Ktor: wrap SSE session with `wiretapped()` for automatic event interception
+- OkHttp: wrap listener with `WiretapOkHttpEventSourceListener` for automatic event capture
+
 ## API Mocking
 
 Return fake responses without hitting the network. Rules match on method, URL, headers, and body using exact, contains, or regex matching. All criteria use AND logic. Mock responses bypass the network entirely and appear in the inspector with a **Mock** badge.
@@ -157,6 +174,7 @@ Compose Multiplatform UI with:
 - HTTP log list with search and filtering
 - Request/response detail view (Overview, Request, Response tabs)
 - WebSocket connections list and message stream view
+- SSE connections list and event stream view
 - Rule management (create, edit, enable/disable, delete) with conflict detection
 - Two-pane layout on wide screens
 - Copy buttons for headers and bodies

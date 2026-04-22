@@ -2,6 +2,19 @@ public final class dev/skymansandy/wiretap/plugin/http/WiretapKtorHttpPluginKt {
 	public static final fun getWiretapKtorHttpPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
 }
 
+public final class dev/skymansandy/wiretap/plugin/sse/WiretapKtorSsePluginKt {
+	public static final fun getWiretapKtorSsePlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+}
+
+public abstract interface class dev/skymansandy/wiretap/plugin/sse/WiretapSseSession {
+	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
+	public abstract fun getIncoming ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class dev/skymansandy/wiretap/plugin/sse/WiretapWrapKt {
+	public static final fun wiretapped (Lio/ktor/client/plugins/sse/ClientSSESession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class dev/skymansandy/wiretap/plugin/ws/WiretapKtorWebSocketPluginKt {
 	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
 }

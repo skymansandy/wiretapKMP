@@ -2,7 +2,7 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.domain.model.config
+package dev.skymansandy.wiretap.domain.model.config.http
 
 import kotlin.collections.iterator
 
@@ -10,7 +10,7 @@ import kotlin.collections.iterator
  * Specifies how a header should be treated in logged data.
  * The original request/response objects are never mutated.
  *
- * @see WiretapConfig.headerAction
+ * @see WiretapHttpConfig.headerAction
  */
 sealed interface HeaderAction {
 

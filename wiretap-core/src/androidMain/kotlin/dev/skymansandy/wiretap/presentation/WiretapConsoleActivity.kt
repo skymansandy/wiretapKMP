@@ -48,8 +48,18 @@ class WiretapConsoleActivity : ComponentActivity() {
     }
 
     private fun parseDeepLinkScreen(intent: Intent?): WiretapScreen? {
-        val socketId = intent?.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L) ?: -1L
-        if (socketId > 0) return WiretapScreen.SocketDetailScreen(socketId)
+        if (intent == null) return null
+
+        if (intent.hasExtra(WiretapNotificationManager.EXTRA_SSE_CONNECTION_ID)) {
+            val sseId = intent.getLongExtra(WiretapNotificationManager.EXTRA_SSE_CONNECTION_ID, -1L)
+            if (sseId >= 0) return WiretapScreen.SseDetailScreen(sseId)
+        }
+
+        if (intent.hasExtra(WiretapNotificationManager.EXTRA_SOCKET_ID)) {
+            val socketId = intent.getLongExtra(WiretapNotificationManager.EXTRA_SOCKET_ID, -1L)
+            if (socketId >= 0) return WiretapScreen.SocketDetailScreen(socketId)
+        }
+
         return null
     }
 }

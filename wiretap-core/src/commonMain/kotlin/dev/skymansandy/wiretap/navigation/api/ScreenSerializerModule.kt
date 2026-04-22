@@ -12,6 +12,7 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen.HttpDetailScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.RuleDetailScreen
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SelectRuleCriteriaSheet
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SocketDetailScreen
+import dev.skymansandy.wiretap.navigation.api.WiretapScreen.SseDetailScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -21,6 +22,7 @@ internal val screenSerializersModule = SavedStateConfiguration {
             subclass(HomeScreen::class, HomeScreen.serializer())
             subclass(HttpDetailScreen::class, HttpDetailScreen.serializer())
             subclass(SocketDetailScreen::class, SocketDetailScreen.serializer())
+            subclass(SseDetailScreen::class, SseDetailScreen.serializer())
             subclass(RuleDetailScreen::class, RuleDetailScreen.serializer())
             subclass(CreateRuleScreen::class, CreateRuleScreen.serializer())
             subclass(SelectRuleCriteriaSheet::class, SelectRuleCriteriaSheet.serializer())

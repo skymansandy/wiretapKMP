@@ -66,7 +66,7 @@ nav:
       - Module Structure: architecture/modules.md
       - Request Flow: architecture/request-flow.md
   - Configuration:
-      - WiretapConfig: configuration/config.md
+      - WiretapHttpConfig: configuration/config.md
       - Shake to Launch: configuration/shake.md
       - Header Actions: configuration/headers.md
       - Log Retention: configuration/retention.md
@@ -75,16 +75,21 @@ nav:
       - Setup: ktor/setup.md
       - HTTP Logging: ktor/http.md
       - WebSocket Logging: ktor/websockets.md
+      - SSE Logging: ktor/sse.md
       - API Reference: ktor/api.md
+      - Migration Guide: ktor/migration.md
   - OkHttp Interceptor:
       - Setup: okhttp/setup.md
       - HTTP Logging: okhttp/http.md
       - WebSocket Logging: okhttp/websockets.md
+      - SSE Logging: okhttp/sse.md
       - API Reference: okhttp/api.md
+      - Migration Guide: okhttp/migration.md
   - URLSession Wrapper (Swift):
       - Setup: urlsession/setup.md
       - HTTP Logging: urlsession/http.md
       - API Reference: urlsession/api.md
+      - Migration Guide: urlsession/migration.md
 
 extra_css:
   - assets/extra.css

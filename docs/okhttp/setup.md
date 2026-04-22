@@ -5,8 +5,8 @@
 ## Dependencies
 
 ```kotlin
-debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC9")
-releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC9")
+debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC10")
+releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC10")
 ```
 
 ## Install the Interceptor
@@ -43,12 +43,21 @@ val client = OkHttpClient.Builder()
 client.newWebSocket(request, myWebSocketListener.wiretapped())
 ```
 
-Or use the constructor directly:
+## With SSE Support
+
+Use the `wiretapped()` extension on your `EventSourceListener`:
 
 ```kotlin
-val listener = WiretapOkHttpWebSocketListener(myWebSocketListener)
-client.newWebSocket(request, listener)
+val client = OkHttpClient.Builder()
+    .addInterceptor(WiretapOkHttpInterceptor())
+    .build()
+
+val factory = EventSources.createFactory(client)
+val request = Request.Builder().url("https://example.com/events").build()
+factory.newEventSource(request, myEventSourceListener.wiretapped())
 ```
+
+[:material-arrow-right: Full SSE logging guide](sse.md)
 
 ## DI Setup Example
 

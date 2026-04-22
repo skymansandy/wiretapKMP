@@ -51,7 +51,7 @@ import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.MessageBubble
-import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
+import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import org.koin.compose.viewmodel.koinViewModel
@@ -76,12 +76,18 @@ internal fun SocketDetailScreenView(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    // Scroll to bottom on initial load
+    LaunchedEffect(Unit) {
+        if (messages.isNotEmpty()) {
+            listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
+        }
+    }
+
     // Auto-scroll to bottom when new messages arrive and already near bottom
     var prevMessageCount by remember { mutableStateOf(messages.size) }
     LaunchedEffect(messages.size) {
         if (messages.size > prevMessageCount) {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            // header takes index 0, messages start at 1
             val totalItems = listState.layoutInfo.totalItemsCount
             if (totalItems - lastVisible <= 3) {
                 listState.animateScrollToItem(totalItems - 1)
@@ -122,7 +128,7 @@ internal fun SocketDetailScreenView(
             )
         },
     ) { padding ->
-        ScrollToTopButton(
+        ScrollToBottomChip(
             listState = listState,
             modifier = Modifier.fillMaxSize().padding(padding),
         ) {

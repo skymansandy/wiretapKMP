@@ -10,9 +10,11 @@ import dev.skymansandy.wiretap.data.db.room.createWiretapDatabaseBuilder
 import dev.skymansandy.wiretap.data.repository.HttpRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.RuleRepositoryImpl
 import dev.skymansandy.wiretap.data.repository.SocketRepositoryImpl
+import dev.skymansandy.wiretap.data.repository.SseRepositoryImpl
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
+import dev.skymansandy.wiretap.domain.repository.SseRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import org.koin.dsl.module
@@ -45,6 +47,13 @@ internal val wiretapDataModule = module {
         val db = get<WiretapRoomDatabase>()
         SocketRepositoryImpl(
             socketLogsDao = db.socketRoomDao(),
+        )
+    }
+
+    single<SseRepository> {
+        val db = get<WiretapRoomDatabase>()
+        SseRepositoryImpl(
+            sseLogsDao = db.sseRoomDao(),
         )
     }
 }

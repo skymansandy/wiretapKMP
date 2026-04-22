@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.okhttp.wiretapped
+import dev.skymansandy.wiretap.okhttp.ws.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.WsSampleActions

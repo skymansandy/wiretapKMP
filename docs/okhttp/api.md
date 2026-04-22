@@ -4,7 +4,7 @@
 
 ```kotlin
 class WiretapOkHttpInterceptor(
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent
 ```
 
@@ -14,14 +14,14 @@ OkHttp `Interceptor` for HTTP request/response logging with mock/throttle rule s
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
+| `configure` | `WiretapHttpConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
 ### Installation
 
 ```kotlin
 OkHttpClient.Builder()
     .addInterceptor(WiretapOkHttpInterceptor {
-        // WiretapConfig properties — all optional
+        // WiretapHttpConfig properties — all optional
     })
     .build()
 ```
@@ -83,10 +83,10 @@ Extension function that wraps the receiver in a `WiretapOkHttpWebSocketListener`
 
 ---
 
-## WiretapConfig
+## WiretapHttpConfig
 
 ```kotlin
-class WiretapConfig {
+class WiretapHttpConfig {
     var enabled: Boolean = true
     var shouldLog: (url: String, method: String) -> Boolean = { _, _ -> true }
     var headerAction: (key: String) -> HeaderAction = { HeaderAction.Keep }
@@ -97,12 +97,54 @@ class WiretapConfig {
 
 ---
 
+## WiretapOkHttpEventSourceListener
+
+```kotlin
+class WiretapOkHttpEventSourceListener(
+    private val delegate: EventSourceListener,
+) : EventSourceListener(), KoinComponent
+```
+
+Wraps a consumer's `EventSourceListener` to log all SSE events.
+
+### Installation
+
+```kotlin
+// Extension function (recommended)
+factory.newEventSource(request, myListener.wiretapped())
+
+// Constructor
+factory.newEventSource(request, WiretapOkHttpEventSourceListener(myListener))
+```
+
+### Intercepted Callbacks
+
+| Callback | Logged As |
+|----------|-----------|
+| `onOpen(eventSource, response)` | Connection opened with URL and request headers |
+| `onEvent(eventSource, id, type, data)` | Event logged with type, data, ID, and byte count |
+| `onClosed(eventSource)` | Status → Closed |
+| `onFailure(eventSource, t, response)` | Status → Failed |
+
+---
+
+## wiretapped() (SSE)
+
+```kotlin
+fun EventSourceListener.wiretapped(): WiretapOkHttpEventSourceListener
+```
+
+Extension function that wraps the receiver in a `WiretapOkHttpEventSourceListener`. Available in both the debug and noop modules.
+
+---
+
 ## No-op (wiretap-okhttp-noop)
 
 | Component | Behavior |
 |-----------|----------|
 | `WiretapOkHttpInterceptor` | `chain.proceed(chain.request())` |
 | `WiretapOkHttpWebSocketListener` | Pure delegation to original listener |
+| `WiretapOkHttpEventSourceListener` | Pure delegation to original listener |
 | `wiretapModule` | Empty Koin module |
 
 Same constructor signatures — zero overhead, drop-in replacement.

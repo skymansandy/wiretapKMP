@@ -43,7 +43,7 @@ flowchart BT
 
 ### Orchestrator Pattern
 
-The `WiretapOrchestrator` combines two sub-orchestrators via Kotlin delegation:
+The `WiretapOrchestrator` combines sub-orchestrators via Kotlin delegation:
 
 ```kotlin
 class WiretapOrchestratorImpl(
@@ -56,6 +56,7 @@ class WiretapOrchestratorImpl(
 
 - **`HttpOrchestrator`** — Manages HTTP log entries (CRUD + pagination). Uses `HttpRepository` for persistence and `WiretapLogger` for console output.
 - **`SocketOrchestrator`** — Manages WebSocket connections and messages. Uses `SocketRepository` and `WiretapLogger`.
+- **`SseLogManager`** — Manages SSE connections and events. Handles connection lifecycle (create, update) and event logging with active connection caching.
 
 ### Dependency Injection
 

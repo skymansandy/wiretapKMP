@@ -9,6 +9,7 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.launcher.onClearHttpLogs
+import dev.skymansandy.wiretap.helper.launcher.onDeleteHttpLog
 import dev.skymansandy.wiretap.helper.launcher.onNewHttpLog
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +54,7 @@ internal class HttpLogManagerImpl(
 
     override suspend fun deleteHttpLog(id: Long) {
         httpRepository.deleteById(id)
+        onDeleteHttpLog(id)
     }
 
     override suspend fun clearHttpLogs() {

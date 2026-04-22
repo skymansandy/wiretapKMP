@@ -2,22 +2,21 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp
+package dev.skymansandy.wiretap.okhttp.http
 
 import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.RuleAction
-import dev.skymansandy.wiretap.domain.model.config.LogRetention
-import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
-import dev.skymansandy.wiretap.domain.model.config.applyHeaderAction
+import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
+import dev.skymansandy.wiretap.domain.model.config.http.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.util.truncateBody
-import dev.skymansandy.wiretap.okhttp.util.extractResponseMetadata
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -27,6 +26,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -50,10 +50,10 @@ import java.io.IOException
  * ```
  */
 class WiretapOkHttpInterceptor(
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent {
 
-    private val config = WiretapConfig().apply(configure)
+    private val config = WiretapHttpConfig().apply(configure)
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
@@ -98,7 +98,7 @@ class WiretapOkHttpInterceptor(
         val reqHeaders = request.headers.toMap()
         val requestBody = try {
             val copy = request.newBuilder().build()
-            val buffer = okio.Buffer()
+            val buffer = Buffer()
             copy.body?.writeTo(buffer)
             buffer.readUtf8()
         } catch (_: Exception) {
@@ -233,6 +233,19 @@ class WiretapOkHttpInterceptor(
                 }
             }
             throw e
+        }
+
+        // SSE stream — remove the HTTP log entry; SSE listener handles it
+        val respContentType = response.header("Content-Type")
+        if (respContentType != null && respContentType.contains(
+                "text/event-stream",
+                ignoreCase = true,
+            )
+        ) {
+            if (logEntryId >= 0) {
+                httpLogManager.deleteHttpLog(logEntryId)
+            }
+            return@runBlocking response
         }
 
         val durationNs = currentNanoTime() - startNano

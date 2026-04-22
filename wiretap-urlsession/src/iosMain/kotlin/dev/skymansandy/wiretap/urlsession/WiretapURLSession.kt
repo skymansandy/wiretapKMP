@@ -4,7 +4,7 @@
 
 package dev.skymansandy.wiretap.urlsession
 
-import dev.skymansandy.wiretap.domain.model.config.WiretapConfig
+import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
 import platform.Foundation.NSData
 import platform.Foundation.NSError
 import platform.Foundation.NSHTTPURLResponse
@@ -33,7 +33,7 @@ import platform.Foundation.NSURLSessionDataTask
  * session.dataTask(request: request) { data, response, error in ... }.resume()
  * ```
  *
- * When [WiretapConfig.enabled] is false, all methods pass through to the
+ * When [WiretapHttpConfig.enabled] is false, all methods pass through to the
  * underlying NSURLSession with zero interception overhead.
  *
  * APIs:
@@ -42,7 +42,7 @@ import platform.Foundation.NSURLSessionDataTask
  */
 class WiretapURLSession(
     configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) {
 
     private val session: NSURLSession = NSURLSession.sessionWithConfiguration(

@@ -1,6 +1,6 @@
 # wiretap-ktor
 
-Ktor client plugin for WiretapKMP. Intercepts HTTP requests and WebSocket connections, logging them to the Wiretap database for inspection via the built-in Compose UI.
+Ktor client plugin for WiretapKMP. Intercepts HTTP requests, WebSocket connections, and SSE (Server-Sent Events) streams, logging them to the Wiretap database for inspection via the built-in Compose UI.
 
 **Platforms:** Android, iOS, JVM
 
@@ -154,3 +154,45 @@ session.close(reason = "User disconnected")
 ```
 
 Auto-close detection handles unexpected disconnections — no manual status management needed.
+
+---
+
+## 📡 SSE Plugin (`WiretapKtorSsePlugin`)
+
+### ⚙️ How It Works
+
+`WiretapKtorSsePlugin` is a placeholder plugin for API consistency. SSE connection tracking is handled by the `wiretapped()` extension on `ClientSSESession`, which creates a connection entry and returns a logging wrapper that intercepts all incoming events.
+
+1. **Session wrapping** — Call `wiretapped()` inside the `sse {}` block to get a `WiretapSseSession` that logs all events.
+2. **Event logging** — Every incoming `ServerSentEvent` is logged with its event type, data, ID, retry interval, and byte count.
+3. **Auto-close detection** — The session monitors flow completion and automatically updates status to Closed/Failed when the connection ends.
+
+### 📦 Setup
+
+```kotlin
+val client = HttpClient {
+    install(SSE)
+    install(WiretapKtorSsePlugin)
+}
+```
+
+### 🔧 Usage
+
+```kotlin
+client.sse("https://example.com/events") {
+    val session = this.wiretapped()
+
+    session.incoming.collect { event ->
+        println("Event: ${event.event} — ${event.data}")
+    }
+}
+```
+
+### What Gets Logged
+
+| Event                      | Logged as                              |
+|----------------------------|----------------------------------------|
+| Session opened             | Connection with status `Open`, URL, request headers |
+| Incoming event             | Event type, data payload, event ID, retry interval, byte count |
+| Flow completes normally    | Status updated to `Closed`             |
+| Flow completes with error  | Status updated to `Failed` with error  |

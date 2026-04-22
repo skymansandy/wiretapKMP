@@ -5,7 +5,7 @@
 ```kotlin
 class WiretapURLSession(
     configuration: NSURLSessionConfiguration = NSURLSessionConfiguration.defaultSessionConfiguration,
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 )
 ```
 
@@ -16,7 +16,7 @@ Drop-in URLSession wrapper with Wiretap network inspection. Manages its own `NSU
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `configuration` | `NSURLSessionConfiguration` | `.defaultSessionConfiguration` | Session configuration for timeouts, caching, etc. |
-| `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
+| `configure` | `WiretapHttpConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
 ### Swift Construction
 
@@ -172,7 +172,7 @@ See [Setup — Create a Session](setup.md#create-a-session) for the full bridge 
 ```kotlin
 class WiretapURLSessionInterceptor(
     private val session: NSURLSession = NSURLSession.sharedSession,
-    configure: WiretapConfig.() -> Unit = {},
+    configure: WiretapHttpConfig.() -> Unit = {},
 ) : KoinComponent
 ```
 
@@ -181,6 +181,6 @@ Low-level interceptor for when you need to provide your own `NSURLSession` insta
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `session` | `NSURLSession` | `.sharedSession` | The URLSession to use for network requests |
-| `configure` | `WiretapConfig.() -> Unit` | `{}` | Configuration builder lambda |
+| `configure` | `WiretapHttpConfig.() -> Unit` | `{}` | Configuration builder lambda |
 
 Provides the same `intercept()` and `dataTask()` methods as `WiretapURLSession`.

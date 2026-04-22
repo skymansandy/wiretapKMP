@@ -24,6 +24,7 @@ kotlin {
             dependencies {
                 api(projects.wiretapCore)
                 api(libs.okhttp)
+                api(libs.okhttp.sse)
                 implementation(libs.stately.concurrency)
                 implementation(libs.koin.core)
             }

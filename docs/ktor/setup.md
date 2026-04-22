@@ -58,6 +58,29 @@ val client = HttpClient {
 !!! important
     Install `WiretapKtorWebSocketPlugin` **before** `WiretapKtorHttpPlugin`. The HTTP plugin deletes 101 (Switching Protocols) entries to avoid duplicate logs.
 
+## With SSE Support
+
+```kotlin
+val client = HttpClient {
+    install(SSE)
+    install(WiretapKtorSsePlugin)        // SSE logging
+    install(WiretapKtorHttpPlugin)       // HTTP logging
+}
+```
+
+Then wrap your SSE session with `wiretapped()`:
+
+```kotlin
+client.sse("https://example.com/events") {
+    val session = this.wiretapped()
+    session.incoming.collect { event ->
+        println("Event: ${event.event} — ${event.data}")
+    }
+}
+```
+
+[:material-arrow-right: Full SSE logging guide](sse.md)
+
 ## DI Setup Example
 
 ```kotlin
@@ -65,7 +88,9 @@ val networkModule = module {
     single {
         HttpClient {
             install(WebSockets)
+            install(SSE)
             install(WiretapKtorWebSocketPlugin)
+            install(WiretapKtorSsePlugin)
             install(WiretapKtorHttpPlugin) {
                 logRetention = LogRetention.AppSession
                 headerAction = { key ->

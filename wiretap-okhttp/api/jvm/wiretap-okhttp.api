@@ -1,4 +1,4 @@
-public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpInterceptor : okhttp3/Interceptor, org/koin/core/component/KoinComponent {
+public final class dev/skymansandy/wiretap/okhttp/http/WiretapOkHttpInterceptor : okhttp3/Interceptor, org/koin/core/component/KoinComponent {
 	public fun <init> ()V
 	public fun <init> (Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -6,18 +6,15 @@ public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpInterceptor : okh
 	public fun intercept (Lokhttp3/Interceptor$Chain;)Lokhttp3/Response;
 }
 
-public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListener : okhttp3/WebSocketListener, org/koin/core/component/KoinComponent {
-	public fun <init> (Lokhttp3/WebSocketListener;)V
-	public fun getKoin ()Lorg/koin/core/Koin;
-	public fun onClosed (Lokhttp3/WebSocket;ILjava/lang/String;)V
-	public fun onClosing (Lokhttp3/WebSocket;ILjava/lang/String;)V
-	public fun onFailure (Lokhttp3/WebSocket;Ljava/lang/Throwable;Lokhttp3/Response;)V
-	public fun onMessage (Lokhttp3/WebSocket;Ljava/lang/String;)V
-	public fun onMessage (Lokhttp3/WebSocket;Lokio/ByteString;)V
-	public fun onOpen (Lokhttp3/WebSocket;Lokhttp3/Response;)V
+public final class dev/skymansandy/wiretap/okhttp/sse/WiretapOkHttpEventSourceListenerKt {
+	public static final fun wiretapped (Lokhttp3/sse/EventSourceListener;Lkotlin/jvm/functions/Function1;)Lokhttp3/sse/EventSourceListener;
+	public static final fun wiretapped (Lokhttp3/sse/EventSourceListener;Z)Lokhttp3/sse/EventSourceListener;
+	public static synthetic fun wiretapped$default (Lokhttp3/sse/EventSourceListener;ZILjava/lang/Object;)Lokhttp3/sse/EventSourceListener;
 }
 
-public final class dev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListenerKt {
-	public static final fun wiretapped (Lokhttp3/WebSocketListener;)Ldev/skymansandy/wiretap/okhttp/WiretapOkHttpWebSocketListener;
+public final class dev/skymansandy/wiretap/okhttp/ws/WiretapOkHttpWebSocketListenerKt {
+	public static final fun wiretapped (Lokhttp3/WebSocketListener;Lkotlin/jvm/functions/Function1;)Lokhttp3/WebSocketListener;
+	public static final fun wiretapped (Lokhttp3/WebSocketListener;Z)Lokhttp3/WebSocketListener;
+	public static synthetic fun wiretapped$default (Lokhttp3/WebSocketListener;ZILjava/lang/Object;)Lokhttp3/WebSocketListener;
 }
 
