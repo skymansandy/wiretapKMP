@@ -23,8 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -113,7 +113,7 @@ fun SampleApp(
             label = stringResource(Res.string.tab_websocket),
         ),
         TabItem(
-            icon = Icons.Default.CloudSync,
+            icon = Icons.Default.Podcasts,
             label = stringResource(Res.string.tab_sse),
         ),
     )

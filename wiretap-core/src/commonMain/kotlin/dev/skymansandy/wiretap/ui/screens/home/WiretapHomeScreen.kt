@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -87,7 +87,7 @@ internal fun WiretapHomeScreen(
                     NavigationBarItem(
                         selected = selectedTab == HomeTab.SSE,
                         onClick = { viewModel.selectTab(HomeTab.SSE) },
-                        icon = { Icon(Icons.Default.CloudSync, contentDescription = null) },
+                        icon = { Icon(Icons.Default.Podcasts, contentDescription = null) },
                         label = { Text("SSE") },
                     )
                 }
@@ -114,7 +114,7 @@ internal fun WiretapHomeScreen(
                         NavigationRailItem(
                             selected = selectedTab == HomeTab.SSE,
                             onClick = { viewModel.selectTab(HomeTab.SSE) },
-                            icon = { Icon(Icons.Default.CloudSync, contentDescription = null) },
+                            icon = { Icon(Icons.Default.Podcasts, contentDescription = null) },
                             label = { Text("SSE") },
                         )
                     }
