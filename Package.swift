@@ -2,8 +2,8 @@
 import PackageDescription
 
 // BEGIN KMMBRIDGE VARIABLES BLOCK (do not edit)
-let remoteKotlinUrl = "https://repo1.maven.org/maven2/dev/skymansandy/wiretap-urlsession-kmmbridge/1.0.0-RC9/wiretap-urlsession-kmmbridge-1.0.0-RC9.zip"
-let remoteKotlinChecksum = "8d222dd2ccd539c3d58a3b475746a06403ac9c27a169651b243d7fb00ca33ba6"
+let remoteKotlinUrl = "https://repo1.maven.org/maven2/dev/skymansandy/wiretap-urlsession-kmmbridge/1.0.0-RC10/wiretap-urlsession-kmmbridge-1.0.0-RC10.zip"
+let remoteKotlinChecksum = "1e5916d6c724f5c4fc9b17c921545009c325f87ad41bd847ebd496273452195e"
 let packageName = "WiretapURLSession"
 // END KMMBRIDGE BLOCK
 

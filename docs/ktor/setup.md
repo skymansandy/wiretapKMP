@@ -5,8 +5,8 @@
 ## Dependencies
 
 ```kotlin
-debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC9")
-releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC9")
+debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC10")
+releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC10")
 ```
 
 For KMP shared modules:
@@ -15,7 +15,7 @@ For KMP shared modules:
 sourceSets {
     commonMain {
         dependencies {
-            implementation("dev.skymansandy:wiretap-ktor:1.0.0-RC9")
+            implementation("dev.skymansandy:wiretap-ktor:1.0.0-RC10")
         }
     }
 }
