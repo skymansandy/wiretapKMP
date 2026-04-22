@@ -4,22 +4,34 @@
 
 package dev.skymansandy.wiretap.plugin.sse
 
+import dev.skymansandy.wiretap.domain.model.config.WiretapSseConfig
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.util.AttributeKey
+
+internal val WiretapSseEnabledKey = AttributeKey<Boolean>("WiretapSseEnabled")
 
 /**
- * Ktor client plugin placeholder for Wiretap SSE inspection.
+ * Ktor client plugin for Wiretap SSE inspection.
  *
- * SSE connection tracking is handled by [wiretapped] extension on [ClientSSESession].
- * This plugin is kept for API consistency but performs no interception.
+ * SSE connection tracking is handled by the [wiretapped] extension on [ClientSSESession].
+ * This plugin stores the [WiretapSseConfig] so that [wiretapped] can read it.
  *
  * Usage:
  * ```kotlin
  * HttpClient {
  *     install(SSE)
- *     install(WiretapKtorSsePlugin)
+ *     install(WiretapKtorSsePlugin) {
+ *         enabled = true
+ *     }
  * }
  * ```
  */
-val WiretapKtorSsePlugin = createClientPlugin("WiretapSsePlugin") {
-    // No-op: connection creation is handled in ClientSSESession.wiretapped()
+@ExperimentalWiretapSseApi
+val WiretapKtorSsePlugin = createClientPlugin("WiretapSsePlugin", ::WiretapSseConfig) {
+    val enabled = pluginConfig.enabled
+
+    onRequest { request, _ ->
+        request.attributes.put(WiretapSseEnabledKey, enabled)
+    }
 }

@@ -1,5 +1,8 @@
 # OkHttp — SSE Logging
 
+!!! warning "Experimental"
+    SSE inspection is in **early preview** and under active development. APIs are marked with `@ExperimentalWiretapSseApi` and may change in future releases. We're looking for early feedback — please [open an issue](https://github.com/skymansandy/wiretapKMP/issues) if you run into problems or have suggestions.
+
 ## Setup
 
 ### Extension function (recommended)
@@ -7,6 +10,7 @@
 Use the `wiretapped()` extension on any `EventSourceListener`:
 
 ```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
 val factory = EventSources.createFactory(client)
 val source = factory.newEventSource(request, myListener.wiretapped())
 ```
@@ -16,6 +20,7 @@ val source = factory.newEventSource(request, myListener.wiretapped())
 Alternatively, wrap your listener using the constructor directly:
 
 ```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
 val listener = WiretapOkHttpEventSourceListener(myListener)
 val source = factory.newEventSource(request, listener)
 ```
@@ -47,6 +52,7 @@ val listener = object : EventSourceListener() {
 
 val request = Request.Builder().url("https://api.example.com/stream").build()
 val factory = EventSources.createFactory(client)
+@OptIn(ExperimentalWiretapSseApi::class)
 factory.newEventSource(request, listener.wiretapped())
 ```
 

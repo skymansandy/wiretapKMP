@@ -6,6 +6,7 @@ package dev.skymansandy.wiretap.plugin.sse
 
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseStatus
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.plugin.sse.util.SsePluginDeps
 import io.ktor.client.plugins.sse.ClientSSESession
@@ -23,7 +24,11 @@ import io.ktor.client.plugins.sse.ClientSSESession
  * }
  * ```
  */
+@ExperimentalWiretapSseApi
 suspend fun ClientSSESession.wiretapped(): WiretapSseSession {
+    val enabled = call.request.attributes.getOrNull(WiretapSseEnabledKey) ?: true
+    if (!enabled) return DelegatingSseSession(this)
+
     val deps = SsePluginDeps()
     val url = call.request.url.toString()
     val requestHeaders = call.request.headers.entries()

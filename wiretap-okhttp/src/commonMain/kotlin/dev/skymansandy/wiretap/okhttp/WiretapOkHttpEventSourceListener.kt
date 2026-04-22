@@ -9,6 +9,7 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +39,10 @@ import kotlin.concurrent.Volatile
  * val source = factory.newEventSource(request, listener)
  * ```
  */
+@ExperimentalWiretapSseApi
 class WiretapOkHttpEventSourceListener(
     private val delegate: EventSourceListener,
+    private val enabled: Boolean = true,
 ) : EventSourceListener(), KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
@@ -53,6 +56,10 @@ class WiretapOkHttpEventSourceListener(
         get() = connectionId >= 0
 
     override fun onOpen(eventSource: EventSource, response: Response) {
+        if (!enabled) {
+            delegate.onOpen(eventSource, response)
+            return
+        }
         // runBlocking required here: connectionId must be set before delegate.onOpen
         runBlocking {
             val url = eventSource.request().url.toString()
@@ -135,5 +142,6 @@ class WiretapOkHttpEventSourceListener(
  * val source = factory.newEventSource(request, myListener.wiretapped())
  * ```
  */
-fun EventSourceListener.wiretapped(): WiretapOkHttpEventSourceListener =
-    WiretapOkHttpEventSourceListener(this)
+@ExperimentalWiretapSseApi
+fun EventSourceListener.wiretapped(enabled: Boolean = true): WiretapOkHttpEventSourceListener =
+    WiretapOkHttpEventSourceListener(this, enabled)

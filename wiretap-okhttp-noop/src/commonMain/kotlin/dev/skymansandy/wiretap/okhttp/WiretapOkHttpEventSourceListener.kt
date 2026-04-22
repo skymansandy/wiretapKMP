@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.okhttp
 
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import okhttp3.Response
 import okhttp3.sse.EventSource
 import okhttp3.sse.EventSourceListener
@@ -12,8 +13,10 @@ import okhttp3.sse.EventSourceListener
  * No-op EventSource listener for release builds.
  * Pure pass-through to the delegate listener.
  */
+@ExperimentalWiretapSseApi
 class WiretapOkHttpEventSourceListener(
     private val delegate: EventSourceListener,
+    private val enabled: Boolean = true,
 ) : EventSourceListener() {
 
     override fun onOpen(eventSource: EventSource, response: Response) {
@@ -36,5 +39,6 @@ class WiretapOkHttpEventSourceListener(
 /**
  * No-op: returns the listener wrapped in [WiretapOkHttpEventSourceListener] for API parity.
  */
-fun EventSourceListener.wiretapped(): WiretapOkHttpEventSourceListener =
-    WiretapOkHttpEventSourceListener(this)
+@ExperimentalWiretapSseApi
+fun EventSourceListener.wiretapped(enabled: Boolean = true): WiretapOkHttpEventSourceListener =
+    WiretapOkHttpEventSourceListener(this, enabled)

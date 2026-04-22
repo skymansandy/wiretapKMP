@@ -6,6 +6,7 @@ package dev.skymansandy.wiretap.plugin.ws
 
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.WiretapWsConfig
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.plugin.ws.util.WsPluginDeps
 import dev.skymansandy.wiretap.plugin.ws.util.toWebSocketUrl
@@ -13,6 +14,7 @@ import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.util.AttributeKey
 
 internal val WiretapSocketIdKey = AttributeKey<Long>("WiretapSocketId")
+internal val WiretapWsEnabledKey = AttributeKey<Boolean>("WiretapWsEnabled")
 
 /**
  * Ktor client plugin that intercepts WebSocket sessions to log
@@ -22,7 +24,9 @@ internal val WiretapSocketIdKey = AttributeKey<Long>("WiretapSocketId")
  * ```kotlin
  * HttpClient {
  *     install(WebSockets)
- *     install(WiretapKtorWebSocketPlugin)
+ *     install(WiretapKtorWebSocketPlugin) {
+ *         enabled = true
+ *     }
  * }
  * ```
  *
@@ -30,13 +34,19 @@ internal val WiretapSocketIdKey = AttributeKey<Long>("WiretapSocketId")
  * For full outgoing message interception, use [WiretapWebSocketSession]
  * to wrap your session.
  */
-val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin") {
+val WiretapKtorWebSocketPlugin = createClientPlugin("WiretapWebSocketPlugin", ::WiretapWsConfig) {
 
+    val enabled = pluginConfig.enabled
     val deps = WsPluginDeps()
+
+    onRequest { request, _ ->
+        request.attributes.put(WiretapWsEnabledKey, enabled)
+    }
 
     onResponse { response ->
         // Only intercept WebSocket upgrades (status 101)
         if (response.status.value != 101) return@onResponse
+        if (!enabled) return@onResponse
 
         val url = response.call.request.url.toString().toWebSocketUrl()
         val requestHeaders = response.call.request.headers.entries()

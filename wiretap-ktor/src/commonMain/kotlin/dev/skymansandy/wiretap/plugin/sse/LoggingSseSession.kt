@@ -8,6 +8,7 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.sse.ClientSSESession
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
  * Detects session completion via flow onCompletion (cancellation, server close, error)
  * and updates the connection status accordingly.
  */
+@OptIn(ExperimentalWiretapSseApi::class)
 internal class LoggingSseSession(
     private val delegate: ClientSSESession,
     private val connectionId: Long,

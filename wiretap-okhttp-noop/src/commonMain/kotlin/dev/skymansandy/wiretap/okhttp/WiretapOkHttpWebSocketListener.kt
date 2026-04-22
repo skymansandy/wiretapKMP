@@ -12,6 +12,7 @@ import okhttp3.WebSocketListener
  */
 class WiretapOkHttpWebSocketListener(
     private val delegate: WebSocketListener,
+    private val enabled: Boolean = true,
 ) : WebSocketListener() {
 
     override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
@@ -42,5 +43,5 @@ class WiretapOkHttpWebSocketListener(
 /**
  * No-op: returns the listener as-is (wrapped in [WiretapOkHttpWebSocketListener] for API parity).
  */
-fun WebSocketListener.wiretapped(): WiretapOkHttpWebSocketListener =
-    WiretapOkHttpWebSocketListener(this)
+fun WebSocketListener.wiretapped(enabled: Boolean = true): WiretapOkHttpWebSocketListener =
+    WiretapOkHttpWebSocketListener(this, enabled)

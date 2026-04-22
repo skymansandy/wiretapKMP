@@ -1,13 +1,17 @@
 # Ktor — SSE Logging
 
+!!! warning "Experimental"
+    SSE inspection is in **early preview** and under active development. APIs are marked with `@ExperimentalWiretapSseApi` and may change in future releases. We're looking for early feedback — please [open an issue](https://github.com/skymansandy/wiretapKMP/issues) if you run into problems or have suggestions.
+
 ## Setup
 
-Install the Ktor SSE plugin and the Wiretap SSE plugin:
+Install the Ktor SSE plugin and the Wiretap SSE plugin. SSE APIs require opt-in:
 
 ```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
 val client = HttpClient {
     install(SSE)
-    install(WiretapKtorSsePlugin)    // SSE logging
+    install(WiretapKtorSsePlugin)    // SSE logging (experimental)
     install(WiretapKtorHttpPlugin)   // HTTP logging
 }
 ```
@@ -17,6 +21,7 @@ val client = HttpClient {
 Wrap your SSE session with `wiretapped()` to log incoming events. This creates a connection entry in Wiretap and returns a logging wrapper that intercepts all incoming events:
 
 ```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
 client.sse("https://example.com/events") {
     val session = this.wiretapped()
 
@@ -64,12 +69,14 @@ The `wiretapped()` extension is available on `ClientSSESession` — the standard
 ## Complete Example
 
 ```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
 val client = HttpClient {
     install(SSE)
     install(WiretapKtorSsePlugin)
     install(WiretapKtorHttpPlugin)
 }
 
+@OptIn(ExperimentalWiretapSseApi::class)
 client.sse("https://api.example.com/stream") {
     val session = this.wiretapped()
 

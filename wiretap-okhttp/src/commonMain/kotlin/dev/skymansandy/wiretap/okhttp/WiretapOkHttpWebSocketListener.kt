@@ -42,6 +42,7 @@ import kotlin.concurrent.Volatile
  */
 class WiretapOkHttpWebSocketListener(
     private val delegate: WebSocketListener,
+    private val enabled: Boolean = true,
 ) : WebSocketListener(), KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
@@ -55,6 +56,10 @@ class WiretapOkHttpWebSocketListener(
         get() = socketId >= 0
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
+        if (!enabled) {
+            delegate.onOpen(webSocket, response)
+            return
+        }
         // runBlocking required here: socketId must be set before delegate.onOpen
         runBlocking {
             val url = webSocket.request().url.toString()
@@ -179,5 +184,5 @@ class WiretapOkHttpWebSocketListener(
  * client.newWebSocket(request, myListener.wiretapped())
  * ```
  */
-fun WebSocketListener.wiretapped(): WiretapOkHttpWebSocketListener =
-    WiretapOkHttpWebSocketListener(this)
+fun WebSocketListener.wiretapped(enabled: Boolean = true): WiretapOkHttpWebSocketListener =
+    WiretapOkHttpWebSocketListener(this, enabled)

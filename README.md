@@ -5,8 +5,10 @@
 <p align="center">
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-0%25-red" alt="Coverage"/></a>
-  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC9-blue" alt="Maven Central"/></a>
+  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC10-blue" alt="Maven Central"/></a>
 </p>
+
+> **Early Preview** — WiretapKMP is in active development. We're looking for early adopters and feedback! If you run into issues, have feature requests, or want to share how you're using it, please [open an issue](https://github.com/skymansandy/wiretapKMP/issues) or [start a discussion](https://github.com/skymansandy/wiretapKMP/discussions). SSE inspection is **experimental** and marked with `@ExperimentalWiretapSseApi` — APIs may change in future releases.
 
 WiretapKMP is a network inspection and mocking SDK for **Kotlin Multiplatform** and **Swift**. Add it to your app to capture HTTP, WebSocket, and SSE (Server-Sent Events) traffic, mock API responses, and throttle requests — no proxy server needed. It works with **Ktor**, **OkHttp**, and **URLSession**.
 

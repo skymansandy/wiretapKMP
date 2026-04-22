@@ -45,7 +45,7 @@ import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
-import dev.skymansandy.wiretap.ui.common.ScrollToTopButton
+import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseEventBubble
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseStatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
@@ -70,6 +70,13 @@ internal fun SseDetailScreenView(
 
     val events by viewModel.events.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
+
+    // Scroll to bottom on initial load
+    LaunchedEffect(Unit) {
+        if (events.isNotEmpty()) {
+            listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
+        }
+    }
 
     // Auto-scroll to bottom when new events arrive and already near bottom
     var prevEventCount by remember { mutableStateOf(events.size) }
@@ -116,7 +123,7 @@ internal fun SseDetailScreenView(
             )
         },
     ) { padding ->
-        ScrollToTopButton(
+        ScrollToBottomChip(
             listState = listState,
             modifier = Modifier.fillMaxSize().padding(padding),
         ) {

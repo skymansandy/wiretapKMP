@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretapsample.di
 
 import de.jensklingenberg.ktorfit.Ktorfit
+import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.plugin.http.WiretapKtorHttpPlugin
 import dev.skymansandy.wiretap.plugin.sse.WiretapKtorSsePlugin
 import dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
@@ -24,6 +25,7 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.seconds
 
+@OptIn(ExperimentalWiretapSseApi::class)
 val sampleAppModule = module {
 
     single<Json> {
