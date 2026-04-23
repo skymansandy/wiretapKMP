@@ -12,7 +12,7 @@
 
 > **Early Preview** — We're looking for early adopters and feedback! [Open an issue](https://github.com/skymansandy/wiretapKMP/issues) or [start a discussion](https://github.com/skymansandy/wiretapKMP/discussions).
 
-## Quick Start
+## 🚀 Quick Start
 
 ```kotlin
 // Ktor
@@ -28,7 +28,7 @@ val client = OkHttpClient.Builder()
 
 That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on desktop) to launch the inspector.
 
-## What You Get
+## ✅ What You Get
 
 | | HTTP | WebSocket | SSE |
 |--|:----:|:---------:|:---:|
@@ -42,7 +42,7 @@ That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on deskto
 | **OkHttp** | ✅ | — | ✅ |
 | **URLSession** | — | ✅ | — |
 
-## Screenshots
+## 📸 Screenshots
 
 | Overview | Request | Response |
 |:--------:|:-------:|:--------:|
@@ -52,7 +52,7 @@ That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on deskto
 |:---------:|:--------:|:-------------:|
 | <img src="docs/art/screenshots/socket/socketlist.png" width="260"/> | <img src="docs/art/screenshots/socket/socketdetail.png" width="260"/> | <img src="docs/art/screenshots/http/notification.png" width="260"/> |
 
-## Key Features
+## ⭐ Key Features
 
 - **Zero-config logging** — install the plugin and all traffic is captured automatically
 - **API mocking** — return fake responses without hitting the network. Match on method, URL, headers, and body
@@ -77,7 +77,57 @@ That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on deskto
 
 </details>
 
-## Installation
+## 📡 SSE Inspection (Experimental)
+
+WiretapKMP can inspect **Server-Sent Events (SSE)** streams — log every connection, event, and status change right alongside your HTTP and WebSocket traffic.
+
+> ⚠️ SSE inspection is in **early preview**. APIs are marked with `@ExperimentalWiretapSseApi` and may change in future releases.
+
+### Ktor
+
+Install the SSE plugin and wrap your session:
+
+```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
+val client = HttpClient {
+    install(SSE)
+    install(WiretapKtorSsePlugin)    // SSE logging
+    install(WiretapKtorHttpPlugin)   // HTTP logging
+}
+
+client.sse("https://api.example.com/stream") {
+    val session = this.wiretapped()
+    session.incoming.collect { event ->
+        println("Event: ${event.event} — ${event.data}")
+    }
+}
+```
+
+### OkHttp
+
+Wrap your `EventSourceListener` with `.wiretapped()`:
+
+```kotlin
+val client = OkHttpClient.Builder()
+    .addInterceptor(WiretapOkHttpInterceptor())
+    .build()
+
+val request = Request.Builder().url("https://api.example.com/stream").build()
+val factory = EventSources.createFactory(client)
+
+@OptIn(ExperimentalWiretapSseApi::class)
+factory.newEventSource(request, myListener.wiretapped())
+```
+
+### What Gets Logged
+
+| Connection | Events |
+|:----------:|:------:|
+| URL, headers, status (Open → Closed/Failed), timestamps | Event type, data payload, event ID, byte count, timestamp |
+
+For full details, see the [Ktor SSE guide](https://skymansandy.dev/wiretapKMP/ktor/sse/) and [OkHttp SSE guide](https://skymansandy.dev/wiretapKMP/okhttp/sse/).
+
+## 📦 Installation
 
 ```kotlin
 // build.gradle.kts
@@ -91,14 +141,14 @@ releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC10")
 
 For full setup including URLSession and advanced configuration, see the [**Getting Started guide**](https://skymansandy.dev/wiretapKMP/getting-started/).
 
-## Documentation
+## 📖 Documentation
 
 [Full docs](https://skymansandy.dev/wiretapKMP/) · [Getting Started](https://skymansandy.dev/wiretapKMP/getting-started/) · [API Reference](https://skymansandy.dev/wiretapKMP/ktor/api/)
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Fork the repo, create a feature branch, and open a PR.
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) · [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) · [Ktor](https://ktor.io/) · [Room](https://developer.android.com/kotlin/multiplatform/room) · [Koin](https://insert-koin.io/) · [OkHttp](https://square.github.io/okhttp/) · [SKIE](https://skie.touchlab.co/) · [KMMBridge](https://kmmbridge.touchlab.co/)
