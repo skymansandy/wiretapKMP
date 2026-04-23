@@ -12,7 +12,9 @@ kotlin {
         iosTarget.compilations {
             val main by getting {
                 cinterops {
-                    create("SwiftShakeDetector")
+                    create("SwiftShakeDetector") {
+                        packageName = "dev.skymansandy.wiretap.shake"
+                    }
                 }
             }
         }

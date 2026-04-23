@@ -16,9 +16,31 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      source: ${{ steps.filter.outputs.source }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            source:
+              - '**/*.kt'
+              - '**/*.kts'
+              - '**/*.swift'
+              - '**/*.def'
+              - '**/gradle.properties'
+              - 'gradle/**'
+
   api-check:
     name: API Compatibility
-    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +56,8 @@ jobs:
 
   detekt:
     name: Detekt
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,6 +74,8 @@ jobs:
 
   test-jvm:
     name: Tests (JVM)
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,6 +98,8 @@ jobs:
 
   test-ios:
     name: Tests (iOS Simulator)
+    needs: changes
+    if: needs.changes.outputs.source == 'true'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4

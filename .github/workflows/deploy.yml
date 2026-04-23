@@ -220,6 +220,7 @@ jobs:
   deploy-docs:
     name: Deploy Docs
     needs: test-and-coverage
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
