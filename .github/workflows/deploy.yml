@@ -167,7 +167,7 @@ jobs:
     name: GitHub Release
     needs: publish
     if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
