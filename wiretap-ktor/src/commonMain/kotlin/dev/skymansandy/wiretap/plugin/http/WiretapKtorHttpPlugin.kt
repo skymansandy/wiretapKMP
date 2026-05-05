@@ -21,6 +21,7 @@ import dev.skymansandy.wiretap.helper.util.truncateBody
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.request.HttpResponseData
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
@@ -170,9 +171,9 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapHttpCon
             request.attributes.put(LogEntryIdKey, logEntryId)
 
             // Safety net: if the coroutine is cancelled after proceed() returns
-            // but before onResponse fires, mark the entry as canceled.
+            // but before the ResponseObserver fires, mark the entry as canceled.
             // The conditional SQL only updates entries still at -2 (in-progress),
-            // so it won't overwrite a legitimate response logged by onResponse.
+            // so it won't overwrite a legitimate response logged by the observer.
             coroutineContext[Job]?.invokeOnCompletion { cause ->
                 if (cause != null) {
                     logScope.launch {
@@ -248,72 +249,79 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapHttpCon
         }
     }
 
-    onResponse { response ->
-        val request = response.request
-        val logEntryId = request.attributes.getOrNull(LogEntryIdKey) ?: return@onResponse
+    // Use ResponseObserver to read the response body for logging.
+    // Unlike onResponse + bodyAsText(), ResponseObserver splits the ByteReadChannel
+    // so the observer gets its own copy — downstream consumers (e.g. custom
+    // ContentConverters in ContentNegotiation) always receive a fresh channel.
+    // This fixes the JsonDecodingException caused by consuming the one-shot stream.
+    ResponseObserver.install(ResponseObserver.prepare {
+        onResponse { response ->
+            val request = response.request
+            val logEntryId = request.attributes.getOrNull(LogEntryIdKey) ?: return@onResponse
 
-        // WebSocket upgrade (101) — remove any HTTP log entry; socket plugin handles it
-        if (response.status.value == 101) {
-            deps.httpLogManager.deleteHttpLog(logEntryId)
-            return@onResponse
+            // WebSocket upgrade (101) — remove any HTTP log entry; socket plugin handles it
+            if (response.status.value == 101) {
+                deps.httpLogManager.deleteHttpLog(logEntryId)
+                return@onResponse
+            }
+
+            // SSE stream — remove the HTTP log entry; SSE plugin handles it
+            val contentType = response.headers["Content-Type"]
+            if (contentType != null && contentType.contains("text/event-stream", ignoreCase = true)) {
+                deps.httpLogManager.deleteHttpLog(logEntryId)
+                return@onResponse
+            }
+
+            val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
+            val durationNs = currentNanoTime() - startNano
+            val durationMs = durationNs / 1_000_000
+
+            val url = request.url.toString()
+            val method = request.method.value
+            val requestHeaders = request.attributes.getOrNull(RequestHeadersKey)
+                ?: request.headers.entries().associate { (key, values) -> key to values.joinToString(", ") }
+            val responseHeaders = response.headers.entries()
+                .associate { (key, values) -> key to values.joinToString(", ") }
+
+            val responseBody = try {
+                response.bodyAsText()
+            } catch (_: Exception) {
+                null
+            }
+
+            val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
+                is RuleAction.Mock -> ResponseSource.Mock
+                is RuleAction.Throttle -> ResponseSource.Throttle
+                is RuleAction.MockAndThrottle -> ResponseSource.MockAndThrottle
+                else -> ResponseSource.Network
+            }
+
+            val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
+
+            // NonCancellable ensures the DB update completes even when
+            // the coroutine is canceled mid-response, so the entry doesn't stay stuck at "...".
+            withContext(NonCancellable) {
+                deps.httpLogManager.updateHttp(
+                    HttpLog(
+                        id = logEntryId,
+                        url = url,
+                        method = method,
+                        requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
+                        requestBody = null,
+                        responseCode = response.status.value,
+                        responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
+                        responseBody = responseBody.truncateBody(config.maxContentLength),
+                        durationMs = durationMs,
+                        durationNs = durationNs,
+                        source = source,
+                        timestamp = currentTimeMillis(),
+                        matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
+                        protocol = protocol,
+                    ),
+                )
+            }
         }
-
-        // SSE stream — remove the HTTP log entry; SSE plugin handles it
-        val contentType = response.headers["Content-Type"]
-        if (contentType != null && contentType.contains("text/event-stream", ignoreCase = true)) {
-            deps.httpLogManager.deleteHttpLog(logEntryId)
-            return@onResponse
-        }
-
-        val startNano = request.attributes.getOrNull(RequestNanoTimestampKey) ?: currentNanoTime()
-        val durationNs = currentNanoTime() - startNano
-        val durationMs = durationNs / 1_000_000
-
-        val url = request.url.toString()
-        val method = request.method.value
-        val requestHeaders = request.attributes.getOrNull(RequestHeadersKey)
-            ?: request.headers.entries().associate { (key, values) -> key to values.joinToString(", ") }
-        val responseHeaders = response.headers.entries()
-            .associate { (key, values) -> key to values.joinToString(", ") }
-
-        val responseBody = try {
-            response.bodyAsText()
-        } catch (_: Exception) {
-            null
-        }
-
-        val source = when (request.attributes.getOrNull(MatchedRuleKey)?.action) {
-            is RuleAction.Mock -> ResponseSource.Mock
-            is RuleAction.Throttle -> ResponseSource.Throttle
-            is RuleAction.MockAndThrottle -> ResponseSource.MockAndThrottle
-            else -> ResponseSource.Network
-        }
-
-        val protocol = response.version.let { "${it.name}/${it.major}.${it.minor}" }
-
-        // NonCancellable ensures the DB update completes even when
-        // the coroutine is canceled mid-response, so the entry doesn't stay stuck at "...".
-        withContext(NonCancellable) {
-            deps.httpLogManager.updateHttp(
-                HttpLog(
-                    id = logEntryId,
-                    url = url,
-                    method = method,
-                    requestHeaders = requestHeaders.applyHeaderAction(config.headerAction),
-                    requestBody = null,
-                    responseCode = response.status.value,
-                    responseHeaders = responseHeaders.applyHeaderAction(config.headerAction),
-                    responseBody = responseBody.truncateBody(config.maxContentLength),
-                    durationMs = durationMs,
-                    durationNs = durationNs,
-                    source = source,
-                    timestamp = currentTimeMillis(),
-                    matchedRuleId = request.attributes.getOrNull(MatchedRuleKey)?.id,
-                    protocol = protocol,
-                ),
-            )
-        }
-    }
+    }, client)
 }
 
 private class WiretapDeps : KoinComponent {
