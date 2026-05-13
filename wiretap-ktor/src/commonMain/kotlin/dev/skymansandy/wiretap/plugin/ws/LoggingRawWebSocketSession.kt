@@ -4,6 +4,7 @@
 
 package dev.skymansandy.wiretap.plugin.ws
 
+import co.touchlab.stately.concurrency.AtomicBoolean
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
@@ -56,34 +57,45 @@ internal class LoggingRawWebSocketSession(
         get() = runCatching { delegate.extensions }.getOrDefault(emptyList())
 
     private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val closureReported = AtomicBoolean(false)
+
+    private fun reportClosure(cause: Throwable?) {
+        if (!closureReported.compareAndSet(expected = false, new = true)) return
+        logScope.launch {
+            if (cause != null && cause !is CancellationException) {
+                socketLogManager.updateSocket(
+                    SocketConnection(
+                        id = socketId,
+                        url = url,
+                        status = SocketStatus.Failed,
+                        failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
+                        closedAt = currentTimeMillis(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            } else {
+                socketLogManager.updateSocket(
+                    SocketConnection(
+                        id = socketId,
+                        url = url,
+                        status = SocketStatus.Closed,
+                        closeReason = if (cause is CancellationException) "Cancelled" else null,
+                        closedAt = currentTimeMillis(),
+                        timestamp = currentTimeMillis(),
+                    ),
+                )
+            }
+        }
+    }
 
     init {
         delegate.coroutineContext[Job]?.invokeOnCompletion { cause ->
-            logScope.launch {
-                if (cause != null && cause !is CancellationException) {
-                    socketLogManager.updateSocket(
-                        SocketConnection(
-                            id = socketId,
-                            url = url,
-                            status = SocketStatus.Failed,
-                            failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
-                            closedAt = currentTimeMillis(),
-                            timestamp = currentTimeMillis(),
-                        ),
-                    )
-                } else {
-                    socketLogManager.updateSocket(
-                        SocketConnection(
-                            id = socketId,
-                            url = url,
-                            status = SocketStatus.Closed,
-                            closeReason = if (cause is CancellationException) "Cancelled" else null,
-                            closedAt = currentTimeMillis(),
-                            timestamp = currentTimeMillis(),
-                        ),
-                    )
-                }
-            }
+            // Guard: if the outgoing channel is still open, the raw engine session's
+            // Job completed due to Ktor wrapping it into DefaultClientWebSocketSession,
+            // not because the actual WebSocket connection closed.
+            @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+            if (cause == null && !delegate.outgoing.isClosedForSend) return@invokeOnCompletion
+            reportClosure(cause)
         }
     }
 
@@ -95,6 +107,7 @@ internal class LoggingRawWebSocketSession(
     override val incoming: ReceiveChannel<Frame> = LoggingReceiveChannel(
         delegate = delegate.incoming,
         logAction = { frame -> logFrame(frame, SocketMessageType.Received) },
+        onChannelClosed = { cause -> reportClosure(cause) },
     )
 
     override val outgoing: SendChannel<Frame> = LoggingSendChannel(
@@ -168,6 +181,7 @@ internal class LoggingRawWebSocketSession(
 private class LoggingReceiveChannel(
     private val delegate: ReceiveChannel<Frame>,
     private val logAction: (Frame) -> Unit,
+    private val onChannelClosed: (Throwable?) -> Unit,
 ) : ReceiveChannel<Frame> by delegate {
 
     override suspend fun receive(): Frame {
@@ -177,19 +191,25 @@ private class LoggingReceiveChannel(
     override suspend fun receiveCatching(): ChannelResult<Frame> {
         return delegate.receiveCatching().also { result ->
             result.getOrNull()?.let { logAction(it) }
+            if (result.isClosed) onChannelClosed(result.exceptionOrNull())
         }
     }
 
     override fun tryReceive(): ChannelResult<Frame> {
         return delegate.tryReceive().also { result ->
             result.getOrNull()?.let { logAction(it) }
+            if (result.isClosed) onChannelClosed(result.exceptionOrNull())
         }
     }
 
     override fun iterator(): ChannelIterator<Frame> {
         val delegateIterator = delegate.iterator()
         return object : ChannelIterator<Frame> {
-            override suspend fun hasNext(): Boolean = delegateIterator.hasNext()
+            override suspend fun hasNext(): Boolean {
+                return delegateIterator.hasNext().also { hasMore ->
+                    if (!hasMore) onChannelClosed(null)
+                }
+            }
             override fun next(): Frame = delegateIterator.next().also { logAction(it) }
         }
     }
