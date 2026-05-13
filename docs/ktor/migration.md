@@ -35,7 +35,7 @@ The `install` DSL is unchanged — only the config type name changed:
 
 ### SSE — new experimental API
 
-SSE logging is new in RC10. Install the plugin and use `wiretapped()` on your SSE session:
+SSE logging is new in RC10. Install the plugin and sessions are wrapped automatically:
 
 ```kotlin
 val client = HttpClient {
@@ -46,9 +46,32 @@ val client = HttpClient {
 
 @OptIn(ExperimentalWiretapSseApi::class)
 client.sse("https://example.com/events") {
-    val session = this.wiretapped()
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         println("Event: ${event.data}")
     }
 }
 ```
+
+## RC11 → RC12
+
+### `wiretapped()` removed for WebSocket and SSE
+
+`WiretapKtorWebSocketPlugin` and `WiretapKtorSsePlugin` now wrap sessions automatically. Remove all `wiretapped()` calls:
+
+```diff
+  client.webSocket("wss://example.com/ws") {
+-     val session = this.wiretapped()
+-     session?.send(Frame.Text("Hello!"))
+-     for (frame in (session?.incoming ?: incoming)) { ... }
++     send(Frame.Text("Hello!"))
++     for (frame in incoming) { ... }
+  }
+
+  client.sse("https://example.com/events") {
+-     val session = this.wiretapped()
+-     session.incoming.collect { event -> ... }
++     incoming.collect { event -> ... }
+  }
+```
+
+The `wiretapped()` extension is now deprecated with `ERROR` level and simply returns `this`.

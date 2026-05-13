@@ -16,22 +16,18 @@ val client = HttpClient {
 }
 ```
 
-## Session Wrapping
+## Automatic Session Wrapping
 
-Wrap your SSE session with `wiretapped()` to log incoming events. This creates a connection entry in Wiretap and returns a logging wrapper that intercepts all incoming events:
+`WiretapKtorSsePlugin` wraps SSE sessions automatically — no extra calls needed. Just use the session directly and all incoming events are logged:
 
 ```kotlin
 @OptIn(ExperimentalWiretapSseApi::class)
 client.sse("https://example.com/events") {
-    val session = this.wiretapped()
-
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         println("Event: ${event.event} — ${event.data}")
     }
 }
 ```
-
-The `wiretapped()` extension is available on `ClientSSESession` — the standard Ktor SSE session type.
 
 ## WiretapSseSession API
 
@@ -42,8 +38,8 @@ The `wiretapped()` extension is available on `ClientSSESession` — the standard
 
 ## How It Works
 
-1. **`wiretapped()`** creates a connection entry via `SseLogManager` with status `Open`
-2. Returns a `LoggingSseSession` that wraps the Ktor `ClientSSESession`
+1. **`WiretapKtorSsePlugin`** automatically wraps SSE sessions and creates a connection entry via `SseLogManager` with status `Open`
+2. The wrapped `LoggingSseSession` intercepts the Ktor `ClientSSESession`
 3. Every incoming event is logged as it flows through the `incoming` flow
 4. When the flow completes (server close, cancellation, or error), the connection status is updated to `Closed` or `Failed`
 
@@ -78,9 +74,7 @@ val client = HttpClient {
 
 @OptIn(ExperimentalWiretapSseApi::class)
 client.sse("https://api.example.com/stream") {
-    val session = this.wiretapped()
-
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         when (event.event) {
             "message" -> handleMessage(event.data)
             "heartbeat" -> { /* ignore */ }
