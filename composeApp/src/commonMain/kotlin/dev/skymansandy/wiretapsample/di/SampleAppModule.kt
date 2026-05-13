@@ -44,9 +44,7 @@ val sampleAppModule = module {
     single {
         HttpClient {
             install(HttpTimeout)
-            install(WebSockets) {
-                pingIntervalMillis = 5.seconds.inWholeMilliseconds
-            }
+            install(WebSockets)
 
             install(SSE)
             install(WiretapKtorWebSocketPlugin)
