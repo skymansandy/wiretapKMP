@@ -20,19 +20,17 @@ val client = HttpClient {
 }
 ```
 
-## Session Wrapping
+## Automatic Session Wrapping
 
-Wrap your WebSocket session with `wiretapped()` to log outgoing and incoming messages. Returns `null` if `WiretapKtorWebSocketPlugin` is not installed:
+`WiretapKtorWebSocketPlugin` wraps WebSocket sessions automatically — no extra calls needed. All sent and received frames are logged:
 
 ```kotlin
 client.webSocket("wss://echo.websocket.org") {
-    val session = this.wiretapped() // null if plugin not installed
-
-    // Send — automatically logged when session is available
-    session?.send(Frame.Text("Hello, server!"))
+    // Send — automatically logged
+    send(Frame.Text("Hello, server!"))
 
     // Receive — automatically logged as frames are consumed
-    for (frame in (session?.incoming ?: incoming)) {
+    for (frame in incoming) {
         when (frame) {
             is Frame.Text -> println("Received: ${frame.readText()}")
             is Frame.Binary -> println("Received ${frame.readBytes().size} bytes")
@@ -59,7 +57,7 @@ client.webSocket("wss://echo.websocket.org") {
 1. **`WiretapKtorWebSocketPlugin`** hooks into `onResponse` for 101 Switching Protocols responses
 2. Creates a `SocketEntry` via the orchestrator with status `Open`
 3. Stores the socket ID on request attributes
-4. **`wiretapped()`** creates a `WiretapWebSocketSession` that intercepts `send()` and auto-logs `incoming` frames
+4. The plugin automatically wraps the session to intercept `send()` and auto-log `incoming` frames
 5. Connection close/failure is detected automatically via job completion
 
 ## What Gets Logged

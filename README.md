@@ -85,7 +85,7 @@ WiretapKMP can inspect **Server-Sent Events (SSE)** streams — log every connec
 
 ### Ktor
 
-Install the SSE plugin and wrap your session:
+Install the SSE plugin — sessions are wrapped automatically:
 
 ```kotlin
 @OptIn(ExperimentalWiretapSseApi::class)
@@ -96,8 +96,7 @@ val client = HttpClient {
 }
 
 client.sse("https://api.example.com/stream") {
-    val session = this.wiretapped()
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         println("Event: ${event.event} — ${event.data}")
     }
 }

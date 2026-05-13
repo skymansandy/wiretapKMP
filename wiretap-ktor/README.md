@@ -102,7 +102,7 @@ Rules match on method, URL (exact/contains/regex), headers, and body. First matc
 `WiretapKtorWebSocketPlugin` intercepts WebSocket upgrade requests (status 101) and logs all sent/received frames. It works independently of `WiretapKtorHttpPlugin` — you can install either or both depending on your needs.
 
 1. **On upgrade** — The plugin detects the 101 response and creates a `SocketConnection` entry with URL, request headers, status, and protocol.
-2. **Session wrapping** — Call `wiretapped()` inside the `webSocket {}` block to get a `WiretapWebSocketSession` that logs all frames.
+2. **Automatic session wrapping** — The plugin wraps WebSocket sessions automatically. All sent and received frames are logged without any extra calls.
 3. **Auto-close detection** — The session monitors its coroutine Job and automatically updates status to Closed/Failed when the connection ends.
 
 ### 📦 Setup
@@ -116,15 +116,15 @@ val client = HttpClient {
 
 ### 🔧 Usage
 
+Sessions are wrapped automatically — just use the session directly:
+
 ```kotlin
 client.webSocket("wss://example.com/ws") {
-    val session = this.wiretapped() // IMPORTANT: Returns a DelegatingWebSocketSession if plugin is not installed
-
     // Send — automatically logged
-    session?.send(Frame.Text("Hello!"))
+    send(Frame.Text("Hello!"))
 
     // Receive — automatically logged as frames are consumed
-    for (frame in (session?.incoming ?: incoming)) {
+    for (frame in incoming) {
         if (frame is Frame.Text) {
             val text = frame.readText()
             // handle message
@@ -161,9 +161,9 @@ Auto-close detection handles unexpected disconnections — no manual status mana
 
 ### ⚙️ How It Works
 
-`WiretapKtorSsePlugin` is a placeholder plugin for API consistency. SSE connection tracking is handled by the `wiretapped()` extension on `ClientSSESession`, which creates a connection entry and returns a logging wrapper that intercepts all incoming events.
+`WiretapKtorSsePlugin` wraps SSE sessions automatically. It creates a connection entry and intercepts all incoming events — no extra calls needed.
 
-1. **Session wrapping** — Call `wiretapped()` inside the `sse {}` block to get a `WiretapSseSession` that logs all events.
+1. **Automatic session wrapping** — The plugin wraps SSE sessions automatically, creating a `WiretapSseSession` that logs all events.
 2. **Event logging** — Every incoming `ServerSentEvent` is logged with its event type, data, ID, retry interval, and byte count.
 3. **Auto-close detection** — The session monitors flow completion and automatically updates status to Closed/Failed when the connection ends.
 
@@ -178,11 +178,11 @@ val client = HttpClient {
 
 ### 🔧 Usage
 
+Sessions are wrapped automatically — just use the session directly:
+
 ```kotlin
 client.sse("https://example.com/events") {
-    val session = this.wiretapped()
-
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         println("Event: ${event.event} — ${event.data}")
     }
 }
