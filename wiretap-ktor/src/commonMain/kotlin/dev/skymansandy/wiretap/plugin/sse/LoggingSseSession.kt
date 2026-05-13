@@ -8,11 +8,10 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
-import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
-import io.ktor.client.call.HttpClientCall
-import io.ktor.client.plugins.sse.ClientSSESession
+import io.ktor.client.plugins.sse.SSESession
 import io.ktor.sse.ServerSentEvent
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,21 +21,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
- * [WiretapSseSession] implementation that logs all incoming SSE events.
+ * [SSESession] wrapper that logs all incoming SSE events via Wiretap.
  *
- * Detects session completion via flow onCompletion (cancellation, server close, error)
- * and updates the connection status accordingly.
+ * Intercepts the delegate's [incoming] flow with [onEach] / [onCompletion]
+ * operators so every event and session lifecycle change is recorded.
  */
-@OptIn(ExperimentalWiretapSseApi::class)
 internal class LoggingSseSession(
-    private val delegate: ClientSSESession,
+    private val delegate: SSESession,
     private val connectionId: Long,
+    private val url: String,
     private val sseLogManager: SseLogManager,
-) : WiretapSseSession {
+) : SSESession {
 
-    override val call: HttpClientCall = delegate.call
+    override val coroutineContext: CoroutineContext = delegate.coroutineContext
 
     private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -44,8 +44,10 @@ internal class LoggingSseSession(
         .onEach { event -> logEvent(event) }
         .onCompletion { cause -> onSessionClosed(cause) }
 
+    @InternalAPI
+    override fun bodyBuffer(): ByteArray = delegate.bodyBuffer()
+
     private fun onSessionClosed(cause: Throwable?) {
-        val url = delegate.call.request.url.toString()
         logScope.launch {
             if (cause != null && cause !is CancellationException) {
                 sseLogManager.updateConnection(

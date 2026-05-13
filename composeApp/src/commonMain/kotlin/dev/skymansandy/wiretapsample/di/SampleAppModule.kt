@@ -24,7 +24,6 @@ import io.ktor.serialization.ContentConverter
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalWiretapSseApi::class)
 val sampleAppModule = module {
