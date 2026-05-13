@@ -10,10 +10,12 @@ import io.ktor.client.plugins.sse.ClientSSESession
 import io.ktor.sse.ServerSentEvent
 import kotlinx.coroutines.flow.Flow
 
-/**
- * No-op passthrough that just exposes the underlying session.
- */
 @OptIn(ExperimentalWiretapSseApi::class)
+@Deprecated(
+    message = "WiretapKtorSsePlugin now wraps sessions automatically. Use ClientSSESession directly.",
+    level = DeprecationLevel.ERROR,
+)
+@Suppress("DEPRECATION_ERROR")
 internal class DelegatingSseSession(
     private val delegate: ClientSSESession,
 ) : WiretapSseSession {
