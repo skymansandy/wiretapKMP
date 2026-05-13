@@ -105,7 +105,7 @@ Full WebSocket lifecycle tracking:
 - Connection open/close/failure with status transitions
 - Close codes and reasons
 - Every sent and received message (text and binary) with timestamps and byte counts
-- Ktor: wrap session with `wiretapped()` for automatic message interception
+- Ktor: automatically intercepted by `WiretapKtorWebSocketPlugin`
 - OkHttp: wrap listener with `WiretapOkHttpWebSocketListener` for automatic event capture
 
 ## SSE (Server-Sent Events) Logging
@@ -114,7 +114,7 @@ Full SSE connection lifecycle tracking:
 
 - Connection open/close/failure with status transitions
 - Every incoming event with event type, data payload, event ID, retry interval, and byte count
-- Ktor: wrap SSE session with `wiretapped()` for automatic event interception
+- Ktor: automatically intercepted by `WiretapKtorSsePlugin`
 - OkHttp: wrap listener with `WiretapOkHttpEventSourceListener` for automatic event capture
 
 ## API Mocking
