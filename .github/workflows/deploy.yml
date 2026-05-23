@@ -60,7 +60,7 @@ jobs:
     name: Publish & Update
     needs: test-and-coverage
     if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
-    runs-on: macos-latest
+    runs-on: macos-latest-large
     environment: default
     steps:
       - uses: actions/checkout@v4
