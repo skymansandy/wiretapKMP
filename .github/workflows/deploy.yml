@@ -60,8 +60,10 @@ jobs:
     name: Publish & Update
     needs: test-and-coverage
     if: ${{ !startsWith(github.event.head_commit.message, 'chore:') }}
-    runs-on: macos-latest-large
+    runs-on: macos-latest
     environment: default
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3g -Dkotlin.daemon.jvmargs=-Xmx2g"
     steps:
       - uses: actions/checkout@v4
 
@@ -78,7 +80,7 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
-        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache -PENABLE_PUBLISHING=true
+        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache --no-daemon -Pkotlin.native.jvmArgs=-Xmx4g -PENABLE_PUBLISHING=true
 
       - name: Generate Package.swift for SPM
         env:
@@ -86,7 +88,7 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
-        run: ./gradlew :wiretap-urlsession:kmmBridgePublish -x :wiretap-urlsession:publishKMMBridgeFrameworkPublicationToMavenCentralRepository --no-configuration-cache -PENABLE_PUBLISHING=true
+        run: ./gradlew :wiretap-urlsession:kmmBridgePublish -x :wiretap-urlsession:publishKMMBridgeFrameworkPublicationToMavenCentralRepository --no-configuration-cache --no-daemon -Pkotlin.native.jvmArgs=-Xmx4g -PENABLE_PUBLISHING=true
 
       - name: Fix Package.swift Maven Central URL
         run: |
