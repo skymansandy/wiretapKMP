@@ -14,7 +14,6 @@ kotlin {
             baseName = "WiretapURLSession"
             isStatic = true
             export(projects.wiretapApi)
-            export(projects.wiretapLauncher)
         }
     }
 
@@ -22,7 +21,6 @@ kotlin {
         iosMain {
             dependencies {
                 api(projects.wiretapApi)
-                api(projects.wiretapLauncher)
                 implementation(projects.wiretapCore)
                 implementation(libs.stately.concurrency)
                 implementation(libs.koin.core)
