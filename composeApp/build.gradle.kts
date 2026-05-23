@@ -16,10 +16,22 @@ ktorfit {
     compilerPluginVersion.set("-")
 }
 
+enum class BuildVariant { Dev, Prod }
+
+val buildVariant: BuildVariant = when (providers.gradleProperty("wiretapVariant").orNull?.lowercase()) {
+    "prod" -> BuildVariant.Prod
+    else -> BuildVariant.Dev
+}
+
+val wiretapKtorDependency = when (buildVariant) {
+    BuildVariant.Prod -> projects.wiretapKtorNoop
+    BuildVariant.Dev -> projects.wiretapKtor
+}
+
 kotlin {
     android {
         namespace = "dev.skymansandy.wiretapsample"
-        compileSdk { version = release(36) }
+        compileSdk { version = release(libs.versions.android.compileSdk.get().toInt()) }
     }
 
     listOf(
@@ -40,6 +52,8 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
+            // wiretapKtorDependency intentionally omitted: androidApp supplies it via
+            // debug/releaseImplementation so the AS Build Variant selector drives the swap.
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -50,7 +64,6 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            compileOnly(projects.wiretapKtor)
             implementation(libs.material.icons.extended)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
@@ -61,6 +74,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktorfit.lib)
             implementation(libs.kotlinx.coroutines.core)
+            compileOnly(wiretapKtorDependency)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -69,11 +83,11 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
             implementation(libs.ktor.client.java)
-            implementation(projects.wiretapKtor)
+            implementation(wiretapKtorDependency)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
-            implementation(projects.wiretapKtor)
+            implementation(wiretapKtorDependency)
         }
     }
 }

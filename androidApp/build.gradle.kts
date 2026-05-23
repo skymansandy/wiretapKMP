@@ -6,15 +6,15 @@ plugins {
 android {
     namespace = "dev.skymansandy.wiretap"
     compileSdk {
-        version = release(36) {
+        version = release(libs.versions.android.compileSdk.get().toInt()) {
             minorApiLevel = 1
         }
     }
 
     defaultConfig {
         applicationId = "dev.skymansandy.wiretapsample"
-        minSdk = 24
-        targetSdk = 36
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
@@ -22,8 +22,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -56,8 +60,15 @@ tasks.register<Copy>("copyWiretapCoreResourcesToAssets") {
 
 android.sourceSets["main"].assets.srcDir(composeAssetsDir)
 
-tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach {
-    dependsOn("copyComposeAppResourcesToAssets", "copyWiretapCoreResourcesToAssets")
+val copyComposeResourceTasks = listOf("copyComposeAppResourcesToAssets", "copyWiretapCoreResourcesToAssets")
+
+tasks.matching {
+    (it.name.startsWith("merge") && it.name.endsWith("Assets")) ||
+        (it.name.startsWith("lint") && (it.name.contains("Analyze") || it.name.contains("Report"))) ||
+        (it.name.startsWith("generate") && it.name.contains("LintReportModel")) ||
+        (it.name.startsWith("generate") && it.name.contains("LintVitalReportModel"))
+}.configureEach {
+    dependsOn(copyComposeResourceTasks)
 }
 
 dependencies {
@@ -81,9 +92,12 @@ dependencies {
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodelCompose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.sse)
+
     implementation(projects.composeApp)
     debugImplementation(projects.wiretapKtor)
-    debugImplementation(projects.wiretapOkhttp)
     releaseImplementation(projects.wiretapKtorNoop)
+    debugImplementation(projects.wiretapOkhttp)
     releaseImplementation(projects.wiretapOkhttpNoop)
 }

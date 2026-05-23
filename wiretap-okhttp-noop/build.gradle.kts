@@ -8,11 +8,11 @@ kotlin {
     android {
         namespace = "dev.skymansandy.wiretap.okhttp.noop"
         compileSdk {
-            version = release(36) {
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
                 minorApiLevel = 1
             }
         }
-        minSdk = 24
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
     jvm()
@@ -20,14 +20,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapApi)
+                api(projects.wiretapLauncherNoop)
                 implementation(libs.okhttp)
                 implementation(libs.okhttp.sse)
-                implementation(projects.wiretapCore)
-            }
-        }
-
-        androidMain {
-            dependencies {
             }
         }
     }

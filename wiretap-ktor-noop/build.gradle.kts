@@ -8,11 +8,11 @@ kotlin {
     android {
         namespace = "dev.skymansandy.wiretap.ktor.noop"
         compileSdk {
-            version = release(36) {
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
                 minorApiLevel = 1
             }
         }
-        minSdk = 24
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
 
     listOf(
@@ -22,6 +22,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "WiretapKit"
             isStatic = true
+            export(projects.wiretapApi)
+            export(projects.wiretapLauncherNoop)
         }
     }
 
@@ -30,14 +32,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapApi)
+                api(projects.wiretapLauncherNoop)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.websockets)
-                implementation(projects.wiretapCore)
-            }
-        }
-
-        androidMain {
-            dependencies {
             }
         }
     }

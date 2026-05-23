@@ -23,7 +23,7 @@ private val WiretapDarkColorScheme = darkColorScheme(
 )
 
 @Composable
-internal fun WiretapTheme(content: @Composable () -> Unit) {
+fun WiretapTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = WiretapDarkColorScheme,
         content = content,

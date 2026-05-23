@@ -16,11 +16,11 @@ kotlin {
     android {
         namespace = "dev.skymansandy.wiretap"
         compileSdk {
-            version = release(36) {
+            version = release(libs.versions.android.compileSdk.get().toInt()) {
                 minorApiLevel = 1
             }
         }
-        minSdk = 24
+        minSdk = libs.versions.android.minSdk.get().toInt()
         withDeviceTestBuilder {
         }.configure {
             instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -47,6 +47,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapApi)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.jsonCmp)
                 implementation(libs.koin.core)
