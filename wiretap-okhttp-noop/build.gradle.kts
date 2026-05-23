@@ -26,10 +26,5 @@ kotlin {
                 implementation(libs.okhttp.sse)
             }
         }
-
-        androidMain {
-            dependencies {
-            }
-        }
     }
 }

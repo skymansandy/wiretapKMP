@@ -38,10 +38,5 @@ kotlin {
                 implementation(libs.ktor.client.websockets)
             }
         }
-
-        androidMain {
-            dependencies {
-            }
-        }
     }
 }
