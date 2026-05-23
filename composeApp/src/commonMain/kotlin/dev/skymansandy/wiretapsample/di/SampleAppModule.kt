@@ -1,6 +1,7 @@
 package dev.skymansandy.wiretapsample.di
 
 import de.jensklingenberg.ktorfit.Ktorfit
+import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.plugin.http.WiretapKtorHttpPlugin
 import dev.skymansandy.wiretap.plugin.sse.WiretapKtorSsePlugin
@@ -50,7 +51,9 @@ val sampleAppModule = module {
             install(SSE)
             install(WiretapKtorWebSocketPlugin)
             install(WiretapKtorSsePlugin)
-            install(WiretapKtorHttpPlugin)
+            install(WiretapKtorHttpPlugin) {
+                logRetention = LogRetention.Days(10)
+            }
 
             install(ContentNegotiation) {
                 register(

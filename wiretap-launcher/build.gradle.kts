@@ -1,12 +1,14 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kover)
 }
 
 kotlin {
     android {
-        namespace = "dev.skymansandy.wiretap.ktor.noop"
+        namespace = "dev.skymansandy.wiretap.launcher"
         compileSdk {
             version = release(36) {
                 minorApiLevel = 1
@@ -20,10 +22,10 @@ kotlin {
         iosSimulatorArm64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "WiretapKit"
+            baseName = "WiretapLauncher"
             isStatic = true
             export(projects.wiretapApi)
-            export(projects.wiretapLauncherNoop)
+            export(projects.wiretapShake)
         }
     }
 
@@ -33,14 +35,24 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.wiretapApi)
-                api(projects.wiretapLauncherNoop)
-                implementation(libs.ktor.client.core)
-                implementation(libs.ktor.client.websockets)
+                implementation(projects.wiretapCore)
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.ui)
             }
         }
 
         androidMain {
             dependencies {
+                implementation(libs.androidx.activity.compose)
+                implementation(libs.androidx.lifecycle.process)
+            }
+        }
+
+        iosMain {
+            dependencies {
+                api(projects.wiretapShake)
             }
         }
     }

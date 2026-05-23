@@ -8,7 +8,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 
 @SuppressLint("StaticFieldLeak")
-internal object WiretapContextProvider {
+object WiretapContextProvider {
 
     lateinit var context: Context
         private set

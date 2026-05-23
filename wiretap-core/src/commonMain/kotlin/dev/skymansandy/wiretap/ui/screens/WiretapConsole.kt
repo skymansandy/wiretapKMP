@@ -62,6 +62,15 @@ import dev.skymansandy.wiretap.ui.screens.sse.detail.SseDetailScreenView
 import org.koin.compose.KoinIsolatedContext
 
 @Composable
+fun WiretapConsole(onBack: () -> Unit) {
+    WiretapConsole(
+        deepLinkScreen = null,
+        onDeepLinkConsumed = {},
+        onBack = onBack,
+    )
+}
+
+@Composable
 internal fun WiretapConsole(
     deepLinkScreen: WiretapScreen? = null,
     onDeepLinkConsumed: () -> Unit = {},

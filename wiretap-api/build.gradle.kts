@@ -6,7 +6,7 @@ plugins {
 
 kotlin {
     android {
-        namespace = "dev.skymansandy.wiretap.okhttp.noop"
+        namespace = "dev.skymansandy.wiretap.api"
         compileSdk {
             version = release(36) {
                 minorApiLevel = 1
@@ -15,19 +15,20 @@ kotlin {
         minSdk = 24
     }
 
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64(),
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "WiretapApi"
+            isStatic = true
+        }
+    }
+
     jvm()
 
     sourceSets {
         commonMain {
-            dependencies {
-                api(projects.wiretapApi)
-                api(projects.wiretapLauncherNoop)
-                implementation(libs.okhttp)
-                implementation(libs.okhttp.sse)
-            }
-        }
-
-        androidMain {
             dependencies {
             }
         }

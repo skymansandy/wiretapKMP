@@ -22,7 +22,9 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.wiretapCore)
+                api(projects.wiretapApi)
+                api(projects.wiretapLauncher)
+                implementation(projects.wiretapCore)
                 api(libs.okhttp)
                 api(libs.okhttp.sse)
                 implementation(libs.stately.concurrency)

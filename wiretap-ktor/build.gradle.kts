@@ -24,7 +24,8 @@ kotlin {
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "WiretapKtor"
-            export(projects.wiretapCore)
+            export(projects.wiretapApi)
+            export(projects.wiretapLauncher)
             isStatic = true
         }
     }
@@ -34,8 +35,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.wiretapCore)
-                api(libs.ktor.client.core)
+                api(projects.wiretapApi)
+                api(projects.wiretapLauncher)
+                implementation(projects.wiretapCore)
+                implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.websockets)
                 implementation(libs.stately.concurrency)
                 implementation(libs.koin.core)

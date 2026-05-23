@@ -18,6 +18,7 @@ import platform.UIKit.UIWindowScene
 
 private var wiretapViewControllerInstance: UIViewController? = null
 
+@Suppress("FunctionNaming")
 fun WiretapViewController(): UIViewController {
     return ComposeUIViewController {
         WiretapTheme {

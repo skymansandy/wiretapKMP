@@ -47,6 +47,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
+                api(projects.wiretapApi)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.jsonCmp)
                 implementation(libs.koin.core)

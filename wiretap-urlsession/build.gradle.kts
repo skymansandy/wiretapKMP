@@ -13,14 +13,17 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "WiretapURLSession"
             isStatic = true
-            export(projects.wiretapCore)
+            export(projects.wiretapApi)
+            export(projects.wiretapLauncher)
         }
     }
 
     sourceSets {
         iosMain {
             dependencies {
-                api(projects.wiretapCore)
+                api(projects.wiretapApi)
+                api(projects.wiretapLauncher)
+                implementation(projects.wiretapCore)
                 implementation(libs.stately.concurrency)
                 implementation(libs.koin.core)
             }
