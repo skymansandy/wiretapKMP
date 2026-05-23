@@ -1,0 +1,5 @@
+public final class dev/skymansandy/wiretap/helper/launcher/WiretapLauncher_jvmKt {
+	public static final fun enableWiretapLauncher ()V
+	public static final fun launchWiretapConsole ()V
+}
+

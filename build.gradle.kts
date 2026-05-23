@@ -53,9 +53,12 @@ kover {
 }
 
 val publishableModules = setOf(
+    "wiretap-api",
     "wiretap-core",
     "wiretap-ktor",
     "wiretap-ktor-noop",
+    "wiretap-launcher",
+    "wiretap-launcher-noop",
     "wiretap-okhttp",
     "wiretap-okhttp-noop",
     "wiretap-urlsession",

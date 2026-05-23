@@ -1,0 +1,84 @@
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/http/HeaderAction {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Keep : dev/skymansandy/wiretap/domain/model/config/http/HeaderAction {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Keep;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Mask : dev/skymansandy/wiretap/domain/model/config/http/HeaderAction {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Ldev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Mask;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Mask;Ljava/lang/String;ILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Mask;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getMask ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Skip : dev/skymansandy/wiretap/domain/model/config/http/HeaderAction {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/http/HeaderAction$Skip;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/HeaderActionKt {
+	public static final fun applyHeaderAction (Ljava/util/Map;Lkotlin/jvm/functions/Function1;)Ljava/util/Map;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/http/LogRetention {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/LogRetention$AppSession : dev/skymansandy/wiretap/domain/model/config/http/LogRetention {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention$AppSession;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/LogRetention$Days : dev/skymansandy/wiretap/domain/model/config/http/LogRetention {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention$Days;
+	public static synthetic fun copy$default (Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention$Days;IILjava/lang/Object;)Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention$Days;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDays ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/LogRetention$Forever : dev/skymansandy/wiretap/domain/model/config/http/LogRetention {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention$Forever;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/WiretapHttpConfig {
+	public static final field Companion Ldev/skymansandy/wiretap/domain/model/config/http/WiretapHttpConfig$Companion;
+	public static final field MAX_CONTENT_LENGTH I
+	public fun <init> ()V
+	public final fun getEnabled ()Z
+	public final fun getHeaderAction ()Lkotlin/jvm/functions/Function1;
+	public final fun getLogRetention ()Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention;
+	public final fun getMaxContentLength ()I
+	public final fun getShouldLog ()Lkotlin/jvm/functions/Function2;
+	public final fun setEnabled (Z)V
+	public final fun setHeaderAction (Lkotlin/jvm/functions/Function1;)V
+	public final fun setLogRetention (Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention;)V
+	public final fun setMaxContentLength (I)V
+	public final fun setShouldLog (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/http/WiretapHttpConfig$Companion {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/sse/WiretapSseConfig {
+	public fun <init> ()V
+	public final fun getEnabled ()Z
+	public final fun setEnabled (Z)V
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/ws/WiretapWsConfig {
+	public fun <init> ()V
+	public final fun getEnabled ()Z
+	public final fun setEnabled (Z)V
+}
+
+public abstract interface annotation class dev/skymansandy/wiretap/helper/markers/ExperimentalWiretapSseApi : java/lang/annotation/Annotation {
+}
+
