@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotest)
 }
 
 kotlin {

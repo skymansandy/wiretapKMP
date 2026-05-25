@@ -40,8 +40,7 @@ mokkery = "3.3.0"
 kover = "0.9.7"
 mavenPublish = "0.36.0"
 bcv = "0.18.1"
-kotest = "6.1.7"
-kotest-multiplatform-plugin = "5.9.1"
+kotest = "6.1.11"
 turbine = "1.2.1"
 jsonCmp = "1.0.0-RC3"
 nav3 = "1.0.0-alpha06"
@@ -139,4 +138,4 @@ mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublis
 bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
-kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest-multiplatform-plugin" }
+kotest = { id = "io.kotest", version.ref = "kotest" }
