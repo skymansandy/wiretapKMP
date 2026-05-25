@@ -34,5 +34,16 @@ kotlin {
                 api(projects.wiretapApi)
             }
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+        }
     }
 }
+
+tasks.withType<Test>().configureEach { useJUnitPlatform() }

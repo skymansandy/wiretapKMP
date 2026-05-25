@@ -655,14 +655,16 @@ public abstract interface class dev/skymansandy/wiretap/domain/repository/SseRep
 	public abstract fun update (Ldev/skymansandy/wiretap/domain/model/SseConnection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class dev/skymansandy/wiretap/domain/usecase/FindConflictingRulesUseCase {
-	public static final field $stable I
-	public final fun invoke (Ldev/skymansandy/wiretap/domain/model/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class dev/skymansandy/wiretap/domain/usecase/FindConflictingRulesUseCase {
+	public abstract fun invoke (Ldev/skymansandy/wiretap/domain/model/WiretapRule;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class dev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase {
-	public static final field $stable I
-	public final fun invoke (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class dev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase {
+	public abstract fun invoke (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun invoke$default (Ldev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase$DefaultImpls {
 	public static synthetic fun invoke$default (Ldev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCase;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

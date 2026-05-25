@@ -1,0 +1,103 @@
+name: Release Notification
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch release info
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          # The release is created alongside the tag in the publish workflow,
+          # but allow a short window for the API to index it.
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body,url > /tmp/release.json 2>/dev/null; then
+              break
+            fi
+            echo "Release $TAG not available yet, retrying in 10s..."
+            sleep 10
+          done
+          if [ ! -s /tmp/release.json ]; then
+            echo "Release $TAG never became available"
+            exit 1
+          fi
+          URL=$(jq -r .url /tmp/release.json)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Build Slack payload
+        env:
+          TAG: ${{ github.ref_name }}
+          URL: ${{ steps.release.outputs.url }}
+        run: |
+          # Convert GitHub markdown to Slack mrkdwn (best-effort).
+          BODY=$(jq -r .body /tmp/release.json \
+            | sed -E 's/^## +(.*)$/*\1*/' \
+            | sed -E 's/^### +(.*)$/*\1*/' \
+            | sed -E 's/\*\*([^*]+)\*\*/*\1*/g' \
+            | sed -E 's/^\* /• /')
+
+          # Slack section text is capped at 3000 chars.
+          if [ ${#BODY} -gt 2800 ]; then
+            BODY="${BODY:0:2800}"$'\n\n'"… _(truncated — see full release notes)_"
+          fi
+
+          jq -n \
+            --arg tag "$TAG" \
+            --arg body "$BODY" \
+            --arg url "$URL" \
+            '{
+              text: ("WiretapKMP " + $tag + " released — " + $url),
+              blocks: [
+                { type: "header",
+                  text: { type: "plain_text", text: ("WiretapKMP " + $tag + " released") } },
+                { type: "section",
+                  text: { type: "mrkdwn", text: $body } },
+                { type: "actions",
+                  elements: [
+                    { type: "button",
+                      text: { type: "plain_text", text: "View on GitHub" },
+                      url: $url,
+                      style: "primary" }
+                  ] }
+              ]
+            }' > /tmp/payload.json
+
+      - name: Post to personal Slack workspace
+        env:
+          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PERSONAL }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "SLACK_WEBHOOK_PERSONAL secret not set; skipping"
+            exit 0
+          fi
+          curl -fsS -X POST \
+            -H 'Content-Type: application/json' \
+            --data @/tmp/payload.json \
+            "$WEBHOOK"
+
+      # - name: Post to kotlinlang #wiretap
+      #   env:
+      #     TOKEN: ${{ secrets.SLACK_USER_TOKEN_KOTLINLANG }}
+      #   run: |
+      #     if [ -z "$TOKEN" ]; then
+      #       echo "SLACK_USER_TOKEN_KOTLINLANG secret not set; skipping"
+      #       exit 0
+      #     fi
+      #     PAYLOAD=$(jq '. + {channel: "#wiretap"}' /tmp/payload.json)
+      #     RESPONSE=$(curl -fsS -X POST \
+      #       -H "Authorization: Bearer $TOKEN" \
+      #       -H 'Content-Type: application/json; charset=utf-8' \
+      #       --data "$PAYLOAD" \
+      #       https://slack.com/api/chat.postMessage)
+      #     if [ "$(echo "$RESPONSE" | jq -r .ok)" != "true" ]; then
+      #       echo "Slack API error: $RESPONSE"
+      #       exit 1
+      #     fi

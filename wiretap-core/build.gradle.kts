@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotest)
 }
 
 kotlin {
@@ -77,10 +78,16 @@ kotlin {
 
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(libs.kotest.framework.engine)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotest.assertions.core)
                 implementation(libs.turbine)
+            }
+        }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.kotest.runner.junit5)
             }
         }
 
@@ -137,3 +144,5 @@ dependencies {
     add("kspIosSimulatorArm64", libs.room.compiler)
     add("kspJvm", libs.room.compiler)
 }
+
+tasks.withType<Test>().configureEach { useJUnitPlatform() }

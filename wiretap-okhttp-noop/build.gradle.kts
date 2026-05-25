@@ -26,5 +26,17 @@ kotlin {
                 implementation(libs.okhttp.sse)
             }
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.okhttp.mockwebserver)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+        }
     }
 }
+
+tasks.withType<Test>().configureEach { useJUnitPlatform() }

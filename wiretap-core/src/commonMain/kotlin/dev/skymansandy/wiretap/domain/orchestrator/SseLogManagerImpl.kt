@@ -10,15 +10,14 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.repository.SseRepository
-import dev.skymansandy.wiretap.helper.launcher.onClearSseLogs
-import dev.skymansandy.wiretap.helper.launcher.onNewSseConnection
-import dev.skymansandy.wiretap.helper.launcher.onNewSseEvent
+import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SseLogManagerImpl(
     private val sseRepository: SseRepository,
     private val wiretapLogger: WiretapLogger,
+    private val notificationHook: WiretapNotificationHook,
 ) : SseLogManager {
 
     // Cache of active (OPEN/CONNECTING) SSE connections, used to re-create entries after log clear
@@ -29,7 +28,7 @@ internal class SseLogManagerImpl(
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
         wiretapLogger.logSse(entryWithId)
-        onNewSseConnection(entryWithId)
+        notificationHook.onNewSseConnection(entryWithId)
         return id
     }
 
@@ -43,7 +42,7 @@ internal class SseLogManagerImpl(
             else -> activeConnections[entry.id] = entry
         }
         wiretapLogger.logSse(entry)
-        onNewSseConnection(entry)
+        notificationHook.onNewSseConnection(entry)
     }
 
     override suspend fun logEvent(event: SseEvent) {
@@ -54,14 +53,14 @@ internal class SseLogManagerImpl(
             if (cached != null) {
                 val reopened = cached.copy(historyCleared = true, eventCount = 0)
                 sseRepository.markReopened(reopened)
-                onNewSseConnection(reopened)
+                notificationHook.onNewSseConnection(reopened)
             }
         }
 
         sseRepository.logEvent(event)
         wiretapLogger.logSseEvent(event)
         sseRepository.getById(event.connectionId)?.let { entry ->
-            onNewSseEvent(entry, event)
+            notificationHook.onNewSseEvent(entry, event)
         }
     }
 
@@ -79,6 +78,6 @@ internal class SseLogManagerImpl(
 
     override suspend fun clearLogs() {
         sseRepository.clearAll()
-        onClearSseLogs()
+        notificationHook.onClearSseLogs()
     }
 }

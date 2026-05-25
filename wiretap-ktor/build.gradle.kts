@@ -3,8 +3,10 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.androidLint)
     alias(libs.plugins.skie)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotest)
 }
 
 kotlin {
@@ -62,11 +64,17 @@ kotlin {
         }
 
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(libs.kotest.framework.engine)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.kotest.assertions.core)
             implementation(libs.turbine)
             implementation(libs.ktor.client.mock)
         }
+
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+        }
     }
 }
+
+tasks.withType<Test>().configureEach { useJUnitPlatform() }

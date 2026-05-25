@@ -40,7 +40,7 @@ mokkery = "3.3.0"
 kover = "0.9.7"
 mavenPublish = "0.36.0"
 bcv = "0.18.1"
-kotest = "6.1.7"
+kotest = "6.1.11"
 turbine = "1.2.1"
 jsonCmp = "1.0.0-RC3"
 nav3 = "1.0.0-alpha06"
@@ -108,6 +108,8 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-framework-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 jsonCmp = { module = "dev.skymansandy:json-cmp", version.ref = "jsonCmp" }
 navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "nav3" }
@@ -136,3 +138,4 @@ mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublis
 bcv = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "bcv" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
+kotest = { id = "io.kotest", version.ref = "kotest" }
