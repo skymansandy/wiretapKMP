@@ -37,8 +37,8 @@ jobs:
         run: |
           REPORT="build/reports/kover/reportJvmCoverage.xml"
           if [ -f "$REPORT" ]; then
-            MISSED=$(grep -oP 'type="INSTRUCTION"[^/]*missed="\K[0-9]+' "$REPORT" | head -1)
-            COVERED=$(grep -oP 'type="INSTRUCTION"[^/]*covered="\K[0-9]+' "$REPORT" | head -1)
+            MISSED=$(grep -oP 'type="INSTRUCTION"[^/]*missed="\K[0-9]+' "$REPORT" | tail -1)
+            COVERED=$(grep -oP 'type="INSTRUCTION"[^/]*covered="\K[0-9]+' "$REPORT" | tail -1)
             TOTAL=$((MISSED + COVERED))
             if [ "$TOTAL" -gt 0 ]; then
               PERCENTAGE=$((COVERED * 100 / TOTAL))

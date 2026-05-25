@@ -50,6 +50,22 @@ kover {
             add("jvm", optional = true)
         }
     }
+
+    reports {
+        filters {
+            excludes {
+                packages(
+                    "dev.skymansandy.wiretap.ui.*",
+                    "dev.skymansandy.wiretap.resources",
+                    "dev.skymansandy.wiretap.data.db.room.*",
+                    "dev.skymansandy.wiretap.di",
+                    "dev.skymansandy.wiretap.navigation.api",
+                    "dev.skymansandy.wiretap.navigation.compose",
+                    "dev.skymansandy.wiretap.helper.constants",
+                )
+            }
+        }
+    }
 }
 
 val publishableModules = setOf(
