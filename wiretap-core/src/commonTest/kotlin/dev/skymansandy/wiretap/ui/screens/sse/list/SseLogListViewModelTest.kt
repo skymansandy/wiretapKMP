@@ -12,38 +12,44 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
 import dev.skymansandy.wiretap.testing.MainDispatcherSupport
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.DescribeSpec
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SseLogListViewModelTest {
+class SseLogListViewModelTest : DescribeSpec({
+    isolationMode = IsolationMode.InstancePerLeaf
 
-    private val manager = mock<SseLogManager>(MockMode.autoUnit)
+    val manager = mock<SseLogManager>(MockMode.autoUnit)
 
-    @BeforeTest fun setUp() { MainDispatcherSupport.setupMain() }
-    @AfterTest fun tearDown() { MainDispatcherSupport.teardownMain() }
+    beforeEach { MainDispatcherSupport.setupMain() }
+    afterEach { MainDispatcherSupport.teardownMain() }
 
-    @Test
-    fun `updateSearchQuery is non-throwing`() = runTest {
-        every { manager.flowPagedConnectionsForSearchQuery(any()) } returns flowOf()
+    describe("updateSearchQuery") {
+        it("is non-throwing") {
+            runTest {
+                every { manager.flowPagedConnectionsForSearchQuery(any()) } returns flowOf()
 
-        val vm = SseLogListViewModel(sseLogManager = manager)
-        vm.updateSearchQuery("query")
-        advanceUntilIdle()
+                val vm = SseLogListViewModel(sseLogManager = manager)
+                vm.updateSearchQuery("query")
+                advanceUntilIdle()
+            }
+        }
     }
 
-    @Test
-    fun `clearLogs delegates to the manager`() = runTest {
-        val vm = SseLogListViewModel(sseLogManager = manager)
+    describe("clearLogs") {
+        it("delegates to the manager") {
+            runTest {
+                val vm = SseLogListViewModel(sseLogManager = manager)
 
-        vm.clearLogs()
-        advanceUntilIdle()
+                vm.clearLogs()
+                advanceUntilIdle()
 
-        verifySuspend { manager.clearLogs() }
+                verifySuspend { manager.clearLogs() }
+            }
+        }
     }
-}
+})

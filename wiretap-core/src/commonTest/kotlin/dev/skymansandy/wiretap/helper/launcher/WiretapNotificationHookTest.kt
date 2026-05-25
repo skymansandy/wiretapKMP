@@ -12,91 +12,85 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import kotlin.test.Test
 
 /**
  * The default hook delegates to platform functions which are no-ops on the JVM target
  * (the source set under test). Coverage here is a smoke test: every override is callable
  * and does not throw. The Android variant is covered by androidHostTest in Phase 4.
  */
-class WiretapNotificationHookTest {
+class WiretapNotificationHookTest : DescribeSpec({
+    isolationMode = IsolationMode.InstancePerLeaf
 
-    private val hook: WiretapNotificationHook = DefaultWiretapNotificationHook
+    val hook: WiretapNotificationHook = DefaultWiretapNotificationHook
 
-    @Test
-    fun `onNewHttpLog delegates without throwing`() {
-        hook.onNewHttpLog(httpLog())
+    describe("DefaultWiretapNotificationHook") {
+        it("onNewHttpLog delegates without throwing") {
+            hook.onNewHttpLog(httpLog())
+        }
+
+        it("onDeleteHttpLog delegates without throwing") {
+            hook.onDeleteHttpLog(id = 42)
+        }
+
+        it("onClearHttpLogs delegates without throwing") {
+            hook.onClearHttpLogs()
+        }
+
+        it("onNewSocketConnection delegates without throwing") {
+            hook.onNewSocketConnection(socketConnection())
+        }
+
+        it("onNewSocketMessage delegates without throwing") {
+            hook.onNewSocketMessage(socketConnection(), socketMessage())
+        }
+
+        it("onClearSocketLogs delegates without throwing") {
+            hook.onClearSocketLogs()
+        }
+
+        it("onNewSseConnection delegates without throwing") {
+            hook.onNewSseConnection(sseConnection())
+        }
+
+        it("onNewSseEvent delegates without throwing") {
+            hook.onNewSseEvent(sseConnection(), sseEvent())
+        }
+
+        it("onClearSseLogs delegates without throwing") {
+            hook.onClearSseLogs()
+        }
+
+        it("is a singleton") {
+            (DefaultWiretapNotificationHook === DefaultWiretapNotificationHook) shouldBe true
+        }
     }
+})
 
-    @Test
-    fun `onDeleteHttpLog delegates without throwing`() {
-        hook.onDeleteHttpLog(id = 42)
-    }
+private fun httpLog() = HttpLog(url = "https://x", method = "GET", timestamp = 0)
 
-    @Test
-    fun `onClearHttpLogs delegates without throwing`() {
-        hook.onClearHttpLogs()
-    }
+private fun socketConnection() = SocketConnection(
+    url = "wss://x",
+    status = SocketStatus.Open,
+    timestamp = 0,
+)
 
-    @Test
-    fun `onNewSocketConnection delegates without throwing`() {
-        hook.onNewSocketConnection(socketConnection())
-    }
+private fun socketMessage() = SocketMessage(
+    socketId = 1,
+    direction = SocketMessageType.Sent,
+    contentType = SocketContentType.Text,
+    content = "hi",
+    byteCount = 2,
+    timestamp = 0,
+)
 
-    @Test
-    fun `onNewSocketMessage delegates without throwing`() {
-        hook.onNewSocketMessage(socketConnection(), socketMessage())
-    }
+private fun sseConnection() = SseConnection(url = "https://x/events", timestamp = 0)
 
-    @Test
-    fun `onClearSocketLogs delegates without throwing`() {
-        hook.onClearSocketLogs()
-    }
-
-    @Test
-    fun `onNewSseConnection delegates without throwing`() {
-        hook.onNewSseConnection(sseConnection())
-    }
-
-    @Test
-    fun `onNewSseEvent delegates without throwing`() {
-        hook.onNewSseEvent(sseConnection(), sseEvent())
-    }
-
-    @Test
-    fun `onClearSseLogs delegates without throwing`() {
-        hook.onClearSseLogs()
-    }
-
-    @Test
-    fun `DefaultWiretapNotificationHook is a singleton`() {
-        (DefaultWiretapNotificationHook === DefaultWiretapNotificationHook) shouldBe true
-    }
-
-    private fun httpLog() = HttpLog(url = "https://x", method = "GET", timestamp = 0)
-
-    private fun socketConnection() = SocketConnection(
-        url = "wss://x",
-        status = SocketStatus.Open,
-        timestamp = 0,
-    )
-
-    private fun socketMessage() = SocketMessage(
-        socketId = 1,
-        direction = SocketMessageType.Sent,
-        contentType = SocketContentType.Text,
-        content = "hi",
-        byteCount = 2,
-        timestamp = 0,
-    )
-
-    private fun sseConnection() = SseConnection(url = "https://x/events", timestamp = 0)
-
-    private fun sseEvent() = SseEvent(
-        connectionId = 1,
-        data = "{}",
-        byteCount = 2,
-        timestamp = 0,
-    )
-}
+private fun sseEvent() = SseEvent(
+    connectionId = 1,
+    data = "{}",
+    byteCount = 2,
+    timestamp = 0,
+)

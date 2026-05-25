@@ -12,40 +12,46 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.testing.MainDispatcherSupport
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.DescribeSpec
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SocketLogListViewModelTest {
+class SocketLogListViewModelTest : DescribeSpec({
+    isolationMode = IsolationMode.InstancePerLeaf
 
-    private val manager = mock<SocketLogManager>(MockMode.autoUnit)
+    val manager = mock<SocketLogManager>(MockMode.autoUnit)
 
-    @BeforeTest fun setUp() { MainDispatcherSupport.setupMain() }
-    @AfterTest fun tearDown() { MainDispatcherSupport.teardownMain() }
+    beforeEach { MainDispatcherSupport.setupMain() }
+    afterEach { MainDispatcherSupport.teardownMain() }
 
-    @Test
-    fun `updateSearchQuery does not crash and triggers downstream consumption`() = runTest {
-        every { manager.flowPagedSocketsForSearchQuery(any()) } returns flowOf()
+    describe("updateSearchQuery") {
+        it("does not crash and triggers downstream consumption") {
+            runTest {
+                every { manager.flowPagedSocketsForSearchQuery(any()) } returns flowOf()
 
-        val vm = SocketLogListViewModel(socketLogManager = manager)
-        vm.updateSearchQuery("hello")
+                val vm = SocketLogListViewModel(socketLogManager = manager)
+                vm.updateSearchQuery("hello")
 
-        // Smoke: no exception thrown; managed flow allowed to settle.
-        advanceUntilIdle()
+                // Smoke: no exception thrown; managed flow allowed to settle.
+                advanceUntilIdle()
+            }
+        }
     }
 
-    @Test
-    fun `clearLogs delegates to the manager`() = runTest {
-        val vm = SocketLogListViewModel(socketLogManager = manager)
+    describe("clearLogs") {
+        it("delegates to the manager") {
+            runTest {
+                val vm = SocketLogListViewModel(socketLogManager = manager)
 
-        vm.clearLogs()
-        advanceUntilIdle()
+                vm.clearLogs()
+                advanceUntilIdle()
 
-        verifySuspend { manager.clearLogs() }
+                verifySuspend { manager.clearLogs() }
+            }
+        }
     }
-}
+})

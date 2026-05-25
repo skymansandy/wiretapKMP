@@ -4,17 +4,18 @@
 
 package dev.skymansandy.wiretap.helper.launcher
 
-import kotlin.test.Test
+import io.kotest.core.spec.style.DescribeSpec
 
-class WiretapLauncherNoopTest {
-
-    @Test
-    fun `launchWiretapConsole is a no-op and does not throw`() {
-        launchWiretapConsole()
+class WiretapLauncherNoopTest : DescribeSpec({
+    describe("launchWiretapConsole") {
+        it("is a no-op and does not throw") {
+            launchWiretapConsole()
+        }
     }
 
-    @Test
-    fun `enableWiretapLauncher is a no-op and does not throw`() {
-        enableWiretapLauncher()
+    describe("enableWiretapLauncher") {
+        it("is a no-op and does not throw") {
+            enableWiretapLauncher()
+        }
     }
-}
+})

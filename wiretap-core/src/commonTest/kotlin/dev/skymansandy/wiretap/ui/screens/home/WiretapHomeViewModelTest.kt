@@ -5,25 +5,27 @@
 package dev.skymansandy.wiretap.ui.screens.home
 
 import dev.skymansandy.wiretap.ui.model.HomeTab
+import io.kotest.core.spec.IsolationMode
+import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import kotlin.test.Test
 
-class WiretapHomeViewModelTest {
+class WiretapHomeViewModelTest : DescribeSpec({
+    isolationMode = IsolationMode.InstancePerLeaf
 
-    @Test
-    fun `default selected tab is Http`() {
-        val vm = WiretapHomeViewModel()
+    describe("WiretapHomeViewModel") {
+        it("default selected tab is Http") {
+            val vm = WiretapHomeViewModel()
 
-        vm.selectedTab.value shouldBe HomeTab.Http
-    }
+            vm.selectedTab.value shouldBe HomeTab.Http
+        }
 
-    @Test
-    fun `selectTab updates the selectedTab flow`() {
-        val vm = WiretapHomeViewModel()
+        it("selectTab updates the selectedTab flow") {
+            val vm = WiretapHomeViewModel()
 
-        HomeTab.entries.forEach { tab ->
-            vm.selectTab(tab)
-            vm.selectedTab.value shouldBe tab
+            HomeTab.entries.forEach { tab ->
+                vm.selectTab(tab)
+                vm.selectedTab.value shouldBe tab
+            }
         }
     }
-}
+})
