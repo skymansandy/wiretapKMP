@@ -36,7 +36,7 @@ internal data class SelectRuleCriteriaState(
 internal class SelectRuleCriteriaViewModel(
     private val logId: Long,
     private val httpLogManager: HttpLogManager,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<SelectRuleCriteriaState> = MutableStateFlow(SelectRuleCriteriaState())
@@ -44,7 +44,7 @@ internal class SelectRuleCriteriaViewModel(
 
     init {
         viewModelScope.launch {
-            val log = withContext(ioDispatcher) {
+            val log = withContext(dispatcher) {
                 httpLogManager.getHttpLogById(logId)
             } ?: return@launch
             _state.value = SelectRuleCriteriaState(

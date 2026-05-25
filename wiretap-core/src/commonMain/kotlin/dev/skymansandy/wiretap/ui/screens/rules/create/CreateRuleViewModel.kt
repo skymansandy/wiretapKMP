@@ -46,7 +46,7 @@ internal class CreateRuleViewModel(
     private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
     val ruleRepository: RuleRepository,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     val isEditing = existingRuleId > 0
@@ -116,10 +116,10 @@ internal class CreateRuleViewModel(
 
     init {
         viewModelScope.launch {
-            val existingRule = withContext(ioDispatcher) {
+            val existingRule = withContext(dispatcher) {
                 if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
             }
-            val prefillFromLog = withContext(ioDispatcher) {
+            val prefillFromLog = withContext(dispatcher) {
                 if (prefillConfig.logId > 0) httpLogManager.getHttpLogById(prefillConfig.logId) else null
             }
 
@@ -367,12 +367,12 @@ internal class CreateRuleViewModel(
     fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
             val rule = buildRuleFromForm()
-            val conflicts = withContext(ioDispatcher) { findConflictingRules(rule) }
+            val conflicts = withContext(dispatcher) { findConflictingRules(rule) }
             if (conflicts.isNotEmpty()) {
                 _conflictingRules.value = conflicts
                 _showConflictDialog.value = true
             } else {
-                withContext(ioDispatcher) {
+                withContext(dispatcher) {
                     if (isEditing) {
                         ruleRepository.updateRule(rule)
                     } else {

@@ -32,7 +32,7 @@ class SelectRuleCriteriaViewModelTest : DescribeSpec({
     fun newVm(logId: Long) = SelectRuleCriteriaViewModel(
         logId = logId,
         httpLogManager = manager,
-        ioDispatcher = io,
+        dispatcher = io,
     )
 
     describe("state") {

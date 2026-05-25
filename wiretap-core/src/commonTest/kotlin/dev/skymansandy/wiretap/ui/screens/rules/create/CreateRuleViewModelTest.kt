@@ -68,7 +68,7 @@ class CreateRuleViewModelTest : DescribeSpec({
         httpLogManager = httpLogManager,
         findConflictingRules = findConflicting,
         ruleRepository = repo,
-        ioDispatcher = io,
+        dispatcher = io,
     )
 
     /** Keeps WhileSubscribed stateIn active so .value reflects the latest computed value. */
