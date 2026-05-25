@@ -19,7 +19,7 @@ import dev.skymansandy.wiretap.domain.model.matchers.HeaderMatcher
 import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.repository.RuleRepository
-import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCaseImpl
 import dev.skymansandy.wiretap.testing.MainDispatcherSupport
 import dev.skymansandy.wiretap.ui.model.BodyMatchMode
 import dev.skymansandy.wiretap.ui.model.HeaderEntry
@@ -47,9 +47,7 @@ class CreateRuleViewModelTest : DescribeSpec({
 
     val httpLogManager = mock<HttpLogManager>(MockMode.autoUnit)
     val repo = mock<RuleRepository>(MockMode.autoUnit)
-    // FindConflictingRulesUseCase is a final class; construct a real one over the mocked repo
-    // and steer behavior via the repo's flowAll() (the use case calls flowAll().first()).
-    val findConflicting = FindConflictingRulesUseCase(repo)
+    val findConflicting = FindConflictingRulesUseCaseImpl(repo)
     val io = UnconfinedTestDispatcher()
 
     fun stubConflicts(rules: List<WiretapRule>) {
@@ -441,7 +439,7 @@ class CreateRuleViewModelTest : DescribeSpec({
                         matches<WiretapRule> {
                             it.id == 0L &&
                                 it.urlMatcher is UrlMatcher.Contains &&
-                                (it.urlMatcher as UrlMatcher.Contains).pattern == "/api"
+                                it.urlMatcher.pattern == "/api"
                         },
                     )
                 }

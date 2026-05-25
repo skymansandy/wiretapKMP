@@ -34,8 +34,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val httpLogManager = mock<HttpLogManager>(MockMode.autoUnit)
-    val ruleRepository = mock<dev.skymansandy.wiretap.domain.repository.RuleRepository>(MockMode.autoUnit)
-    val findMatchingRule = FindMatchingRuleUseCase(ruleRepository)
+    val findMatchingRule = mock<FindMatchingRuleUseCase>(MockMode.autoUnit)
 
     lateinit var server: MockWebServer
 
@@ -47,7 +46,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
     beforeEach {
         installTestKoin(httpLogManager, findMatchingRule)
         everySuspend { httpLogManager.logHttpAndGetId(any()) } returns 42L
-        everySuspend { ruleRepository.getEnabledRules() } returns emptyList()
+        everySuspend { findMatchingRule.invoke(any(), any(), any(), any()) } returns null
         server = MockWebServer()
         server.start()
     }
@@ -201,7 +200,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
                     responseHeaders = mapOf("X-Mock" to "true"),
                 ),
             )
-            everySuspend { ruleRepository.getEnabledRules() } returns listOf(rule)
+            everySuspend { findMatchingRule.invoke(any(), any(), any(), any()) } returns rule
 
             val response = client()
                 .newCall(Request.Builder().url(server.url("/mocked")).build())

@@ -22,7 +22,7 @@ class FindMatchingRuleUseCaseTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val repo = mock<RuleRepository>(MockMode.autoUnit)
-    val useCase = FindMatchingRuleUseCase(repo)
+    val useCase = FindMatchingRuleUseCaseImpl(repo)
 
     describe("invoke") {
         it("returns null when repository yields no enabled rules") {

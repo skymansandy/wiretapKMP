@@ -11,7 +11,9 @@ import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManagerImpl
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManagerImpl
 import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCase
+import dev.skymansandy.wiretap.domain.usecase.FindConflictingRulesUseCaseImpl
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCaseImpl
 import dev.skymansandy.wiretap.helper.launcher.DefaultWiretapNotificationHook
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
 import org.koin.dsl.module
@@ -48,14 +50,14 @@ internal val wiretapModule = module {
         )
     }
 
-    single {
-        FindMatchingRuleUseCase(
+    single<FindMatchingRuleUseCase> {
+        FindMatchingRuleUseCaseImpl(
             ruleRepository = get(),
         )
     }
 
-    single {
-        FindConflictingRulesUseCase(
+    single<FindConflictingRulesUseCase> {
+        FindConflictingRulesUseCaseImpl(
             ruleRepository = get(),
         )
     }

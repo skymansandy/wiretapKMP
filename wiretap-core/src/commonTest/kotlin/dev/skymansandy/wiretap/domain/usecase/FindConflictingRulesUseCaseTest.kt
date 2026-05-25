@@ -23,7 +23,7 @@ class FindConflictingRulesUseCaseTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val repo = mock<RuleRepository>(MockMode.autoUnit)
-    val useCase = FindConflictingRulesUseCase(repo)
+    val useCase = FindConflictingRulesUseCaseImpl(repo)
 
     describe("invoke") {
         it("returns empty list when no other rules exist") {
