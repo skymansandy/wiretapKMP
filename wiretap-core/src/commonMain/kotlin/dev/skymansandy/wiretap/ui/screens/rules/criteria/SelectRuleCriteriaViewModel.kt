@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,7 @@ internal data class SelectRuleCriteriaState(
 internal class SelectRuleCriteriaViewModel(
     private val logId: Long,
     private val httpLogManager: HttpLogManager,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     private val _state: MutableStateFlow<SelectRuleCriteriaState> = MutableStateFlow(SelectRuleCriteriaState())
@@ -42,7 +44,7 @@ internal class SelectRuleCriteriaViewModel(
 
     init {
         viewModelScope.launch {
-            val log = withContext(Dispatchers.IO) {
+            val log = withContext(ioDispatcher) {
                 httpLogManager.getHttpLogById(logId)
             } ?: return@launch
             _state.value = SelectRuleCriteriaState(

@@ -28,6 +28,7 @@ import dev.skymansandy.wiretap.ui.model.toBodyMode
 import dev.skymansandy.wiretap.ui.model.toDomain
 import dev.skymansandy.wiretap.ui.model.toEntry
 import dev.skymansandy.wiretap.ui.model.toUrlMode
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +46,7 @@ internal class CreateRuleViewModel(
     private val httpLogManager: HttpLogManager,
     private val findConflictingRules: FindConflictingRulesUseCase,
     val ruleRepository: RuleRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     val isEditing = existingRuleId > 0
@@ -114,10 +116,10 @@ internal class CreateRuleViewModel(
 
     init {
         viewModelScope.launch {
-            val existingRule = withContext(Dispatchers.IO) {
+            val existingRule = withContext(ioDispatcher) {
                 if (existingRuleId > 0) ruleRepository.getById(existingRuleId) else null
             }
-            val prefillFromLog = withContext(Dispatchers.IO) {
+            val prefillFromLog = withContext(ioDispatcher) {
                 if (prefillConfig.logId > 0) httpLogManager.getHttpLogById(prefillConfig.logId) else null
             }
 
@@ -365,12 +367,12 @@ internal class CreateRuleViewModel(
     fun saveRule(onSaved: (WiretapRule?) -> Unit) {
         viewModelScope.launch {
             val rule = buildRuleFromForm()
-            val conflicts = withContext(Dispatchers.IO) { findConflictingRules(rule) }
+            val conflicts = withContext(ioDispatcher) { findConflictingRules(rule) }
             if (conflicts.isNotEmpty()) {
                 _conflictingRules.value = conflicts
                 _showConflictDialog.value = true
             } else {
-                withContext(Dispatchers.IO) {
+                withContext(ioDispatcher) {
                     if (isEditing) {
                         ruleRepository.updateRule(rule)
                     } else {

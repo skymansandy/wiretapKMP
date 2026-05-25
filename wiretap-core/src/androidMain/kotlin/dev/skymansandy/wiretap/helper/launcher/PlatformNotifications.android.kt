@@ -12,38 +12,38 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.initializer.WiretapContextProvider
 import dev.skymansandy.wiretap.helper.notification.WiretapNotificationManager
 
-internal actual fun onNewHttpLog(httpLog: HttpLog) {
+internal actual fun platformOnNewHttpLog(httpLog: HttpLog) {
     WiretapNotificationManager.notifyHttpLog(WiretapContextProvider.context, httpLog)
 }
 
-internal actual fun onDeleteHttpLog(id: Long) {
+internal actual fun platformOnDeleteHttpLog(id: Long) {
     WiretapNotificationManager.removeHttpEntry(WiretapContextProvider.context, id)
 }
 
-internal actual fun onClearHttpLogs() {
+internal actual fun platformOnClearHttpLogs() {
     WiretapNotificationManager.clearHttpNotifications(WiretapContextProvider.context)
 }
 
-internal actual fun onNewSocketConnection(entry: SocketConnection) {
+internal actual fun platformOnNewSocketConnection(entry: SocketConnection) {
     WiretapNotificationManager.notifyNewSocket(WiretapContextProvider.context, entry)
 }
 
-internal actual fun onNewSocketMessage(entry: SocketConnection, message: SocketMessage) {
+internal actual fun platformOnNewSocketMessage(entry: SocketConnection, message: SocketMessage) {
     WiretapNotificationManager.notifySocketMessage(WiretapContextProvider.context, entry, message)
 }
 
-internal actual fun onClearSocketLogs() {
+internal actual fun platformOnClearSocketLogs() {
     WiretapNotificationManager.clearSockets(WiretapContextProvider.context)
 }
 
-internal actual fun onNewSseConnection(entry: SseConnection) {
+internal actual fun platformOnNewSseConnection(entry: SseConnection) {
     WiretapNotificationManager.notifyNewSse(WiretapContextProvider.context, entry)
 }
 
-internal actual fun onNewSseEvent(entry: SseConnection, event: SseEvent) {
+internal actual fun platformOnNewSseEvent(entry: SseConnection, event: SseEvent) {
     WiretapNotificationManager.notifySseEvent(WiretapContextProvider.context, entry, event)
 }
 
-internal actual fun onClearSseLogs() {
+internal actual fun platformOnClearSseLogs() {
     WiretapNotificationManager.clearSse(WiretapContextProvider.context)
 }

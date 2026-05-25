@@ -10,15 +10,14 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
-import dev.skymansandy.wiretap.helper.launcher.onClearSocketLogs
-import dev.skymansandy.wiretap.helper.launcher.onNewSocketConnection
-import dev.skymansandy.wiretap.helper.launcher.onNewSocketMessage
+import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SocketLogManagerImpl(
     private val socketRepository: SocketRepository,
     private val wiretapLogger: WiretapLogger,
+    private val notificationHook: WiretapNotificationHook,
 ) : SocketLogManager {
 
     // Cache of active (OPEN/CONNECTING) socket connections, used to re-create entries after log clear
@@ -29,7 +28,7 @@ internal class SocketLogManagerImpl(
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
         wiretapLogger.logSocket(entryWithId)
-        onNewSocketConnection(entryWithId)
+        notificationHook.onNewSocketConnection(entryWithId)
         return id
     }
 
@@ -43,7 +42,7 @@ internal class SocketLogManagerImpl(
             else -> activeConnections[entry.id] = entry
         }
         wiretapLogger.logSocket(entry)
-        onNewSocketConnection(entry)
+        notificationHook.onNewSocketConnection(entry)
     }
 
     override suspend fun logSocketMsg(message: SocketMessage) {
@@ -54,14 +53,14 @@ internal class SocketLogManagerImpl(
             if (cached != null) {
                 val reopened = cached.copy(historyCleared = true, messageCount = 0)
                 socketRepository.markReopened(reopened)
-                onNewSocketConnection(reopened)
+                notificationHook.onNewSocketConnection(reopened)
             }
         }
 
         socketRepository.logSocketMsg(message)
         wiretapLogger.logSocketMessage(message)
         socketRepository.getById(message.socketId)?.let { entry ->
-            onNewSocketMessage(entry, message)
+            notificationHook.onNewSocketMessage(entry, message)
         }
     }
 
@@ -79,6 +78,6 @@ internal class SocketLogManagerImpl(
 
     override suspend fun clearLogs() {
         socketRepository.clearAll()
-        onClearSocketLogs()
+        notificationHook.onClearSocketLogs()
     }
 }

@@ -38,5 +38,12 @@ kotlin {
                 implementation(libs.ktor.client.websockets)
             }
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
+        }
     }
 }
