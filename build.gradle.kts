@@ -57,6 +57,7 @@ kover {
                 packages(
                     "dev.skymansandy.wiretap.ui.*",
                     "dev.skymansandy.wiretap.resources",
+                    "dev.skymansandy.wiretap.data.db.room",
                     "dev.skymansandy.wiretap.data.db.room.*",
                     "dev.skymansandy.wiretap.di",
                     "dev.skymansandy.wiretap.navigation.api",
