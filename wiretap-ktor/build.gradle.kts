@@ -73,6 +73,9 @@ kotlin {
 
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
+            implementation(libs.ktor.server.cio)
+            implementation(libs.ktor.server.websockets)
+            implementation(libs.ktor.server.sse)
         }
     }
 }

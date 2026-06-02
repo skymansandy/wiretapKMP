@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kover)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotest)
 }
 
 kotlin {
@@ -55,5 +57,17 @@ kotlin {
                 api(projects.wiretapShake)
             }
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotlinx.coroutines.test)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.kotest.runner.junit5)
+        }
     }
 }
+
+tasks.withType<Test>().configureEach { useJUnitPlatform() }

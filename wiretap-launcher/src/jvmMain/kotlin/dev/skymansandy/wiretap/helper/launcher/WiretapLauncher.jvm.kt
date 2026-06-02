@@ -36,12 +36,14 @@ actual fun launchWiretapConsole() {
     }
 }
 
+internal fun isWiretapLauncherShortcut(event: KeyEvent): Boolean =
+    event.id == KeyEvent.KEY_PRESSED &&
+        event.modifiersEx == (KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK) &&
+        event.keyCode == KeyEvent.VK_D
+
 actual fun enableWiretapLauncher() {
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
-        if (event.id == KeyEvent.KEY_PRESSED &&
-            event.modifiersEx == (KeyEvent.CTRL_DOWN_MASK or KeyEvent.SHIFT_DOWN_MASK) &&
-            event.keyCode == KeyEvent.VK_D
-        ) {
+        if (isWiretapLauncherShortcut(event)) {
             launchWiretapConsole()
             true
         } else {

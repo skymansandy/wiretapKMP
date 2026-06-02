@@ -2,7 +2,7 @@
  * Copyright (c) 2026 skymansandy. All rights reserved.
  */
 
-package dev.skymansandy.wiretap.okhttp.testing
+package dev.skymansandy.wiretap.ktor.testing
 
 import dev.skymansandy.wiretap.di.WiretapDi
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
@@ -17,8 +17,26 @@ import org.koin.dsl.module
 /**
  * Boots a tiny Koin context with the given collaborators and installs it via
  * [WiretapDi.setTestKoin]. Return the [Koin] so the caller can resolve overrides; call
- * [WiretapDi.setTestKoin] with `null` in `@After` to restore production wiring.
+ * [teardownTestKoin] in `afterEach` to restore production wiring.
  */
+internal fun installTestKoin(
+    socketLogManager: SocketLogManager,
+    sseLogManager: SseLogManager,
+    extras: Module = module { },
+): Koin {
+    val app = koinApplication {
+        modules(
+            module {
+                single { socketLogManager }
+                single { sseLogManager }
+            },
+            extras,
+        )
+    }
+    WiretapDi.setTestKoin(app.koin)
+    return app.koin
+}
+
 internal fun installTestKoin(
     httpLogManager: HttpLogManager,
     findMatchingRule: FindMatchingRuleUseCase,
@@ -30,34 +48,6 @@ internal fun installTestKoin(
                 single { httpLogManager }
                 single { findMatchingRule }
             },
-            extras,
-        )
-    }
-    WiretapDi.setTestKoin(app.koin)
-    return app.koin
-}
-
-internal fun installTestKoin(
-    sseLogManager: SseLogManager,
-    extras: Module = module { },
-): Koin {
-    val app = koinApplication {
-        modules(
-            module { single { sseLogManager } },
-            extras,
-        )
-    }
-    WiretapDi.setTestKoin(app.koin)
-    return app.koin
-}
-
-internal fun installTestKoin(
-    socketLogManager: SocketLogManager,
-    extras: Module = module { },
-): Koin {
-    val app = koinApplication {
-        modules(
-            module { single { socketLogManager } },
             extras,
         )
     }
