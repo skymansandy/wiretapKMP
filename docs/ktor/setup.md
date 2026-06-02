@@ -68,12 +68,11 @@ val client = HttpClient {
 }
 ```
 
-Then wrap your SSE session with `wiretapped()`:
+Sessions are wrapped automatically — just use the session directly:
 
 ```kotlin
 client.sse("https://example.com/events") {
-    val session = this.wiretapped()
-    session.incoming.collect { event ->
+    incoming.collect { event ->
         println("Event: ${event.event} — ${event.data}")
     }
 }

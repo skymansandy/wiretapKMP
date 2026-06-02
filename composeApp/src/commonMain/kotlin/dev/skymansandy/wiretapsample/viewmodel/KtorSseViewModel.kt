@@ -4,8 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
-import dev.skymansandy.wiretap.plugin.sse.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
 import dev.skymansandy.wiretapsample.model.SseSampleActions
@@ -23,7 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalWiretapSseApi::class)
 class KtorSseViewModel(
     private val client: HttpClient,
 ) : ViewModel(), SseSampleActions {
@@ -71,13 +68,12 @@ class KtorSseViewModel(
                     headers.remove("Accept")
                     headers.append("Accept", "text/event-stream")
                 }) {
-                    val session = this.wiretapped()
                     _isConnected.value = true
                     _isConnecting.value = false
                     eventLog.add(SampleMessage(MessageType.System, "Connected!"))
 
                     try {
-                        session.incoming.collect { event ->
+                        incoming.collect { event ->
                             val text = buildString {
                                 event.event?.let { append("[$it] ") }
                                 append(event.data ?: "")

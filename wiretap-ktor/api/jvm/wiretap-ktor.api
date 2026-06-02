@@ -3,7 +3,10 @@ public final class dev/skymansandy/wiretap/plugin/http/WiretapKtorHttpPluginKt {
 }
 
 public final class dev/skymansandy/wiretap/plugin/sse/WiretapKtorSsePluginKt {
-	public static final fun getWiretapKtorSsePlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
+	public static final fun getWiretapKtorSsePlugin ()Lio/ktor/client/plugins/HttpClientPlugin;
+}
+
+public final class dev/skymansandy/wiretap/plugin/sse/WiretapSsePluginHandler {
 }
 
 public abstract interface class dev/skymansandy/wiretap/plugin/sse/WiretapSseSession {
@@ -12,22 +15,17 @@ public abstract interface class dev/skymansandy/wiretap/plugin/sse/WiretapSseSes
 }
 
 public final class dev/skymansandy/wiretap/plugin/sse/WiretapWrapKt {
-	public static final fun wiretapped (Lio/ktor/client/plugins/sse/ClientSSESession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun wiretapped (Lio/ktor/client/plugins/sse/ClientSSESession;)Lio/ktor/client/plugins/sse/ClientSSESession;
 }
 
 public final class dev/skymansandy/wiretap/plugin/ws/WiretapKtorWebSocketPluginKt {
-	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/api/ClientPlugin;
-}
-
-public abstract interface class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession : io/ktor/websocket/DefaultWebSocketSession {
-	public abstract fun getCall ()Lio/ktor/client/call/HttpClientCall;
-}
-
-public final class dev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession$DefaultImpls {
-	public static fun send (Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun getWiretapKtorWebSocketPlugin ()Lio/ktor/client/plugins/HttpClientPlugin;
 }
 
 public final class dev/skymansandy/wiretap/plugin/ws/WiretapWrapKt {
-	public static final fun wiretapped (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Ldev/skymansandy/wiretap/plugin/ws/WiretapWebSocketSession;
+	public static final fun wiretapped (Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;)Lio/ktor/client/plugins/websocket/DefaultClientWebSocketSession;
+}
+
+public final class dev/skymansandy/wiretap/plugin/ws/WiretapWsPluginHandler {
 }
 

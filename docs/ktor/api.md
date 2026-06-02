@@ -39,40 +39,7 @@ HttpClient {
 val WiretapKtorWebSocketPlugin: ClientPlugin<Unit>
 ```
 
-Intercepts WebSocket upgrades (101 responses) to log connections.
-
----
-
-## wiretapped()
-
-```kotlin
-suspend fun DefaultClientWebSocketSession.wiretapped(): WiretapWebSocketSession?
-```
-
-Extension to wrap a Ktor WebSocket session for message logging. Returns `null` if `WiretapKtorWebSocketPlugin` is not installed.
-
----
-
-## WiretapWebSocketSession
-
-```kotlin
-class WiretapWebSocketSession(
-    val delegate: DefaultClientWebSocketSession,
-)
-```
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `incoming` | `ReceiveChannel<Frame>` | Incoming frames with automatic logging (all frame types) |
-
-### Methods
-
-| Method | Description |
-|--------|-------------|
-| `suspend fun send(frame: Frame)` | Logs the frame and sends via delegate |
-| `suspend fun close(code: Short, reason: String?)` | Logs status as Closed and closes the delegate |
+Intercepts WebSocket upgrades (101 responses) and automatically wraps sessions to log all sent and received frames. No extra calls needed — just use the session directly.
 
 ---
 
@@ -96,35 +63,7 @@ class WiretapHttpConfig {
 val WiretapKtorSsePlugin: ClientPlugin<Unit>
 ```
 
-Placeholder plugin for SSE inspection. SSE connection tracking is handled by the `wiretapped()` extension on `ClientSSESession`.
-
----
-
-## wiretapped() (SSE)
-
-```kotlin
-suspend fun ClientSSESession.wiretapped(): WiretapSseSession
-```
-
-Extension to wrap a Ktor SSE session for event logging. Creates a connection entry in Wiretap and returns a `WiretapSseSession` that intercepts incoming events.
-
----
-
-## WiretapSseSession
-
-```kotlin
-interface WiretapSseSession {
-    val call: HttpClientCall
-    val incoming: Flow<ServerSentEvent>
-}
-```
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `call` | `HttpClientCall` | The underlying HTTP call for this SSE connection |
-| `incoming` | `Flow<ServerSentEvent>` | Incoming events with automatic logging |
+SSE plugin that automatically wraps SSE sessions to log all incoming events. No extra calls needed — just use the session directly.
 
 ---
 

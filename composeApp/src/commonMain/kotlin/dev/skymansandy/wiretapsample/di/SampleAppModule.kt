@@ -24,7 +24,6 @@ import io.ktor.serialization.ContentConverter
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalWiretapSseApi::class)
 val sampleAppModule = module {
@@ -44,9 +43,7 @@ val sampleAppModule = module {
     single {
         HttpClient {
             install(HttpTimeout)
-            install(WebSockets) {
-                pingIntervalMillis = 5.seconds.inWholeMilliseconds
-            }
+            install(WebSockets)
 
             install(SSE)
             install(WiretapKtorWebSocketPlugin)

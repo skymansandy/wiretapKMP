@@ -9,11 +9,11 @@ import io.ktor.client.call.HttpClientCall
 import io.ktor.sse.ServerSentEvent
 import kotlinx.coroutines.flow.Flow
 
-/**
- * Wraps an SSE session for Wiretap interception.
- * In noop builds, delegates directly to the underlying session.
- */
 @ExperimentalWiretapSseApi
+@Deprecated(
+    message = "WiretapKtorSsePlugin now wraps sessions automatically. Use ClientSSESession directly.",
+    level = DeprecationLevel.ERROR,
+)
 interface WiretapSseSession {
 
     val call: HttpClientCall
