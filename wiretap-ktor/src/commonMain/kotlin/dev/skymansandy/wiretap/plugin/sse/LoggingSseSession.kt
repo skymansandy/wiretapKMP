@@ -49,27 +49,31 @@ internal class LoggingSseSession(
 
     private fun onSessionClosed(cause: Throwable?) {
         logScope.launch {
-            if (cause != null && cause !is CancellationException) {
-                sseLogManager.updateConnection(
-                    SseConnection(
-                        id = connectionId,
-                        url = url,
-                        status = SseStatus.Failed,
-                        failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            } else {
-                sseLogManager.updateConnection(
-                    SseConnection(
-                        id = connectionId,
-                        url = url,
-                        status = SseStatus.Closed,
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+            when {
+                cause != null && cause !is CancellationException -> {
+                    sseLogManager.updateConnection(
+                        SseConnection(
+                            id = connectionId,
+                            url = url,
+                            status = SseStatus.Failed,
+                            failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
+
+                else -> {
+                    sseLogManager.updateConnection(
+                        SseConnection(
+                            id = connectionId,
+                            url = url,
+                            status = SseStatus.Closed,
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
         }
     }

@@ -12,6 +12,8 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.plugin.ws.util.LoggingReceiveChannel
+import dev.skymansandy.wiretap.plugin.ws.util.LoggingSendChannel
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketExtension
 import io.ktor.websocket.WebSocketSession
@@ -23,12 +25,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.ChannelIterator
-import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.SelectClause1
 
 /**
  * Wraps a raw [WebSocketSession] from the engine to log all frames
@@ -61,29 +60,34 @@ internal class LoggingRawWebSocketSession(
 
     private fun reportClosure(cause: Throwable?) {
         if (!closureReported.compareAndSet(expected = false, new = true)) return
+
         logScope.launch {
-            if (cause != null && cause !is CancellationException) {
-                socketLogManager.updateSocket(
-                    SocketConnection(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.Failed,
-                        failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
-            } else {
-                socketLogManager.updateSocket(
-                    SocketConnection(
-                        id = socketId,
-                        url = url,
-                        status = SocketStatus.Closed,
-                        closeReason = if (cause is CancellationException) "Cancelled" else null,
-                        closedAt = currentTimeMillis(),
-                        timestamp = currentTimeMillis(),
-                    ),
-                )
+            when {
+                cause != null && cause !is CancellationException -> {
+                    socketLogManager.updateSocket(
+                        SocketConnection(
+                            id = socketId,
+                            url = url,
+                            status = SocketStatus.Failed,
+                            failureMessage = cause.message ?: cause::class.simpleName ?: "Unknown error",
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
+
+                else -> {
+                    socketLogManager.updateSocket(
+                        SocketConnection(
+                            id = socketId,
+                            url = url,
+                            status = SocketStatus.Closed,
+                            closeReason = if (cause is CancellationException) "Cancelled" else null,
+                            closedAt = currentTimeMillis(),
+                            timestamp = currentTimeMillis(),
+                        ),
+                    )
+                }
             }
         }
     }
@@ -93,6 +97,7 @@ internal class LoggingRawWebSocketSession(
             // Guard: if the outgoing channel is still open, the raw engine session's
             // Job completed due to Ktor wrapping it into DefaultClientWebSocketSession,
             // not because the actual WebSocket connection closed.
+            // FIXME: need to test this more.
             @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
             if (cause == null && !delegate.outgoing.isClosedForSend) return@invokeOnCompletion
             reportClosure(cause)
@@ -171,66 +176,5 @@ internal class LoggingRawWebSocketSession(
                 ),
             )
         }
-    }
-}
-
-/**
- * Wraps a [ReceiveChannel] to log frames as they are consumed.
- * No coroutines are launched — logging is triggered inline on each receive.
- */
-private class LoggingReceiveChannel(
-    private val delegate: ReceiveChannel<Frame>,
-    private val logAction: (Frame) -> Unit,
-    private val onChannelClosed: (Throwable?) -> Unit,
-) : ReceiveChannel<Frame> by delegate {
-
-    override suspend fun receive(): Frame {
-        return delegate.receive().also { logAction(it) }
-    }
-
-    override suspend fun receiveCatching(): ChannelResult<Frame> {
-        return delegate.receiveCatching().also { result ->
-            result.getOrNull()?.let { logAction(it) }
-            if (result.isClosed) onChannelClosed(result.exceptionOrNull())
-        }
-    }
-
-    override fun tryReceive(): ChannelResult<Frame> {
-        return delegate.tryReceive().also { result ->
-            result.getOrNull()?.let { logAction(it) }
-            if (result.isClosed) onChannelClosed(result.exceptionOrNull())
-        }
-    }
-
-    override fun iterator(): ChannelIterator<Frame> {
-        val delegateIterator = delegate.iterator()
-        return object : ChannelIterator<Frame> {
-            override suspend fun hasNext(): Boolean {
-                return delegateIterator.hasNext().also { hasMore ->
-                    if (!hasMore) onChannelClosed(null)
-                }
-            }
-            override fun next(): Frame = delegateIterator.next().also { logAction(it) }
-        }
-    }
-
-    override val onReceive: SelectClause1<Frame>
-        get() = delegate.onReceive
-
-    override val onReceiveCatching: SelectClause1<ChannelResult<Frame>>
-        get() = delegate.onReceiveCatching
-}
-
-/**
- * Wraps a [SendChannel] to log frames before they are sent.
- */
-private class LoggingSendChannel(
-    private val delegate: SendChannel<Frame>,
-    private val logAction: (Frame) -> Unit,
-) : SendChannel<Frame> by delegate {
-
-    override suspend fun send(element: Frame) {
-        logAction(element)
-        delegate.send(element)
     }
 }
