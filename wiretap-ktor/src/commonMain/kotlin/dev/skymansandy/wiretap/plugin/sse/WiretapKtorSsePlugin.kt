@@ -22,9 +22,16 @@ internal val WiretapSseEnabledKey = AttributeKey<Boolean>("WiretapSseEnabled")
 
 /**
  * Configuration holder for the installed plugin.
+ *
+ * The class is public because [HttpClientPlugin] surfaces it as a type
+ * parameter, but the constructor and [enabled] flag are internal —
+ * consumers configure the plugin via the [WiretapSseConfig] DSL, not by
+ * reading state off the handler.
  */
 @ExperimentalWiretapSseApi
-class WiretapSsePluginHandler internal constructor(val enabled: Boolean)
+class WiretapSsePluginHandler internal constructor(
+    internal val enabled: Boolean,
+)
 
 /**
  * Ktor client plugin that automatically intercepts SSE sessions
@@ -35,6 +42,14 @@ class WiretapSsePluginHandler internal constructor(val enabled: Boolean)
  * at [HttpResponsePipeline.Parse] (before Ktor's SSE plugin wraps the
  * session into [io.ktor.client.plugins.sse.ClientSSESession] at Transform),
  * ensuring all event I/O is logged transparently.
+ *
+ * **Ktor-version coupling:** this implementation depends on Ktor internals
+ * that [createClientPlugin] does not expose — specifically the response
+ * pipeline ([HttpResponsePipeline.Parse]), the [HttpClientPlugin]
+ * interface, and the [io.ktor.utils.io.InternalAPI]-marked
+ * [SSESession.bodyBuffer]. If Ktor renames these phases, restructures the
+ * SSE plugin's transform, or changes the [SSESession] surface, this
+ * plugin will need to be revisited.
  *
  * Usage:
  * ```kotlin

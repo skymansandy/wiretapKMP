@@ -7,7 +7,6 @@ public final class dev/skymansandy/wiretap/plugin/sse/WiretapKtorSsePluginKt {
 }
 
 public final class dev/skymansandy/wiretap/plugin/sse/WiretapSsePluginHandler {
-	public final fun getEnabled ()Z
 }
 
 public abstract interface class dev/skymansandy/wiretap/plugin/sse/WiretapSseSession {
@@ -28,6 +27,5 @@ public final class dev/skymansandy/wiretap/plugin/ws/WiretapWrapKt {
 }
 
 public final class dev/skymansandy/wiretap/plugin/ws/WiretapWsPluginHandler {
-	public final fun getEnabled ()Z
 }
 

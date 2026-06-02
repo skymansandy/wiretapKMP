@@ -24,8 +24,15 @@ internal val WiretapWsEnabledKey = AttributeKey<Boolean>("WiretapWsEnabled")
 
 /**
  * Configuration holder for the installed plugin.
+ *
+ * The class is public because [HttpClientPlugin] surfaces it as a type
+ * parameter, but the constructor and [enabled] flag are internal —
+ * consumers configure the plugin via the [WiretapWsConfig] DSL, not by
+ * reading state off the handler.
  */
-class WiretapWsPluginHandler internal constructor(val enabled: Boolean)
+class WiretapWsPluginHandler internal constructor(
+    internal val enabled: Boolean,
+)
 
 /**
  * Ktor client plugin that automatically intercepts WebSocket sessions
@@ -35,6 +42,15 @@ class WiretapWsPluginHandler internal constructor(val enabled: Boolean)
  * level — no manual [wiretapped] call is needed. This ensures libraries
  * that manage their own WebSocket sessions internally (e.g. SignalRKore)
  * are also captured.
+ *
+ * **Ktor-version coupling:** this implementation depends on Ktor internals
+ * that [createClientPlugin] does not expose — specifically the response
+ * pipeline ([HttpResponsePipeline.Parse]) and the [HttpClientPlugin]
+ * interface. The `Parse` phase is intentional: it runs before Ktor's own
+ * `WebSockets` plugin transforms the raw [WebSocketSession] into
+ * `DefaultClientWebSocketSession`, giving us a chance to wrap the raw
+ * session first. If Ktor renames these phases or restructures the
+ * `WebSockets` plugin's transform, this plugin will need to be revisited.
  *
  * Usage:
  * ```kotlin
