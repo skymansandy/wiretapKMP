@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
-  <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-53%25-yellowgreen" alt="Coverage"/></a>
+  <a href="https://skymansandy.github.io/wiretapKMP/coverage/"><img src="https://img.shields.io/badge/coverage-53%25-yellowgreen" alt="Coverage"/></a>
   <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC13-blue" alt="Maven Central"/></a>
 </p>
 

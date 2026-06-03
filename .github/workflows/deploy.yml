@@ -30,7 +30,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Run tests with coverage
-        run: ./gradlew koverXmlReportJvmCoverage
+        run: ./gradlew koverXmlReportJvmCoverage koverHtmlReportJvmCoverage
 
       - name: Parse coverage percentage
         id: coverage
@@ -55,6 +55,13 @@ jobs:
         with:
           name: coverage-report
           path: build/reports/kover/
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: wiretap-*/build/reports/tests/jvmTest/
+          if-no-files-found: ignore
 
   publish:
     name: Publish & Update
@@ -131,8 +138,12 @@ jobs:
 
           VERSION_ESCAPED=$(echo "$VERSION" | sed 's/-/--/g')
 
+          OWNER=$(echo "$REPO" | cut -d/ -f1)
+          REPO_NAME=$(echo "$REPO" | cut -d/ -f2)
+          COVERAGE_URL="https://${OWNER}.github.io/${REPO_NAME}/coverage/"
+
           BUILD_BADGE='  <a href="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml"><img src="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>'
-          COVERAGE_BADGE='  <a href="https://github.com/'"${REPO}"'/actions/workflows/deploy.yml"><img src="https://img.shields.io/badge/coverage-'"${COVERAGE}"'%25-'"${COLOR}"'" alt="Coverage"/></a>'
+          COVERAGE_BADGE='  <a href="'"${COVERAGE_URL}"'"><img src="https://img.shields.io/badge/coverage-'"${COVERAGE}"'%25-'"${COLOR}"'" alt="Coverage"/></a>'
           MAVEN_BADGE='  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-'"${VERSION_ESCAPED}"'-blue" alt="Maven Central"/></a>'
 
           # Replace badge block between <p align="center"> and </p> (second occurrence — after icon)
@@ -239,6 +250,74 @@ jobs:
 
       - name: Build docs
         run: mkdocs build
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: kover-report/
+
+      - name: Download test reports
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+          path: test-reports/
+
+      - name: Bundle coverage and test reports into the site
+        run: |
+          REPO_NAME=$(echo "${{ github.repository }}" | cut -d/ -f2)
+          TESTS_URL="/${REPO_NAME}/tests/"
+          COVERAGE_URL="/${REPO_NAME}/coverage/"
+
+          # Coverage HTML at site/coverage/
+          if [ -d "kover-report/htmlJvmCoverage" ]; then
+            mkdir -p site/coverage
+            cp -R kover-report/htmlJvmCoverage/. site/coverage/
+          fi
+
+          # Per-module test reports at site/tests/<module>/
+          mkdir -p site/tests
+          for module_dir in test-reports/wiretap-*; do
+            [ -d "$module_dir" ] || continue
+            module=$(basename "$module_dir")
+            if [ -d "$module_dir/build/reports/tests/jvmTest" ]; then
+              src="$module_dir/build/reports/tests/jvmTest"
+            elif [ -d "$module_dir" ] && [ -f "$module_dir/index.html" ]; then
+              src="$module_dir"
+            else
+              continue
+            fi
+            mkdir -p "site/tests/$module"
+            cp -R "$src/." "site/tests/$module/"
+          done
+
+          # Tiny landing page at site/tests/index.html
+          {
+            echo '<!doctype html>'
+            echo '<html lang="en"><head><meta charset="utf-8">'
+            echo '<title>WiretapKMP test reports</title>'
+            echo '<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#222}'
+            echo 'h1{margin:0 0 4px}p{color:#555}ul{padding-left:20px}li{margin:6px 0}'
+            echo 'a{color:#0d47a1;text-decoration:none}a:hover{text-decoration:underline}'
+            echo '.back{font-size:14px;color:#666;margin-bottom:24px}</style></head><body>'
+            echo "<p class=\"back\"><a href=\"${COVERAGE_URL}\">← Coverage report</a></p>"
+            echo '<h1>Test reports</h1>'
+            echo '<p>JVM unit test results, per module.</p><ul>'
+            for module_dir in site/tests/wiretap-*; do
+              [ -d "$module_dir" ] || continue
+              module=$(basename "$module_dir")
+              echo "<li><a href=\"$module/\">$module</a></li>"
+            done
+            echo '</ul></body></html>'
+          } > site/tests/index.html
+
+          # Inject a banner linking to /tests/ into every Kover HTML page
+          if [ -d "site/coverage" ]; then
+            BANNER='<div style="padding:10px 14px;background:#0d47a1;color:#fff;font-family:system-ui,sans-serif;font-size:14px;"><a href="'"${TESTS_URL}"'" style="color:#fff;font-weight:600;text-decoration:none;">View test reports →</a></div>'
+            find site/coverage -name "*.html" -print0 | while IFS= read -r -d '' f; do
+              sed -i "s|<body>|<body>${BANNER}|" "$f"
+            done
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
