@@ -73,12 +73,40 @@ public final class dev/skymansandy/wiretap/domain/model/config/sse/WiretapSseCon
 	public final fun setEnabled (Z)V
 }
 
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding {
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Auto : dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Auto;
+}
+
+public abstract interface class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Custom : dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding {
+	public abstract fun decode ([B)Ljava/lang/String;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Placeholder : dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Placeholder;
+}
+
+public final class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Utf8 : dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding$Utf8;
+}
+
 public final class dev/skymansandy/wiretap/domain/model/config/ws/WiretapWsConfig {
 	public fun <init> ()V
+	public final fun getBinaryDecoding ()Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding;
 	public final fun getEnabled ()Z
+	public final fun setBinaryDecoding (Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding;)V
 	public final fun setEnabled (Z)V
 }
 
 public abstract interface annotation class dev/skymansandy/wiretap/helper/markers/ExperimentalWiretapSseApi : java/lang/annotation/Annotation {
+}
+
+public abstract interface annotation class dev/skymansandy/wiretap/helper/markers/InternalWiretapApi : java/lang/annotation/Annotation {
+}
+
+public final class dev/skymansandy/wiretap/helper/ws/BinaryFrameDecoderKt {
+	public static final fun decodeBinaryFrame ([BLdev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding;)Ljava/lang/String;
 }
 

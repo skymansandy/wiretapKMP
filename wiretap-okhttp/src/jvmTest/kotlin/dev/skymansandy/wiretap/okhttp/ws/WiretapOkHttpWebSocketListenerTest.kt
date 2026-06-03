@@ -18,6 +18,7 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.okhttp.testing.installTestKoin
 import dev.skymansandy.wiretap.okhttp.testing.teardownTestKoin
@@ -117,6 +118,80 @@ class WiretapOkHttpWebSocketListenerTest : DescribeSpec({
                             it.direction == SocketMessageType.Received &&
                                 it.contentType == SocketContentType.Binary &&
                                 it.byteCount == 4L
+                        },
+                    )
+                }
+            }
+        }
+
+        it("auto-decodes a text-over-binary payload as text") {
+            val listener = delegate.wiretapped { }
+            listener.onOpen(webSocket, response)
+
+            listener.onMessage(webSocket, "{\"hub\":\"chat\"}".encodeToByteArray().toByteString())
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "{\"hub\":\"chat\"}"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("forces UTF-8 decode when binaryDecoding is Utf8") {
+            val listener = delegate.wiretapped { binaryDecoding = BinaryFrameDecoding.Utf8 }
+            listener.onOpen(webSocket, response)
+
+            listener.onMessage(webSocket, "forced".encodeToByteArray().toByteString())
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "forced"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("renders the placeholder when binaryDecoding is Placeholder") {
+            val listener = delegate.wiretapped { binaryDecoding = BinaryFrameDecoding.Placeholder }
+            listener.onOpen(webSocket, response)
+
+            listener.onMessage(webSocket, "hello".encodeToByteArray().toByteString())
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "[Binary: 5 bytes]"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("delegates to a user-supplied decoder when binaryDecoding is Custom") {
+            val listener = delegate.wiretapped {
+                binaryDecoding = BinaryFrameDecoding.Custom { bytes -> "size=${bytes.size}" }
+            }
+            listener.onOpen(webSocket, response)
+
+            listener.onMessage(webSocket, byteArrayOf(7, 8, 9).toByteString())
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "size=3"
                         },
                     )
                 }

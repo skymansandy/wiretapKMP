@@ -6,6 +6,7 @@ package dev.skymansandy.wiretap.plugin.ws
 
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.plugin.ws.util.WsPluginDeps
@@ -32,6 +33,7 @@ internal val WiretapWsEnabledKey = AttributeKey<Boolean>("WiretapWsEnabled")
  */
 class WiretapWsPluginHandler internal constructor(
     internal val enabled: Boolean,
+    internal val binaryDecoding: BinaryFrameDecoding,
 )
 
 /**
@@ -69,7 +71,10 @@ val WiretapKtorWebSocketPlugin =
 
         override fun prepare(block: WiretapWsConfig.() -> Unit): WiretapWsPluginHandler {
             val config = WiretapWsConfig().apply(block)
-            return WiretapWsPluginHandler(config.enabled)
+            return WiretapWsPluginHandler(
+                enabled = config.enabled,
+                binaryDecoding = config.binaryDecoding,
+            )
         }
 
         override fun install(plugin: WiretapWsPluginHandler, scope: HttpClient) {
@@ -125,6 +130,7 @@ val WiretapKtorWebSocketPlugin =
                     socketId = socketId,
                     url = url,
                     socketLogManager = deps.socketLogManager,
+                    binaryDecoding = plugin.binaryDecoding,
                 )
                 proceedWith(HttpResponseContainer(info, wrappedSession))
             }

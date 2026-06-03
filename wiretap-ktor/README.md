@@ -138,9 +138,9 @@ client.webSocket("wss://example.com/ws") {
 | Event                      | Logged as                              |
 |----------------------------|----------------------------------------|
 | `session.send(Text)`       | Sent, full text content                |
-| `session.send(Binary)`     | Sent, `[Binary: N bytes]`             |
+| `session.send(Binary)`     | Sent, auto-decoded text or `[Binary: N bytes]` |
 | Receive Text from `incoming` | Received, full text content          |
-| Receive Binary from `incoming` | Received, `[Binary: N bytes]`      |
+| Receive Binary from `incoming` | Received, auto-decoded text or `[Binary: N bytes]` |
 | Ping/Pong frames           | Centered label with timestamp          |
 | Close frame                | Centered label with code/reason        |
 | Connection close           | Status updated to `Closed` with code/reason |
