@@ -56,6 +56,7 @@ kotlin {
             // debug/releaseImplementation so the AS Build Variant selector drives the swap.
         }
         commonMain.dependencies {
+            implementation(projects.wiretapDesign)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

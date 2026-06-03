@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:JsonViewer.kt$private fun prettifyJson(src: String): String</ID>
+    <ID>Filename:HttpMethodColors.kt$dev.skymansandy.wiretap.design.foundation.HttpMethodColors.kt</ID>
+    <ID>Filename:SourceColors.kt$dev.skymansandy.wiretap.design.foundation.SourceColors.kt</ID>
+    <ID>MatchingDeclarationName:BottomNav.kt$BottomNavItem</ID>
+    <ID>MatchingDeclarationName:HttpMethodColors.kt$HttpMethod</ID>
+    <ID>MatchingDeclarationName:LogRow.kt$LogRowData</ID>
+    <ID>MatchingDeclarationName:MessageBubble.kt$MessageDirection</ID>
+    <ID>MatchingDeclarationName:SourceColors.kt$LogSource</ID>
+    <ID>MatchingDeclarationName:StateChip.kt$ConnectionState</ID>
+    <ID>MatchingDeclarationName:StatusClassColors.kt$StatusClass</ID>
+    <ID>MatchingDeclarationName:TagBadge.kt$TagKind</ID>
+    <ID>MaxLineLength:WiretapChip.kt$Text(text = label, style = WiretapDesign.typography.monoMeta.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold), color = fg)</ID>
+    <ID>MaximumLineLength:WiretapChip.kt$ </ID>
+  </CurrentIssues>
+</SmellBaseline>

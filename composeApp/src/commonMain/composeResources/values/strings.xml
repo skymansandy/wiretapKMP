@@ -30,4 +30,7 @@
     <!-- SSE Tab -->
     <string name="tab_sse">SSE</string>
     <string name="sse_title">SSE playground</string>
+
+    <!-- Design Tab -->
+    <string name="tab_design">Design</string>
 </resources>

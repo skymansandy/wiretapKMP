@@ -46,3 +46,5 @@ include(":wiretap-okhttp-noop")
 include(":wiretap-urlsession")
 
 include(":wiretap-shake")
+
+include(":wiretap-design")

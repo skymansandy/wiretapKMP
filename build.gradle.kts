@@ -30,6 +30,7 @@ dependencies {
         "wiretap-okhttp-noop",
         "wiretap-urlsession",
         "wiretap-shake",
+        "wiretap-design",
     ).forEach { kover(project(":$it")) }
 }
 
@@ -44,6 +45,7 @@ kover {
                 "wiretap-okhttp-noop",
                 "wiretap-urlsession",
                 "wiretap-shake",
+                "wiretap-design",
             )
         }
         createVariant("jvmCoverage") {
@@ -72,6 +74,7 @@ kover {
 val publishableModules = setOf(
     "wiretap-api",
     "wiretap-core",
+    "wiretap-design",
     "wiretap-ktor",
     "wiretap-ktor-noop",
     "wiretap-launcher",

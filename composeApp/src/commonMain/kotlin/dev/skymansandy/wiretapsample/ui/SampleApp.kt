@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.ButtonDefaults
@@ -76,11 +77,13 @@ import dev.skymansandy.wiretapsample.resources.sent_indicator
 import dev.skymansandy.wiretapsample.resources.sse_title
 import dev.skymansandy.wiretapsample.resources.status_label
 import dev.skymansandy.wiretapsample.resources.status_ready
+import dev.skymansandy.wiretapsample.resources.tab_design
 import dev.skymansandy.wiretapsample.resources.tab_http
 import dev.skymansandy.wiretapsample.resources.tab_sse
 import dev.skymansandy.wiretapsample.resources.tab_websocket
 import dev.skymansandy.wiretapsample.resources.type_message
 import dev.skymansandy.wiretapsample.resources.websocket_title
+import dev.skymansandy.wiretapsample.ui.design.DesignSystemScreen
 import dev.skymansandy.wiretapsample.ui.scaffold.LandscapeLayout
 import dev.skymansandy.wiretapsample.ui.scaffold.LocalWideScreen
 import dev.skymansandy.wiretapsample.ui.scaffold.PortraitLayout
@@ -115,6 +118,10 @@ fun SampleApp(
         TabItem(
             icon = Icons.Default.Podcasts,
             label = stringResource(Res.string.tab_sse),
+        ),
+        TabItem(
+            icon = Icons.Default.Palette,
+            label = stringResource(Res.string.tab_design),
         ),
     )
 
@@ -172,6 +179,7 @@ private fun TabContent(
         0 -> HttpTab(modifier = modifier, httpActions = httpActions)
         1 -> WsTab(modifier = modifier, wsActions = wsActions)
         2 -> SseTab(modifier = modifier, sseActions = sseActions)
+        3 -> DesignSystemScreen(modifier = modifier)
     }
 }
 
