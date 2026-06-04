@@ -20,6 +20,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import okio.ByteString
 import okio.ByteString.Companion.toByteString
 
 internal class OkHttpWsViewModel(
@@ -75,6 +76,12 @@ internal class OkHttpWsViewModel(
             override fun onMessage(webSocket: WebSocket, text: String) {
                 viewModelScope.launch(Dispatchers.Main) {
                     messageLog.add(SampleMessage(MessageType.Received, text))
+                }
+            }
+
+            override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+                viewModelScope.launch(Dispatchers.Main) {
+                    messageLog.add(SampleMessage(MessageType.Received, "[binary] ${bytes.utf8()}"))
                 }
             }
 
