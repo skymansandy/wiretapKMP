@@ -14,6 +14,8 @@ import dev.mokkery.verifySuspend
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
+import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
@@ -71,6 +73,87 @@ class WiretapWebSocketTest : DescribeSpec({
                                 it.direction == SocketMessageType.Sent &&
                                 it.contentType == SocketContentType.Binary &&
                                 it.byteCount == 3L
+                        },
+                    )
+                }
+            }
+        }
+
+        it("auto-decodes a text-over-binary payload as text") {
+            val payload = "{\"id\":1}".encodeToByteArray().toByteString()
+            every { delegate.send(payload) } returns true
+            val wrap = WiretapWebSocket(delegate, socketId = 7L, socketLogManager)
+
+            wrap.send(payload)
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "{\"id\":1}"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("forces UTF-8 decode when binaryDecoding is Utf8") {
+            val payload = "forced".encodeToByteArray().toByteString()
+            every { delegate.send(payload) } returns true
+            val config = WiretapWsConfig().apply { binaryDecoding = BinaryFrameDecoding.Utf8 }
+            val wrap = WiretapWebSocket(delegate, socketId = 7L, socketLogManager, config)
+
+            wrap.send(payload)
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "forced"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("renders the placeholder when binaryDecoding is Placeholder") {
+            val payload = "hello".encodeToByteArray().toByteString()
+            every { delegate.send(payload) } returns true
+            val config = WiretapWsConfig().apply { binaryDecoding = BinaryFrameDecoding.Placeholder }
+            val wrap = WiretapWebSocket(delegate, socketId = 7L, socketLogManager, config)
+
+            wrap.send(payload)
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "[Binary: 5 bytes]"
+                        },
+                    )
+                }
+            }
+        }
+
+        it("delegates to a user-supplied decoder when binaryDecoding is Custom") {
+            val payload = byteArrayOf(1, 2, 3).toByteString()
+            every { delegate.send(payload) } returns true
+            val config = WiretapWsConfig().apply {
+                binaryDecoding = BinaryFrameDecoding.Custom { bytes -> "size=${bytes.size}" }
+            }
+            val wrap = WiretapWebSocket(delegate, socketId = 7L, socketLogManager, config)
+
+            wrap.send(payload)
+
+            eventually(5.seconds) {
+                verifySuspend {
+                    socketLogManager.logSocketMsg(
+                        matches<SocketMessage> {
+                            it.contentType == SocketContentType.Binary &&
+                                it.content == "size=3"
                         },
                     )
                 }

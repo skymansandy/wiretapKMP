@@ -14,6 +14,7 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
+import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -75,9 +76,15 @@ class KtorWebSocketViewModel(
 
                     try {
                         for (frame in incoming) {
-                            if (frame is Frame.Text) {
-                                val text = frame.readText()
-                                messageLog.add(SampleMessage(MessageType.Received, text))
+                            when (frame) {
+                                is Frame.Text -> {
+                                    messageLog.add(SampleMessage(MessageType.Received, frame.readText()))
+                                }
+                                is Frame.Binary -> {
+                                    val text = frame.readBytes().decodeToString()
+                                    messageLog.add(SampleMessage(MessageType.Received, "[binary] $text"))
+                                }
+                                else -> Unit
                             }
                         }
                     } catch (_: Exception) {
@@ -117,6 +124,19 @@ class KtorWebSocketViewModel(
             try {
                 currentSession?.send(Frame.Text(text))
                 messageLog.add(SampleMessage(MessageType.Sent, text))
+            } catch (e: Exception) {
+                messageLog.add(SampleMessage(MessageType.System, "Send failed: ${e.message}"))
+            }
+        }
+    }
+
+    override fun sendBinaryMessage(text: String) {
+        if (text.isBlank() || !_isConnected.value) return
+        val currentSession = session
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
+            try {
+                currentSession?.send(Frame.Binary(true, text.encodeToByteArray()))
+                messageLog.add(SampleMessage(MessageType.Sent, "[binary] $text"))
             } catch (e: Exception) {
                 messageLog.add(SampleMessage(MessageType.System, "Send failed: ${e.message}"))
             }

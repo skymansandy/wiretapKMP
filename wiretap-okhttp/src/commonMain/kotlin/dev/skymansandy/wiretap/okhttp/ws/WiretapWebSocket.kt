@@ -7,8 +7,11 @@ package dev.skymansandy.wiretap.okhttp.ws
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.ws.decodeBinaryFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,10 +22,12 @@ import okio.ByteString
 /**
  * Wraps an OkHttp WebSocket to intercept outgoing messages for logging.
  */
+@OptIn(InternalWiretapApi::class)
 internal class WiretapWebSocket(
     private val delegate: WebSocket,
     private val socketId: Long,
     private val socketLogManager: SocketLogManager,
+    private val config: WiretapWsConfig = WiretapWsConfig(),
 ) : WebSocket by delegate {
 
     private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -44,14 +49,15 @@ internal class WiretapWebSocket(
     }
 
     override fun send(bytes: ByteString): Boolean {
+        val payload = bytes.toByteArray()
         logScope.launch {
             socketLogManager.logSocketMsg(
                 SocketMessage(
                     socketId = socketId,
                     direction = SocketMessageType.Sent,
                     contentType = SocketContentType.Binary,
-                    content = "[Binary: ${bytes.size} bytes]",
-                    byteCount = bytes.size.toLong(),
+                    content = decodeBinaryFrame(payload, config.binaryDecoding),
+                    byteCount = payload.size.toLong(),
                     timestamp = currentTimeMillis(),
                 ),
             )

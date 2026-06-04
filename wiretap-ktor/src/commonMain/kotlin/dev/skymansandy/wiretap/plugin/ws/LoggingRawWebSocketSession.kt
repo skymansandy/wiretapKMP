@@ -10,8 +10,11 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.ws.decodeBinaryFrame
 import dev.skymansandy.wiretap.plugin.ws.util.LoggingReceiveChannel
 import dev.skymansandy.wiretap.plugin.ws.util.LoggingSendChannel
 import io.ktor.websocket.Frame
@@ -38,11 +41,13 @@ import kotlinx.coroutines.launch
  * their own WebSocket sessions internally (e.g. SignalRKore),
  * without requiring an explicit `wiretapped()` call.
  */
+@OptIn(InternalWiretapApi::class)
 internal class LoggingRawWebSocketSession(
     private val delegate: WebSocketSession,
     private val socketId: Long,
     private val url: String,
     private val socketLogManager: SocketLogManager,
+    private val binaryDecoding: BinaryFrameDecoding = BinaryFrameDecoding.Auto,
 ) : WebSocketSession {
 
     override val coroutineContext = delegate.coroutineContext
@@ -145,7 +150,7 @@ internal class LoggingRawWebSocketSession(
 
                 is Frame.Binary -> {
                     val bytes = frame.readBytes()
-                    Triple(SocketContentType.Binary, "[Binary: ${bytes.size} bytes]", bytes.size.toLong())
+                    Triple(SocketContentType.Binary, decodeBinaryFrame(bytes, binaryDecoding), bytes.size.toLong())
                 }
 
                 is Frame.Ping -> Triple(SocketContentType.Ping, "", frame.data.size.toLong())

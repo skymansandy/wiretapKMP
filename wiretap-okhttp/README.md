@@ -169,9 +169,9 @@ client.newWebSocket(
 |--------------------------------|----------------------------------------|
 | `onOpen()`                     | `SocketConnection` with status `Open`  |
 | `webSocket.send(text)`         | Sent, full text content                |
-| `webSocket.send(bytes)`        | Sent, `[Binary: N bytes]`             |
+| `webSocket.send(bytes)`        | Sent, auto-decoded text or `[Binary: N bytes]` |
 | `onMessage(webSocket, text)`   | Received, full text content            |
-| `onMessage(webSocket, bytes)`  | Received, `[Binary: N bytes]`         |
+| `onMessage(webSocket, bytes)`  | Received, auto-decoded text or `[Binary: N bytes]` |
 | `onClosing(code, reason)`      | Status updated to `Closing`            |
 | `onClosed(code, reason)`       | Status updated to `Closed` with code/reason |
 | `onFailure(throwable)`         | Status updated to `Failed` with error  |

@@ -350,7 +350,7 @@ private fun Preview_MessageBubbleBinary() {
                 socketId = 1,
                 direction = SocketMessageType.Received,
                 contentType = SocketContentType.Binary,
-                content = "",
+                content = "[Binary: 1.0 KB]",
                 byteCount = 1024,
                 timestamp = 1710850002000,
             ),

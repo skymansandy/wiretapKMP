@@ -12,7 +12,9 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
+import dev.skymansandy.wiretap.helper.ws.decodeBinaryFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,6 +37,7 @@ import kotlin.concurrent.Volatile
  * client.newWebSocket(request, myListener.wiretapped())
  * ```
  */
+@OptIn(InternalWiretapApi::class)
 internal class WiretapOkHttpWebSocketListener(
     private val delegate: WebSocketListener,
     private val config: WiretapWsConfig,
@@ -71,7 +74,7 @@ internal class WiretapOkHttpWebSocketListener(
             )
         }
 
-        val wiretapSocket = WiretapWebSocket(webSocket, socketId, socketLogManager)
+        val wiretapSocket = WiretapWebSocket(webSocket, socketId, socketLogManager, config)
         delegate.onOpen(wiretapSocket, response)
     }
 
@@ -96,14 +99,15 @@ internal class WiretapOkHttpWebSocketListener(
 
     override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
         if (isSocketActive) {
+            val payload = bytes.toByteArray()
             logScope.launch {
                 socketLogManager.logSocketMsg(
                     SocketMessage(
                         socketId = socketId,
                         direction = SocketMessageType.Received,
                         contentType = SocketContentType.Binary,
-                        content = "[Binary: ${bytes.size} bytes]",
-                        byteCount = bytes.size.toLong(),
+                        content = decodeBinaryFrame(payload, config.binaryDecoding),
+                        byteCount = payload.size.toLong(),
                         timestamp = currentTimeMillis(),
                     ),
                 )

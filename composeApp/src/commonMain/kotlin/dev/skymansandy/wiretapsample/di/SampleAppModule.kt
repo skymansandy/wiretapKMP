@@ -2,6 +2,7 @@ package dev.skymansandy.wiretapsample.di
 
 import de.jensklingenberg.ktorfit.Ktorfit
 import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.plugin.http.WiretapKtorHttpPlugin
 import dev.skymansandy.wiretap.plugin.sse.WiretapKtorSsePlugin
@@ -43,14 +44,17 @@ val sampleAppModule = module {
     single {
         HttpClient {
             install(HttpTimeout)
-            install(WebSockets)
-
-            install(SSE)
-            install(WiretapKtorWebSocketPlugin)
-            install(WiretapKtorSsePlugin)
             install(WiretapKtorHttpPlugin) {
                 logRetention = LogRetention.Days(10)
             }
+
+            install(WebSockets)
+            install(WiretapKtorWebSocketPlugin) {
+                binaryDecoding = BinaryFrameDecoding.Auto // default
+            }
+
+            install(SSE)
+            install(WiretapKtorSsePlugin)
 
             install(ContentNegotiation) {
                 register(

@@ -5,7 +5,6 @@
 package dev.skymansandy.wiretap.helper.notification
 
 import dev.skymansandy.wiretap.domain.model.HttpLog
-import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SseEvent
@@ -19,12 +18,7 @@ internal object NotificationFormatUtil {
 
     fun formatSocketMessage(message: SocketMessage): String {
         val direction = if (message.direction == SocketMessageType.Sent) "▲" else "▼"
-        val content = if (message.contentType == SocketContentType.Binary) {
-            "[Binary: ${message.byteCount} B]"
-        } else {
-            message.content.take(100)
-        }
-        return "$direction $content"
+        return "$direction ${message.content.take(100)}"
     }
 
     fun formatSseEvent(event: SseEvent): String {

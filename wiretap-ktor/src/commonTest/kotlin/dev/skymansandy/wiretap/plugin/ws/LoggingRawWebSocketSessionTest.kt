@@ -14,6 +14,7 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
@@ -42,12 +43,14 @@ class LoggingRawWebSocketSessionTest : DescribeSpec({
         session: FakeWebSocketSession = FakeWebSocketSession(),
         socketId: Long = 42L,
         url: String = "wss://example.com/ws",
+        binaryDecoding: BinaryFrameDecoding = BinaryFrameDecoding.Auto,
     ): Pair<LoggingRawWebSocketSession, FakeWebSocketSession> {
         val wrapper = LoggingRawWebSocketSession(
             delegate = session,
             socketId = socketId,
             url = url,
             socketLogManager = socketLogManager,
+            binaryDecoding = binaryDecoding,
         )
         return wrapper to session
     }
@@ -91,6 +94,88 @@ class LoggingRawWebSocketSessionTest : DescribeSpec({
                                     it.contentType == SocketContentType.Binary &&
                                     it.content == "[Binary: 7 bytes]" &&
                                     it.byteCount == 7L
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        it("decodes a Binary frame as text when Auto mode sees printable UTF-8") {
+            runTest {
+                val (wrapper, _) = newWrapper()
+                val payload = "{\"hub\":\"chat\"}".encodeToByteArray()
+
+                wrapper.send(Frame.Binary(true, payload))
+
+                eventually(5.seconds) {
+                    verifySuspend {
+                        socketLogManager.logSocketMsg(
+                            matches<SocketMessage> {
+                                it.contentType == SocketContentType.Binary &&
+                                    it.content == "{\"hub\":\"chat\"}" &&
+                                    it.byteCount == payload.size.toLong()
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        it("renders placeholder for printable UTF-8 when binaryDecoding is Placeholder") {
+            runTest {
+                val (wrapper, _) = newWrapper(binaryDecoding = BinaryFrameDecoding.Placeholder)
+                val payload = "hello".encodeToByteArray()
+
+                wrapper.send(Frame.Binary(true, payload))
+
+                eventually(5.seconds) {
+                    verifySuspend {
+                        socketLogManager.logSocketMsg(
+                            matches<SocketMessage> {
+                                it.contentType == SocketContentType.Binary &&
+                                    it.content == "[Binary: 5 bytes]"
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        it("forces UTF-8 decode when binaryDecoding is Utf8") {
+            runTest {
+                val (wrapper, _) = newWrapper(binaryDecoding = BinaryFrameDecoding.Utf8)
+                val payload = "forced".encodeToByteArray()
+
+                wrapper.send(Frame.Binary(true, payload))
+
+                eventually(5.seconds) {
+                    verifySuspend {
+                        socketLogManager.logSocketMsg(
+                            matches<SocketMessage> {
+                                it.contentType == SocketContentType.Binary &&
+                                    it.content == "forced"
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        it("delegates to the user-supplied decoder when binaryDecoding is Custom") {
+            runTest {
+                val custom = BinaryFrameDecoding.Custom { bytes -> "hex(${bytes.size})" }
+                val (wrapper, _) = newWrapper(binaryDecoding = custom)
+
+                wrapper.send(Frame.Binary(true, byteArrayOf(1, 2, 3)))
+
+                eventually(5.seconds) {
+                    verifySuspend {
+                        socketLogManager.logSocketMsg(
+                            matches<SocketMessage> {
+                                it.contentType == SocketContentType.Binary &&
+                                    it.content == "hex(3)" &&
+                                    it.byteCount == 3L
                             },
                         )
                     }
@@ -163,6 +248,28 @@ class LoggingRawWebSocketSessionTest : DescribeSpec({
                                 it.direction == SocketMessageType.Received &&
                                     it.contentType == SocketContentType.Text &&
                                     it.content == "hi"
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        it("auto-decodes an inbound text-over-binary frame as text") {
+            runTest {
+                val (wrapper, fake) = newWrapper()
+                val payload = "{\"event\":\"ping\"}".encodeToByteArray()
+
+                fake.incomingChannel.send(Frame.Binary(true, payload))
+                wrapper.incoming.receive()
+
+                eventually(5.seconds) {
+                    verifySuspend {
+                        socketLogManager.logSocketMsg(
+                            matches<SocketMessage> {
+                                it.direction == SocketMessageType.Received &&
+                                    it.contentType == SocketContentType.Binary &&
+                                    it.content == "{\"event\":\"ping\"}"
                             },
                         )
                     }

@@ -74,6 +74,26 @@ client.webSocket("wss://echo.websocket.org") {
 
 - Direction (Sent / Received)
 - Content type (Text / Binary / Ping / Pong / Close)
-- Content (text string, `[Binary: N bytes]`, or close code/reason)
+- Content (text string, decoded binary or `[Binary: N bytes]`, or close code/reason)
 - Byte count
 - Timestamp
+
+## Configuration
+
+```kotlin
+install(WiretapKtorWebSocketPlugin) {
+    enabled = BuildConfig.DEBUG
+
+    // How to render Binary frames. Defaults to Auto.
+    binaryDecoding = BinaryFrameDecoding.Auto
+    // = BinaryFrameDecoding.Utf8         // always decode as UTF-8 (replacement chars on invalid bytes)
+    // = BinaryFrameDecoding.Placeholder  // never decode, always show "[Binary: N bytes]"
+    // = BinaryFrameDecoding.Custom { bytes -> bytes.toHexPreview() }
+}
+```
+
+### `binaryDecoding`
+
+`Auto` (default) tries strict UTF-8 — if the payload is valid printable text it's shown as text, otherwise it falls back to `[Binary: N bytes]`. This lets libraries that ship text-over-binary (e.g. SignalRKore) appear readable without misrepresenting genuine binary like protobuf or MessagePack.
+
+Use `Custom` for non-UTF-8 charsets, hex previews, or pretty-printing. The decoder is held on the `HttpClient` for its lifetime — prefer a top-level function or object method reference over a lambda that captures `Activity` / composable scope.

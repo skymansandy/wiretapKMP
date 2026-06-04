@@ -35,6 +35,7 @@ interface WsSampleActions {
     fun selectServer(index: Int)
     fun toggleConnection()
     fun sendMessage(text: String)
+    fun sendBinaryMessage(text: String)
 }
 
 interface SseSampleActions {

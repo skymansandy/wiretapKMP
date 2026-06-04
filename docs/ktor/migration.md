@@ -75,3 +75,19 @@ client.sse("https://example.com/events") {
 ```
 
 The `wiretapped()` extension is now deprecated with `ERROR` level and simply returns `this`.
+
+## RC13 → RC14
+
+### Binary WebSocket frames now auto-decode as text
+
+Binary frames that look like UTF-8 text are now rendered as text instead of `[Binary: N bytes]`. This is the default and requires no changes — libraries that ship text-over-binary (e.g. SignalRKore) become readable automatically.
+
+To opt out or change the strategy, use the new `binaryDecoding` option:
+
+```kotlin
+install(WiretapKtorWebSocketPlugin) {
+    binaryDecoding = BinaryFrameDecoding.Placeholder  // pre-RC14 behaviour
+    // = BinaryFrameDecoding.Utf8                     // always decode, even invalid sequences
+    // = BinaryFrameDecoding.Custom { bytes -> ... }  // your own renderer
+}
+```
