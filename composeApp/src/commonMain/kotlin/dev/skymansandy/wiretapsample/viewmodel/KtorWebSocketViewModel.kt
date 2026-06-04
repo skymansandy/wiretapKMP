@@ -122,4 +122,17 @@ class KtorWebSocketViewModel(
             }
         }
     }
+
+    override fun sendBinaryMessage(text: String) {
+        if (text.isBlank() || !_isConnected.value) return
+        val currentSession = session
+        viewModelScope.launch(Dispatchers.IO + exceptionHandler) {
+            try {
+                currentSession?.send(Frame.Binary(true, text.encodeToByteArray()))
+                messageLog.add(SampleMessage(MessageType.Sent, "[binary] $text"))
+            } catch (e: Exception) {
+                messageLog.add(SampleMessage(MessageType.System, "Send failed: ${e.message}"))
+            }
+        }
+    }
 }

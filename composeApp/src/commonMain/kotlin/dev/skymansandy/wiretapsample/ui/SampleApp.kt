@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Http
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Wifi
@@ -423,6 +424,13 @@ private fun WsTab(
                             wsActions.sendMessage(text)
                         }
                     },
+                    onSendBinary = {
+                        val text = messageText.trim()
+                        if (text.isNotEmpty() && isConnected) {
+                            messageText = ""
+                            wsActions.sendBinaryMessage(text)
+                        }
+                    },
                 )
             }
 
@@ -473,6 +481,13 @@ private fun WsTab(
                     if (text.isNotEmpty() && isConnected) {
                         messageText = ""
                         wsActions.sendMessage(text)
+                    }
+                },
+                onSendBinary = {
+                    val text = messageText.trim()
+                    if (text.isNotEmpty() && isConnected) {
+                        messageText = ""
+                        wsActions.sendBinaryMessage(text)
                     }
                 },
             )
@@ -570,6 +585,7 @@ private fun WsMessageInput(
     onMessageTextChange: (String) -> Unit,
     isConnected: Boolean,
     onSend: () -> Unit,
+    onSendBinary: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -585,17 +601,26 @@ private fun WsMessageInput(
             enabled = isConnected,
         )
 
-        IconButton(
-            onClick = onSend,
-            enabled = isConnected && messageText.isNotBlank(),
-        ) {
+        val enabled = isConnected && messageText.isNotBlank()
+        val tint = if (enabled) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        }
+
+        IconButton(onClick = onSendBinary, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Default.DataObject,
+                contentDescription = "Send as binary",
+                tint = tint,
+            )
+        }
+
+        IconButton(onClick = onSend, enabled = enabled) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = stringResource(Res.string.send),
-                tint = when {
-                    isConnected && messageText.isNotBlank() -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                },
+                tint = tint,
             )
         }
     }

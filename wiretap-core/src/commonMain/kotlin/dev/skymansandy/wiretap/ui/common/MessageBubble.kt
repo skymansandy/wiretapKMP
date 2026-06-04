@@ -94,14 +94,8 @@ private fun DataFrameBubble(
                 .background(bgColor, RoundedCornerShape(12.dp))
                 .padding(10.dp),
         ) {
-            val displayText = when (message.contentType) {
-                SocketContentType.Binary -> "[Binary: ${formatBytes(message.byteCount)}]"
-
-                else -> message.content
-            }
-
             Text(
-                text = displayText,
+                text = message.content,
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 color = textColor,

@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.skymansandy.wiretap.domain.model.config.ws.BinaryFrameDecoding
 import dev.skymansandy.wiretap.okhttp.ws.wiretapped
 import dev.skymansandy.wiretapsample.model.SampleMessage
 import dev.skymansandy.wiretapsample.model.SampleMessage.MessageType
@@ -19,6 +20,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import okio.ByteString.Companion.toByteString
 
 internal class OkHttpWsViewModel(
     private val client: OkHttpClient,
@@ -103,7 +105,12 @@ internal class OkHttpWsViewModel(
             }
         }
 
-        webSocket = client.newWebSocket(request, listener.wiretapped())
+        webSocket = client.newWebSocket(
+            request,
+            listener.wiretapped {
+                binaryDecoding = BinaryFrameDecoding.Auto
+            },
+        )
     }
 
     private fun disconnect() {
@@ -118,6 +125,16 @@ internal class OkHttpWsViewModel(
         val sent = webSocket?.send(text) ?: false
         if (sent) {
             messageLog.add(SampleMessage(MessageType.Sent, text))
+        } else {
+            messageLog.add(SampleMessage(MessageType.System, "Send failed"))
+        }
+    }
+
+    override fun sendBinaryMessage(text: String) {
+        if (text.isBlank() || !_isConnected.value) return
+        val sent = webSocket?.send(text.encodeToByteArray().toByteString()) ?: false
+        if (sent) {
+            messageLog.add(SampleMessage(MessageType.Sent, "[binary] $text"))
         } else {
             messageLog.add(SampleMessage(MessageType.System, "Send failed"))
         }
