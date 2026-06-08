@@ -23,20 +23,27 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,16 +60,22 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_NAME
+import dev.skymansandy.wiretap.helper.util.buildSocketShareText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
+import dev.skymansandy.wiretap.helper.util.shareLogAsFile
+import dev.skymansandy.wiretap.helper.util.shareLogText
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
+import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.MessageBubble
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -89,6 +102,10 @@ internal fun SocketDetailScreenView(
     var searchQuery by remember { mutableStateOf("") }
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
+
+    var showShareMenu by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
@@ -147,131 +164,172 @@ internal fun SocketDetailScreenView(
         formatUrlDisplay(entry.url)
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        SearchField(
-                            modifier = Modifier.focusRequester(searchFocusRequester),
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                        )
-                    } else {
-                        Column {
-                            Text(
-                                text = "WS $urlDisplay",
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        Scaffold(
+            modifier = modifier,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        if (isSearchActive) {
+                            SearchField(
+                                modifier = Modifier.focusRequester(searchFocusRequester),
+                                query = searchQuery,
+                                onQueryChange = { searchQuery = it },
                             )
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
-                                searchQuery = ""
-                            } else {
-                                navigator.pop()
+                        } else {
+                            Column {
+                                Text(
+                                    text = "WS $urlDisplay",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-                actions = {
-                    if (isSearchActive) {
+                        }
+                    },
+                    navigationIcon = {
                         IconButton(
                             onClick = {
-                                isSearchActive = false
-                                searchQuery = ""
+                                if (isSearchActive) {
+                                    isSearchActive = false
+                                    searchQuery = ""
+                                } else {
+                                    navigator.pop()
+                                }
                             },
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close search",
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
                             )
-                        }
-                    } else {
-                        IconButton(onClick = { isSearchActive = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                            )
-                        }
-                        StatusChip(status = entry.status)
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (isSearchActive && debouncedQuery.isNotEmpty()) {
-                SearchNavigatorBar(
-                    matchCount = matches.size,
-                    currentIndex = currentMatchIndex,
-                    onPrevious = {
-                        if (matches.isNotEmpty()) {
-                            currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
                         }
                     },
-                    onNext = {
-                        if (matches.isNotEmpty()) {
-                            currentMatchIndex = (currentMatchIndex + 1) % matches.size
+                    actions = {
+                        if (isSearchActive) {
+                            IconButton(
+                                onClick = {
+                                    isSearchActive = false
+                                    searchQuery = ""
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close search",
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { isSearchActive = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = "Search",
+                                )
+                            }
+                            Box {
+                                IconButton(onClick = { showShareMenu = true }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Share,
+                                        contentDescription = "Share",
+                                    )
+                                }
+                                DropdownMenu(
+                                    expanded = showShareMenu,
+                                    onDismissRequest = { showShareMenu = false },
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Share as text") },
+                                        onClick = {
+                                            showShareMenu = false
+                                            val message = shareLogText(
+                                                subject = "WS ${entry.url}",
+                                                text = buildSocketShareText(entry, messages),
+                                            )
+                                            message?.let {
+                                                coroutineScope.launch {
+                                                    snackbarHostState.showSnackbar(it)
+                                                }
+                                            }
+                                        },
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Share as file") },
+                                        onClick = {
+                                            showShareMenu = false
+                                            shareLogAsFile(
+                                                content = buildSocketShareText(entry, messages),
+                                                fileName = SOCKET_LOG_FILE_NAME,
+                                            )
+                                        },
+                                    )
+                                }
+                            }
+                            StatusChip(status = entry.status)
                         }
                     },
                 )
-                HorizontalDivider()
-            }
+            },
+        ) { padding ->
+            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+                if (isSearchActive && debouncedQuery.isNotEmpty()) {
+                    SearchNavigatorBar(
+                        matchCount = matches.size,
+                        currentIndex = currentMatchIndex,
+                        onPrevious = {
+                            if (matches.isNotEmpty()) {
+                                currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
+                            }
+                        },
+                        onNext = {
+                            if (matches.isNotEmpty()) {
+                                currentMatchIndex = (currentMatchIndex + 1) % matches.size
+                            }
+                        },
+                    )
+                    HorizontalDivider()
+                }
 
-            ScrollToBottomChip(
-                listState = listState,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                LazyColumn(
-                    state = listState,
+                ScrollToBottomChip(
+                    listState = listState,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    // Connection info header
-                    item(key = "header") {
-                        ConnectionInfoHeader(
-                            modifier = Modifier.fillMaxWidth(),
-                            entry = entry,
-                        )
-                    }
-
-                    // History cleared banner
-                    if (entry.historyCleared) {
-                        item(key = "history_cleared") {
-                            HistoryClearedBanner()
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        // Connection info header
+                        item(key = "header") {
+                            ConnectionInfoHeader(
+                                modifier = Modifier.fillMaxWidth(),
+                                entry = entry,
+                            )
                         }
-                    }
 
-                    // Messages
-                    itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
-                        val activeMatch = matches.getOrNull(currentMatchIndex)
-                        val activeRange = if (activeMatch?.messageIndex == index) {
-                            activeMatch.start..activeMatch.endInclusive
-                        } else {
-                            null
+                        // History cleared banner
+                        if (entry.historyCleared) {
+                            item(key = "history_cleared") {
+                                HistoryClearedBanner()
+                            }
                         }
-                        MessageBubble(
-                            modifier = Modifier.fillMaxWidth(),
-                            message = message,
-                            searchQuery = debouncedQuery,
-                            activeMatchRange = activeRange,
-                        )
-                    }
 
-                    // Bottom spacer
-                    item { Spacer(Modifier.height(16.dp)) }
+                        // Messages
+                        itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
+                            val activeMatch = matches.getOrNull(currentMatchIndex)
+                            val activeRange = if (activeMatch?.messageIndex == index) {
+                                activeMatch.start..activeMatch.endInclusive
+                            } else {
+                                null
+                            }
+                            MessageBubble(
+                                modifier = Modifier.fillMaxWidth(),
+                                message = message,
+                                searchQuery = debouncedQuery,
+                                activeMatchRange = activeRange,
+                            )
+                        }
+
+                        // Bottom spacer
+                        item { Spacer(Modifier.height(16.dp)) }
+                    }
                 }
             }
         }

@@ -12,7 +12,7 @@ import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.io.File
 
-internal actual fun shareHttpLogs(subject: String, text: String): String? {
+internal actual fun shareLogText(subject: String, text: String): String? {
     return try {
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(StringSelection(text), null)
@@ -22,11 +22,11 @@ internal actual fun shareHttpLogs(subject: String, text: String): String? {
     }
 }
 
-internal actual fun shareHttpLogAsFile(content: String) {
+internal actual fun shareLogAsFile(content: String, fileName: String): String? {
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val shareDir = File(System.getProperty("java.io.tmpdir"), SHARE_DIR_NAME).apply { mkdirs() }
-            val file = File(shareDir, HTTP_LOG_FILE_NAME)
+            val file = File(shareDir, fileName)
             file.writeText(content, Charsets.UTF_8)
 
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
@@ -36,4 +36,5 @@ internal actual fun shareHttpLogAsFile(content: String) {
             // Silently fail -- never crash the host app
         }
     }
+    return null
 }
