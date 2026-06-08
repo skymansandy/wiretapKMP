@@ -23,7 +23,12 @@ fun decodeBinaryFrame(bytes: ByteArray, mode: BinaryFrameDecoding): String = whe
 
 private fun binaryPlaceholder(size: Int): String = "[Binary: $size bytes]"
 
-private const val ALLOWED_CONTROL_CHARS = "\t\n\r"
+// Allowed per the SignalR Core JSON hub protocol: tab/LF/CR as JSON inter-token
+// whitespace, and RS (0x1E) as the message terminator. Other 0x00-0x1F bytes must
+// be escaped inside JSON strings per RFC 8259, so a raw occurrence indicates the
+// payload is not SignalR-framed text.
+private fun isAllowedControlChar(c: Char): Boolean =
+    c == '\t' || c == '\n' || c == '\r' || c.code == 0x1E
 
 private fun tryDecodeAsText(bytes: ByteArray): String? {
     if (bytes.isEmpty()) return ""
@@ -33,7 +38,7 @@ private fun tryDecodeAsText(bytes: ByteArray): String? {
     }.getOrNull() ?: return null
 
     text.forEach { c ->
-        if (c.code in 0..31 && c !in ALLOWED_CONTROL_CHARS) return null
+        if (c.code in 0..31 && !isAllowedControlChar(c)) return null
     }
 
     return text

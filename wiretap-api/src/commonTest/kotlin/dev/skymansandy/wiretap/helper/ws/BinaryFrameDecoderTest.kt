@@ -54,6 +54,24 @@ class BinaryFrameDecoderTest : DescribeSpec({
             decodeBinaryFrame(text, BinaryFrameDecoding.Auto) shouldBe "line1\nline2\twith\ttabs\rok"
         }
 
+        it("allows the SignalR Core hub-protocol record separator (0x1E)") {
+            val signalRMessage = "{\"type\":1,\"target\":\"chat\",\"arguments\":[\"hi\"]}"
+
+            decodeBinaryFrame(signalRMessage.encodeToByteArray(), BinaryFrameDecoding.Auto) shouldBe signalRMessage
+        }
+
+        it("allows multiple framed messages separated by 0x1E") {
+            val framed = "{\"type\":6}{\"type\":1,\"target\":\"x\",\"arguments\":[]}"
+
+            decodeBinaryFrame(framed.encodeToByteArray(), BinaryFrameDecoding.Auto) shouldBe framed
+        }
+
+        it("falls back to placeholder for non-RS information separators (0x1C, 0x1D, 0x1F)") {
+            val payload = byteArrayOf(0x61, 0x1C, 0x62)
+
+            decodeBinaryFrame(payload, BinaryFrameDecoding.Auto) shouldBe "[Binary: 3 bytes]"
+        }
+
         it("returns an empty string for empty input") {
             decodeBinaryFrame(ByteArray(0), BinaryFrameDecoding.Auto) shouldBe ""
         }

@@ -13,11 +13,13 @@ sealed interface BinaryFrameDecoding {
 
     /**
      * Default. Attempt strict UTF-8 decode; if the payload is valid printable
-     * text (no NUL, no unescaped control bytes), display it as text. Otherwise
-     * fall back to `[Binary: N bytes]`.
+     * text (no NUL, no unescaped control bytes other than tab, line feed,
+     * carriage return, or the SignalR Core record separator 0x1E), display it
+     * as text. Otherwise fall back to `[Binary: N bytes]`.
      *
-     * Covers libraries that ship text-over-binary (e.g. SignalRKore) without
-     * misrepresenting genuine binary formats like protobuf or MessagePack.
+     * Covers libraries that ship text-over-binary (e.g. SignalRKore, which
+     * terminates each hub-protocol message with 0x1E) without misrepresenting
+     * genuine binary formats like protobuf or MessagePack.
      */
     object Auto : BinaryFrameDecoding
 

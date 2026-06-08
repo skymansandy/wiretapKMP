@@ -94,6 +94,6 @@ install(WiretapKtorWebSocketPlugin) {
 
 ### `binaryDecoding`
 
-`Auto` (default) tries strict UTF-8 — if the payload is valid printable text it's shown as text, otherwise it falls back to `[Binary: N bytes]`. This lets libraries that ship text-over-binary (e.g. SignalRKore) appear readable without misrepresenting genuine binary like protobuf or MessagePack.
+`Auto` (default) tries strict UTF-8 — if the payload is valid printable text (tab/LF/CR plus the SignalR Core record separator `0x1E` are tolerated, matching what the JSON hub protocol can carry as raw bytes) it's shown as text, otherwise it falls back to `[Binary: N bytes]`. This lets libraries that ship text-over-binary (e.g. SignalRKore) appear readable without misrepresenting genuine binary like protobuf or MessagePack.
 
 Use `Custom` for non-UTF-8 charsets, hex previews, or pretty-printing. The decoder is held on the `HttpClient` for its lifetime — prefer a top-level function or object method reference over a lambda that captures `Activity` / composable scope.
