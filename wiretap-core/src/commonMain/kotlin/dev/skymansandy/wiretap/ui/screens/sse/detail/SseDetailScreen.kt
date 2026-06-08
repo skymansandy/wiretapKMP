@@ -15,10 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,24 +35,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.SseConnection
+import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
+import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseEventBubble
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseStatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -71,6 +81,37 @@ internal fun SseDetailScreenView(
     val events by viewModel.events.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            searchFocusRequester.requestFocus()
+        }
+    }
+
+    val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
+        if (searchQuery.isEmpty()) {
+            value = ""
+        } else {
+            delay(450)
+            value = searchQuery
+        }
+    }
+
+    val matches = remember(events, debouncedQuery) {
+        computeSseMatches(events, debouncedQuery)
+    }
+
+    var currentMatchIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(matches) {
+        currentMatchIndex = 0
+    }
+
+    val headerOffset = 1 + (if (entry.historyCleared) 1 else 0)
+    val autoScrollDisabled = isSearchActive && debouncedQuery.isNotEmpty()
+
     // Scroll to bottom on initial load
     LaunchedEffect(Unit) {
         if (events.isNotEmpty()) {
@@ -81,7 +122,7 @@ internal fun SseDetailScreenView(
     // Auto-scroll to bottom when new events arrive and already near bottom
     var prevEventCount by remember { mutableStateOf(events.size) }
     LaunchedEffect(events.size) {
-        if (events.size > prevEventCount) {
+        if (!autoScrollDisabled && events.size > prevEventCount) {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItems = listState.layoutInfo.totalItemsCount
             if (totalItems - lastVisible <= 3) {
@@ -89,6 +130,12 @@ internal fun SseDetailScreenView(
             }
         }
         prevEventCount = events.size
+    }
+
+    // Scroll to the active search match
+    LaunchedEffect(currentMatchIndex, matches) {
+        val match = matches.getOrNull(currentMatchIndex) ?: return@LaunchedEffect
+        listState.animateScrollToItem(match.eventIndex + headerOffset)
     }
 
     val urlDisplay = remember(entry.url) {
@@ -100,17 +147,34 @@ internal fun SseDetailScreenView(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "SSE $urlDisplay",
-                            style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                    if (isSearchActive) {
+                        SearchField(
+                            modifier = Modifier.focusRequester(searchFocusRequester),
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
                         )
+                    } else {
+                        Column {
+                            Text(
+                                text = "SSE $urlDisplay",
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) {
+                    IconButton(
+                        onClick = {
+                            if (isSearchActive) {
+                                isSearchActive = false
+                                searchQuery = ""
+                            } else {
+                                navigator.pop()
+                            }
+                        },
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -118,45 +182,159 @@ internal fun SseDetailScreenView(
                     }
                 },
                 actions = {
-                    SseStatusChip(status = entry.status)
+                    if (isSearchActive) {
+                        IconButton(
+                            onClick = {
+                                isSearchActive = false
+                                searchQuery = ""
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close search",
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { isSearchActive = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                            )
+                        }
+                        SseStatusChip(status = entry.status)
+                    }
                 },
             )
         },
     ) { padding ->
-        ScrollToBottomChip(
-            listState = listState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-            LazyColumn(
-                state = listState,
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (isSearchActive && debouncedQuery.isNotEmpty()) {
+                SseSearchNavigatorBar(
+                    matchCount = matches.size,
+                    currentIndex = currentMatchIndex,
+                    onPrevious = {
+                        if (matches.isNotEmpty()) {
+                            currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
+                        }
+                    },
+                    onNext = {
+                        if (matches.isNotEmpty()) {
+                            currentMatchIndex = (currentMatchIndex + 1) % matches.size
+                        }
+                    },
+                )
+                HorizontalDivider()
+            }
+
+            ScrollToBottomChip(
+                listState = listState,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                // Connection info header
-                item(key = "header") {
-                    SseConnectionInfoHeader(
-                        modifier = Modifier.fillMaxWidth(),
-                        entry = entry,
-                    )
-                }
-
-                // History cleared banner
-                if (entry.historyCleared) {
-                    item(key = "history_cleared") {
-                        SseHistoryClearedBanner()
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    // Connection info header
+                    item(key = "header") {
+                        SseConnectionInfoHeader(
+                            modifier = Modifier.fillMaxWidth(),
+                            entry = entry,
+                        )
                     }
-                }
 
-                // Events
-                items(events, key = { it.id }) { event ->
-                    SseEventBubble(
-                        modifier = Modifier.fillMaxWidth(),
-                        event = event,
-                    )
-                }
+                    // History cleared banner
+                    if (entry.historyCleared) {
+                        item(key = "history_cleared") {
+                            SseHistoryClearedBanner()
+                        }
+                    }
 
-                // Bottom spacer
-                item { Spacer(Modifier.height(16.dp)) }
+                    // Events
+                    itemsIndexed(events, key = { _, e -> e.id }) { index, event ->
+                        val activeMatch = matches.getOrNull(currentMatchIndex)
+                        val activeRange = if (activeMatch?.eventIndex == index) {
+                            activeMatch.start..activeMatch.endInclusive
+                        } else {
+                            null
+                        }
+                        SseEventBubble(
+                            modifier = Modifier.fillMaxWidth(),
+                            event = event,
+                            searchQuery = debouncedQuery,
+                            activeMatchRange = activeRange,
+                        )
+                    }
+
+                    // Bottom spacer
+                    item { Spacer(Modifier.height(16.dp)) }
+                }
             }
+        }
+    }
+}
+
+private data class SseMatchPosition(
+    val eventIndex: Int,
+    val start: Int,
+    val endInclusive: Int,
+)
+
+private fun computeSseMatches(
+    events: List<SseEvent>,
+    query: String,
+): List<SseMatchPosition> {
+    if (query.isBlank()) return emptyList()
+    val lowerQuery = query.lowercase()
+    val results = mutableListOf<SseMatchPosition>()
+    events.forEachIndexed { index, event ->
+        val lowerData = event.data.lowercase()
+        var cursor = 0
+        while (true) {
+            val hit = lowerData.indexOf(lowerQuery, cursor)
+            if (hit < 0) break
+            results += SseMatchPosition(
+                eventIndex = index,
+                start = hit,
+                endInclusive = hit + query.length - 1,
+            )
+            cursor = hit + query.length
+        }
+    }
+    return results
+}
+
+@Composable
+private fun SseSearchNavigatorBar(
+    matchCount: Int,
+    currentIndex: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    val display = if (matchCount == 0) 0 else currentIndex + 1
+    val enabled = matchCount > 0
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
+    ) {
+        Text(
+            text = "$display / $matchCount",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        IconButton(onClick = onPrevious, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowUp,
+                contentDescription = "Previous match",
+            )
+        }
+        IconButton(onClick = onNext, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Next match",
+            )
         }
     }
 }

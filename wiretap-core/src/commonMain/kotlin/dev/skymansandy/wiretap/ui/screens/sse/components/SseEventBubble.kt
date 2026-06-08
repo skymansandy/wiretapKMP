@@ -25,11 +25,14 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.helper.util.highlightText
 
 @Composable
 internal fun SseEventBubble(
     modifier: Modifier = Modifier,
     event: SseEvent,
+    searchQuery: String = "",
+    activeMatchRange: IntRange? = null,
 ) {
     val bgColor = MaterialTheme.colorScheme.surfaceVariant
     val textColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -55,7 +58,7 @@ internal fun SseEventBubble(
             }
 
             Text(
-                text = event.data,
+                text = highlightText(event.data, searchQuery, activeMatchRange),
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 color = textColor,
