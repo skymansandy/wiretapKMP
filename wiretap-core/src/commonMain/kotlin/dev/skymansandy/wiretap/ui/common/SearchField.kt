@@ -20,8 +20,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,18 +28,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-
-@Composable
-internal fun rememberDebouncedQuery(query: String, debounceMs: Long = 450L): State<String> =
-    produceState(initialValue = "", key1 = query) {
-        if (query.isEmpty()) {
-            value = ""
-        } else {
-            delay(debounceMs)
-            value = query
-        }
-    }
 
 @Composable
 internal fun SearchField(

@@ -57,8 +57,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
-import dev.skymansandy.wiretap.helper.util.SSE_LOG_FILE_NAME
-import dev.skymansandy.wiretap.helper.util.buildSseShareText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
@@ -68,7 +66,6 @@ import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
-import dev.skymansandy.wiretap.ui.common.rememberDebouncedQuery
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseEventBubble
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseStatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
@@ -93,12 +90,14 @@ internal fun SseDetailScreenView(
     }
 
     val events by viewModel.events.collectAsStateWithLifecycle()
+    val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val debouncedQuery by viewModel.debouncedQuery.collectAsStateWithLifecycle()
+    val matches by viewModel.matches.collectAsStateWithLifecycle()
+    val currentMatchIndex by viewModel.currentMatchIndex.collectAsStateWithLifecycle()
+
     val listState = rememberLazyListState()
-
-    var searchQuery by remember { mutableStateOf("") }
-    var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -106,17 +105,6 @@ internal fun SseDetailScreenView(
         if (isSearchActive) {
             searchFocusRequester.requestFocus()
         }
-    }
-
-    val debouncedQuery by rememberDebouncedQuery(searchQuery)
-
-    val matches = remember(events, debouncedQuery) {
-        computeSseMatches(events, debouncedQuery)
-    }
-
-    var currentMatchIndex by remember { mutableStateOf(0) }
-    LaunchedEffect(matches) {
-        currentMatchIndex = 0
     }
 
     val headerOffset = 1 + (if (entry.historyCleared) 1 else 0)
@@ -163,24 +151,21 @@ internal fun SseDetailScreenView(
                     isSearchActive = isSearchActive,
                     searchQuery = searchQuery,
                     searchFocusRequester = searchFocusRequester,
-                    onSearchQueryChange = { searchQuery = it },
-                    onActivateSearch = { isSearchActive = true },
-                    onCloseSearch = {
-                        isSearchActive = false
-                        searchQuery = ""
-                    },
+                    onSearchQueryChange = viewModel::setSearchQuery,
+                    onActivateSearch = viewModel::activateSearch,
+                    onCloseSearch = viewModel::closeSearch,
                     onBack = { navigator.pop() },
                     onShareAsText = {
                         val message = shareLogText(
-                            subject = "SSE ${entry.url}",
-                            text = buildSseShareText(entry, events),
+                            subject = viewModel.shareSubject,
+                            text = viewModel.buildShareText(),
                         )
                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                     },
                     onShareAsFile = {
                         shareLogAsFile(
-                            content = buildSseShareText(entry, events),
-                            fileName = SSE_LOG_FILE_NAME,
+                            content = viewModel.buildShareText(),
+                            fileName = viewModel.shareFileName,
                         )
                     },
                 )
@@ -195,7 +180,8 @@ internal fun SseDetailScreenView(
                 debouncedQuery = debouncedQuery,
                 matches = matches,
                 currentMatchIndex = currentMatchIndex,
-                onMatchIndexChange = { currentMatchIndex = it },
+                onPreviousMatch = viewModel::goToPreviousMatch,
+                onNextMatch = viewModel::goToNextMatch,
             )
         }
     }
@@ -211,23 +197,16 @@ private fun SseDetailContent(
     debouncedQuery: String,
     matches: List<SseMatchPosition>,
     currentMatchIndex: Int,
-    onMatchIndexChange: (Int) -> Unit,
+    onPreviousMatch: () -> Unit,
+    onNextMatch: () -> Unit,
 ) {
     Column(modifier = modifier) {
         if (showNavigator) {
             SseSearchNavigatorBar(
                 matchCount = matches.size,
                 currentIndex = currentMatchIndex,
-                onPrevious = {
-                    if (matches.isNotEmpty()) {
-                        onMatchIndexChange((currentMatchIndex - 1 + matches.size) % matches.size)
-                    }
-                },
-                onNext = {
-                    if (matches.isNotEmpty()) {
-                        onMatchIndexChange((currentMatchIndex + 1) % matches.size)
-                    }
-                },
+                onPrevious = onPreviousMatch,
+                onNext = onNextMatch,
             )
             HorizontalDivider()
         }
@@ -361,36 +340,6 @@ private fun SseDetailTopBar(
             }
         },
     )
-}
-
-private data class SseMatchPosition(
-    val eventIndex: Int,
-    val start: Int,
-    val endInclusive: Int,
-)
-
-private fun computeSseMatches(
-    events: List<SseEvent>,
-    query: String,
-): List<SseMatchPosition> {
-    if (query.isBlank()) return emptyList()
-    val lowerQuery = query.lowercase()
-    val results = mutableListOf<SseMatchPosition>()
-    events.forEachIndexed { index, event ->
-        val lowerData = event.data.lowercase()
-        var cursor = 0
-        while (true) {
-            val hit = lowerData.indexOf(lowerQuery, cursor)
-            if (hit < 0) break
-            results += SseMatchPosition(
-                eventIndex = index,
-                start = hit,
-                endInclusive = hit + query.length - 1,
-            )
-            cursor = hit + query.length
-        }
-    }
-    return results
 }
 
 @Composable
