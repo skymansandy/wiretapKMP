@@ -60,8 +60,6 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
-import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_NAME
-import dev.skymansandy.wiretap.helper.util.buildSocketShareText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
@@ -72,7 +70,6 @@ import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.MessageBubble
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
-import dev.skymansandy.wiretap.ui.common.rememberDebouncedQuery
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 import kotlinx.coroutines.launch
@@ -96,12 +93,14 @@ internal fun SocketDetailScreenView(
     }
 
     val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val isSearchActive by viewModel.isSearchActive.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val debouncedQuery by viewModel.debouncedQuery.collectAsStateWithLifecycle()
+    val matches by viewModel.matches.collectAsStateWithLifecycle()
+    val currentMatchIndex by viewModel.currentMatchIndex.collectAsStateWithLifecycle()
+
     val listState = rememberLazyListState()
-
-    var searchQuery by remember { mutableStateOf("") }
-    var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -109,17 +108,6 @@ internal fun SocketDetailScreenView(
         if (isSearchActive) {
             searchFocusRequester.requestFocus()
         }
-    }
-
-    val debouncedQuery by rememberDebouncedQuery(searchQuery)
-
-    val matches = remember(messages, debouncedQuery) {
-        computeSocketMatches(messages, debouncedQuery)
-    }
-
-    var currentMatchIndex by remember { mutableStateOf(0) }
-    LaunchedEffect(matches) {
-        currentMatchIndex = 0
     }
 
     val headerOffset = 1 + (if (entry.historyCleared) 1 else 0)
@@ -166,24 +154,21 @@ internal fun SocketDetailScreenView(
                     isSearchActive = isSearchActive,
                     searchQuery = searchQuery,
                     searchFocusRequester = searchFocusRequester,
-                    onSearchQueryChange = { searchQuery = it },
-                    onActivateSearch = { isSearchActive = true },
-                    onCloseSearch = {
-                        isSearchActive = false
-                        searchQuery = ""
-                    },
+                    onSearchQueryChange = viewModel::setSearchQuery,
+                    onActivateSearch = viewModel::activateSearch,
+                    onCloseSearch = viewModel::closeSearch,
                     onBack = { navigator.pop() },
                     onShareAsText = {
                         val message = shareLogText(
-                            subject = "WS ${entry.url}",
-                            text = buildSocketShareText(entry, messages),
+                            subject = viewModel.shareSubject,
+                            text = viewModel.buildShareText(),
                         )
                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                     },
                     onShareAsFile = {
                         shareLogAsFile(
-                            content = buildSocketShareText(entry, messages),
-                            fileName = SOCKET_LOG_FILE_NAME,
+                            content = viewModel.buildShareText(),
+                            fileName = viewModel.shareFileName,
                         )
                     },
                 )
@@ -198,7 +183,8 @@ internal fun SocketDetailScreenView(
                 debouncedQuery = debouncedQuery,
                 matches = matches,
                 currentMatchIndex = currentMatchIndex,
-                onMatchIndexChange = { currentMatchIndex = it },
+                onPreviousMatch = viewModel::goToPreviousMatch,
+                onNextMatch = viewModel::goToNextMatch,
             )
         }
     }
@@ -214,23 +200,16 @@ private fun SocketDetailContent(
     debouncedQuery: String,
     matches: List<SocketMatchPosition>,
     currentMatchIndex: Int,
-    onMatchIndexChange: (Int) -> Unit,
+    onPreviousMatch: () -> Unit,
+    onNextMatch: () -> Unit,
 ) {
     Column(modifier = modifier) {
         if (showNavigator) {
             SearchNavigatorBar(
                 matchCount = matches.size,
                 currentIndex = currentMatchIndex,
-                onPrevious = {
-                    if (matches.isNotEmpty()) {
-                        onMatchIndexChange((currentMatchIndex - 1 + matches.size) % matches.size)
-                    }
-                },
-                onNext = {
-                    if (matches.isNotEmpty()) {
-                        onMatchIndexChange((currentMatchIndex + 1) % matches.size)
-                    }
-                },
+                onPrevious = onPreviousMatch,
+                onNext = onNextMatch,
             )
             HorizontalDivider()
         }
@@ -364,46 +343,6 @@ private fun SocketDetailTopBar(
             }
         },
     )
-}
-
-private data class SocketMatchPosition(
-    val messageIndex: Int,
-    val start: Int,
-    val endInclusive: Int,
-)
-
-private fun computeSocketMatches(
-    messages: List<SocketMessage>,
-    query: String,
-): List<SocketMatchPosition> {
-    if (query.isBlank()) return emptyList()
-    val lowerQuery = query.lowercase()
-    val results = mutableListOf<SocketMatchPosition>()
-    messages.forEachIndexed { index, message ->
-        if (!message.contentType.isSearchable()) return@forEachIndexed
-        val lowerContent = message.content.lowercase()
-        var cursor = 0
-        while (true) {
-            val hit = lowerContent.indexOf(lowerQuery, cursor)
-            if (hit < 0) break
-            results += SocketMatchPosition(
-                messageIndex = index,
-                start = hit,
-                endInclusive = hit + query.length - 1,
-            )
-            cursor = hit + query.length
-        }
-    }
-    return results
-}
-
-private fun SocketContentType.isSearchable(): Boolean = when (this) {
-    SocketContentType.Text -> true
-    SocketContentType.Binary,
-    SocketContentType.Ping,
-    SocketContentType.Pong,
-    SocketContentType.Close,
-    -> false
 }
 
 @Composable
