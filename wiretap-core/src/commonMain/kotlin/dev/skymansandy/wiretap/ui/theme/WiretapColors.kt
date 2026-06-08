@@ -21,6 +21,7 @@ internal object WiretapColors {
     val RuleMockAndThrottle = Color(0xFFFF8A65)
 
     val SearchHighlightBackground = Color(0xFFFFEB3B)
+    val SearchHighlightActiveBackground = Color(0xFFFF9800)
 
     val HistoryClearedBackground = Color(0xFF3E2723)
     val HistoryClearedText = Color(0xFFFFAB40)

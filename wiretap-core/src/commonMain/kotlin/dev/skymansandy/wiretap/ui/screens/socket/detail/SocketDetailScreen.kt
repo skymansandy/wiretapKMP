@@ -15,10 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -31,10 +35,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,11 +59,14 @@ import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.MessageBubble
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
+import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
+import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocketDetailScreenView(
@@ -76,6 +86,37 @@ internal fun SocketDetailScreenView(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearchActive by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            searchFocusRequester.requestFocus()
+        }
+    }
+
+    val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
+        if (searchQuery.isEmpty()) {
+            value = ""
+        } else {
+            delay(450)
+            value = searchQuery
+        }
+    }
+
+    val matches = remember(messages, debouncedQuery) {
+        computeSocketMatches(messages, debouncedQuery)
+    }
+
+    var currentMatchIndex by remember { mutableStateOf(0) }
+    LaunchedEffect(matches) {
+        currentMatchIndex = 0
+    }
+
+    val headerOffset = 1 + (if (entry.historyCleared) 1 else 0)
+    val autoScrollDisabled = isSearchActive && debouncedQuery.isNotEmpty()
+
     // Scroll to bottom on initial load
     LaunchedEffect(Unit) {
         if (messages.isNotEmpty()) {
@@ -86,7 +127,7 @@ internal fun SocketDetailScreenView(
     // Auto-scroll to bottom when new messages arrive and already near bottom
     var prevMessageCount by remember { mutableStateOf(messages.size) }
     LaunchedEffect(messages.size) {
-        if (messages.size > prevMessageCount) {
+        if (!autoScrollDisabled && messages.size > prevMessageCount) {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItems = listState.layoutInfo.totalItemsCount
             if (totalItems - lastVisible <= 3) {
@@ -94,6 +135,12 @@ internal fun SocketDetailScreenView(
             }
         }
         prevMessageCount = messages.size
+    }
+
+    // Scroll to the active search match
+    LaunchedEffect(currentMatchIndex, matches) {
+        val match = matches.getOrNull(currentMatchIndex) ?: return@LaunchedEffect
+        listState.animateScrollToItem(match.messageIndex + headerOffset)
     }
 
     val urlDisplay = remember(entry.url) {
@@ -105,17 +152,34 @@ internal fun SocketDetailScreenView(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "WS $urlDisplay",
-                            style = MaterialTheme.typography.titleSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                    if (isSearchActive) {
+                        SearchField(
+                            modifier = Modifier.focusRequester(searchFocusRequester),
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
                         )
+                    } else {
+                        Column {
+                            Text(
+                                text = "WS $urlDisplay",
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navigator.pop() }) {
+                    IconButton(
+                        onClick = {
+                            if (isSearchActive) {
+                                isSearchActive = false
+                                searchQuery = ""
+                            } else {
+                                navigator.pop()
+                            }
+                        },
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -123,45 +187,169 @@ internal fun SocketDetailScreenView(
                     }
                 },
                 actions = {
-                    StatusChip(status = entry.status)
+                    if (isSearchActive) {
+                        IconButton(
+                            onClick = {
+                                isSearchActive = false
+                                searchQuery = ""
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close search",
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { isSearchActive = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                            )
+                        }
+                        StatusChip(status = entry.status)
+                    }
                 },
             )
         },
     ) { padding ->
-        ScrollToBottomChip(
-            listState = listState,
-            modifier = Modifier.fillMaxSize().padding(padding),
-        ) {
-            LazyColumn(
-                state = listState,
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (isSearchActive && debouncedQuery.isNotEmpty()) {
+                SearchNavigatorBar(
+                    matchCount = matches.size,
+                    currentIndex = currentMatchIndex,
+                    onPrevious = {
+                        if (matches.isNotEmpty()) {
+                            currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
+                        }
+                    },
+                    onNext = {
+                        if (matches.isNotEmpty()) {
+                            currentMatchIndex = (currentMatchIndex + 1) % matches.size
+                        }
+                    },
+                )
+                HorizontalDivider()
+            }
+
+            ScrollToBottomChip(
+                listState = listState,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                // Connection info header
-                item(key = "header") {
-                    ConnectionInfoHeader(
-                        modifier = Modifier.fillMaxWidth(),
-                        entry = entry,
-                    )
-                }
-
-                // History cleared banner
-                if (entry.historyCleared) {
-                    item(key = "history_cleared") {
-                        HistoryClearedBanner()
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    // Connection info header
+                    item(key = "header") {
+                        ConnectionInfoHeader(
+                            modifier = Modifier.fillMaxWidth(),
+                            entry = entry,
+                        )
                     }
-                }
 
-                // Messages
-                items(messages, key = { it.id }) { message ->
-                    MessageBubble(
-                        modifier = Modifier.fillMaxWidth(),
-                        message = message,
-                    )
-                }
+                    // History cleared banner
+                    if (entry.historyCleared) {
+                        item(key = "history_cleared") {
+                            HistoryClearedBanner()
+                        }
+                    }
 
-                // Bottom spacer
-                item { Spacer(Modifier.height(16.dp)) }
+                    // Messages
+                    itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
+                        val activeMatch = matches.getOrNull(currentMatchIndex)
+                        val activeRange = if (activeMatch?.messageIndex == index) {
+                            activeMatch.start..activeMatch.endInclusive
+                        } else {
+                            null
+                        }
+                        MessageBubble(
+                            modifier = Modifier.fillMaxWidth(),
+                            message = message,
+                            searchQuery = debouncedQuery,
+                            activeMatchRange = activeRange,
+                        )
+                    }
+
+                    // Bottom spacer
+                    item { Spacer(Modifier.height(16.dp)) }
+                }
             }
+        }
+    }
+}
+
+private data class SocketMatchPosition(
+    val messageIndex: Int,
+    val start: Int,
+    val endInclusive: Int,
+)
+
+private fun computeSocketMatches(
+    messages: List<SocketMessage>,
+    query: String,
+): List<SocketMatchPosition> {
+    if (query.isBlank()) return emptyList()
+    val lowerQuery = query.lowercase()
+    val results = mutableListOf<SocketMatchPosition>()
+    messages.forEachIndexed { index, message ->
+        if (!message.contentType.isSearchable()) return@forEachIndexed
+        val lowerContent = message.content.lowercase()
+        var cursor = 0
+        while (true) {
+            val hit = lowerContent.indexOf(lowerQuery, cursor)
+            if (hit < 0) break
+            results += SocketMatchPosition(
+                messageIndex = index,
+                start = hit,
+                endInclusive = hit + query.length - 1,
+            )
+            cursor = hit + query.length
+        }
+    }
+    return results
+}
+
+private fun SocketContentType.isSearchable(): Boolean = when (this) {
+    SocketContentType.Text -> true
+    SocketContentType.Binary,
+    SocketContentType.Ping,
+    SocketContentType.Pong,
+    SocketContentType.Close,
+    -> false
+}
+
+@Composable
+private fun SearchNavigatorBar(
+    matchCount: Int,
+    currentIndex: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    val display = if (matchCount == 0) 0 else currentIndex + 1
+    val enabled = matchCount > 0
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
+    ) {
+        Text(
+            text = "$display / $matchCount",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        IconButton(onClick = onPrevious, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowUp,
+                contentDescription = "Previous match",
+            )
+        }
+        IconButton(onClick = onNext, enabled = enabled) {
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = "Next match",
+            )
         }
     }
 }

@@ -26,11 +26,14 @@ import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.helper.util.highlightText
 
 @Composable
 internal fun MessageBubble(
     modifier: Modifier = Modifier,
     message: SocketMessage,
+    searchQuery: String = "",
+    activeMatchRange: IntRange? = null,
 ) {
     when (message.contentType) {
         SocketContentType.Ping,
@@ -38,7 +41,12 @@ internal fun MessageBubble(
         SocketContentType.Close,
         -> ControlFrameLabel(modifier = modifier, message = message)
 
-        else -> DataFrameBubble(modifier = modifier, message = message)
+        else -> DataFrameBubble(
+            modifier = modifier,
+            message = message,
+            searchQuery = searchQuery,
+            activeMatchRange = activeMatchRange,
+        )
     }
 }
 
@@ -70,6 +78,8 @@ private fun ControlFrameLabel(
 private fun DataFrameBubble(
     modifier: Modifier = Modifier,
     message: SocketMessage,
+    searchQuery: String = "",
+    activeMatchRange: IntRange? = null,
 ) {
     val isSent = message.direction == SocketMessageType.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
@@ -95,7 +105,7 @@ private fun DataFrameBubble(
                 .padding(10.dp),
         ) {
             Text(
-                text = message.content,
+                text = highlightText(message.content, searchQuery, activeMatchRange),
                 style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 color = textColor,

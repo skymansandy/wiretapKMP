@@ -11,7 +11,11 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
 
-internal fun highlightText(text: String, query: String): AnnotatedString {
+internal fun highlightText(
+    text: String,
+    query: String,
+    activeRange: IntRange? = null,
+): AnnotatedString {
     if (query.isBlank()) return AnnotatedString(text)
 
     return buildAnnotatedString {
@@ -21,7 +25,15 @@ internal fun highlightText(text: String, query: String): AnnotatedString {
         var match = lowerText.indexOf(lowerQuery, cursor)
         while (match >= 0) {
             append(text.substring(cursor, match))
-            withStyle(SpanStyle(background = WiretapColors.SearchHighlightBackground, color = Color.Black)) {
+            val isActive = activeRange != null &&
+                match == activeRange.first &&
+                match + query.length - 1 == activeRange.last
+            val background = if (isActive) {
+                WiretapColors.SearchHighlightActiveBackground
+            } else {
+                WiretapColors.SearchHighlightBackground
+            }
+            withStyle(SpanStyle(background = background, color = Color.Black)) {
                 append(text.substring(match, match + query.length))
             }
             cursor = match + query.length
