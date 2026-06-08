@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -23,20 +24,26 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,16 +56,23 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
+import dev.skymansandy.wiretap.domain.model.SseStatus
+import dev.skymansandy.wiretap.helper.util.SSE_LOG_FILE_NAME
+import dev.skymansandy.wiretap.helper.util.buildSseShareText
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
+import dev.skymansandy.wiretap.helper.util.shareLogAsFile
+import dev.skymansandy.wiretap.helper.util.shareLogText
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
+import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.common.rememberDebouncedQuery
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseEventBubble
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseStatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -85,20 +99,16 @@ internal fun SseDetailScreenView(
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     LaunchedEffect(isSearchActive) {
         if (isSearchActive) {
             searchFocusRequester.requestFocus()
         }
     }
 
-    val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) {
-            value = ""
-        } else {
-            delay(450)
-            value = searchQuery
-        }
-    }
+    val debouncedQuery by rememberDebouncedQuery(searchQuery)
 
     val matches = remember(events, debouncedQuery) {
         computeSseMatches(events, debouncedQuery)
@@ -142,135 +152,215 @@ internal fun SseDetailScreenView(
         formatUrlDisplay(entry.url)
     }
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    if (isSearchActive) {
-                        SearchField(
-                            modifier = Modifier.focusRequester(searchFocusRequester),
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        Scaffold(
+            modifier = modifier,
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                SseDetailTopBar(
+                    urlDisplay = urlDisplay,
+                    status = entry.status,
+                    isSearchActive = isSearchActive,
+                    searchQuery = searchQuery,
+                    searchFocusRequester = searchFocusRequester,
+                    onSearchQueryChange = { searchQuery = it },
+                    onActivateSearch = { isSearchActive = true },
+                    onCloseSearch = {
+                        isSearchActive = false
+                        searchQuery = ""
+                    },
+                    onBack = { navigator.pop() },
+                    onShareAsText = {
+                        val message = shareLogText(
+                            subject = "SSE ${entry.url}",
+                            text = buildSseShareText(entry, events),
                         )
-                    } else {
-                        Column {
-                            Text(
-                                text = "SSE $urlDisplay",
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
+                    },
+                    onShareAsFile = {
+                        shareLogAsFile(
+                            content = buildSseShareText(entry, events),
+                            fileName = SSE_LOG_FILE_NAME,
+                        )
+                    },
+                )
+            },
+        ) { padding ->
+            SseDetailContent(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                entry = entry,
+                events = events,
+                listState = listState,
+                showNavigator = isSearchActive && debouncedQuery.isNotEmpty(),
+                debouncedQuery = debouncedQuery,
+                matches = matches,
+                currentMatchIndex = currentMatchIndex,
+                onMatchIndexChange = { currentMatchIndex = it },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SseDetailContent(
+    modifier: Modifier = Modifier,
+    entry: SseConnection,
+    events: List<SseEvent>,
+    listState: LazyListState,
+    showNavigator: Boolean,
+    debouncedQuery: String,
+    matches: List<SseMatchPosition>,
+    currentMatchIndex: Int,
+    onMatchIndexChange: (Int) -> Unit,
+) {
+    Column(modifier = modifier) {
+        if (showNavigator) {
+            SseSearchNavigatorBar(
+                matchCount = matches.size,
+                currentIndex = currentMatchIndex,
+                onPrevious = {
+                    if (matches.isNotEmpty()) {
+                        onMatchIndexChange((currentMatchIndex - 1 + matches.size) % matches.size)
                     }
                 },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
-                                searchQuery = ""
-                            } else {
-                                navigator.pop()
-                            }
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                        )
-                    }
-                },
-                actions = {
-                    if (isSearchActive) {
-                        IconButton(
-                            onClick = {
-                                isSearchActive = false
-                                searchQuery = ""
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close search",
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = { isSearchActive = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = "Search",
-                            )
-                        }
-                        SseStatusChip(status = entry.status)
+                onNext = {
+                    if (matches.isNotEmpty()) {
+                        onMatchIndexChange((currentMatchIndex + 1) % matches.size)
                     }
                 },
             )
-        },
-    ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (isSearchActive && debouncedQuery.isNotEmpty()) {
-                SseSearchNavigatorBar(
-                    matchCount = matches.size,
-                    currentIndex = currentMatchIndex,
-                    onPrevious = {
-                        if (matches.isNotEmpty()) {
-                            currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
-                        }
-                    },
-                    onNext = {
-                        if (matches.isNotEmpty()) {
-                            currentMatchIndex = (currentMatchIndex + 1) % matches.size
-                        }
-                    },
-                )
-                HorizontalDivider()
-            }
+            HorizontalDivider()
+        }
 
-            ScrollToBottomChip(
-                listState = listState,
+        ScrollToBottomChip(
+            listState = listState,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            LazyColumn(
+                state = listState,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    // Connection info header
-                    item(key = "header") {
-                        SseConnectionInfoHeader(
-                            modifier = Modifier.fillMaxWidth(),
-                            entry = entry,
-                        )
-                    }
-
-                    // History cleared banner
-                    if (entry.historyCleared) {
-                        item(key = "history_cleared") {
-                            SseHistoryClearedBanner()
-                        }
-                    }
-
-                    // Events
-                    itemsIndexed(events, key = { _, e -> e.id }) { index, event ->
-                        val activeMatch = matches.getOrNull(currentMatchIndex)
-                        val activeRange = if (activeMatch?.eventIndex == index) {
-                            activeMatch.start..activeMatch.endInclusive
-                        } else {
-                            null
-                        }
-                        SseEventBubble(
-                            modifier = Modifier.fillMaxWidth(),
-                            event = event,
-                            searchQuery = debouncedQuery,
-                            activeMatchRange = activeRange,
-                        )
-                    }
-
-                    // Bottom spacer
-                    item { Spacer(Modifier.height(16.dp)) }
+                item(key = "header") {
+                    SseConnectionInfoHeader(
+                        modifier = Modifier.fillMaxWidth(),
+                        entry = entry,
+                    )
                 }
+
+                if (entry.historyCleared) {
+                    item(key = "history_cleared") {
+                        SseHistoryClearedBanner()
+                    }
+                }
+
+                itemsIndexed(events, key = { _, e -> e.id }) { index, event ->
+                    val activeMatch = matches.getOrNull(currentMatchIndex)
+                    val activeRange = if (activeMatch?.eventIndex == index) {
+                        activeMatch.start..activeMatch.endInclusive
+                    } else {
+                        null
+                    }
+                    SseEventBubble(
+                        modifier = Modifier.fillMaxWidth(),
+                        event = event,
+                        searchQuery = debouncedQuery,
+                        activeMatchRange = activeRange,
+                    )
+                }
+
+                item { Spacer(Modifier.height(16.dp)) }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SseDetailTopBar(
+    urlDisplay: String,
+    status: SseStatus,
+    isSearchActive: Boolean,
+    searchQuery: String,
+    searchFocusRequester: FocusRequester,
+    onSearchQueryChange: (String) -> Unit,
+    onActivateSearch: () -> Unit,
+    onCloseSearch: () -> Unit,
+    onBack: () -> Unit,
+    onShareAsText: () -> Unit,
+    onShareAsFile: () -> Unit,
+) {
+    var showShareMenu by remember { mutableStateOf(false) }
+    TopAppBar(
+        title = {
+            if (isSearchActive) {
+                SearchField(
+                    modifier = Modifier.focusRequester(searchFocusRequester),
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                )
+            } else {
+                Text(
+                    text = "SSE $urlDisplay",
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = if (isSearchActive) onCloseSearch else onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+        },
+        actions = {
+            if (isSearchActive) {
+                IconButton(onClick = onCloseSearch) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close search",
+                    )
+                }
+            } else {
+                IconButton(onClick = onActivateSearch) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                    )
+                }
+                Box {
+                    IconButton(onClick = { showShareMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share",
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showShareMenu,
+                        onDismissRequest = { showShareMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Share as text") },
+                            onClick = {
+                                showShareMenu = false
+                                onShareAsText()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Share as file") },
+                            onClick = {
+                                showShareMenu = false
+                                onShareAsFile()
+                            },
+                        )
+                    }
+                }
+                SseStatusChip(status = status)
+            }
+        },
+    )
 }
 
 private data class SseMatchPosition(

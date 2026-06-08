@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -41,7 +42,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -72,14 +72,13 @@ import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
 import dev.skymansandy.wiretap.ui.common.MessageBubble
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
+import dev.skymansandy.wiretap.ui.common.rememberDebouncedQuery
 import dev.skymansandy.wiretap.ui.screens.socket.components.StatusChip
 import dev.skymansandy.wiretap.ui.theme.WiretapColors
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-@Suppress("CyclomaticComplexMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SocketDetailScreenView(
@@ -103,7 +102,6 @@ internal fun SocketDetailScreenView(
     var isSearchActive by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
 
-    var showShareMenu by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -113,14 +111,7 @@ internal fun SocketDetailScreenView(
         }
     }
 
-    val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
-        if (searchQuery.isEmpty()) {
-            value = ""
-        } else {
-            delay(450)
-            value = searchQuery
-        }
-    }
+    val debouncedQuery by rememberDebouncedQuery(searchQuery)
 
     val matches = remember(messages, debouncedQuery) {
         computeSocketMatches(messages, debouncedQuery)
@@ -169,171 +160,210 @@ internal fun SocketDetailScreenView(
             modifier = modifier,
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                TopAppBar(
-                    title = {
-                        if (isSearchActive) {
-                            SearchField(
-                                modifier = Modifier.focusRequester(searchFocusRequester),
-                                query = searchQuery,
-                                onQueryChange = { searchQuery = it },
-                            )
-                        } else {
-                            Column {
-                                Text(
-                                    text = "WS $urlDisplay",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
+                SocketDetailTopBar(
+                    urlDisplay = urlDisplay,
+                    status = entry.status,
+                    isSearchActive = isSearchActive,
+                    searchQuery = searchQuery,
+                    searchFocusRequester = searchFocusRequester,
+                    onSearchQueryChange = { searchQuery = it },
+                    onActivateSearch = { isSearchActive = true },
+                    onCloseSearch = {
+                        isSearchActive = false
+                        searchQuery = ""
                     },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                if (isSearchActive) {
-                                    isSearchActive = false
-                                    searchQuery = ""
-                                } else {
-                                    navigator.pop()
-                                }
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                            )
-                        }
+                    onBack = { navigator.pop() },
+                    onShareAsText = {
+                        val message = shareLogText(
+                            subject = "WS ${entry.url}",
+                            text = buildSocketShareText(entry, messages),
+                        )
+                        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                     },
-                    actions = {
-                        if (isSearchActive) {
-                            IconButton(
-                                onClick = {
-                                    isSearchActive = false
-                                    searchQuery = ""
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Close search",
-                                )
-                            }
-                        } else {
-                            IconButton(onClick = { isSearchActive = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
-                                )
-                            }
-                            Box {
-                                IconButton(onClick = { showShareMenu = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Share,
-                                        contentDescription = "Share",
-                                    )
-                                }
-                                DropdownMenu(
-                                    expanded = showShareMenu,
-                                    onDismissRequest = { showShareMenu = false },
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Share as text") },
-                                        onClick = {
-                                            showShareMenu = false
-                                            val message = shareLogText(
-                                                subject = "WS ${entry.url}",
-                                                text = buildSocketShareText(entry, messages),
-                                            )
-                                            message?.let {
-                                                coroutineScope.launch {
-                                                    snackbarHostState.showSnackbar(it)
-                                                }
-                                            }
-                                        },
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("Share as file") },
-                                        onClick = {
-                                            showShareMenu = false
-                                            shareLogAsFile(
-                                                content = buildSocketShareText(entry, messages),
-                                                fileName = SOCKET_LOG_FILE_NAME,
-                                            )
-                                        },
-                                    )
-                                }
-                            }
-                            StatusChip(status = entry.status)
-                        }
+                    onShareAsFile = {
+                        shareLogAsFile(
+                            content = buildSocketShareText(entry, messages),
+                            fileName = SOCKET_LOG_FILE_NAME,
+                        )
                     },
                 )
             },
         ) { padding ->
-            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                if (isSearchActive && debouncedQuery.isNotEmpty()) {
-                    SearchNavigatorBar(
-                        matchCount = matches.size,
-                        currentIndex = currentMatchIndex,
-                        onPrevious = {
-                            if (matches.isNotEmpty()) {
-                                currentMatchIndex = (currentMatchIndex - 1 + matches.size) % matches.size
-                            }
-                        },
-                        onNext = {
-                            if (matches.isNotEmpty()) {
-                                currentMatchIndex = (currentMatchIndex + 1) % matches.size
-                            }
-                        },
+            SocketDetailContent(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                entry = entry,
+                messages = messages,
+                listState = listState,
+                showNavigator = isSearchActive && debouncedQuery.isNotEmpty(),
+                debouncedQuery = debouncedQuery,
+                matches = matches,
+                currentMatchIndex = currentMatchIndex,
+                onMatchIndexChange = { currentMatchIndex = it },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SocketDetailContent(
+    modifier: Modifier = Modifier,
+    entry: SocketConnection,
+    messages: List<SocketMessage>,
+    listState: LazyListState,
+    showNavigator: Boolean,
+    debouncedQuery: String,
+    matches: List<SocketMatchPosition>,
+    currentMatchIndex: Int,
+    onMatchIndexChange: (Int) -> Unit,
+) {
+    Column(modifier = modifier) {
+        if (showNavigator) {
+            SearchNavigatorBar(
+                matchCount = matches.size,
+                currentIndex = currentMatchIndex,
+                onPrevious = {
+                    if (matches.isNotEmpty()) {
+                        onMatchIndexChange((currentMatchIndex - 1 + matches.size) % matches.size)
+                    }
+                },
+                onNext = {
+                    if (matches.isNotEmpty()) {
+                        onMatchIndexChange((currentMatchIndex + 1) % matches.size)
+                    }
+                },
+            )
+            HorizontalDivider()
+        }
+
+        ScrollToBottomChip(
+            listState = listState,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                item(key = "header") {
+                    ConnectionInfoHeader(
+                        modifier = Modifier.fillMaxWidth(),
+                        entry = entry,
                     )
-                    HorizontalDivider()
                 }
 
-                ScrollToBottomChip(
-                    listState = listState,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        // Connection info header
-                        item(key = "header") {
-                            ConnectionInfoHeader(
-                                modifier = Modifier.fillMaxWidth(),
-                                entry = entry,
-                            )
-                        }
-
-                        // History cleared banner
-                        if (entry.historyCleared) {
-                            item(key = "history_cleared") {
-                                HistoryClearedBanner()
-                            }
-                        }
-
-                        // Messages
-                        itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
-                            val activeMatch = matches.getOrNull(currentMatchIndex)
-                            val activeRange = if (activeMatch?.messageIndex == index) {
-                                activeMatch.start..activeMatch.endInclusive
-                            } else {
-                                null
-                            }
-                            MessageBubble(
-                                modifier = Modifier.fillMaxWidth(),
-                                message = message,
-                                searchQuery = debouncedQuery,
-                                activeMatchRange = activeRange,
-                            )
-                        }
-
-                        // Bottom spacer
-                        item { Spacer(Modifier.height(16.dp)) }
+                if (entry.historyCleared) {
+                    item(key = "history_cleared") {
+                        HistoryClearedBanner()
                     }
                 }
+
+                itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
+                    val activeMatch = matches.getOrNull(currentMatchIndex)
+                    val activeRange = if (activeMatch?.messageIndex == index) {
+                        activeMatch.start..activeMatch.endInclusive
+                    } else {
+                        null
+                    }
+                    MessageBubble(
+                        modifier = Modifier.fillMaxWidth(),
+                        message = message,
+                        searchQuery = debouncedQuery,
+                        activeMatchRange = activeRange,
+                    )
+                }
+
+                item { Spacer(Modifier.height(16.dp)) }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SocketDetailTopBar(
+    urlDisplay: String,
+    status: SocketStatus,
+    isSearchActive: Boolean,
+    searchQuery: String,
+    searchFocusRequester: FocusRequester,
+    onSearchQueryChange: (String) -> Unit,
+    onActivateSearch: () -> Unit,
+    onCloseSearch: () -> Unit,
+    onBack: () -> Unit,
+    onShareAsText: () -> Unit,
+    onShareAsFile: () -> Unit,
+) {
+    var showShareMenu by remember { mutableStateOf(false) }
+    TopAppBar(
+        title = {
+            if (isSearchActive) {
+                SearchField(
+                    modifier = Modifier.focusRequester(searchFocusRequester),
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                )
+            } else {
+                Text(
+                    text = "WS $urlDisplay",
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        navigationIcon = {
+            IconButton(onClick = if (isSearchActive) onCloseSearch else onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
+            }
+        },
+        actions = {
+            if (isSearchActive) {
+                IconButton(onClick = onCloseSearch) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close search",
+                    )
+                }
+            } else {
+                IconButton(onClick = onActivateSearch) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                    )
+                }
+                Box {
+                    IconButton(onClick = { showShareMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share",
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showShareMenu,
+                        onDismissRequest = { showShareMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Share as text") },
+                            onClick = {
+                                showShareMenu = false
+                                onShareAsText()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Share as file") },
+                            onClick = {
+                                showShareMenu = false
+                                onShareAsFile()
+                            },
+                        )
+                    }
+                }
+                StatusChip(status = status)
+            }
+        },
+    )
 }
 
 private data class SocketMatchPosition(
