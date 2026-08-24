@@ -7,7 +7,7 @@ package dev.skymansandy.wiretap.helper.util
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 
-internal const val SSE_LOG_FILE_NAME = "wiretap_sse_log.txt"
+internal const val SSE_LOG_FILE_PREFIX = "wiretap_sse_log"
 
 internal fun buildSseShareText(
     connection: SseConnection,

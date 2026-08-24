@@ -9,7 +9,7 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 
-internal const val SOCKET_LOG_FILE_NAME = "wiretap_socket_log.txt"
+internal const val SOCKET_LOG_FILE_PREFIX = "wiretap_socket_log"
 
 internal fun buildSocketShareText(
     connection: SocketConnection,

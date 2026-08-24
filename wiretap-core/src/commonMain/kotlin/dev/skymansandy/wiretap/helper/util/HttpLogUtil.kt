@@ -6,7 +6,7 @@ package dev.skymansandy.wiretap.helper.util
 
 import dev.skymansandy.wiretap.domain.model.HttpLog
 
-internal const val HTTP_LOG_FILE_NAME = "wiretap_http_log.txt"
+internal const val HTTP_LOG_FILE_PREFIX = "wiretap_http_log"
 
 internal fun buildShareText(entry: HttpLog): String = buildString {
     appendLine("${entry.method} ${entry.responseCode}")

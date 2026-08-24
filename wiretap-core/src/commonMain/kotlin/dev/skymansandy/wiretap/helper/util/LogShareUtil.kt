@@ -19,6 +19,14 @@ internal expect fun shareLogAsFile(content: String, fileName: String): String?
 internal fun exceedsShareTextLimit(text: String): Boolean = text.length > MAX_SHARE_TEXT_LENGTH
 
 /**
+ * Names a share file per log entry rather than per log type.
+ *
+ * The id keeps the name unique without needing to be sanitised, which matters
+ * because WiretapFileProvider resolves a request by its last path segment.
+ */
+internal fun shareFileName(prefix: String, id: Long): String = "${prefix}_$id.txt"
+
+/**
  * Shares [text] inline where it fits, and hands off to a file when it does not.
  *
  * A socket or SSE transcript has no upper bound, and putting one in an intent

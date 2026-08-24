@@ -10,8 +10,9 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.isTextSearchable
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
-import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_NAME
+import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_PREFIX
 import dev.skymansandy.wiretap.helper.util.buildSocketShareText
+import dev.skymansandy.wiretap.helper.util.shareFileName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,7 +85,7 @@ internal class SocketDetailViewModel(
     private val _currentMatchIndex = MutableStateFlow(0)
     val currentMatchIndex: StateFlow<Int> = _currentMatchIndex.asStateFlow()
 
-    val shareFileName: String = SOCKET_LOG_FILE_NAME
+    val shareFileName: String = shareFileName(SOCKET_LOG_FILE_PREFIX, socketId)
 
     val shareSubject: String
         get() = currentEntry()?.let { "WS ${it.url}" } ?: ""

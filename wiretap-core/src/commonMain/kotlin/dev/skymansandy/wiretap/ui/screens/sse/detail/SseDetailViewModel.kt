@@ -9,8 +9,9 @@ import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
-import dev.skymansandy.wiretap.helper.util.SSE_LOG_FILE_NAME
+import dev.skymansandy.wiretap.helper.util.SSE_LOG_FILE_PREFIX
 import dev.skymansandy.wiretap.helper.util.buildSseShareText
+import dev.skymansandy.wiretap.helper.util.shareFileName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,7 +84,7 @@ internal class SseDetailViewModel(
     private val _currentMatchIndex = MutableStateFlow(0)
     val currentMatchIndex: StateFlow<Int> = _currentMatchIndex.asStateFlow()
 
-    val shareFileName: String = SSE_LOG_FILE_NAME
+    val shareFileName: String = shareFileName(SSE_LOG_FILE_PREFIX, connectionId)
 
     val shareSubject: String
         get() = currentEntry()?.let { "SSE ${it.url}" } ?: ""

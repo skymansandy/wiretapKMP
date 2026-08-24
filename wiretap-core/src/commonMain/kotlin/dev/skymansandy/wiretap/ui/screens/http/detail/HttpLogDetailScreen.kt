@@ -46,9 +46,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
-import dev.skymansandy.wiretap.helper.util.HTTP_LOG_FILE_NAME
+import dev.skymansandy.wiretap.helper.util.HTTP_LOG_FILE_PREFIX
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
+import dev.skymansandy.wiretap.helper.util.shareFileName
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
 import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
@@ -231,7 +232,7 @@ private fun HttpLogDetailScreenContent(
                                         val message = shareLogTextOrFile(
                                             subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
                                             text = buildShareText(entry),
-                                            fileName = HTTP_LOG_FILE_NAME,
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
@@ -244,7 +245,7 @@ private fun HttpLogDetailScreenContent(
                                         val message = shareLogTextOrFile(
                                             subject = "cURL - ${entry.method} ${entry.url}",
                                             text = buildCurlCommand(entry),
-                                            fileName = HTTP_LOG_FILE_NAME,
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
@@ -256,7 +257,7 @@ private fun HttpLogDetailScreenContent(
                                         showShareMenu = false
                                         shareLogAsFile(
                                             content = buildShareText(entry),
-                                            fileName = HTTP_LOG_FILE_NAME,
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                     },
                                 )
