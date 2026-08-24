@@ -46,3 +46,17 @@ enum class SocketContentType {
     Pong,
     Close,
 }
+
+/**
+ * Whether a frame of this type carries text a user can meaningfully search.
+ * Binary and control frames only ever render a synthesised placeholder, so
+ * matching against them would highlight text that is not part of the payload.
+ */
+internal fun SocketContentType.isTextSearchable(): Boolean = when (this) {
+    SocketContentType.Text -> true
+    SocketContentType.Binary,
+    SocketContentType.Ping,
+    SocketContentType.Pong,
+    SocketContentType.Close,
+    -> false
+}

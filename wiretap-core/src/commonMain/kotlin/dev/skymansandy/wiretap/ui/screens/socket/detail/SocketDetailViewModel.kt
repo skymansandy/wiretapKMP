@@ -7,8 +7,8 @@ package dev.skymansandy.wiretap.ui.screens.socket.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.skymansandy.wiretap.domain.model.SocketConnection
-import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
+import dev.skymansandy.wiretap.domain.model.isTextSearchable
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_NAME
 import dev.skymansandy.wiretap.helper.util.buildSocketShareText
@@ -135,7 +135,7 @@ internal fun computeSocketMatches(
     if (query.isBlank()) return emptyList()
     val results = mutableListOf<SocketMatchPosition>()
     messages.forEachIndexed { index, message ->
-        if (!message.contentType.isSearchable()) return@forEachIndexed
+        if (!message.contentType.isTextSearchable()) return@forEachIndexed
         var cursor = 0
         while (true) {
             val hit = message.content.indexOf(query, cursor, ignoreCase = true)
@@ -149,13 +149,4 @@ internal fun computeSocketMatches(
         }
     }
     return results
-}
-
-private fun SocketContentType.isSearchable(): Boolean = when (this) {
-    SocketContentType.Text -> true
-    SocketContentType.Binary,
-    SocketContentType.Ping,
-    SocketContentType.Pong,
-    SocketContentType.Close,
-    -> false
 }

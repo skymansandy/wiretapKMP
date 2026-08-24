@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.model.isTextSearchable
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
@@ -42,11 +43,13 @@ internal fun MessageBubble(
         SocketContentType.Close,
         -> ControlFrameLabel(modifier = modifier, message = message)
 
+        // Only frames that search actually matches may render a highlight,
+        // otherwise binary placeholders light up while the counter reads 0 / 0.
         else -> DataFrameBubble(
             modifier = modifier,
             message = message,
-            searchQuery = searchQuery,
-            activeMatchRange = activeMatchRange,
+            searchQuery = searchQuery.takeIf { message.contentType.isTextSearchable() }.orEmpty(),
+            activeMatchRange = activeMatchRange?.takeIf { message.contentType.isTextSearchable() },
         )
     }
 }
