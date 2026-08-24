@@ -11,6 +11,7 @@ import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 
 internal class BackStackNavigatorImpl(
     private val backStack: NavBackStack<NavKey>,
+    private val onExit: () -> Unit = {},
 ) : WiretapNavigator {
 
     override fun push(screen: WiretapScreen) {
@@ -42,4 +43,6 @@ internal class BackStackNavigatorImpl(
         if (backStack.isNotEmpty()) backStack.removeAt(backStack.lastIndex)
         backStack.add(screen)
     }
+
+    override fun exit() = onExit()
 }

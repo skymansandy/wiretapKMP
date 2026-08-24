@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -80,7 +81,12 @@ internal fun WiretapConsole(
     // that includes the deep-link destination, so Back navigates naturally.
     val initialKeys = remember { buildSyntheticBackStack(deepLinkScreen) }
     val backStack = rememberNavBackStack(screenSerializersModule, *initialKeys)
-    val navigator = remember(backStack) { BackStackNavigatorImpl(backStack) }
+    // The navigator outlives individual recompositions, so read onBack through
+    // rememberUpdatedState rather than capturing the lambda instance it was built with.
+    val currentOnBack by rememberUpdatedState(onBack)
+    val navigator = remember(backStack) {
+        BackStackNavigatorImpl(backStack, onExit = { currentOnBack() })
+    }
     val density = LocalDensity.current
     var isWideScreen by rememberSaveable { mutableStateOf(false) }
     val sceneStrategy = remember(isWideScreen) {
@@ -112,7 +118,7 @@ internal fun WiretapConsole(
                 NavDisplay(
                     backStack = backStack,
                     onBack = {
-                        if (backStack.size <= 1) onBack() else navigator.pop()
+                        if (backStack.size <= 1) navigator.exit() else navigator.pop()
                     },
                     sceneStrategy = sceneStrategy,
                     transitionSpec = {
