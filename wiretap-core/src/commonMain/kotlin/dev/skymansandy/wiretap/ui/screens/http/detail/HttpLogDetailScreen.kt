@@ -54,6 +54,7 @@ import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
 import dev.skymansandy.wiretap.ui.screens.http.detail.component.RuleMatchBanner
@@ -116,6 +117,12 @@ private fun HttpLogDetailScreenContent(
         if (isSearchActive) {
             searchFocusRequester.requestFocus()
         }
+    }
+
+    // Back dismisses the search bar before it pops the screen.
+    PlatformBackHandler(enabled = isSearchActive) {
+        isSearchActive = false
+        searchQuery = ""
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {

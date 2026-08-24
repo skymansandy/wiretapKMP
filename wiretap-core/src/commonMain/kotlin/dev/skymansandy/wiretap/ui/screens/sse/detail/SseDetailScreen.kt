@@ -65,6 +65,7 @@ import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.common.ScrollToBottomChip
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.screens.sse.components.SseEventBubble
@@ -107,6 +108,9 @@ internal fun SseDetailScreenView(
             searchFocusRequester.requestFocus()
         }
     }
+
+    // Back dismisses the search bar before it pops the screen.
+    PlatformBackHandler(enabled = isSearchActive, onBack = viewModel::closeSearch)
 
     val headerOffset = 1 + (if (entry.historyCleared) 1 else 0)
     val autoScrollDisabled = isSearchActive && debouncedQuery.isNotEmpty()
