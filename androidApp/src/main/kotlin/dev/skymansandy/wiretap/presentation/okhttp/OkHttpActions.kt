@@ -45,6 +45,9 @@ private fun buildOkHttpRequest(case: HttpTestCase.Request): Request {
             -> post(
                 (case.body ?: "").toRequestBody("application/json".toMediaType()),
             )
+            Endpoint.HttpBingoQueryAnything -> query(
+                (case.body ?: "").toRequestBody("application/json".toMediaType()),
+            )
             else -> get()
         }
     }.build()
