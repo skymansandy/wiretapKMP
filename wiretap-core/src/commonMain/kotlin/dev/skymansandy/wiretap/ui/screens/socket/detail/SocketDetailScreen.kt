@@ -164,18 +164,22 @@ internal fun SocketDetailScreenView(
                     onCloseSearch = viewModel::closeSearch,
                     onBack = { navigator.pop() },
                     onShareAsText = {
-                        val message = shareLogTextOrFile(
-                            subject = viewModel.shareSubject,
-                            text = viewModel.buildShareText(),
-                            fileName = viewModel.shareFileName,
-                        )
-                        message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
+                        coroutineScope.launch {
+                            val message = shareLogTextOrFile(
+                                subject = viewModel.shareSubject,
+                                text = viewModel.buildShareText(),
+                                fileName = viewModel.shareFileName,
+                            )
+                            message?.let { snackbarHostState.showSnackbar(it) }
+                        }
                     },
                     onShareAsFile = {
-                        shareLogAsFile(
-                            content = viewModel.buildShareText(),
-                            fileName = viewModel.shareFileName,
-                        )
+                        coroutineScope.launch {
+                            shareLogAsFile(
+                                content = viewModel.buildShareText(),
+                                fileName = viewModel.shareFileName,
+                            )
+                        }
                     },
                 )
             },

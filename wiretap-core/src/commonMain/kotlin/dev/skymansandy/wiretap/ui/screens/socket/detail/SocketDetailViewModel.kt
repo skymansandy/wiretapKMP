@@ -13,6 +13,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.helper.util.SOCKET_LOG_FILE_PREFIX
 import dev.skymansandy.wiretap.helper.util.buildSocketShareText
 import dev.skymansandy.wiretap.helper.util.shareFileName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 internal class SocketDetailViewModel(
@@ -126,9 +128,14 @@ internal class SocketDetailViewModel(
         _currentMatchIndex.value = (current + 1) % list.size
     }
 
-    fun buildShareText(): String {
+    /**
+     * Builds off the main thread: a long-lived connection's transcript is
+     * unbounded, and this runs from a tap on the share menu.
+     */
+    suspend fun buildShareText(): String {
         val entry = currentEntry() ?: return ""
-        return buildSocketShareText(entry, messages.value)
+        val snapshot = messages.value
+        return withContext(Dispatchers.Default) { buildSocketShareText(entry, snapshot) }
     }
 
     private fun currentEntry(): SocketConnection? = entry.value
