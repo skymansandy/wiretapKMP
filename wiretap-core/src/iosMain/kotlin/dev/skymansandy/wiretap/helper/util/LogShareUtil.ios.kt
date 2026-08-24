@@ -50,13 +50,13 @@ private fun presentShareSheet(items: List<Any>) {
     }
 }
 
-internal actual fun shareHttpLogs(subject: String, text: String): String? {
+internal actual fun shareLogText(subject: String, text: String): String? {
     presentShareSheet(listOf(text))
     return null
 }
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-internal actual fun shareHttpLogAsFile(content: String) {
+internal actual fun shareLogAsFile(content: String, fileName: String): String? {
     dispatch_async(dispatch_get_main_queue()) {
         try {
             val shareDir = NSTemporaryDirectory() + "$SHARE_DIR_NAME/"
@@ -67,7 +67,7 @@ internal actual fun shareHttpLogAsFile(content: String) {
                 error = null,
             )
 
-            val filePath = shareDir + HTTP_LOG_FILE_NAME
+            val filePath = shareDir + fileName
             val nsContent = NSString.create(string = content)
             val written = nsContent.writeToFile(
                 filePath,
@@ -83,4 +83,5 @@ internal actual fun shareHttpLogAsFile(content: String) {
             // Silently fail -- never crash the host app
         }
     }
+    return null
 }

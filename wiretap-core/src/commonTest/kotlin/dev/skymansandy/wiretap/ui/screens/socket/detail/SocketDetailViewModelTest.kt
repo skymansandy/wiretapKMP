@@ -9,6 +9,7 @@ import dev.mokkery.MockMode
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketContentType
@@ -20,8 +21,11 @@ import dev.skymansandy.wiretap.testing.MainDispatcherSupport
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 
@@ -94,7 +98,331 @@ class SocketDetailViewModelTest : DescribeSpec({
             }
         }
     }
+
+    describe("search") {
+        it("activates and closes via actions") {
+            runTest {
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns flowOf(emptyList())
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.isSearchActive.value shouldBe false
+
+                vm.activateSearch()
+                vm.isSearchActive.value shouldBe true
+
+                vm.setSearchQuery("ping")
+                vm.searchQuery.value shouldBe "ping"
+
+                vm.closeSearch()
+                vm.isSearchActive.value shouldBe false
+                vm.searchQuery.value shouldBe ""
+            }
+        }
+
+        it("debounces searchQuery for 450ms before publishing to debouncedQuery") {
+            runTest {
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns flowOf(emptyList())
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.debouncedQuery.test {
+                    awaitItem() shouldBe ""
+                    vm.setSearchQuery("pi")
+                    advanceTimeBy(SHORT_DEBOUNCE_MS)
+                    expectNoEvents()
+                    advanceTimeBy(LONG_DEBOUNCE_MS)
+                    awaitItem() shouldBe "pi"
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        it("publishes an empty query immediately") {
+            runTest {
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns flowOf(emptyList())
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.debouncedQuery.test {
+                    awaitItem() shouldBe ""
+                    vm.setSearchQuery("hi")
+                    advanceTimeBy(FULL_DEBOUNCE_MS)
+                    awaitItem() shouldBe "hi"
+                    vm.setSearchQuery("")
+                    advanceUntilIdle()
+                    awaitItem() shouldBe ""
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+    }
+
+    describe("matches") {
+        it("recomputes when messages or debounced query change") {
+            runTest {
+                val msgs = MutableStateFlow(emptyList<SocketMessage>())
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.matches.test {
+                    awaitItem() shouldBe emptyList()
+
+                    msgs.value = listOf(textMessage("hello ping pong"), textMessage("nothing"))
+                    advanceUntilIdle()
+
+                    vm.setSearchQuery("ping")
+                    advanceTimeBy(FULL_DEBOUNCE_MS)
+
+                    val list = awaitItem()
+                    list.size shouldBe 1
+                    list[0].field shouldBe SocketMatchField.Message
+                    list[0].index shouldBe 0
+                    list[0].start shouldBe 6
+                    list[0].endInclusive shouldBe 9
+                    cancelAndIgnoreRemainingEvents()
+                }
+            }
+        }
+
+        it("skips non-text messages so binary/control frames do not match") {
+            val msg = SocketMessage(
+                socketId = 0,
+                direction = SocketMessageType.Received,
+                contentType = SocketContentType.Binary,
+                content = "[Binary: 1.0 KB]",
+                byteCount = 1024,
+                timestamp = 0,
+            )
+
+            val matches = computeSocketMatches(connection = null, messages = listOf(msg), query = "Binary")
+
+            matches shouldBe emptyList()
+        }
+
+        it("matches the url and handshake headers ahead of the message stream") {
+            val conn = connection(id = 1).copy(
+                url = "wss://echo.example/tok",
+                requestHeaders = mapOf("X-Tok" to "abc", "Other" to "tok-value"),
+            )
+
+            val matches = computeSocketMatches(conn, listOf(textMessage("tok")), "tok")
+
+            matches.map { it.field to it.index } shouldBe listOf(
+                SocketMatchField.Url to 0,
+                SocketMatchField.RequestHeader to 0,
+                SocketMatchField.RequestHeader to 1,
+                SocketMatchField.Message to 0,
+            )
+        }
+
+        it("reports header offsets against the rendered key colon value line") {
+            val conn = connection(id = 1).copy(
+                url = "wss://example/x",
+                requestHeaders = mapOf("Sec-Key" to "tok"),
+            )
+
+            val matches = computeSocketMatches(conn, emptyList(), "tok")
+
+            matches.size shouldBe 1
+            matches[0].field shouldBe SocketMatchField.RequestHeader
+            // "Sec-Key: tok" -- the label counts, because it is what is rendered.
+            matches[0].start shouldBe 9
+        }
+
+        it("reports offsets into the original content for case-expanding characters") {
+            // U+0130 lowercases to two characters, so a lowercased copy of the
+            // content would hand back offsets that no longer index the original.
+            val matches = computeSocketMatches(
+                connection = null,
+                messages = listOf(textMessage("\u0130X\u0130")),
+                query = "x",
+            )
+
+            matches.size shouldBe 1
+            matches[0].field shouldBe SocketMatchField.Message
+            matches[0].start shouldBe 1
+            matches[0].endInclusive shouldBe 1
+        }
+    }
+
+    describe("match navigation") {
+        it("wraps prev / next around the match list") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.matches.value.size shouldBe 3
+                vm.currentMatchIndex.value shouldBe 0
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 1
+
+                vm.goToPreviousMatch()
+                vm.goToPreviousMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+
+        it("holds the active match while new matching messages arrive") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                // A live socket keeps streaming; the reader should not be
+                // yanked back to the first hit every time one lands.
+                msgs.value = msgs.value + textMessage("hit")
+                advanceUntilIdle()
+
+                vm.currentMatchIndex.value shouldBe 2
+            }
+        }
+
+        it("returns to the first match when the query changes") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 1
+
+                vm.setSearchQuery("hit h")
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+
+        it("steps from a clamped position when the match list shrinks") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                msgs.value = listOf(textMessage("hit"))
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+
+        it("is a no-op when there are no matches") {
+            runTest {
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns flowOf(emptyList())
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.goToNextMatch()
+                vm.goToPreviousMatch()
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+    }
+
+    describe("share") {
+        it("buildShareText delegates to buildSocketShareText with the live entry") {
+            runTest {
+                val entry = connection(id = 9).copy(url = "wss://share.example/x")
+                everySuspend { manager.getSocketById(9) } returns entry
+                every { manager.flowSocketById(9) } returns flowOf(entry)
+                every { manager.flowSocketMessagesById(9) } returns flowOf(
+                    listOf(textMessage("UNIQUE_TOKEN")),
+                )
+
+                val vm = SocketDetailViewModel(socketId = 9, socketLogManager = manager)
+                advanceUntilIdle()
+
+                val text = vm.buildShareText()
+
+                text shouldContain "WS wss://share.example/x"
+                text shouldContain "UNIQUE_TOKEN"
+                vm.shareSubject shouldBe "WS wss://share.example/x"
+            }
+        }
+
+        it("buildShareText returns empty string before the entry resolves") {
+            runTest {
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns flowOf(emptyList())
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+
+                vm.buildShareText() shouldBe ""
+                vm.shareSubject shouldBe ""
+            }
+        }
+    }
 })
+
+private const val SHORT_DEBOUNCE_MS = 200L
+private const val LONG_DEBOUNCE_MS = 300L
+private const val FULL_DEBOUNCE_MS = 500L
+
+private fun textMessage(content: String) = SocketMessage(
+    socketId = 0L,
+    direction = SocketMessageType.Sent,
+    contentType = SocketContentType.Text,
+    content = content,
+    byteCount = content.length.toLong(),
+    timestamp = 0L,
+)
 
 private fun connection(id: Long) = SocketConnection(
     id = id,

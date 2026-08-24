@@ -177,8 +177,9 @@ Compose Multiplatform UI with:
 - SSE connections list and event stream view
 - Rule management (create, edit, enable/disable, delete) with conflict detection
 - Two-pane layout on wide screens
-- Copy buttons for headers and bodies
-- Share as file — export any HTTP log as a text file via the platform share sheet (Android/iOS) or open directly (Desktop)
+- In-detail search — find text in an HTTP request/response, a WebSocket message stream, or an SSE event stream, with match highlighting and prev/next navigation across the connection URL, handshake headers and the stream itself
+- Copy — select text anywhere, with copy buttons for headers and bodies and on every WebSocket message and SSE event
+- Share — export an HTTP, WebSocket or SSE log as text or as a file via the platform share sheet (Android/iOS) or open directly (Desktop); oversized logs fall back to a file automatically
 
 ## Shake to Launch
 

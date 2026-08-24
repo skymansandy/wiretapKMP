@@ -46,13 +46,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.ResponseSource
+import dev.skymansandy.wiretap.helper.util.HTTP_LOG_FILE_PREFIX
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
-import dev.skymansandy.wiretap.helper.util.shareHttpLogAsFile
-import dev.skymansandy.wiretap.helper.util.shareHttpLogs
+import dev.skymansandy.wiretap.helper.util.shareFileName
+import dev.skymansandy.wiretap.helper.util.shareLogAsFile
+import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
+import dev.skymansandy.wiretap.ui.common.PlatformBackHandler
 import dev.skymansandy.wiretap.ui.common.SearchField
 import dev.skymansandy.wiretap.ui.mock.PreviewWithNavigator
 import dev.skymansandy.wiretap.ui.screens.http.detail.component.RuleMatchBanner
@@ -115,6 +118,12 @@ private fun HttpLogDetailScreenContent(
         if (isSearchActive) {
             searchFocusRequester.requestFocus()
         }
+    }
+
+    // Back dismisses the search bar before it pops the screen.
+    PlatformBackHandler(enabled = isSearchActive) {
+        isSearchActive = false
+        searchQuery = ""
     }
 
     val debouncedQuery by produceState(initialValue = "", key1 = searchQuery) {
@@ -220,9 +229,10 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as text") },
                                     onClick = {
                                         showShareMenu = false
-                                        val message = shareHttpLogs(
+                                        val message = shareLogTextOrFile(
                                             subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
                                             text = buildShareText(entry),
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
@@ -232,9 +242,10 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as cURL") },
                                     onClick = {
                                         showShareMenu = false
-                                        val message = shareHttpLogs(
+                                        val message = shareLogTextOrFile(
                                             subject = "cURL - ${entry.method} ${entry.url}",
                                             text = buildCurlCommand(entry),
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
@@ -244,8 +255,9 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as file") },
                                     onClick = {
                                         showShareMenu = false
-                                        shareHttpLogAsFile(
+                                        shareLogAsFile(
                                             content = buildShareText(entry),
+                                            fileName = shareFileName(HTTP_LOG_FILE_PREFIX, entry.id),
                                         )
                                     },
                                 )
