@@ -182,6 +182,16 @@ class SseDetailViewModelTest : DescribeSpec({
                 }
             }
         }
+
+        it("reports offsets into the original data for case-expanding characters") {
+            // U+0130 lowercases to two characters, so a lowercased copy of the
+            // data would hand back offsets that no longer index the original.
+            val matches = computeSseMatches(listOf(event("\u0130X\u0130")), "x")
+
+            matches.size shouldBe 1
+            matches[0].start shouldBe 1
+            matches[0].endInclusive shouldBe 1
+        }
     }
 
     describe("match navigation") {

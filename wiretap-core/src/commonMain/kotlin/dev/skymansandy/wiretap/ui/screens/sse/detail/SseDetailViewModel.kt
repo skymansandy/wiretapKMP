@@ -132,13 +132,11 @@ internal fun computeSseMatches(
     query: String,
 ): List<SseMatchPosition> {
     if (query.isBlank()) return emptyList()
-    val lowerQuery = query.lowercase()
     val results = mutableListOf<SseMatchPosition>()
     events.forEachIndexed { index, event ->
-        val lowerData = event.data.lowercase()
         var cursor = 0
         while (true) {
-            val hit = lowerData.indexOf(lowerQuery, cursor)
+            val hit = event.data.indexOf(query, cursor, ignoreCase = true)
             if (hit < 0) break
             results += SseMatchPosition(
                 eventIndex = index,

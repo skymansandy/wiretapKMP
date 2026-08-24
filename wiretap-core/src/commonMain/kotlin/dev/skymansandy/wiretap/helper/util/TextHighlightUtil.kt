@@ -19,10 +19,11 @@ internal fun highlightText(
     if (query.isBlank()) return AnnotatedString(text)
 
     return buildAnnotatedString {
-        val lowerText = text.lowercase()
-        val lowerQuery = query.lowercase()
         var cursor = 0
-        var match = lowerText.indexOf(lowerQuery, cursor)
+        // Scan the original text rather than a lowercased copy: lowercase() is not
+        // length-preserving (U+0130 expands to two chars), so offsets taken from a
+        // lowercased copy can drift out of bounds of the string we slice.
+        var match = text.indexOf(query, cursor, ignoreCase = true)
         while (match >= 0) {
             append(text.substring(cursor, match))
             val isActive = activeRange != null &&
@@ -37,7 +38,7 @@ internal fun highlightText(
                 append(text.substring(match, match + query.length))
             }
             cursor = match + query.length
-            match = lowerText.indexOf(lowerQuery, cursor)
+            match = text.indexOf(query, cursor, ignoreCase = true)
         }
         append(text.substring(cursor))
     }

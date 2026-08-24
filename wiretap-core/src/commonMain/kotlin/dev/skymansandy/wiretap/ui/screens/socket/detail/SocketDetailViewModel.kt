@@ -133,14 +133,12 @@ internal fun computeSocketMatches(
     query: String,
 ): List<SocketMatchPosition> {
     if (query.isBlank()) return emptyList()
-    val lowerQuery = query.lowercase()
     val results = mutableListOf<SocketMatchPosition>()
     messages.forEachIndexed { index, message ->
         if (!message.contentType.isSearchable()) return@forEachIndexed
-        val lowerContent = message.content.lowercase()
         var cursor = 0
         while (true) {
-            val hit = lowerContent.indexOf(lowerQuery, cursor)
+            val hit = message.content.indexOf(query, cursor, ignoreCase = true)
             if (hit < 0) break
             results += SocketMatchPosition(
                 messageIndex = index,
