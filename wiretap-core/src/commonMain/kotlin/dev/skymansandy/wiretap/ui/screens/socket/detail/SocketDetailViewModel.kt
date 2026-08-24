@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -34,17 +32,21 @@ internal class SocketDetailViewModel(
     private val _initialEntry: MutableStateFlow<SocketConnection?> = MutableStateFlow(null)
     val initialEntry: StateFlow<SocketConnection?> get() = _initialEntry
 
+    // liveEntry, the message list and the match list are all read via .value when
+    // sharing or stepping through matches, which can happen with nothing collecting
+    // them. They are kept eagerly hot for the view model's lifetime rather than
+    // relying on a subscriber elsewhere to have brought them up.
     val liveEntry: StateFlow<SocketConnection?> = socketLogManager.flowSocketById(socketId)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = null,
         )
 
     val messages: StateFlow<List<SocketMessage>> = socketLogManager.flowSocketMessagesById(socketId)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList(),
         )
 
@@ -66,7 +68,7 @@ internal class SocketDetailViewModel(
         computeSocketMatches(msgs, q)
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = emptyList(),
     )
 
@@ -82,11 +84,12 @@ internal class SocketDetailViewModel(
         viewModelScope.launch {
             _initialEntry.value = socketLogManager.getSocketById(socketId)
         }
-        matches.onEach { _currentMatchIndex.value = 0 }.launchIn(viewModelScope)
     }
 
     fun setSearchQuery(query: String) {
+        if (_searchQuery.value == query) return
         _searchQuery.value = query
+        _currentMatchIndex.value = 0
     }
 
     fun activateSearch() {
@@ -96,18 +99,21 @@ internal class SocketDetailViewModel(
     fun closeSearch() {
         _isSearchActive.value = false
         _searchQuery.value = ""
+        _currentMatchIndex.value = 0
     }
 
     fun goToPreviousMatch() {
         val list = matches.value
         if (list.isEmpty()) return
-        _currentMatchIndex.value = (_currentMatchIndex.value - 1 + list.size) % list.size
+        val current = _currentMatchIndex.value.coerceAtMost(list.lastIndex)
+        _currentMatchIndex.value = (current - 1 + list.size) % list.size
     }
 
     fun goToNextMatch() {
         val list = matches.value
         if (list.isEmpty()) return
-        _currentMatchIndex.value = (_currentMatchIndex.value + 1) % list.size
+        val current = _currentMatchIndex.value.coerceAtMost(list.lastIndex)
+        _currentMatchIndex.value = (current + 1) % list.size
     }
 
     fun buildShareText(): String {

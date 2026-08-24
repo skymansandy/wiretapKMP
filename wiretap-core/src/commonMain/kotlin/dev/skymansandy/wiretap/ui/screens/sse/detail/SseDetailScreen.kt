@@ -350,7 +350,7 @@ private fun SseSearchNavigatorBar(
     onPrevious: () -> Unit,
     onNext: () -> Unit,
 ) {
-    val display = if (matchCount == 0) 0 else currentIndex + 1
+    val display = if (matchCount == 0) 0 else currentIndex.coerceAtMost(matchCount - 1) + 1
     val enabled = matchCount > 0
     Row(
         modifier = Modifier

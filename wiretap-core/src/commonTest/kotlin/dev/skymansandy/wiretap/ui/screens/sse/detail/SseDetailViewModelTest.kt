@@ -195,7 +195,7 @@ class SseDetailViewModelTest : DescribeSpec({
     }
 
     describe("match navigation") {
-        it("wraps prev / next around the match list and resets when matches change") {
+        it("wraps prev / next around the match list") {
             runTest {
                 val flow = MutableStateFlow(listOf(event("hit"), event("hit"), event("hit")))
                 everySuspend { manager.getConnectionById(any()) } returns null
@@ -219,9 +219,74 @@ class SseDetailViewModelTest : DescribeSpec({
 
                 vm.goToNextMatch()
                 vm.currentMatchIndex.value shouldBe 0
+            }
+        }
 
-                flow.value = listOf(event("hit"), event("hit"))
+        it("holds the active match while new matching events arrive") {
+            runTest {
+                val flow = MutableStateFlow(listOf(event("hit"), event("hit"), event("hit")))
+                everySuspend { manager.getConnectionById(any()) } returns null
+                every { manager.flowConnectionById(any()) } returns flowOf(null)
+                every { manager.flowEventsById(any()) } returns flow
+
+                val vm = SseDetailViewModel(connectionId = 1, sseLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
                 advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                // A live stream keeps emitting; the reader should not be yanked
+                // back to the first hit every time one lands.
+                flow.value = flow.value + event("hit")
+                advanceUntilIdle()
+
+                vm.currentMatchIndex.value shouldBe 2
+            }
+        }
+
+        it("returns to the first match when the query changes") {
+            runTest {
+                val flow = MutableStateFlow(listOf(event("hit hit"), event("hit")))
+                everySuspend { manager.getConnectionById(any()) } returns null
+                every { manager.flowConnectionById(any()) } returns flowOf(null)
+                every { manager.flowEventsById(any()) } returns flow
+
+                val vm = SseDetailViewModel(connectionId = 1, sseLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 1
+
+                vm.setSearchQuery("hit h")
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+
+        it("steps from a clamped position when the match list shrinks") {
+            runTest {
+                val flow = MutableStateFlow(listOf(event("hit"), event("hit"), event("hit")))
+                everySuspend { manager.getConnectionById(any()) } returns null
+                every { manager.flowConnectionById(any()) } returns flowOf(null)
+                every { manager.flowEventsById(any()) } returns flow
+
+                val vm = SseDetailViewModel(connectionId = 1, sseLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                flow.value = listOf(event("hit"))
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
                 vm.currentMatchIndex.value shouldBe 0
             }
         }

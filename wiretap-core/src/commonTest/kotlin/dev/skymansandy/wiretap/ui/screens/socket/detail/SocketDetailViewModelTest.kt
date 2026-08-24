@@ -220,7 +220,7 @@ class SocketDetailViewModelTest : DescribeSpec({
     }
 
     describe("match navigation") {
-        it("wraps prev / next around the match list and resets when matches change") {
+        it("wraps prev / next around the match list") {
             runTest {
                 val msgs = MutableStateFlow(
                     listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
@@ -246,9 +246,80 @@ class SocketDetailViewModelTest : DescribeSpec({
 
                 vm.goToNextMatch()
                 vm.currentMatchIndex.value shouldBe 0
+            }
+        }
 
-                msgs.value = listOf(textMessage("hit"), textMessage("hit"))
+        it("holds the active match while new matching messages arrive") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
                 advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                // A live socket keeps streaming; the reader should not be
+                // yanked back to the first hit every time one lands.
+                msgs.value = msgs.value + textMessage("hit")
+                advanceUntilIdle()
+
+                vm.currentMatchIndex.value shouldBe 2
+            }
+        }
+
+        it("returns to the first match when the query changes") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 1
+
+                vm.setSearchQuery("hit h")
+                vm.currentMatchIndex.value shouldBe 0
+            }
+        }
+
+        it("steps from a clamped position when the match list shrinks") {
+            runTest {
+                val msgs = MutableStateFlow(
+                    listOf(textMessage("hit"), textMessage("hit"), textMessage("hit")),
+                )
+                everySuspend { manager.getSocketById(any()) } returns null
+                every { manager.flowSocketById(any()) } returns flowOf(null)
+                every { manager.flowSocketMessagesById(any()) } returns msgs
+
+                val vm = SocketDetailViewModel(socketId = 1, socketLogManager = manager)
+                vm.setSearchQuery("hit")
+                advanceTimeBy(FULL_DEBOUNCE_MS)
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
+                vm.goToNextMatch()
+                vm.currentMatchIndex.value shouldBe 2
+
+                msgs.value = listOf(textMessage("hit"))
+                advanceUntilIdle()
+
+                vm.goToNextMatch()
                 vm.currentMatchIndex.value shouldBe 0
             }
         }
