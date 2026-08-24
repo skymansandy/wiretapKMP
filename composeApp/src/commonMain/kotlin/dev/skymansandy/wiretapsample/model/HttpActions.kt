@@ -48,6 +48,7 @@ val ktorHttpActions: List<KtorApiAction> = httpTestCases.map { case ->
                     Endpoint.JsonPlaceholderCreatePost -> apis.jsonPlaceholder.createPost(case.body!!)
                     Endpoint.HttpBinGetHeaders -> apis.httpBin.getHeaders(case.headers)
                     Endpoint.HttpBinPostAnything -> apis.httpBin.postAnything(case.body!!, case.headers)
+                    Endpoint.HttpBingoQueryAnything -> apis.httpBingo.queryAnything(case.body!!)
                     Endpoint.HttpBinStatus404 -> apis.httpBin.getStatus(404)
                     Endpoint.HttpBinStatus500 -> apis.httpBin.getStatus(500)
                     Endpoint.HttpBinRedirect -> apis.httpBin.redirect(1)

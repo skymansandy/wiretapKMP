@@ -7,6 +7,7 @@ enum class Endpoint {
     JsonPlaceholderCreatePost,
     HttpBinGetHeaders,
     HttpBinPostAnything,
+    HttpBingoQueryAnything,
     HttpBinStatus404,
     HttpBinStatus500,
     HttpBinRedirect,
@@ -139,6 +140,14 @@ val httpTestCases = listOf(
             "X-Idempotency-Key" to "idem-99887766",
             "X-Custom-Trace" to "trace-aabbccdd",
         ),
+    ),
+    HttpTestCase.Request(
+        label = "QUERY /anything",
+        statusPrefix = "QUERY /anything (RFC 10008)",
+        url = "https://httpbingo.org/anything",
+        category = ActionCategory.Success,
+        endpoint = Endpoint.HttpBingoQueryAnything,
+        body = """{"select":["id","title"],"where":{"userId":1},"limit":10}""",
     ),
     HttpTestCase.Request(
         label = "GET 64KB JSON",

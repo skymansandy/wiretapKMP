@@ -9,6 +9,7 @@ import dev.skymansandy.wiretap.plugin.sse.WiretapKtorSsePlugin
 import dev.skymansandy.wiretap.plugin.ws.WiretapKtorWebSocketPlugin
 import dev.skymansandy.wiretapsample.api._ExternalApiProvider
 import dev.skymansandy.wiretapsample.api._HttpBinApiProvider
+import dev.skymansandy.wiretapsample.api._HttpBingoApiProvider
 import dev.skymansandy.wiretapsample.api._JsonPlaceholderApiProvider
 import dev.skymansandy.wiretapsample.model.KtorfitApis
 import dev.skymansandy.wiretapsample.util.serialiser.CustomKotlinxSerializationConverter
@@ -86,6 +87,12 @@ val sampleAppModule = module {
             .build()
         val httpBinHttp = _HttpBinApiProvider().create(httpBinHttpKtorfit)
 
+        val httpBingoKtorfit = Ktorfit.Builder()
+            .baseUrl("https://httpbingo.org/")
+            .httpClient(client)
+            .build()
+        val httpBingo = _HttpBingoApiProvider().create(httpBingoKtorfit)
+
         val externalKtorfit = Ktorfit.Builder()
             .baseUrl("https://example.com/")
             .httpClient(client)
@@ -96,6 +103,7 @@ val sampleAppModule = module {
             jsonPlaceholder = jsonPlaceholder,
             httpBin = httpBin,
             httpBinHttp = httpBinHttp,
+            httpBingo = httpBingo,
             external = external,
             client = client,
         )
