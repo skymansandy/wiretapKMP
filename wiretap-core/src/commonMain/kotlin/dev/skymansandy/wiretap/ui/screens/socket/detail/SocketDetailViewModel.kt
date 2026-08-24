@@ -43,6 +43,14 @@ internal class SocketDetailViewModel(
             initialValue = null,
         )
 
+    private val entry: StateFlow<SocketConnection?> =
+        combine(liveEntry, _initialEntry) { live, initial -> live ?: initial }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = null,
+            )
+
     val messages: StateFlow<List<SocketMessage>> = socketLogManager.flowSocketMessagesById(socketId)
         .stateIn(
             scope = viewModelScope,
@@ -64,13 +72,14 @@ internal class SocketDetailViewModel(
             initialValue = "",
         )
 
-    val matches: StateFlow<List<SocketMatchPosition>> = combine(messages, debouncedQuery) { msgs, q ->
-        computeSocketMatches(msgs, q)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = emptyList(),
-    )
+    val matches: StateFlow<List<SocketMatchPosition>> =
+        combine(entry, messages, debouncedQuery) { conn, msgs, q ->
+            computeSocketMatches(conn, msgs, q)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList(),
+        )
 
     private val _currentMatchIndex = MutableStateFlow(0)
     val currentMatchIndex: StateFlow<Int> = _currentMatchIndex.asStateFlow()
@@ -121,38 +130,67 @@ internal class SocketDetailViewModel(
         return buildSocketShareText(entry, messages.value)
     }
 
-    private fun currentEntry(): SocketConnection? = liveEntry.value ?: _initialEntry.value
+    private fun currentEntry(): SocketConnection? = entry.value
 
     private companion object {
         const val SEARCH_DEBOUNCE_MS = 450L
     }
 }
 
+/** Which rendered part of the screen a match landed in. */
+internal enum class SocketMatchField {
+    Url,
+    RequestHeader,
+    Message,
+}
+
 internal data class SocketMatchPosition(
-    val messageIndex: Int,
+    val field: SocketMatchField,
+    /** Message index, or request-header line index. Always 0 for [SocketMatchField.Url]. */
+    val index: Int,
     val start: Int,
     val endInclusive: Int,
 )
 
 internal fun computeSocketMatches(
+    connection: SocketConnection?,
     messages: List<SocketMessage>,
     query: String,
 ): List<SocketMatchPosition> {
     if (query.isBlank()) return emptyList()
     val results = mutableListOf<SocketMatchPosition>()
+    // The connection block renders above the stream, so its matches come first
+    // and stepping through them walks the screen top to bottom.
+    connection?.let { conn ->
+        results += conn.url.matchesIn(SocketMatchField.Url, index = 0, query = query)
+        conn.requestHeaders.entries.forEachIndexed { index, (key, value) ->
+            results += "$key: $value".matchesIn(SocketMatchField.RequestHeader, index, query)
+        }
+    }
     messages.forEachIndexed { index, message ->
         if (!message.contentType.isTextSearchable()) return@forEachIndexed
-        var cursor = 0
-        while (true) {
-            val hit = message.content.indexOf(query, cursor, ignoreCase = true)
-            if (hit < 0) break
-            results += SocketMatchPosition(
-                messageIndex = index,
-                start = hit,
-                endInclusive = hit + query.length - 1,
-            )
-            cursor = hit + query.length
-        }
+        results += message.content.matchesIn(SocketMatchField.Message, index, query)
+    }
+    return results
+}
+
+private fun String.matchesIn(
+    field: SocketMatchField,
+    index: Int,
+    query: String,
+): List<SocketMatchPosition> {
+    val results = mutableListOf<SocketMatchPosition>()
+    var cursor = 0
+    while (true) {
+        val hit = indexOf(query, cursor, ignoreCase = true)
+        if (hit < 0) break
+        results += SocketMatchPosition(
+            field = field,
+            index = index,
+            start = hit,
+            endInclusive = hit + query.length - 1,
+        )
+        cursor = hit + query.length
     }
     return results
 }

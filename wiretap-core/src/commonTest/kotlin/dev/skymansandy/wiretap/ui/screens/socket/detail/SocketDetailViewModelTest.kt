@@ -185,7 +185,8 @@ class SocketDetailViewModelTest : DescribeSpec({
 
                     val list = awaitItem()
                     list.size shouldBe 1
-                    list[0].messageIndex shouldBe 0
+                    list[0].field shouldBe SocketMatchField.Message
+                    list[0].index shouldBe 0
                     list[0].start shouldBe 6
                     list[0].endInclusive shouldBe 9
                     cancelAndIgnoreRemainingEvents()
@@ -203,17 +204,52 @@ class SocketDetailViewModelTest : DescribeSpec({
                 timestamp = 0,
             )
 
-            val matches = computeSocketMatches(listOf(msg), "Binary")
+            val matches = computeSocketMatches(connection = null, messages = listOf(msg), query = "Binary")
 
             matches shouldBe emptyList()
+        }
+
+        it("matches the url and handshake headers ahead of the message stream") {
+            val conn = connection(id = 1).copy(
+                url = "wss://echo.example/tok",
+                requestHeaders = mapOf("X-Tok" to "abc", "Other" to "tok-value"),
+            )
+
+            val matches = computeSocketMatches(conn, listOf(textMessage("tok")), "tok")
+
+            matches.map { it.field to it.index } shouldBe listOf(
+                SocketMatchField.Url to 0,
+                SocketMatchField.RequestHeader to 0,
+                SocketMatchField.RequestHeader to 1,
+                SocketMatchField.Message to 0,
+            )
+        }
+
+        it("reports header offsets against the rendered key colon value line") {
+            val conn = connection(id = 1).copy(
+                url = "wss://example/x",
+                requestHeaders = mapOf("Sec-Key" to "tok"),
+            )
+
+            val matches = computeSocketMatches(conn, emptyList(), "tok")
+
+            matches.size shouldBe 1
+            matches[0].field shouldBe SocketMatchField.RequestHeader
+            // "Sec-Key: tok" -- the label counts, because it is what is rendered.
+            matches[0].start shouldBe 9
         }
 
         it("reports offsets into the original content for case-expanding characters") {
             // U+0130 lowercases to two characters, so a lowercased copy of the
             // content would hand back offsets that no longer index the original.
-            val matches = computeSocketMatches(listOf(textMessage("\u0130X\u0130")), "x")
+            val matches = computeSocketMatches(
+                connection = null,
+                messages = listOf(textMessage("\u0130X\u0130")),
+                query = "x",
+            )
 
             matches.size shouldBe 1
+            matches[0].field shouldBe SocketMatchField.Message
             matches[0].start shouldBe 1
             matches[0].endInclusive shouldBe 1
         }

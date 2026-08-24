@@ -59,6 +59,7 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
+import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
 import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
@@ -133,7 +134,7 @@ internal fun SseDetailScreenView(
     // Scroll to the active search match
     LaunchedEffect(currentMatchIndex, matches) {
         val match = matches.getOrNull(currentMatchIndex) ?: return@LaunchedEffect
-        listState.animateScrollToItem(match.eventIndex + headerOffset)
+        listState.animateScrollToItem(match.listItemIndex(headerOffset))
     }
 
     val urlDisplay = remember(entry.url) {
@@ -201,6 +202,8 @@ private fun SseDetailContent(
     onPreviousMatch: () -> Unit,
     onNextMatch: () -> Unit,
 ) {
+    val activeMatch = matches.getOrNull(currentMatchIndex)
+
     Column(modifier = modifier) {
         if (showNavigator) {
             SseSearchNavigatorBar(
@@ -224,6 +227,8 @@ private fun SseDetailContent(
                     SseConnectionInfoHeader(
                         modifier = Modifier.fillMaxWidth(),
                         entry = entry,
+                        searchQuery = debouncedQuery,
+                        activeMatch = activeMatch,
                     )
                 }
 
@@ -234,14 +239,15 @@ private fun SseDetailContent(
                 }
 
                 itemsIndexed(events, key = { _, e -> e.id }) { index, event ->
-                    val activeMatch = matches.getOrNull(currentMatchIndex)
-                        ?.takeIf { it.eventIndex == index }
+                    val eventMatch = activeMatch?.takeIf {
+                        it.field.isEventField() && it.index == index
+                    }
                     SseEventBubble(
                         modifier = Modifier.fillMaxWidth(),
                         event = event,
                         searchQuery = debouncedQuery,
-                        activeMatchField = activeMatch?.field,
-                        activeMatchRange = activeMatch?.let { it.start..it.endInclusive },
+                        activeMatchField = eventMatch?.field,
+                        activeMatchRange = eventMatch?.let { it.start..it.endInclusive },
                     )
                 }
 
@@ -380,13 +386,23 @@ private fun SseSearchNavigatorBar(
 private fun SseConnectionInfoHeader(
     modifier: Modifier = Modifier,
     entry: SseConnection,
+    searchQuery: String = "",
+    activeMatch: SseMatchPosition? = null,
 ) {
+    fun activeRangeFor(field: SseMatchField, index: Int) = activeMatch
+        ?.takeIf { it.field == field && it.index == index }
+        ?.let { it.start..it.endInclusive }
+
     Column(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
-            text = entry.url,
+            text = highlightText(
+                entry.url,
+                searchQuery,
+                activeRangeFor(SseMatchField.Url, 0),
+            ),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -439,9 +455,13 @@ private fun SseConnectionInfoHeader(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            entry.requestHeaders.forEach { (key, value) ->
+            entry.requestHeaders.entries.forEachIndexed { index, (key, value) ->
                 Text(
-                    text = "$key: $value",
+                    text = highlightText(
+                        "$key: $value",
+                        searchQuery,
+                        activeRangeFor(SseMatchField.RequestHeader, index),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -467,4 +487,14 @@ private fun SseHistoryClearedBanner() {
             color = WiretapColors.HistoryClearedText,
         )
     }
+}
+
+/** Which LazyColumn item holds this match: the connection block, or a bubble. */
+private fun SseMatchPosition.listItemIndex(headerOffset: Int): Int =
+    if (field.isEventField()) index + headerOffset else 0
+
+/** Fields that belong to an event bubble rather than the connection block. */
+private fun SseMatchField.isEventField(): Boolean = when (this) {
+    SseMatchField.EventType, SseMatchField.Data, SseMatchField.EventId -> true
+    SseMatchField.Url, SseMatchField.RequestHeader -> false
 }

@@ -42,6 +42,14 @@ internal class SseDetailViewModel(
             initialValue = null,
         )
 
+    private val entry: StateFlow<SseConnection?> =
+        combine(liveEntry, _initialEntry) { live, initial -> live ?: initial }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = null,
+            )
+
     val events: StateFlow<List<SseEvent>> = sseLogManager.flowEventsById(connectionId)
         .stateIn(
             scope = viewModelScope,
@@ -63,13 +71,14 @@ internal class SseDetailViewModel(
             initialValue = "",
         )
 
-    val matches: StateFlow<List<SseMatchPosition>> = combine(events, debouncedQuery) { evts, q ->
-        computeSseMatches(evts, q)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = emptyList(),
-    )
+    val matches: StateFlow<List<SseMatchPosition>> =
+        combine(entry, events, debouncedQuery) { conn, evts, q ->
+            computeSseMatches(conn, evts, q)
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList(),
+        )
 
     private val _currentMatchIndex = MutableStateFlow(0)
     val currentMatchIndex: StateFlow<Int> = _currentMatchIndex.asStateFlow()
@@ -120,7 +129,7 @@ internal class SseDetailViewModel(
         return buildSseShareText(entry, events.value)
     }
 
-    private fun currentEntry(): SseConnection? = liveEntry.value ?: _initialEntry.value
+    private fun currentEntry(): SseConnection? = entry.value
 
     private companion object {
         const val SEARCH_DEBOUNCE_MS = 450L
@@ -129,37 +138,49 @@ internal class SseDetailViewModel(
 
 /** Which of an event's rendered fields a match landed in. */
 internal enum class SseMatchField {
+    Url,
+    RequestHeader,
     EventType,
     Data,
     EventId,
 }
 
 internal data class SseMatchPosition(
-    val eventIndex: Int,
     val field: SseMatchField,
+    /** Event index, or request-header line index. Always 0 for [SseMatchField.Url]. */
+    val index: Int,
     val start: Int,
     val endInclusive: Int,
 )
 
 internal fun computeSseMatches(
+    connection: SseConnection?,
     events: List<SseEvent>,
     query: String,
 ): List<SseMatchPosition> {
     if (query.isBlank()) return emptyList()
     val results = mutableListOf<SseMatchPosition>()
+    // The connection block renders above the stream, so its matches come first
+    // and stepping through them walks the screen top to bottom.
+    connection?.let { conn ->
+        results += conn.url.matchesIn(SseMatchField.Url, index = 0, query = query)
+        conn.requestHeaders.entries.forEachIndexed { index, (key, value) ->
+            results += "$key: $value".matchesIn(SseMatchField.RequestHeader, index, query)
+        }
+    }
     events.forEachIndexed { index, event ->
         // Visual order within the bubble, so stepping through matches walks the
         // screen top to bottom rather than jumping between fields.
-        results += event.eventType.matchesIn(index, SseMatchField.EventType, query)
-        results += event.data.matchesIn(index, SseMatchField.Data, query)
-        results += event.eventId.matchesIn(index, SseMatchField.EventId, query)
+        results += event.eventType.matchesIn(SseMatchField.EventType, index, query)
+        results += event.data.matchesIn(SseMatchField.Data, index, query)
+        results += event.eventId.matchesIn(SseMatchField.EventId, index, query)
     }
     return results
 }
 
 private fun String?.matchesIn(
-    eventIndex: Int,
     field: SseMatchField,
+    index: Int,
     query: String,
 ): List<SseMatchPosition> {
     val text = this ?: return emptyList()
@@ -169,8 +190,8 @@ private fun String?.matchesIn(
         val hit = text.indexOf(query, cursor, ignoreCase = true)
         if (hit < 0) break
         results += SseMatchPosition(
-            eventIndex = eventIndex,
             field = field,
+            index = index,
             start = hit,
             endInclusive = hit + query.length - 1,
         )

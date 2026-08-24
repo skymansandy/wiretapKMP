@@ -62,6 +62,7 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
+import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
 import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
@@ -136,7 +137,7 @@ internal fun SocketDetailScreenView(
     // Scroll to the active search match
     LaunchedEffect(currentMatchIndex, matches) {
         val match = matches.getOrNull(currentMatchIndex) ?: return@LaunchedEffect
-        listState.animateScrollToItem(match.messageIndex + headerOffset)
+        listState.animateScrollToItem(match.listItemIndex(headerOffset))
     }
 
     val urlDisplay = remember(entry.url) {
@@ -204,6 +205,8 @@ private fun SocketDetailContent(
     onPreviousMatch: () -> Unit,
     onNextMatch: () -> Unit,
 ) {
+    val activeMatch = matches.getOrNull(currentMatchIndex)
+
     Column(modifier = modifier) {
         if (showNavigator) {
             SearchNavigatorBar(
@@ -227,6 +230,8 @@ private fun SocketDetailContent(
                     ConnectionInfoHeader(
                         modifier = Modifier.fillMaxWidth(),
                         entry = entry,
+                        searchQuery = debouncedQuery,
+                        activeMatch = activeMatch,
                     )
                 }
 
@@ -237,17 +242,13 @@ private fun SocketDetailContent(
                 }
 
                 itemsIndexed(messages, key = { _, m -> m.id }) { index, message ->
-                    val activeMatch = matches.getOrNull(currentMatchIndex)
-                    val activeRange = if (activeMatch?.messageIndex == index) {
-                        activeMatch.start..activeMatch.endInclusive
-                    } else {
-                        null
-                    }
+                    val messageMatch = activeMatch
+                        ?.takeIf { it.field == SocketMatchField.Message && it.index == index }
                     MessageBubble(
                         modifier = Modifier.fillMaxWidth(),
                         message = message,
                         searchQuery = debouncedQuery,
-                        activeMatchRange = activeRange,
+                        activeMatchRange = messageMatch?.let { it.start..it.endInclusive },
                     )
                 }
 
@@ -386,13 +387,23 @@ private fun SearchNavigatorBar(
 private fun ConnectionInfoHeader(
     modifier: Modifier = Modifier,
     entry: SocketConnection,
+    searchQuery: String = "",
+    activeMatch: SocketMatchPosition? = null,
 ) {
+    fun activeRangeFor(field: SocketMatchField, index: Int) = activeMatch
+        ?.takeIf { it.field == field && it.index == index }
+        ?.let { it.start..it.endInclusive }
+
     Column(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
-            text = entry.url,
+            text = highlightText(
+                entry.url,
+                searchQuery,
+                activeRangeFor(SocketMatchField.Url, 0),
+            ),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -452,9 +463,13 @@ private fun ConnectionInfoHeader(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            entry.requestHeaders.forEach { (key, value) ->
+            entry.requestHeaders.entries.forEachIndexed { index, (key, value) ->
                 Text(
-                    text = "$key: $value",
+                    text = highlightText(
+                        "$key: $value",
+                        searchQuery,
+                        activeRangeFor(SocketMatchField.RequestHeader, index),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -580,4 +595,10 @@ private fun Preview_HistoryClearedBanner() {
     MaterialTheme {
         HistoryClearedBanner()
     }
+}
+
+/** Which LazyColumn item holds this match: the connection block, or a bubble. */
+private fun SocketMatchPosition.listItemIndex(headerOffset: Int): Int = when (field) {
+    SocketMatchField.Message -> index + headerOffset
+    SocketMatchField.Url, SocketMatchField.RequestHeader -> 0
 }

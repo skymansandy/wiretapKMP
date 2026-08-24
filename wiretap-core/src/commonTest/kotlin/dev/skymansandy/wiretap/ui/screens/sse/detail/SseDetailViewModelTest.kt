@@ -175,8 +175,8 @@ class SseDetailViewModelTest : DescribeSpec({
 
                     val list = awaitItem()
                     list.size shouldBe 1
-                    list[0].eventIndex shouldBe 0
                     list[0].field shouldBe SseMatchField.Data
+                    list[0].index shouldBe 0
                     list[0].start shouldBe 6
                     list[0].endInclusive shouldBe 10
                     cancelAndIgnoreRemainingEvents()
@@ -189,7 +189,7 @@ class SseDetailViewModelTest : DescribeSpec({
                 event(data = "payload", eventType = "ping-type", eventId = "ping-7"),
             )
 
-            val matches = computeSseMatches(events, "ping")
+            val matches = computeSseMatches(connection = null, events = events, query = "ping")
 
             matches.map { it.field } shouldBe listOf(
                 SseMatchField.EventType,
@@ -201,7 +201,7 @@ class SseDetailViewModelTest : DescribeSpec({
         it("reports offsets relative to the field the match landed in") {
             val events = listOf(event(data = "aa-tok", eventId = "tok"))
 
-            val matches = computeSseMatches(events, "tok")
+            val matches = computeSseMatches(connection = null, events = events, query = "tok")
 
             matches.map { it.field to it.start } shouldBe listOf(
                 SseMatchField.Data to 3,
@@ -209,10 +209,31 @@ class SseDetailViewModelTest : DescribeSpec({
             )
         }
 
+        it("matches the url and request headers ahead of the event stream") {
+            val conn = SseConnection(
+                id = 1,
+                url = "https://sse.example/tok",
+                timestamp = 0,
+                requestHeaders = mapOf("X-Tok" to "abc"),
+            )
+
+            val matches = computeSseMatches(conn, listOf(event("tok")), "tok")
+
+            matches.map { it.field to it.index } shouldBe listOf(
+                SseMatchField.Url to 0,
+                SseMatchField.RequestHeader to 0,
+                SseMatchField.Data to 0,
+            )
+        }
+
         it("reports offsets into the original data for case-expanding characters") {
             // U+0130 lowercases to two characters, so a lowercased copy of the
             // data would hand back offsets that no longer index the original.
-            val matches = computeSseMatches(listOf(event("\u0130X\u0130")), "x")
+            val matches = computeSseMatches(
+                connection = null,
+                events = listOf(event("\u0130X\u0130")),
+                query = "x",
+            )
 
             matches.size shouldBe 1
             matches[0].field shouldBe SseMatchField.Data
