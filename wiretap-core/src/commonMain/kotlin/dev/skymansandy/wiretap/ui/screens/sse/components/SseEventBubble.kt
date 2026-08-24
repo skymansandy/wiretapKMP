@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +27,7 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
+import dev.skymansandy.wiretap.ui.common.CopyIconButton
 
 @Composable
 internal fun SseEventBubble(
@@ -57,17 +59,20 @@ internal fun SseEventBubble(
                 Spacer(Modifier.height(2.dp))
             }
 
-            Text(
-                text = highlightText(event.data, searchQuery, activeMatchRange),
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = textColor,
-            )
+            SelectionContainer {
+                Text(
+                    text = highlightText(event.data, searchQuery, activeMatchRange),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = textColor,
+                )
+            }
 
             Spacer(Modifier.height(2.dp))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.align(Alignment.End),
             ) {
                 event.eventId?.let { id ->
@@ -88,6 +93,13 @@ internal fun SseEventBubble(
                     text = formatBytes(event.byteCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
+                )
+
+                CopyIconButton(
+                    text = event.data,
+                    contentDescription = "Copy event data",
+                    tint = textColor.copy(alpha = 0.6f),
+                    snackbarMessage = "Event copied",
                 )
             }
         }
