@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.util.formatBytes
@@ -83,38 +85,49 @@ internal fun SseEventBubble(
 
             Spacer(Modifier.height(2.dp))
 
+            // An event id is server-supplied and unbounded -- Wikimedia puts a
+            // whole JSON array in it -- so it gets its own line, capped at one
+            // line. Sharing a row with the metadata, it took the entire width
+            // and squeezed the timestamp and size to one character per line.
+            event.eventId?.let { id ->
+                Text(
+                    // "id: " is a label, not part of the value, so the
+                    // highlight offsets stay relative to the id itself.
+                    text = buildAnnotatedString {
+                        append("id: ")
+                        append(
+                            highlightText(
+                                id,
+                                searchQuery,
+                                activeRangeFor(SseMatchField.EventId),
+                            ),
+                        )
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = textColor.copy(alpha = 0.6f),
+                    modifier = Modifier.align(Alignment.End),
+                )
+
+                Spacer(Modifier.height(2.dp))
+            }
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.align(Alignment.End),
             ) {
-                event.eventId?.let { id ->
-                    Text(
-                        // "id: " is a label, not part of the value, so the
-                        // highlight offsets stay relative to the id itself.
-                        text = buildAnnotatedString {
-                            append("id: ")
-                            append(
-                                highlightText(
-                                    id,
-                                    searchQuery,
-                                    activeRangeFor(SseMatchField.EventId),
-                                ),
-                            )
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = textColor.copy(alpha = 0.6f),
-                    )
-                }
-
                 Text(
                     text = formatTime(event.timestamp),
+                    maxLines = 1,
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )
 
                 Text(
                     text = formatBytes(event.byteCount),
+                    maxLines = 1,
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
                 )
@@ -127,5 +140,44 @@ internal fun SseEventBubble(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_SseEventBubble() {
+    MaterialTheme {
+        SseEventBubble(
+            event = SseEvent(
+                id = 1,
+                connectionId = 1,
+                eventType = "message",
+                data = """{"type":"edit","title":"Winnebago"}""",
+                eventId = "142817583",
+                byteCount = 38,
+                timestamp = 1710850000000,
+            ),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun Preview_SseEventBubbleLongEventId() {
+    // Wikimedia's recentchange stream puts a whole JSON array in the id; it has
+    // to stay on one line so the timestamp, size and copy button keep their room.
+    MaterialTheme {
+        SseEventBubble(
+            event = SseEvent(
+                id = 2,
+                connectionId = 1,
+                data = """{"${'$'}schema":"/mediawiki/recentchange/1.0.0"}""",
+                eventId = "[{\"topic\":\"eqiad.mediawiki.recentchange\",\"partition\":0," +
+                    "\"timestamp\":1787598711080},{\"topic\":\"codfw.mediawiki.recentchange\"," +
+                    "\"partition\":0,\"offset\":-1}]",
+                byteCount = 1024,
+                timestamp = 1710850001000,
+            ),
+        )
     }
 }
