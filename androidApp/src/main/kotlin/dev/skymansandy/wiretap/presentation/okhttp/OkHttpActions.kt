@@ -45,10 +45,7 @@ private fun buildOkHttpRequest(case: HttpTestCase.Request): Request {
             -> post(
                 (case.body ?: "").toRequestBody("application/json".toMediaType()),
             )
-            // QUERY (RFC 10008) has no dedicated OkHttp builder verb, but the generic
-            // method() accepts it — permitsRequestBody is true for unknown verbs.
-            Endpoint.HttpBingoQueryAnything -> method(
-                "QUERY",
+            Endpoint.HttpBingoQueryAnything -> query(
                 (case.body ?: "").toRequestBody("application/json".toMediaType()),
             )
             else -> get()
