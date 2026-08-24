@@ -235,16 +235,13 @@ private fun SseDetailContent(
 
                 itemsIndexed(events, key = { _, e -> e.id }) { index, event ->
                     val activeMatch = matches.getOrNull(currentMatchIndex)
-                    val activeRange = if (activeMatch?.eventIndex == index) {
-                        activeMatch.start..activeMatch.endInclusive
-                    } else {
-                        null
-                    }
+                        ?.takeIf { it.eventIndex == index }
                     SseEventBubble(
                         modifier = Modifier.fillMaxWidth(),
                         event = event,
                         searchQuery = debouncedQuery,
-                        activeMatchRange = activeRange,
+                        activeMatchField = activeMatch?.field,
+                        activeMatchRange = activeMatch?.let { it.start..it.endInclusive },
                     )
                 }
 

@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,14 +29,18 @@ import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
 import dev.skymansandy.wiretap.ui.common.CopyIconButton
+import dev.skymansandy.wiretap.ui.screens.sse.detail.SseMatchField
 
 @Composable
 internal fun SseEventBubble(
     modifier: Modifier = Modifier,
     event: SseEvent,
     searchQuery: String = "",
+    activeMatchField: SseMatchField? = null,
     activeMatchRange: IntRange? = null,
 ) {
+    fun activeRangeFor(field: SseMatchField) = activeMatchRange?.takeIf { activeMatchField == field }
+
     val bgColor = MaterialTheme.colorScheme.surfaceVariant
     val textColor = MaterialTheme.colorScheme.onSurfaceVariant
 
@@ -51,7 +56,11 @@ internal fun SseEventBubble(
         ) {
             if (event.eventType != null) {
                 Text(
-                    text = event.eventType,
+                    text = highlightText(
+                        event.eventType,
+                        searchQuery,
+                        activeRangeFor(SseMatchField.EventType),
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -61,7 +70,11 @@ internal fun SseEventBubble(
 
             SelectionContainer {
                 Text(
-                    text = highlightText(event.data, searchQuery, activeMatchRange),
+                    text = highlightText(
+                        event.data,
+                        searchQuery,
+                        activeRangeFor(SseMatchField.Data),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = FontFamily.Monospace,
                     color = textColor,
@@ -77,7 +90,18 @@ internal fun SseEventBubble(
             ) {
                 event.eventId?.let { id ->
                     Text(
-                        text = "id: $id",
+                        // "id: " is a label, not part of the value, so the
+                        // highlight offsets stay relative to the id itself.
+                        text = buildAnnotatedString {
+                            append("id: ")
+                            append(
+                                highlightText(
+                                    id,
+                                    searchQuery,
+                                    activeRangeFor(SseMatchField.EventId),
+                                ),
+                            )
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = textColor.copy(alpha = 0.6f),
                     )

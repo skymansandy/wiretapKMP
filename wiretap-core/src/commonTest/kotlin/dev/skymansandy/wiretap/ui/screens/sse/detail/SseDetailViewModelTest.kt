@@ -176,11 +176,37 @@ class SseDetailViewModelTest : DescribeSpec({
                     val list = awaitItem()
                     list.size shouldBe 1
                     list[0].eventIndex shouldBe 0
+                    list[0].field shouldBe SseMatchField.Data
                     list[0].start shouldBe 6
                     list[0].endInclusive shouldBe 10
                     cancelAndIgnoreRemainingEvents()
                 }
             }
+        }
+
+        it("matches event type and id, ordered as the bubble renders them") {
+            val events = listOf(
+                event(data = "payload", eventType = "ping-type", eventId = "ping-7"),
+            )
+
+            val matches = computeSseMatches(events, "ping")
+
+            matches.map { it.field } shouldBe listOf(
+                SseMatchField.EventType,
+                SseMatchField.EventId,
+            )
+            matches.map { it.start } shouldBe listOf(0, 0)
+        }
+
+        it("reports offsets relative to the field the match landed in") {
+            val events = listOf(event(data = "aa-tok", eventId = "tok"))
+
+            val matches = computeSseMatches(events, "tok")
+
+            matches.map { it.field to it.start } shouldBe listOf(
+                SseMatchField.Data to 3,
+                SseMatchField.EventId to 0,
+            )
         }
 
         it("reports offsets into the original data for case-expanding characters") {
@@ -189,6 +215,7 @@ class SseDetailViewModelTest : DescribeSpec({
             val matches = computeSseMatches(listOf(event("\u0130X\u0130")), "x")
 
             matches.size shouldBe 1
+            matches[0].field shouldBe SseMatchField.Data
             matches[0].start shouldBe 1
             matches[0].endInclusive shouldBe 1
         }
@@ -344,9 +371,15 @@ private const val SHORT_DEBOUNCE_MS = 200L
 private const val LONG_DEBOUNCE_MS = 300L
 private const val FULL_DEBOUNCE_MS = 500L
 
-private fun event(data: String) = SseEvent(
+private fun event(
+    data: String,
+    eventType: String? = null,
+    eventId: String? = null,
+) = SseEvent(
     connectionId = 0L,
+    eventType = eventType,
     data = data,
+    eventId = eventId,
     byteCount = data.length.toLong(),
     timestamp = 0L,
 )

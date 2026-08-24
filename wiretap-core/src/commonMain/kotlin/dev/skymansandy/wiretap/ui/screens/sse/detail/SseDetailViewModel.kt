@@ -127,8 +127,16 @@ internal class SseDetailViewModel(
     }
 }
 
+/** Which of an event's rendered fields a match landed in. */
+internal enum class SseMatchField {
+    EventType,
+    Data,
+    EventId,
+}
+
 internal data class SseMatchPosition(
     val eventIndex: Int,
+    val field: SseMatchField,
     val start: Int,
     val endInclusive: Int,
 )
@@ -140,17 +148,33 @@ internal fun computeSseMatches(
     if (query.isBlank()) return emptyList()
     val results = mutableListOf<SseMatchPosition>()
     events.forEachIndexed { index, event ->
-        var cursor = 0
-        while (true) {
-            val hit = event.data.indexOf(query, cursor, ignoreCase = true)
-            if (hit < 0) break
-            results += SseMatchPosition(
-                eventIndex = index,
-                start = hit,
-                endInclusive = hit + query.length - 1,
-            )
-            cursor = hit + query.length
-        }
+        // Visual order within the bubble, so stepping through matches walks the
+        // screen top to bottom rather than jumping between fields.
+        results += event.eventType.matchesIn(index, SseMatchField.EventType, query)
+        results += event.data.matchesIn(index, SseMatchField.Data, query)
+        results += event.eventId.matchesIn(index, SseMatchField.EventId, query)
+    }
+    return results
+}
+
+private fun String?.matchesIn(
+    eventIndex: Int,
+    field: SseMatchField,
+    query: String,
+): List<SseMatchPosition> {
+    val text = this ?: return emptyList()
+    val results = mutableListOf<SseMatchPosition>()
+    var cursor = 0
+    while (true) {
+        val hit = text.indexOf(query, cursor, ignoreCase = true)
+        if (hit < 0) break
+        results += SseMatchPosition(
+            eventIndex = eventIndex,
+            field = field,
+            start = hit,
+            endInclusive = hit + query.length - 1,
+        )
+        cursor = hit + query.length
     }
     return results
 }
