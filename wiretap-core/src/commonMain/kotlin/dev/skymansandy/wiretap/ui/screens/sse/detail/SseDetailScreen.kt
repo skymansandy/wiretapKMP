@@ -60,7 +60,7 @@ import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.formatUrlDisplay
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
-import dev.skymansandy.wiretap.helper.util.shareLogText
+import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.InfoLabel
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
@@ -156,9 +156,10 @@ internal fun SseDetailScreenView(
                     onCloseSearch = viewModel::closeSearch,
                     onBack = { navigator.pop() },
                     onShareAsText = {
-                        val message = shareLogText(
+                        val message = shareLogTextOrFile(
                             subject = viewModel.shareSubject,
                             text = viewModel.buildShareText(),
+                            fileName = viewModel.shareFileName,
                         )
                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                     },

@@ -50,7 +50,7 @@ import dev.skymansandy.wiretap.helper.util.HTTP_LOG_FILE_NAME
 import dev.skymansandy.wiretap.helper.util.buildCurlCommand
 import dev.skymansandy.wiretap.helper.util.buildShareText
 import dev.skymansandy.wiretap.helper.util.shareLogAsFile
-import dev.skymansandy.wiretap.helper.util.shareLogText
+import dev.skymansandy.wiretap.helper.util.shareLogTextOrFile
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.LocalSnackbarHostState
@@ -221,9 +221,10 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as text") },
                                     onClick = {
                                         showShareMenu = false
-                                        val message = shareLogText(
+                                        val message = shareLogTextOrFile(
                                             subject = "${entry.method} ${entry.responseCode} - ${entry.url}",
                                             text = buildShareText(entry),
+                                            fileName = HTTP_LOG_FILE_NAME,
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
@@ -233,9 +234,10 @@ private fun HttpLogDetailScreenContent(
                                     text = { Text("Share as cURL") },
                                     onClick = {
                                         showShareMenu = false
-                                        val message = shareLogText(
+                                        val message = shareLogTextOrFile(
                                             subject = "cURL - ${entry.method} ${entry.url}",
                                             text = buildCurlCommand(entry),
+                                            fileName = HTTP_LOG_FILE_NAME,
                                         )
                                         message?.let { coroutineScope.launch { snackbarHostState.showSnackbar(it) } }
                                     },
