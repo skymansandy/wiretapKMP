@@ -4,8 +4,8 @@
 
 <p align="center">
   <a href="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml"><img src="https://github.com/skymansandy/wiretapKMP/actions/workflows/deploy.yml/badge.svg" alt="Build"/></a>
-  <a href="https://skymansandy.github.io/wiretapKMP/coverage/"><img src="https://img.shields.io/badge/coverage-82%25-brightgreen" alt="Coverage"/></a>
-  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0--RC15-blue" alt="Maven Central"/></a>
+  <a href="https://skymansandy.github.io/wiretapKMP/coverage/"><img src="https://img.shields.io/badge/coverage-84%25-brightgreen" alt="Coverage"/></a>
+  <a href="https://central.sonatype.com/search?q=dev.skymansandy+wiretap"><img src="https://img.shields.io/badge/maven--central-1.0.0-blue" alt="Maven Central"/></a>
 </p>
 
 **WiretapKMP** is a drop-in network inspector and mocker for **Kotlin Multiplatform** apps. Add one dependency, install the plugin, and inspect every HTTP request, WebSocket message, and SSE event — or mock and throttle them — all from a built-in UI. No proxy needed.
@@ -131,12 +131,12 @@ For full details, see the [Ktor SSE guide](https://skymansandy.dev/wiretapKMP/kt
 
 ```kotlin
 // build.gradle.kts
-debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0-RC15")
-releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0-RC15")
+debugImplementation("dev.skymansandy:wiretap-ktor:1.0.0")
+releaseImplementation("dev.skymansandy:wiretap-ktor-noop:1.0.0")
 
 // or for OkHttp
-debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0-RC15")
-releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0-RC15")
+debugImplementation("dev.skymansandy:wiretap-okhttp:1.0.0")
+releaseImplementation("dev.skymansandy:wiretap-okhttp-noop:1.0.0")
 ```
 
 For full setup including URLSession and advanced configuration, see the [**Getting Started guide**](https://skymansandy.dev/wiretapKMP/getting-started/).
