@@ -730,6 +730,12 @@ public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$CopyBu
 	public final fun getLambda$1901614246$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
+public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$CopyIconButtonKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$CopyIconButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$-981124379$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
 public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$HeadersListKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$HeadersListKt;
 	public fun <init> ()V
@@ -774,11 +780,12 @@ public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$Sectio
 public final class dev/skymansandy/wiretap/ui/common/ComposableSingletons$WiretapTopBarKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/common/ComposableSingletons$WiretapTopBarKt;
 	public fun <init> ()V
-	public final fun getLambda$-1167824598$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-1170561517$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-765474574$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1620913810$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$840631297$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-163572274$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-997729780$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$220491270$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$325847541$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$525520861$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$546118510$wiretap_core ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class dev/skymansandy/wiretap/ui/scenes/ComposableSingletons$WiretapListDetailSceneKt {
@@ -1060,14 +1067,21 @@ public final class dev/skymansandy/wiretap/ui/screens/socket/components/Composab
 public final class dev/skymansandy/wiretap/ui/screens/socket/detail/ComposableSingletons$SocketDetailScreenKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/socket/detail/ComposableSingletons$SocketDetailScreenKt;
 	public fun <init> ()V
+	public final fun getLambda$-1401480049$wiretap_core ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-1572497558$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-162114978$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1679783435$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1709961140$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1715132616$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-1738849609$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-344905166$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-880755882$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-2085316470$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-335873727$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1173376343$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$1259760540$wiretap_core ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$1480960905$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1960013781$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$273795974$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$512283727$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$783691499$wiretap_core ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$965959214$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
@@ -1080,12 +1094,26 @@ public final class dev/skymansandy/wiretap/ui/screens/socket/list/ComposableSing
 	public final fun getLambda$944478827$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
+public final class dev/skymansandy/wiretap/ui/screens/sse/components/ComposableSingletons$SseEventBubbleKt {
+	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/sse/components/ComposableSingletons$SseEventBubbleKt;
+	public fun <init> ()V
+	public final fun getLambda$-122620237$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1577367288$wiretap_core ()Lkotlin/jvm/functions/Function2;
+}
+
 public final class dev/skymansandy/wiretap/ui/screens/sse/detail/ComposableSingletons$SseDetailScreenKt {
 	public static final field INSTANCE Ldev/skymansandy/wiretap/ui/screens/sse/detail/ComposableSingletons$SseDetailScreenKt;
 	public fun <init> ()V
-	public final fun getLambda$-1834630244$wiretap_core ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$-286706894$wiretap_core ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-569484714$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-118653938$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1481075462$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1582535881$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1839128297$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-864998210$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1971186833$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$2035048999$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$2102393365$wiretap_core ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$246357635$wiretap_core ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$659471944$wiretap_core ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class dev/skymansandy/wiretap/ui/theme/WiretapThemeKt {
