@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal actual fun shareHttpLogs(subject: String, text: String): String? {
+internal actual fun shareLogText(subject: String, text: String): String? {
     val context = WiretapContextProvider.context
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
@@ -29,16 +29,16 @@ internal actual fun shareHttpLogs(subject: String, text: String): String? {
     return null
 }
 
-internal actual fun shareHttpLogAsFile(content: String) {
+internal actual fun shareLogAsFile(content: String, fileName: String): String? {
     CoroutineScope(Dispatchers.IO).launch {
         try {
             val context = WiretapContextProvider.context
             val shareDir = File(context.cacheDir, SHARE_DIR_NAME).apply { mkdirs() }
-            val file = File(shareDir, HTTP_LOG_FILE_NAME)
+            val file = File(shareDir, fileName)
             file.writeText(content, Charsets.UTF_8)
 
             val authority = "${context.packageName}.wiretap.fileprovider"
-            val uri = "content://$authority/$HTTP_LOG_FILE_NAME".toUri()
+            val uri = "content://$authority/$fileName".toUri()
 
             withContext(Dispatchers.Main) {
                 val intent = Intent(Intent.ACTION_SEND).apply {
@@ -57,4 +57,5 @@ internal actual fun shareHttpLogAsFile(content: String) {
             // Silently fail -- never crash the host app
         }
     }
+    return null
 }

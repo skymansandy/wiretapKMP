@@ -58,8 +58,11 @@ final class NetworkClient {
         }
     }
 
-    func makePostRequest(
+    /// Sends `body` with an arbitrary verb. Custom methods such as QUERY (RFC 10008) work here
+    /// because `URLRequest.httpMethod` accepts any token.
+    func makeBodyRequest(
         url: String,
+        method: String,
         body: String,
         contentType: String,
         headers: [String: String] = [:],
@@ -67,7 +70,7 @@ final class NetworkClient {
     ) {
         guard let request = buildRequest(
             url: url,
-            method: "POST",
+            method: method,
             headers: headers,
             body: body,
             contentType: contentType
@@ -77,6 +80,23 @@ final class NetworkClient {
             completion(error.map { "Error: \($0.localizedDescription)" }
                        ?? Self.formatResponse(response: response as? HTTPURLResponse, data: data))
         }
+    }
+
+    func makePostRequest(
+        url: String,
+        body: String,
+        contentType: String,
+        headers: [String: String] = [:],
+        completion: @escaping (String) -> Void
+    ) {
+        makeBodyRequest(
+            url: url,
+            method: "POST",
+            body: body,
+            contentType: contentType,
+            headers: headers,
+            completion: completion
+        )
     }
 
     func makeTimeoutRequest(

@@ -20,7 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.skymansandy.wiretap.helper.constants.HTTP_METHODS
+import dev.skymansandy.wiretap.helper.constants.RULE_HTTP_METHODS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,7 @@ internal fun MethodSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            HTTP_METHODS.forEach { m ->
+            RULE_HTTP_METHODS.forEach { m ->
                 DropdownMenuItem(
                     text = { Text(if (m == "*") "Any" else m) },
                     onClick = {

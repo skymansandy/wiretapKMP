@@ -18,6 +18,15 @@ internal interface WiretapNavigator {
 
     fun replaceTop(screen: WiretapScreen)
 
+    /**
+     * Leaves the console entirely, handing control back to the host app.
+     *
+     * Unlike [pop] this is terminal — it dismisses the whole Wiretap surface
+     * (finishes the activity on Android, dismisses the modal on iOS, disposes
+     * the window on desktop) rather than moving within the back stack.
+     */
+    fun exit()
+
     companion object {
 
         val NoOp = object : WiretapNavigator {
@@ -28,6 +37,7 @@ internal interface WiretapNavigator {
             override fun pop() = Unit
             override fun popUntil(predicate: (WiretapScreen) -> Boolean) = Unit
             override fun replaceTop(screen: WiretapScreen) = Unit
+            override fun exit() = Unit
         }
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.skymansandy.wiretap.navigation.compose.LocalWiretapNavigator
 import dev.skymansandy.wiretap.ui.common.ClearLogsConfirmationDialog
 import dev.skymansandy.wiretap.ui.common.WiretapTopBar
 import dev.skymansandy.wiretap.ui.model.HttpSubTab
@@ -51,6 +52,7 @@ internal fun HttpTabScreen(
 ) {
     val hasHttpLogs by httpListViewModel.hasLogs.collectAsStateWithLifecycle()
 
+    val navigator = LocalWiretapNavigator.current
     var httpSubTab by rememberSaveable { mutableStateOf(HttpSubTab.Logs) }
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
@@ -101,7 +103,7 @@ internal fun HttpTabScreen(
             searchFocusRequester = searchFocusRequester,
             showClearAction = httpSubTab == HttpSubTab.Logs && hasHttpLogs,
             showFilterAction = httpSubTab == HttpSubTab.Logs,
-            showBackButton = false,
+            onClose = navigator::exit,
             activeFilterCount = filter.activeCount,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->

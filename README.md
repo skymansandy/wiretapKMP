@@ -60,7 +60,8 @@ That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on deskto
 - **Header masking** — redact `Authorization`, `Cookie`, or any sensitive header from logs
 - **Shake to launch** — built-in gesture to open the inspector (no UI code required)
 - **No-op variants** — swap to `wiretap-ktor-noop` / `wiretap-okhttp-noop` for release builds with zero overhead
-- **Share as file** — export any log entry via the platform share sheet
+- **Search anywhere** — filter the log lists, and search within an HTTP request/response, a WebSocket message stream, or an SSE event stream
+- **Copy & share** — select or copy any message, event or body, and export a whole HTTP, WebSocket or SSE log via the platform share sheet
 
 <details>
 <summary><strong>More screenshots</strong></summary>

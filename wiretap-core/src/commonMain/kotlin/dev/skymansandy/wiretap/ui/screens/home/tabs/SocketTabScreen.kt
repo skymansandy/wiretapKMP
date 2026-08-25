@@ -56,7 +56,7 @@ internal fun SocketTabScreen(
             searchQuery = searchQuery,
             searchFocusRequester = searchFocusRequester,
             showClearAction = lazyItems.itemCount > 0,
-            showBackButton = false,
+            onClose = navigator::exit,
             onSearchQueryChange = { searchQuery = it },
             onSearchActiveChange = { active ->
                 isSearchActive = active

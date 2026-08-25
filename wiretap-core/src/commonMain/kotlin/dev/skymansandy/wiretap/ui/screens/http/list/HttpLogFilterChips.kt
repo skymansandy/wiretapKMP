@@ -46,8 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.model.ResponseSource
 import dev.skymansandy.wiretap.domain.model.StatusGroup
-
-private val httpMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
+import dev.skymansandy.wiretap.helper.constants.HTTP_METHODS
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -137,7 +136,7 @@ internal fun HttpLogFilterBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                httpMethods.forEach { method ->
+                HTTP_METHODS.forEach { method ->
                     val selected = method in pendingFilter.methods
                     FilterChip(
                         selected = selected,

@@ -61,6 +61,15 @@ struct ContentView: View {
                     ]
                 ) { onStatus($0) }
             },
+            ApiAction(label: "QUERY /anything", category: .success) { onStatus in
+                onStatus("QUERY /anything (RFC 10008) ...")
+                self.client.makeBodyRequest(
+                    url: "https://httpbingo.org/anything",
+                    method: "QUERY",
+                    body: #"{"select":["id","title"],"where":{"userId":1},"limit":10}"#,
+                    contentType: "application/json"
+                ) { onStatus($0) }
+            },
             ApiAction(label: "GET 64KB JSON", category: .success) { onStatus in
                 onStatus("GET /64KB.json ...")
                 self.client.makeRequest(url: "https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json", method: "GET") { onStatus($0) }

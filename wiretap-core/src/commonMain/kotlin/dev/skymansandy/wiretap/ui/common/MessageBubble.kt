@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,13 +25,17 @@ import androidx.compose.ui.unit.dp
 import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
+import dev.skymansandy.wiretap.domain.model.isTextSearchable
 import dev.skymansandy.wiretap.helper.util.formatBytes
 import dev.skymansandy.wiretap.helper.util.formatTime
+import dev.skymansandy.wiretap.helper.util.highlightText
 
 @Composable
 internal fun MessageBubble(
     modifier: Modifier = Modifier,
     message: SocketMessage,
+    searchQuery: String = "",
+    activeMatchRange: IntRange? = null,
 ) {
     when (message.contentType) {
         SocketContentType.Ping,
@@ -38,7 +43,14 @@ internal fun MessageBubble(
         SocketContentType.Close,
         -> ControlFrameLabel(modifier = modifier, message = message)
 
-        else -> DataFrameBubble(modifier = modifier, message = message)
+        // Only frames that search actually matches may render a highlight,
+        // otherwise binary placeholders light up while the counter reads 0 / 0.
+        else -> DataFrameBubble(
+            modifier = modifier,
+            message = message,
+            searchQuery = searchQuery.takeIf { message.contentType.isTextSearchable() }.orEmpty(),
+            activeMatchRange = activeMatchRange?.takeIf { message.contentType.isTextSearchable() },
+        )
     }
 }
 
@@ -70,6 +82,8 @@ private fun ControlFrameLabel(
 private fun DataFrameBubble(
     modifier: Modifier = Modifier,
     message: SocketMessage,
+    searchQuery: String = "",
+    activeMatchRange: IntRange? = null,
 ) {
     val isSent = message.direction == SocketMessageType.Sent
     val alignment = if (isSent) Alignment.CenterEnd else Alignment.CenterStart
@@ -94,17 +108,20 @@ private fun DataFrameBubble(
                 .background(bgColor, RoundedCornerShape(12.dp))
                 .padding(10.dp),
         ) {
-            Text(
-                text = message.content,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = textColor,
-            )
+            SelectionContainer {
+                Text(
+                    text = highlightText(message.content, searchQuery, activeMatchRange),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = textColor,
+                )
+            }
 
             Spacer(Modifier.height(2.dp))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.align(Alignment.End),
             ) {
                 Text(
@@ -117,6 +134,13 @@ private fun DataFrameBubble(
                     text = formatBytes(message.byteCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.6f),
+                )
+
+                CopyIconButton(
+                    text = message.content,
+                    contentDescription = "Copy message",
+                    tint = textColor.copy(alpha = 0.6f),
+                    snackbarMessage = "Message copied",
                 )
             }
         }

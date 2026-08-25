@@ -6,6 +6,7 @@ package dev.skymansandy.wiretap.navigation.impl
 
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import dev.skymansandy.wiretap.navigation.api.WiretapNavigator
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
@@ -126,6 +127,23 @@ class BackStackNavigatorImplTest : DescribeSpec({
 
             stack.size shouldBe 1
             (stack[0] === WiretapScreen.HomeScreen) shouldBe true
+        }
+    }
+
+    describe("exit") {
+        it("invokes the injected exit handler without touching the back stack") {
+            val stack = newStack(WiretapScreen.HomeScreen)
+            var exited = 0
+            val nav = BackStackNavigatorImpl(stack, onExit = { exited++ })
+
+            nav.exit()
+
+            exited shouldBe 1
+            stack.size shouldBe 1
+        }
+
+        it("is inert on the NoOp navigator") {
+            WiretapNavigator.NoOp.exit()
         }
     }
 })
