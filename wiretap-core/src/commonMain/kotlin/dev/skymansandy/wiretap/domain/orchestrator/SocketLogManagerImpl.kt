@@ -4,7 +4,7 @@
 
 package dev.skymansandy.wiretap.domain.orchestrator
 
-import app.cash.paging.PagingData
+import androidx.paging.PagingData
 import co.touchlab.stately.collections.ConcurrentMutableMap
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage

@@ -4,12 +4,10 @@
 
 package dev.skymansandy.wiretap.data.repository
 
-import app.cash.paging.PagingSource
-import app.cash.paging.PagingSourceLoadParams
-import app.cash.paging.PagingSourceLoadResult
-import app.cash.paging.PagingSourceLoadResultError
-import app.cash.paging.PagingSourceLoadResultPage
-import app.cash.paging.PagingState
+import androidx.paging.PagingSource
+import androidx.paging.PagingSource.LoadParams
+import androidx.paging.PagingSource.LoadResult
+import androidx.paging.PagingState
 import dev.skymansandy.wiretap.data.db.room.dao.SocketLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.domain.model.SocketConnection
@@ -40,18 +38,18 @@ internal class SocketLogPagingSource(
         }
     }
 
-    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, SocketConnection> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, SocketConnection> {
         val afterId = params.key
         return try {
             val items = roomDao.getSocketLogsPage(query, afterId, params.loadSize.toLong())
                 .map { it.toDomain() }
-            PagingSourceLoadResultPage(
+            LoadResult.Page(
                 data = items,
                 prevKey = null,
                 nextKey = if (items.size < params.loadSize) null else items.last().id,
             )
         } catch (e: Exception) {
-            PagingSourceLoadResultError(e)
+            LoadResult.Error(e)
         }
     }
 

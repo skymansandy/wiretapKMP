@@ -4,8 +4,8 @@
 
 package dev.skymansandy.wiretap.data.repository
 
-import app.cash.paging.Pager
-import app.cash.paging.PagingData
+import androidx.paging.Pager
+import androidx.paging.PagingData
 import dev.skymansandy.wiretap.data.db.room.dao.SseLogsDao
 import dev.skymansandy.wiretap.data.db.room.entity.SseEventEntity
 import dev.skymansandy.wiretap.data.mappers.toDomain

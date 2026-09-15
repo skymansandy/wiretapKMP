@@ -23,12 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
-import app.cash.paging.LoadStateError
-import app.cash.paging.LoadStateLoading
-import app.cash.paging.LoadStateNotLoading
-import app.cash.paging.compose.LazyPagingItems
-import app.cash.paging.compose.collectAsLazyPagingItems
-import app.cash.paging.compose.itemKey
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.navigation.api.WiretapScreen
@@ -82,11 +80,11 @@ internal fun HttpLogList(
 
     Column(modifier = modifier) {
         when (lazyItems.loadState.refresh) {
-            is LoadStateLoading if isEmpty -> {
+            is LoadState.Loading if isEmpty -> {
                 LoaderView(Modifier.fillMaxSize())
             }
 
-            is LoadStateNotLoading if isEmpty -> {
+            is LoadState.NotLoading if isEmpty -> {
                 when {
                     filter.isActive -> StatusText(
                         modifier = Modifier.fillMaxSize(),
@@ -107,7 +105,7 @@ internal fun HttpLogList(
                 }
             }
 
-            is LoadStateError if isEmpty -> {
+            is LoadState.Error if isEmpty -> {
                 StatusText(
                     modifier = Modifier.fillMaxSize(),
                     text = "Failed to load logs",
@@ -184,7 +182,7 @@ private fun HttpLogListView(
             )
         }
 
-        if (lazyItems.loadState.append is LoadStateLoading) {
+        if (lazyItems.loadState.append is LoadState.Loading) {
             item {
                 LoaderView(
                     modifier = Modifier.fillMaxWidth().padding(16.dp),
