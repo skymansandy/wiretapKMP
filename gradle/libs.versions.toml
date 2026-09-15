@@ -24,7 +24,7 @@ ktor = "3.3.3"
 room = "2.7.1"
 ksp = "2.3.6"
 sqlite = "2.5.1"
-cashAppPaging = "3.3.0-alpha02-0.5.1"
+androidx-paging = "3.5.1"
 okhttp = "5.3.2"
 detekt = "1.23.8"
 stately-concurrent-collections = "2.1.0"
@@ -96,8 +96,8 @@ ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.re
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
-cashapp-paging-common = { module = "app.cash.paging:paging-common", version.ref = "cashAppPaging" }
-cashapp-paging-compose = { module = "app.cash.paging:paging-compose-common", version.ref = "cashAppPaging" }
+androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "androidx-paging" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "androidx-paging" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttp" }
 okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver3", version.ref = "okhttp" }

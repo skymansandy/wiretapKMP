@@ -4,13 +4,11 @@
 
 package dev.skymansandy.wiretap.data.repository
 
-import app.cash.paging.PagingConfig
-import app.cash.paging.PagingSource
-import app.cash.paging.PagingSourceLoadParams
-import app.cash.paging.PagingSourceLoadResult
-import app.cash.paging.PagingSourceLoadResultError
-import app.cash.paging.PagingSourceLoadResultPage
-import app.cash.paging.PagingState
+import androidx.paging.PagingConfig
+import androidx.paging.PagingSource
+import androidx.paging.PagingSource.LoadParams
+import androidx.paging.PagingSource.LoadResult
+import androidx.paging.PagingState
 import dev.skymansandy.wiretap.data.db.room.dao.HttpLogsDao
 import dev.skymansandy.wiretap.data.mappers.toDomain
 import dev.skymansandy.wiretap.domain.model.HttpLog
@@ -51,7 +49,7 @@ internal class HttpLogPagingSource(
         }
     }
 
-    override suspend fun load(params: PagingSourceLoadParams<Long>): PagingSourceLoadResult<Long, HttpLog> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, HttpLog> {
         val afterId = params.key
         return try {
             val statusGroups = filter.statusGroups
@@ -76,13 +74,13 @@ internal class HttpLogPagingSource(
                 it.toDomain()
             }
 
-            PagingSourceLoadResultPage(
+            LoadResult.Page(
                 data = items,
                 prevKey = null, // newest-first; no back-paging needed
                 nextKey = if (items.size < params.loadSize) null else items.last().id,
             )
         } catch (e: Exception) {
-            PagingSourceLoadResultError(e)
+            LoadResult.Error(e)
         }
     }
 

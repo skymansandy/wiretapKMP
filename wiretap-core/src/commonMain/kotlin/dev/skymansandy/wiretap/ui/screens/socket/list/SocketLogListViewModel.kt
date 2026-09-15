@@ -6,8 +6,8 @@ package dev.skymansandy.wiretap.ui.screens.socket.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import app.cash.paging.PagingData
-import app.cash.paging.cachedIn
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import kotlinx.coroutines.ExperimentalCoroutinesApi

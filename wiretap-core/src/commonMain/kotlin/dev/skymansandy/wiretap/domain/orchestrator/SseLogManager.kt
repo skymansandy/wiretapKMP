@@ -4,7 +4,7 @@
 
 package dev.skymansandy.wiretap.domain.orchestrator
 
-import app.cash.paging.PagingData
+import androidx.paging.PagingData
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import kotlinx.coroutines.flow.Flow

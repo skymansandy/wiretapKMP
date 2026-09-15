@@ -37,9 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.cash.paging.LoadStateNotLoading
-import app.cash.paging.compose.collectAsLazyPagingItems
-import app.cash.paging.compose.itemKey
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.helper.util.formatTime
 import dev.skymansandy.wiretap.helper.util.highlightText
@@ -62,7 +62,7 @@ internal fun SseLogList(
     val lazyItems = viewModel.sseLogs.collectAsLazyPagingItems()
     val isEmpty = lazyItems.itemCount == 0
 
-    if (isEmpty && lazyItems.loadState.refresh is LoadStateNotLoading) {
+    if (isEmpty && lazyItems.loadState.refresh is LoadState.NotLoading) {
         if (searchQuery.isNotBlank()) {
             StatusText(
                 modifier = modifier,
