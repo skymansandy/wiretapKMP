@@ -8,11 +8,9 @@ import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 
 /**
- * Returns a view of this manager that also prints what it records to the platform console.
+ * Wraps this manager so it also prints what it records to the platform console.
  *
- * Called once per plugin installation, from the plugin module that owns the
- * `consoleLogging` config flag. Public only because the plugin modules are separate Gradle
- * modules; not part of Wiretap's consumer-facing API.
+ * Called once per plugin installation; public only so the plugin modules can reach it.
  */
 @InternalWiretapApi
 fun HttpLogManager.withConsoleLogging(logger: WiretapLogger): HttpLogManager =

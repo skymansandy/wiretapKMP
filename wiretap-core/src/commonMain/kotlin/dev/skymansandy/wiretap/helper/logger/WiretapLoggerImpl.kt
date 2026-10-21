@@ -58,7 +58,7 @@ internal class WiretapLoggerImpl : WiretapLogger {
     }
 
     override fun logSseEvent(event: SseEvent) {
-        // SSE is server-to-client only, so the arrow always points the same way as a received frame.
+        // SSE is receive-only, so the arrow never changes.
         val type = event.eventType?.let { " [$it]" } ?: ""
         println("[Wiretap] SSE ▼$type \"${preview(event.data)}\" (${formatBytes(event.byteCount)})")
     }

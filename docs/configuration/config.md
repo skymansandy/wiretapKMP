@@ -20,7 +20,7 @@ install(WiretapKtorHttpPlugin) {
 
 **Type:** `Boolean` — **Default:** `true`
 
-Whether **this plugin** mirrors its captured traffic to the platform console — logcat on Android, the Xcode console on iOS, stdout on JVM Desktop.
+Whether **this plugin** prints its captured traffic to the console — logcat on Android, the Xcode console on iOS, stdout on JVM Desktop.
 
 ```kotlin
 install(WiretapKtorHttpPlugin) {
@@ -28,7 +28,7 @@ install(WiretapKtorHttpPlugin) {
 }
 ```
 
-Set it to `false` if you already have your own HTTP logging, or if one noisy client is drowning out your logcat. Because it lives on the plugin config, each client decides for itself — a chatty polling client can stay silent while your main API client keeps printing.
+Set it to `false` if you already have your own HTTP logging, or if one client is too noisy. Each client decides for itself — a chatty polling client can stay quiet while your main client keeps printing.
 
 | Traffic | Console output |
 |---------|----------------|
@@ -36,10 +36,10 @@ Set it to `false` if you already have your own HTTP logging, or if one noisy cli
 | **WebSocket** | `[Wiretap] WS OPEN wss://…`, plus one line per frame: `[Wiretap] WS ▲ "ping" (4 B)` |
 | **SSE** | `[Wiretap] SSE OPEN https://api.example.com/stream`, plus one line per event: `[Wiretap] SSE ▼ [ping] "tick" (4 B)` |
 
-WebSocket and SSE plugins carry the same flag on their own configs — see [Ktor WebSockets](../ktor/websockets.md) and [OkHttp WebSockets](../okhttp/websockets.md).
+The WebSocket and SSE configs carry the same flag — see [Ktor WebSockets](../ktor/websockets.md) and [OkHttp WebSockets](../okhttp/websockets.md).
 
 !!! note
-    This only affects console output. Every request, WebSocket frame and SSE event is still captured, stored, and browsable in the inspector UI — including notifications and search.
+    Only console output is affected. Every request, frame and event is still captured and browsable in the inspector — notifications and search included.
 
 ### `shouldLog`
 

@@ -134,7 +134,7 @@ class WiretapKtorSsePluginTest : DescribeSpec({
 
                 quiet.sse("http://127.0.0.1:${server.port}/events") { incoming.toList() }
 
-                // Still captured for the inspector, just not printed.
+                // Captured, just not printed.
                 eventually(5.seconds) {
                     verifySuspend { sseLogManager.logEvent(matches<SseEvent> { it.data == "first" }) }
                 }

@@ -40,12 +40,8 @@ class WiretapHttpConfig {
     var enabled: Boolean = true
 
     /**
-     * Whether this plugin mirrors its captured requests to the platform console — logcat on
-     * Android, the Xcode console on iOS, stdout on JVM. Set to `false` to keep this client's
-     * traffic in the Wiretap inspector only. Defaults to `true`.
-     *
-     * This has no effect on capture: every request is still stored and browsable in the
-     * inspector, notifications included.
+     * Whether this plugin prints its captured requests to the platform console. Defaults to `true`.
+     * Capture is unaffected — requests are still browsable in the inspector.
      */
     var consoleLogging: Boolean = true
 

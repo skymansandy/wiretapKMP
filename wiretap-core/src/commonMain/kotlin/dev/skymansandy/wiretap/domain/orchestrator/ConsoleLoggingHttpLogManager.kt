@@ -8,14 +8,11 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 
 /**
- * Mirrors everything [delegate] records to the platform console.
+ * Prints what [delegate] records to the platform console.
  *
- * Console output is a per-plugin choice (`WiretapHttpConfig.consoleLogging`), while the
- * underlying [HttpLogManager] is a singleton shared by every plugin installation and by the
- * inspector UI. Wrapping lets each installation pick its own behaviour at install time without
- * the manager — or any of its call sites — knowing a preference exists.
- *
- * Reads go straight to [delegate] via interface delegation.
+ * [HttpLogManager] is a singleton shared by every installation and the inspector UI, but
+ * console output is per-plugin (`WiretapHttpConfig.consoleLogging`) — so the choice is made by
+ * wrapping at install time, not by a flag inside the manager.
  */
 internal class ConsoleLoggingHttpLogManager(
     private val delegate: HttpLogManager,

@@ -84,7 +84,7 @@ client.webSocket("wss://echo.websocket.org") {
 install(WiretapKtorWebSocketPlugin) {
     enabled = BuildConfig.DEBUG
 
-    // Keep frames out of logcat while still capturing them. Defaults to true.
+    // Don't print frames to the console. Defaults to true.
     consoleLogging = false
 
     // How to render Binary frames. Defaults to Auto.
@@ -97,7 +97,7 @@ install(WiretapKtorWebSocketPlugin) {
 
 ### `consoleLogging`
 
-`true` (default) prints the connection and every frame to the platform console. Set it to `false` when a chatty socket drowns out your log — the connection and all its frames are still captured and browsable in the inspector. See [`consoleLogging`](../configuration/config.md#consolelogging) for the full reference.
+`true` (default) prints the connection and every frame to the console. Set it to `false` when a chatty socket floods your log — everything is still captured in the inspector. See [`consoleLogging`](../configuration/config.md#consolelogging).
 
 ### `binaryDecoding`
 

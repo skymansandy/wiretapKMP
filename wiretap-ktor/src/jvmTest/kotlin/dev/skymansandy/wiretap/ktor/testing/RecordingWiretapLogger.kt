@@ -11,10 +11,7 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 
-/**
- * Records what reaches the console logger instead of printing it, so tests can assert on a
- * plugin's `consoleLogging` flag without capturing stdout.
- */
+/** Records console output in memory so tests can assert on `consoleLogging` without stdout. */
 internal class RecordingWiretapLogger : WiretapLogger {
 
     val httpLogs = mutableListOf<HttpLog>()

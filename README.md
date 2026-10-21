@@ -55,7 +55,7 @@ That's it. Open your app and shake the device (or press `Ctrl+Shift+D` on deskto
 ## ⭐ Key Features
 
 - **Zero-config logging** — install the plugin and all traffic is captured automatically
-- **Quiet mode** — `consoleLogging = false` on any plugin keeps that client's traffic in the inspector and out of logcat
+- **Quiet mode** — `consoleLogging = false` on any plugin keeps that client out of logcat, still in the inspector
 - **API mocking** — return fake responses without hitting the network. Match on method, URL, headers, and body
 - **Request throttling** — simulate slow connections with fixed or random delays
 - **Header masking** — redact `Authorization`, `Cookie`, or any sensitive header from logs

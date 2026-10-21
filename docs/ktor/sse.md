@@ -26,7 +26,7 @@ install(WiretapKtorSsePlugin) {
 }
 ```
 
-`consoleLogging` mirrors the flag on the HTTP and WebSocket configs (see [`consoleLogging`](../configuration/config.md#consolelogging)). `true` (default) prints the connection plus one line per event — `[Wiretap] SSE ▼ [ping] "tick" (4 B)` — while `false` keeps a high-frequency stream out of your log without affecting what the inspector captures.
+`true` (default) prints the connection and one line per event — `[Wiretap] SSE ▼ [ping] "tick" (4 B)`. Set it to `false` to keep a busy stream out of your log; capture is unaffected. See [`consoleLogging`](../configuration/config.md#consolelogging).
 
 ## Automatic Session Wrapping
 

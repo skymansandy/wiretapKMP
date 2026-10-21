@@ -11,15 +11,10 @@ import dev.skymansandy.wiretap.domain.model.SseConnection
 import dev.skymansandy.wiretap.domain.model.SseEvent
 
 /**
- * Mirrors captured traffic to the platform console.
+ * Prints captured traffic to the platform console.
  *
- * Every method is abstract on purpose: default no-op bodies once let SSE support ship with the
- * calls wired through the orchestrators but no implementation behind them, so SSE silently
- * printed nothing for several releases. An implementation that forgets a channel should fail to
- * compile, not go quiet.
- *
- * Whether traffic reaches this logger at all is a per-plugin choice — see
- * `WiretapHttpConfig.consoleLogging` and the `withConsoleLogging` decorators.
+ * No default method bodies: a partial implementation should fail to compile rather than go quiet.
+ * Whether traffic reaches this logger at all is per-plugin — see `consoleLogging` on each config.
  */
 interface WiretapLogger {
 

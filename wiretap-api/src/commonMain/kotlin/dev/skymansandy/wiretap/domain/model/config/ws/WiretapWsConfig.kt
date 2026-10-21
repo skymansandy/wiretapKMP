@@ -12,12 +12,8 @@ class WiretapWsConfig {
     var enabled: Boolean = true
 
     /**
-     * Whether this plugin mirrors its captured connections and frames to the platform console —
-     * logcat on Android, the Xcode console on iOS, stdout on JVM. Set to `false` to stop a chatty
-     * socket from drowning out your log while still capturing it. Defaults to `true`.
-     *
-     * This has no effect on capture: every connection and frame is still stored and browsable in
-     * the inspector.
+     * Whether this plugin prints its connections and frames to the platform console. Defaults to `true`.
+     * Capture is unaffected — a silenced socket is still browsable in the inspector.
      */
     var consoleLogging: Boolean = true
 

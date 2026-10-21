@@ -77,7 +77,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
                 .newCall(Request.Builder().url(server.url("/api/users")).build()).execute()
                 .use { it.body?.string() }
 
-            // Still captured for the inspector, just not printed.
+            // Captured, just not printed.
             verifySuspend { httpLogManager.logHttpAndGetId(any()) }
             wiretapLogger.httpLogs.shouldBeEmpty()
         }

@@ -9,10 +9,10 @@ import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 
 /**
- * Mirrors every connection and frame [delegate] records to the platform console.
+ * Prints the connections and frames [delegate] records to the platform console.
  *
- * See [ConsoleLoggingHttpLogManager] for why this is a decorator rather than a flag on the
- * manager. Driven per installation by `WiretapWsConfig.consoleLogging`.
+ * Driven per installation by `WiretapWsConfig.consoleLogging`. See [ConsoleLoggingHttpLogManager]
+ * for why this is a decorator.
  */
 internal class ConsoleLoggingSocketLogManager(
     private val delegate: SocketLogManager,

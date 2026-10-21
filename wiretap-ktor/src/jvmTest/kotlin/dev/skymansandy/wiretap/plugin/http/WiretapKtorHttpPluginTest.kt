@@ -101,7 +101,7 @@ class WiretapKtorHttpPluginTest : DescribeSpec({
 
                 quiet.get("http://127.0.0.1:${server.port}/echo")
 
-                // Still captured for the inspector, just not printed.
+                // Captured, just not printed.
                 eventually(5.seconds) {
                     verifySuspend { httpLogManager.logHttpAndGetId(any()) }
                 }
