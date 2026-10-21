@@ -37,6 +37,6 @@ Update the migration guide for breaking changes.
    ```
    ```
 
-6. Check the current version in `gradle.properties` (`wiretap.version`) to determine the target version. Use the previous version as the "from" version.
+6. Check the current version in `version.properties` (`wiretap.version`) to determine the target version. Use the previous version as the "from" version.
 
 7. If no breaking changes are found for a module, skip it — do not add empty sections.

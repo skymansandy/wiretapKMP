@@ -9,6 +9,7 @@ import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import org.koin.core.Koin
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
@@ -22,11 +23,13 @@ import org.koin.dsl.module
 internal fun installTestKoin(
     socketLogManager: SocketLogManager,
     sseLogManager: SseLogManager,
+    wiretapLogger: WiretapLogger = RecordingWiretapLogger(),
     extras: Module = module { },
 ): Koin {
     val app = koinApplication {
         modules(
             module {
+                single { wiretapLogger }
                 single { socketLogManager }
                 single { sseLogManager }
             },
@@ -40,11 +43,13 @@ internal fun installTestKoin(
 internal fun installTestKoin(
     httpLogManager: HttpLogManager,
     findMatchingRule: FindMatchingRuleUseCase,
+    wiretapLogger: WiretapLogger = RecordingWiretapLogger(),
     extras: Module = module { },
 ): Koin {
     val app = koinApplication {
         modules(
             module {
+                single { wiretapLogger }
                 single { httpLogManager }
                 single { findMatchingRule }
             },

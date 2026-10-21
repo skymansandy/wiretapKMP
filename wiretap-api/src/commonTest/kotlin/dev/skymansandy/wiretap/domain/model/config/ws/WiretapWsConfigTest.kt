@@ -14,6 +14,10 @@ class WiretapWsConfigTest : DescribeSpec({
             WiretapWsConfig().enabled shouldBe true
         }
 
+        it("prints to the console out of the box") {
+            WiretapWsConfig().consoleLogging shouldBe true
+        }
+
         it("decodes binary frames using the Auto heuristic") {
             WiretapWsConfig().binaryDecoding shouldBe BinaryFrameDecoding.Auto
         }
@@ -24,6 +28,14 @@ class WiretapWsConfigTest : DescribeSpec({
             val config = WiretapWsConfig().apply { enabled = false }
 
             config.enabled shouldBe false
+        }
+    }
+
+    describe("consoleLogging override") {
+        it("can be flipped off per installation") {
+            val config = WiretapWsConfig().apply { consoleLogging = false }
+
+            config.consoleLogging shouldBe false
         }
     }
 

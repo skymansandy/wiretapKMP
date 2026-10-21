@@ -40,6 +40,12 @@ class WiretapHttpConfig {
     var enabled: Boolean = true
 
     /**
+     * Whether this plugin prints its captured requests to the platform console. Defaults to `true`.
+     * Capture is unaffected — requests are still browsable in the inspector.
+     */
+    var consoleLogging: Boolean = true
+
+    /**
      * Return `true` to capture the request, `false` to skip it entirely.
      * Evaluated before any DB write. Defaults to capturing everything.
      */

@@ -13,7 +13,10 @@ import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
 import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
 import dev.skymansandy.wiretap.domain.model.config.http.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.withConsoleLogging
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.util.truncateBody
@@ -49,6 +52,7 @@ import java.io.IOException
  *     .build()
  * ```
  */
+@OptIn(InternalWiretapApi::class)
 class WiretapOkHttpInterceptor(
     configure: WiretapHttpConfig.() -> Unit = {},
 ) : Interceptor, KoinComponent {
@@ -57,7 +61,14 @@ class WiretapOkHttpInterceptor(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val httpLogManager: HttpLogManager by inject()
+    private val wiretapLogger: WiretapLogger by inject()
+    private val sharedHttpLogManager: HttpLogManager by inject()
+
+    private val httpLogManager: HttpLogManager by lazy {
+        if (config.consoleLogging) sharedHttpLogManager.withConsoleLogging(wiretapLogger)
+        else sharedHttpLogManager
+    }
+
     private val findMatchingRule: FindMatchingRuleUseCase by inject()
 
     private val sessionInitialized = AtomicBoolean(false)

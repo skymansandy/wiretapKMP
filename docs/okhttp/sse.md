@@ -83,8 +83,11 @@ Use the config DSL overload to configure SSE logging:
 @OptIn(ExperimentalWiretapSseApi::class)
 factory.newEventSource(request, myListener.wiretapped {
     enabled = BuildConfig.DEBUG
+    consoleLogging = false
 })
 ```
+
+`true` (default) prints the connection and one line per event — `[Wiretap] SSE ▼ [ping] "tick" (4 B)`. Set it to `false` to keep a busy stream out of your log; capture is unaffected. See [`consoleLogging`](../configuration/config.md#consolelogging).
 
 Or use the simple `enabled` parameter:
 

@@ -21,7 +21,6 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -32,9 +31,8 @@ class SocketLogManagerImplTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val repository = mock<SocketRepository>(MockMode.autoUnit)
-    val logger = mock<WiretapLogger>(MockMode.autoUnit)
     val hook = mock<WiretapNotificationHook>(MockMode.autoUnit)
-    val manager = SocketLogManagerImpl(repository, logger, hook)
+    val manager = SocketLogManagerImpl(repository, hook)
 
     describe("flowAllSockets") {
         it("delegates to repository") {
@@ -86,7 +84,7 @@ class SocketLogManagerImplTest : DescribeSpec({
     }
 
     describe("createSocket") {
-        it("logs, copies the assigned id into the entry, and notifies hook") {
+        it("copies the assigned id into the entry and notifies hook") {
             runTest {
                 val entry = connection(url = "wss://x")
                 everySuspend { repository.logNew(entry) } returns 42L
@@ -94,21 +92,19 @@ class SocketLogManagerImplTest : DescribeSpec({
                 val id = manager.createSocket(entry)
 
                 id shouldBe 42L
-                verify { logger.logSocket(matches<SocketConnection> { it.id == 42L && it.url == "wss://x" }) }
                 verify { hook.onNewSocketConnection(matches<SocketConnection> { it.id == 42L }) }
             }
         }
     }
 
     describe("updateSocket") {
-        it("forwards through repository, logger, hook") {
+        it("forwards through repository and hook") {
             runTest {
                 val entry = connection(id = 1, status = SocketStatus.Open)
 
                 manager.updateSocket(entry)
 
                 verifySuspend { repository.update(entry) }
-                verify { logger.logSocket(entry) }
                 verify { hook.onNewSocketConnection(entry) }
             }
         }
@@ -146,7 +142,6 @@ class SocketLogManagerImplTest : DescribeSpec({
                 manager.logSocketMsg(msg)
 
                 verifySuspend { repository.logSocketMsg(msg) }
-                verify { logger.logSocketMessage(msg) }
                 verify { hook.onNewSocketMessage(any(), msg) }
             }
         }
@@ -182,7 +177,6 @@ class SocketLogManagerImplTest : DescribeSpec({
                 manager.logSocketMsg(message(socketId = 9, content = "hi"))
 
                 verifySuspend { repository.logSocketMsg(any()) }
-                verify { logger.logSocketMessage(any()) }
             }
         }
     }

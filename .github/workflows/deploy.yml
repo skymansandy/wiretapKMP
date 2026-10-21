@@ -99,17 +99,17 @@ jobs:
 
       - name: Fix Package.swift Maven Central URL
         run: |
-          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          VERSION=$(grep 'wiretap.version=' version.properties | cut -d= -f2)
           GROUP=$(grep 'wiretap.group=' gradle.properties | cut -d= -f2)
           GROUP_PATH=$(echo "$GROUP" | tr '.' '/')
           ARTIFACT="wiretap-urlsession-kmmbridge"
           MAVEN_URL="https://repo1.maven.org/maven2/${GROUP_PATH}/${ARTIFACT}/${VERSION}/${ARTIFACT}-${VERSION}.zip"
           sed -i '' "s|file:[^\"]*\.zip|${MAVEN_URL}|" Package.swift
 
-      - name: Read version from gradle.properties
+      - name: Read version from version.properties
         id: version
         run: |
-          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          VERSION=$(grep 'wiretap.version=' version.properties | cut -d= -f2)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Determine coverage badge color
@@ -187,7 +187,7 @@ jobs:
       - name: Read version
         id: version
         run: |
-          VERSION=$(grep 'wiretap.version=' gradle.properties | cut -d= -f2)
+          VERSION=$(grep 'wiretap.version=' version.properties | cut -d= -f2)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Check if release exists

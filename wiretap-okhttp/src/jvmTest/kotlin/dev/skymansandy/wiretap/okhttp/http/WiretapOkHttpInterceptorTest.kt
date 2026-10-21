@@ -19,10 +19,13 @@ import dev.skymansandy.wiretap.domain.model.config.http.HeaderAction
 import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.okhttp.testing.RecordingWiretapLogger
 import dev.skymansandy.wiretap.okhttp.testing.installTestKoin
 import dev.skymansandy.wiretap.okhttp.testing.teardownTestKoin
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
@@ -35,6 +38,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
 
     val httpLogManager = mock<HttpLogManager>(MockMode.autoUnit)
     val findMatchingRule = mock<FindMatchingRuleUseCase>(MockMode.autoUnit)
+    val wiretapLogger = RecordingWiretapLogger()
 
     lateinit var server: MockWebServer
 
@@ -44,7 +48,7 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
             .build()
 
     beforeEach {
-        installTestKoin(httpLogManager, findMatchingRule)
+        installTestKoin(httpLogManager, findMatchingRule, wiretapLogger)
         everySuspend { httpLogManager.logHttpAndGetId(any()) } returns 42L
         everySuspend { findMatchingRule.invoke(any(), any(), any(), any()) } returns null
         server = MockWebServer()
@@ -54,6 +58,29 @@ class WiretapOkHttpInterceptorTest : DescribeSpec({
     afterEach {
         server.close()
         teardownTestKoin()
+    }
+
+    describe("consoleLogging") {
+        it("prints captured traffic by default") {
+            server.enqueue(MockResponse.Builder().code(200).body("hello").build())
+
+            client().newCall(Request.Builder().url(server.url("/api/users")).build()).execute()
+                .use { it.body?.string() }
+
+            wiretapLogger.httpLogs.shouldNotBeEmpty()
+        }
+
+        it("keeps this client's traffic out of the console when disabled") {
+            server.enqueue(MockResponse.Builder().code(200).body("hello").build())
+
+            client { consoleLogging = false }
+                .newCall(Request.Builder().url(server.url("/api/users")).build()).execute()
+                .use { it.body?.string() }
+
+            // Captured, just not printed.
+            verifySuspend { httpLogManager.logHttpAndGetId(any()) }
+            wiretapLogger.httpLogs.shouldBeEmpty()
+        }
     }
 
     describe("intercept") {

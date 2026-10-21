@@ -19,7 +19,6 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.repository.SseRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -30,9 +29,8 @@ class SseLogManagerImplTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val repository = mock<SseRepository>(MockMode.autoUnit)
-    val logger = mock<WiretapLogger>(MockMode.autoUnit)
     val hook = mock<WiretapNotificationHook>(MockMode.autoUnit)
-    val manager = SseLogManagerImpl(repository, logger, hook)
+    val manager = SseLogManagerImpl(repository, hook)
 
     describe("flowAllConnections") {
         it("delegates to repository") {
@@ -84,7 +82,7 @@ class SseLogManagerImplTest : DescribeSpec({
     }
 
     describe("createConnection") {
-        it("assigns id and notifies logger and hook") {
+        it("assigns id and notifies the hook") {
             runTest {
                 val entry = conn(url = "https://x/events")
                 everySuspend { repository.logNew(entry) } returns 42L
@@ -92,21 +90,19 @@ class SseLogManagerImplTest : DescribeSpec({
                 val id = manager.createConnection(entry)
 
                 id shouldBe 42L
-                verify { logger.logSse(matches<SseConnection> { it.id == 42L && it.url == "https://x/events" }) }
                 verify { hook.onNewSseConnection(matches<SseConnection> { it.id == 42L }) }
             }
         }
     }
 
     describe("updateConnection") {
-        it("forwards through repository, logger, hook") {
+        it("forwards through repository and hook") {
             runTest {
                 val entry = conn(id = 1, status = SseStatus.Open)
 
                 manager.updateConnection(entry)
 
                 verifySuspend { repository.update(entry) }
-                verify { logger.logSse(entry) }
                 verify { hook.onNewSseConnection(entry) }
             }
         }
@@ -140,7 +136,6 @@ class SseLogManagerImplTest : DescribeSpec({
                 manager.logEvent(event)
 
                 verifySuspend { repository.logEvent(event) }
-                verify { logger.logSseEvent(event) }
                 verify { hook.onNewSseEvent(any(), event) }
             }
         }

@@ -36,6 +36,7 @@ jobs:
               - '**/*.swift'
               - '**/*.def'
               - '**/gradle.properties'
+              - 'version.properties'
               - 'gradle/**'
 
   api-check:

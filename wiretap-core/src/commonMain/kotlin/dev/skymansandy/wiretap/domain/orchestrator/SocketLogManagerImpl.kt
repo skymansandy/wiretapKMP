@@ -11,12 +11,10 @@ import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.repository.SocketRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SocketLogManagerImpl(
     private val socketRepository: SocketRepository,
-    private val wiretapLogger: WiretapLogger,
     private val notificationHook: WiretapNotificationHook,
 ) : SocketLogManager {
 
@@ -27,7 +25,6 @@ internal class SocketLogManagerImpl(
         val id = socketRepository.logNew(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
-        wiretapLogger.logSocket(entryWithId)
         notificationHook.onNewSocketConnection(entryWithId)
         return id
     }
@@ -41,7 +38,6 @@ internal class SocketLogManagerImpl(
 
             else -> activeConnections[entry.id] = entry
         }
-        wiretapLogger.logSocket(entry)
         notificationHook.onNewSocketConnection(entry)
     }
 
@@ -58,7 +54,6 @@ internal class SocketLogManagerImpl(
         }
 
         socketRepository.logSocketMsg(message)
-        wiretapLogger.logSocketMessage(message)
         socketRepository.getById(message.socketId)?.let { entry ->
             notificationHook.onNewSocketMessage(entry, message)
         }

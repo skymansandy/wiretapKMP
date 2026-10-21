@@ -16,7 +16,6 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -26,9 +25,8 @@ class HttpLogManagerImplTest : DescribeSpec({
     isolationMode = IsolationMode.InstancePerLeaf
 
     val repository = mock<HttpRepository>(MockMode.autoUnit)
-    val logger = mock<WiretapLogger>(MockMode.autoUnit)
     val hook = mock<WiretapNotificationHook>(MockMode.autoUnit)
-    val manager = HttpLogManagerImpl(repository, logger, hook)
+    val manager = HttpLogManagerImpl(repository, hook)
 
     describe("flowHttpLogs") {
         it("delegates to repository") {
@@ -72,38 +70,35 @@ class HttpLogManagerImplTest : DescribeSpec({
     }
 
     describe("logHttp") {
-        it("calls repository save, logger and hook in order") {
+        it("calls repository save and hook in order") {
             val entry = httpLog(url = "https://x")
 
             manager.logHttp(entry)
 
             verifySuspend { repository.save(entry) }
-            verify { logger.logHttp(entry) }
             verify { hook.onNewHttpLog(entry) }
         }
     }
 
     describe("logHttpAndGetId") {
-        it("returns the id and forwards a copy with id to logger and hook") {
+        it("returns the id and forwards a copy with id to the hook") {
             val original = httpLog(url = "https://x")
             everySuspend { repository.saveAndGetId(original) } returns 99L
 
             val id = manager.logHttpAndGetId(original)
 
             id shouldBe 99L
-            verify { logger.logHttp(matches<HttpLog> { it.id == 99L && it.url == "https://x" }) }
             verify { hook.onNewHttpLog(matches<HttpLog> { it.id == 99L && it.url == "https://x" }) }
         }
     }
 
     describe("updateHttp") {
-        it("delegates to repository, logger and hook") {
+        it("delegates to repository and hook") {
             val entry = httpLog(url = "https://x")
 
             manager.updateHttp(entry)
 
             verifySuspend { repository.update(entry) }
-            verify { logger.logHttp(entry) }
             verify { hook.onNewHttpLog(entry) }
         }
     }

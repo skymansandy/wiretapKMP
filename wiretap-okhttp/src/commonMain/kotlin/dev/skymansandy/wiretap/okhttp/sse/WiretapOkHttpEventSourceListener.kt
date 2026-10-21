@@ -10,7 +10,10 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.model.config.sse.WiretapSseConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.withConsoleLogging
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +38,7 @@ import kotlin.concurrent.Volatile
  * ```
  */
 @ExperimentalWiretapSseApi
+@OptIn(InternalWiretapApi::class)
 internal class WiretapOkHttpEventSourceListener(
     private val delegate: EventSourceListener,
     private val config: WiretapSseConfig,
@@ -42,7 +46,14 @@ internal class WiretapOkHttpEventSourceListener(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val sseLogManager: SseLogManager by inject()
+    private val wiretapLogger: WiretapLogger by inject()
+    private val sharedSseLogManager: SseLogManager by inject()
+
+    private val sseLogManager: SseLogManager by lazy {
+        if (config.consoleLogging) sharedSseLogManager.withConsoleLogging(wiretapLogger)
+        else sharedSseLogManager
+    }
+
     private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile

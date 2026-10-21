@@ -29,7 +29,6 @@ internal val wiretapModule = module {
     single<HttpLogManager> {
         HttpLogManagerImpl(
             httpRepository = get(),
-            wiretapLogger = get(),
             notificationHook = get(),
         )
     }
@@ -37,7 +36,6 @@ internal val wiretapModule = module {
     single<SocketLogManager> {
         SocketLogManagerImpl(
             socketRepository = get(),
-            wiretapLogger = get(),
             notificationHook = get(),
         )
     }
@@ -45,7 +43,6 @@ internal val wiretapModule = module {
     single<SseLogManager> {
         SseLogManagerImpl(
             sseRepository = get(),
-            wiretapLogger = get(),
             notificationHook = get(),
         )
     }

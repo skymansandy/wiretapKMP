@@ -42,11 +42,18 @@ internal fun buildShareText(entry: HttpLog): String = buildString {
 }
 
 internal fun buildCurlCommand(entry: HttpLog): String = buildString {
-    append("curl -X ${entry.method} '${entry.url}'")
+    append("curl -X ${entry.method} ${entry.url.shellQuoted()}")
     entry.requestHeaders.forEach { (k, v) ->
-        append(" \\\n  -H '$k: $v'")
+        append(" \\\n  -H ${"$k: $v".shellQuoted()}")
     }
-    if (!entry.requestBody.isNullOrEmpty()) {
-        append(" \\\n  --data-raw '${entry.requestBody}'")
+    val body = entry.requestBody
+    if (!body.isNullOrEmpty()) {
+        append(" \\\n  --data-raw ${minifyJson(body).shellQuoted()}")
     }
 }
+
+/**
+ * Wraps a value in single quotes, closing and reopening the quote around any literal
+ * single quote so the command survives both a real shell and importers like Postman.
+ */
+private fun String.shellQuoted(): String = "'" + replace("'", "'\\''") + "'"

@@ -546,6 +546,12 @@ public final class dev/skymansandy/wiretap/domain/model/matchers/UrlMatcher$Rege
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/skymansandy/wiretap/domain/orchestrator/ConsoleLoggingKt {
+	public static final fun withConsoleLogging (Ldev/skymansandy/wiretap/domain/orchestrator/HttpLogManager;Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;)Ldev/skymansandy/wiretap/domain/orchestrator/HttpLogManager;
+	public static final fun withConsoleLogging (Ldev/skymansandy/wiretap/domain/orchestrator/SocketLogManager;Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;)Ldev/skymansandy/wiretap/domain/orchestrator/SocketLogManager;
+	public static final fun withConsoleLogging (Ldev/skymansandy/wiretap/domain/orchestrator/SseLogManager;Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;)Ldev/skymansandy/wiretap/domain/orchestrator/SseLogManager;
+}
+
 public abstract interface class dev/skymansandy/wiretap/domain/orchestrator/HttpLogManager {
 	public abstract fun clearHttpLogs (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun deleteHttpLog (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -670,17 +676,10 @@ public final class dev/skymansandy/wiretap/domain/usecase/FindMatchingRuleUseCas
 
 public abstract interface class dev/skymansandy/wiretap/helper/logger/WiretapLogger {
 	public abstract fun logHttp (Ldev/skymansandy/wiretap/domain/model/HttpLog;)V
-	public fun logSocket (Ldev/skymansandy/wiretap/domain/model/SocketConnection;)V
-	public fun logSocketMessage (Ldev/skymansandy/wiretap/domain/model/SocketMessage;)V
-	public fun logSse (Ldev/skymansandy/wiretap/domain/model/SseConnection;)V
-	public fun logSseEvent (Ldev/skymansandy/wiretap/domain/model/SseEvent;)V
-}
-
-public final class dev/skymansandy/wiretap/helper/logger/WiretapLogger$DefaultImpls {
-	public static fun logSocket (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SocketConnection;)V
-	public static fun logSocketMessage (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SocketMessage;)V
-	public static fun logSse (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SseConnection;)V
-	public static fun logSseEvent (Ldev/skymansandy/wiretap/helper/logger/WiretapLogger;Ldev/skymansandy/wiretap/domain/model/SseEvent;)V
+	public abstract fun logSocket (Ldev/skymansandy/wiretap/domain/model/SocketConnection;)V
+	public abstract fun logSocketMessage (Ldev/skymansandy/wiretap/domain/model/SocketMessage;)V
+	public abstract fun logSse (Ldev/skymansandy/wiretap/domain/model/SseConnection;)V
+	public abstract fun logSseEvent (Ldev/skymansandy/wiretap/domain/model/SseEvent;)V
 }
 
 public final class dev/skymansandy/wiretap/helper/util/BodyTruncationUtilKt {

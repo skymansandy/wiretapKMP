@@ -16,6 +16,31 @@ install(WiretapKtorHttpPlugin) {
 }
 ```
 
+### `consoleLogging`
+
+**Type:** `Boolean` — **Default:** `true`
+
+Whether **this plugin** prints its captured traffic to the console — logcat on Android, the Xcode console on iOS, stdout on JVM Desktop.
+
+```kotlin
+install(WiretapKtorHttpPlugin) {
+    consoleLogging = false
+}
+```
+
+Set it to `false` if you already have your own HTTP logging, or if one client is too noisy. Each client decides for itself — a chatty polling client can stay quiet while your main client keeps printing.
+
+| Traffic | Console output |
+|---------|----------------|
+| **HTTP** | `[Wiretap] GET https://api.example.com/users -> 200 (42ms) [Network] h2` |
+| **WebSocket** | `[Wiretap] WS OPEN wss://…`, plus one line per frame: `[Wiretap] WS ▲ "ping" (4 B)` |
+| **SSE** | `[Wiretap] SSE OPEN https://api.example.com/stream`, plus one line per event: `[Wiretap] SSE ▼ [ping] "tick" (4 B)` |
+
+The WebSocket and SSE configs carry the same flag — see [Ktor WebSockets](../ktor/websockets.md) and [OkHttp WebSockets](../okhttp/websockets.md).
+
+!!! note
+    Only console output is affected. Every request, frame and event is still captured and browsable in the inspector — notifications and search included.
+
 ### `shouldLog`
 
 **Type:** `(url: String, method: String) -> Boolean` — **Default:** `{ _, _ -> true }`

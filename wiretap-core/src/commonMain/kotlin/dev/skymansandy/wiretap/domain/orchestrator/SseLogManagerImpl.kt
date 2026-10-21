@@ -11,12 +11,10 @@ import dev.skymansandy.wiretap.domain.model.SseEvent
 import dev.skymansandy.wiretap.domain.model.SseStatus
 import dev.skymansandy.wiretap.domain.repository.SseRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class SseLogManagerImpl(
     private val sseRepository: SseRepository,
-    private val wiretapLogger: WiretapLogger,
     private val notificationHook: WiretapNotificationHook,
 ) : SseLogManager {
 
@@ -27,7 +25,6 @@ internal class SseLogManagerImpl(
         val id = sseRepository.logNew(entry)
         val entryWithId = entry.copy(id = id)
         activeConnections[id] = entryWithId
-        wiretapLogger.logSse(entryWithId)
         notificationHook.onNewSseConnection(entryWithId)
         return id
     }
@@ -41,7 +38,6 @@ internal class SseLogManagerImpl(
 
             else -> activeConnections[entry.id] = entry
         }
-        wiretapLogger.logSse(entry)
         notificationHook.onNewSseConnection(entry)
     }
 
@@ -58,7 +54,6 @@ internal class SseLogManagerImpl(
         }
 
         sseRepository.logEvent(event)
-        wiretapLogger.logSseEvent(event)
         sseRepository.getById(event.connectionId)?.let { entry ->
             notificationHook.onNewSseEvent(entry, event)
         }

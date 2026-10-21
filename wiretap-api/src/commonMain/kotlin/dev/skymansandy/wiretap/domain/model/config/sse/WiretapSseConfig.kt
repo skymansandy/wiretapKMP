@@ -13,4 +13,10 @@ import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 class WiretapSseConfig {
     /** Master switch. When `false`, [wiretapped] returns a passthrough session without logging. */
     var enabled: Boolean = true
+
+    /**
+     * Whether this plugin prints its connections and events to the platform console. Defaults to `true`.
+     * Capture is unaffected — a silenced stream is still browsable in the inspector.
+     */
+    var consoleLogging: Boolean = true
 }

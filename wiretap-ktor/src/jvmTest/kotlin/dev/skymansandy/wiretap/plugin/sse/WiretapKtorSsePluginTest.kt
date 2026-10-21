@@ -20,11 +20,14 @@ import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
 import dev.skymansandy.wiretap.domain.orchestrator.SseLogManager
 import dev.skymansandy.wiretap.helper.markers.ExperimentalWiretapSseApi
 import dev.skymansandy.wiretap.ktor.testing.EmbeddedTestServer
+import dev.skymansandy.wiretap.ktor.testing.RecordingWiretapLogger
 import dev.skymansandy.wiretap.ktor.testing.installTestKoin
 import dev.skymansandy.wiretap.ktor.testing.teardownTestKoin
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
@@ -47,17 +50,22 @@ class WiretapKtorSsePluginTest : DescribeSpec({
 
     val socketLogManager = mock<SocketLogManager>(MockMode.autoUnit)
     val sseLogManager = mock<SseLogManager>(MockMode.autoUnit)
+    val wiretapLogger = RecordingWiretapLogger()
 
     lateinit var server: EmbeddedTestServer
     lateinit var client: HttpClient
 
-    fun newClient(enabled: Boolean = true): HttpClient = HttpClient(Java) {
-        install(SSE)
-        install(WiretapKtorSsePlugin) { this.enabled = enabled }
-    }
+    fun newClient(enabled: Boolean = true, consoleLogging: Boolean = true): HttpClient =
+        HttpClient(Java) {
+            install(SSE)
+            install(WiretapKtorSsePlugin) {
+                this.enabled = enabled
+                this.consoleLogging = consoleLogging
+            }
+        }
 
     beforeEach {
-        installTestKoin(socketLogManager, sseLogManager)
+        installTestKoin(socketLogManager, sseLogManager, wiretapLogger)
         everySuspend { sseLogManager.createConnection(any()) } returns 500L
         server = EmbeddedTestServer {
             sse("/events") {
@@ -104,6 +112,35 @@ class WiretapKtorSsePluginTest : DescribeSpec({
                         sseLogManager.logEvent(matches<SseEvent> { it.data == "second" })
                     }
                 }
+            }
+        }
+    }
+
+    describe("consoleLogging") {
+        it("prints the connection and each event by default") {
+            runTest(timeout = 10.seconds) {
+                client.sse("http://127.0.0.1:${server.port}/events") { incoming.toList() }
+
+                eventually(5.seconds) {
+                    wiretapLogger.sseConnections.shouldNotBeEmpty()
+                    wiretapLogger.sseEvents.map { it.data } shouldBe listOf("first", "second")
+                }
+            }
+        }
+
+        it("keeps this client's stream out of the console when disabled") {
+            runTest(timeout = 10.seconds) {
+                val quiet = newClient(consoleLogging = false)
+
+                quiet.sse("http://127.0.0.1:${server.port}/events") { incoming.toList() }
+
+                // Captured, just not printed.
+                eventually(5.seconds) {
+                    verifySuspend { sseLogManager.logEvent(matches<SseEvent> { it.data == "first" }) }
+                }
+                wiretapLogger.sseConnections.shouldBeEmpty()
+                wiretapLogger.sseEvents.shouldBeEmpty()
+                quiet.close()
             }
         }
     }

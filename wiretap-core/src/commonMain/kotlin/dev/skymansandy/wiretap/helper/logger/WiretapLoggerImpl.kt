@@ -9,6 +9,11 @@ import dev.skymansandy.wiretap.domain.model.SocketConnection
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.SseConnection
+import dev.skymansandy.wiretap.domain.model.SseEvent
+import dev.skymansandy.wiretap.domain.model.SseStatus
+
+private const val MAX_PREVIEW_CHARS = 80
 
 internal class WiretapLoggerImpl : WiretapLogger {
 
@@ -40,9 +45,26 @@ internal class WiretapLoggerImpl : WiretapLogger {
             SocketMessageType.Sent -> "▲"
             SocketMessageType.Received -> "▼"
         }
-        val preview = if (message.content.length > 80) message.content.take(80) + "..." else message.content
-        println("[Wiretap] WS $arrow \"$preview\" (${formatBytes(message.byteCount)})")
+        println("[Wiretap] WS $arrow \"${preview(message.content)}\" (${formatBytes(message.byteCount)})")
     }
+
+    override fun logSse(entry: SseConnection) {
+        when (entry.status) {
+            SseStatus.Connecting -> println("[Wiretap] SSE CONNECTING ${entry.url}")
+            SseStatus.Open -> println("[Wiretap] SSE OPEN ${entry.url}")
+            SseStatus.Closed -> println("[Wiretap] SSE CLOSED ${entry.url}")
+            SseStatus.Failed -> println("[Wiretap] SSE FAILED ${entry.url} ${entry.failureMessage ?: ""}")
+        }
+    }
+
+    override fun logSseEvent(event: SseEvent) {
+        // SSE is receive-only, so the arrow never changes.
+        val type = event.eventType?.let { " [$it]" } ?: ""
+        println("[Wiretap] SSE ▼$type \"${preview(event.data)}\" (${formatBytes(event.byteCount)})")
+    }
+
+    private fun preview(content: String): String =
+        if (content.length > MAX_PREVIEW_CHARS) content.take(MAX_PREVIEW_CHARS) + "..." else content
 
     private fun formatBytes(bytes: Long): String = when {
         bytes >= 1_048_576 -> "${bytes / 1_048_576} MB"

@@ -33,6 +33,7 @@ internal val WiretapWsEnabledKey = AttributeKey<Boolean>("WiretapWsEnabled")
  */
 class WiretapWsPluginHandler internal constructor(
     internal val enabled: Boolean,
+    internal val consoleLogging: Boolean,
     internal val binaryDecoding: BinaryFrameDecoding,
 )
 
@@ -73,12 +74,13 @@ val WiretapKtorWebSocketPlugin =
             val config = WiretapWsConfig().apply(block)
             return WiretapWsPluginHandler(
                 enabled = config.enabled,
+                consoleLogging = config.consoleLogging,
                 binaryDecoding = config.binaryDecoding,
             )
         }
 
         override fun install(plugin: WiretapWsPluginHandler, scope: HttpClient) {
-            val deps = WsPluginDeps()
+            val deps = WsPluginDeps(plugin.consoleLogging)
 
             // Store enabled flag in request attributes
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {

@@ -102,6 +102,9 @@ Use the config DSL overload to configure WebSocket logging:
 client.newWebSocket(request, myListener.wiretapped {
     enabled = BuildConfig.DEBUG
 
+    // Don't print frames to the console. Defaults to true.
+    consoleLogging = false
+
     // How to render Binary frames. Defaults to Auto.
     binaryDecoding = BinaryFrameDecoding.Auto
     // = BinaryFrameDecoding.Utf8         // always decode as UTF-8 (replacement chars on invalid bytes)
@@ -115,6 +118,10 @@ Or use the simple `enabled` parameter:
 ```kotlin
 client.newWebSocket(request, myListener.wiretapped(enabled = false))
 ```
+
+### `consoleLogging`
+
+`true` (default) prints the connection and every frame to the console. Set it to `false` when a chatty socket floods your log — everything is still captured in the inspector. See [`consoleLogging`](../configuration/config.md#consolelogging).
 
 ### `binaryDecoding`
 

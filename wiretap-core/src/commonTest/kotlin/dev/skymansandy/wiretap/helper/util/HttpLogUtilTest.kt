@@ -125,6 +125,43 @@ class HttpLogUtilTest : DescribeSpec({
 
             cmd shouldNotContain "--data-raw"
         }
+
+        it("minifies pretty printed json body onto a single line") {
+            val pretty = "{\n  \"a\": 1,\n  \"b\": [\n    2,\n    3\n  ]\n}"
+
+            val cmd = buildCurlCommand(log(method = "POST", requestBody = pretty))
+
+            cmd shouldContain """--data-raw '{"a":1,"b":[2,3]}'"""
+        }
+
+        it("preserves whitespace inside json string literals") {
+            val cmd = buildCurlCommand(
+                log(method = "POST", requestBody = """{ "name" : "John  Doe" }"""),
+            )
+
+            cmd shouldContain """--data-raw '{"name":"John  Doe"}'"""
+        }
+
+        it("leaves non json bodies untouched") {
+            val cmd = buildCurlCommand(log(method = "POST", requestBody = "a=1&b=hello world"))
+
+            cmd shouldContain """--data-raw 'a=1&b=hello world'"""
+        }
+
+        it("escapes single quotes in body, url and headers") {
+            val cmd = buildCurlCommand(
+                log(
+                    url = "https://example.com/api?q=it's",
+                    method = "POST",
+                    requestHeaders = mapOf("X-Note" to "it's fine"),
+                    requestBody = """{"msg":"it's here"}""",
+                ),
+            )
+
+            cmd shouldContain """'https://example.com/api?q=it'\''s'"""
+            cmd shouldContain """-H 'X-Note: it'\''s fine'"""
+            cmd shouldContain """--data-raw '{"msg":"it'\''s here"}'"""
+        }
     }
 })
 

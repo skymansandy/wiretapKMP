@@ -16,6 +16,18 @@ val client = HttpClient {
 }
 ```
 
+## Configuration
+
+```kotlin
+@OptIn(ExperimentalWiretapSseApi::class)
+install(WiretapKtorSsePlugin) {
+    enabled = BuildConfig.DEBUG
+    consoleLogging = false
+}
+```
+
+`true` (default) prints the connection and one line per event — `[Wiretap] SSE ▼ [ping] "tick" (4 B)`. Set it to `false` to keep a busy stream out of your log; capture is unaffected. See [`consoleLogging`](../configuration/config.md#consolelogging).
+
 ## Automatic Session Wrapping
 
 `WiretapKtorSsePlugin` wraps SSE sessions automatically — no extra calls needed. Just use the session directly and all incoming events are logged:
