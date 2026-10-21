@@ -52,11 +52,13 @@ public final class dev/skymansandy/wiretap/domain/model/config/http/WiretapHttpC
 	public static final field Companion Ldev/skymansandy/wiretap/domain/model/config/http/WiretapHttpConfig$Companion;
 	public static final field MAX_CONTENT_LENGTH I
 	public fun <init> ()V
+	public final fun getConsoleLogging ()Z
 	public final fun getEnabled ()Z
 	public final fun getHeaderAction ()Lkotlin/jvm/functions/Function1;
 	public final fun getLogRetention ()Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention;
 	public final fun getMaxContentLength ()I
 	public final fun getShouldLog ()Lkotlin/jvm/functions/Function2;
+	public final fun setConsoleLogging (Z)V
 	public final fun setEnabled (Z)V
 	public final fun setHeaderAction (Lkotlin/jvm/functions/Function1;)V
 	public final fun setLogRetention (Ldev/skymansandy/wiretap/domain/model/config/http/LogRetention;)V
@@ -69,7 +71,9 @@ public final class dev/skymansandy/wiretap/domain/model/config/http/WiretapHttpC
 
 public final class dev/skymansandy/wiretap/domain/model/config/sse/WiretapSseConfig {
 	public fun <init> ()V
+	public final fun getConsoleLogging ()Z
 	public final fun getEnabled ()Z
+	public final fun setConsoleLogging (Z)V
 	public final fun setEnabled (Z)V
 }
 
@@ -95,8 +99,10 @@ public final class dev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDec
 public final class dev/skymansandy/wiretap/domain/model/config/ws/WiretapWsConfig {
 	public fun <init> ()V
 	public final fun getBinaryDecoding ()Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding;
+	public final fun getConsoleLogging ()Z
 	public final fun getEnabled ()Z
 	public final fun setBinaryDecoding (Ldev/skymansandy/wiretap/domain/model/config/ws/BinaryFrameDecoding;)V
+	public final fun setConsoleLogging (Z)V
 	public final fun setEnabled (Z)V
 }
 

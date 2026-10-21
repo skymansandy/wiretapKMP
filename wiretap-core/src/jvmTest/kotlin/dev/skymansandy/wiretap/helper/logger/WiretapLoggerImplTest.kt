@@ -12,11 +12,12 @@ import dev.skymansandy.wiretap.domain.model.SocketContentType
 import dev.skymansandy.wiretap.domain.model.SocketMessage
 import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
+import dev.skymansandy.wiretap.domain.model.SseConnection
+import dev.skymansandy.wiretap.domain.model.SseEvent
+import dev.skymansandy.wiretap.domain.model.SseStatus
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 
 class WiretapLoggerImplTest : DescribeSpec({
     val logger = WiretapLoggerImpl()
@@ -230,32 +231,82 @@ class WiretapLoggerImplTest : DescribeSpec({
         }
     }
 
-    describe("SSE logger defaults") {
-        it("are no-op smoke") {
-            logger.logSse(dev.skymansandy.wiretap.domain.model.SseConnection(url = "x", timestamp = 0))
-            logger.logSseEvent(
-                dev.skymansandy.wiretap.domain.model.SseEvent(
-                    connectionId = 0,
-                    data = "x",
-                    byteCount = 1,
-                    timestamp = 0,
-                ),
-            )
+    describe("logSse") {
+        it("emits CONNECTING line with url for Connecting status") {
+            val output = captureStdout { logger.logSse(sseWith(SseStatus.Connecting)) }
+            output shouldContain "SSE CONNECTING https://x/events"
+        }
+
+        it("emits OPEN line for Open status") {
+            val output = captureStdout { logger.logSse(sseWith(SseStatus.Open)) }
+            output shouldContain "SSE OPEN https://x/events"
+        }
+
+        it("emits CLOSED line for Closed status") {
+            val output = captureStdout { logger.logSse(sseWith(SseStatus.Closed)) }
+            output shouldContain "SSE CLOSED https://x/events"
+        }
+
+        it("includes failure message for Failed status") {
+            val output = captureStdout {
+                logger.logSse(sseWith(SseStatus.Failed, failureMessage = "boom"))
+            }
+            output shouldContain "SSE FAILED https://x/events boom"
+        }
+    }
+
+    describe("logSseEvent") {
+        it("prints the data payload with a received arrow") {
+            val output = captureStdout { logger.logSseEvent(sseEvent(data = "tick")) }
+            output shouldContain "SSE ▼ \"tick\""
+        }
+
+        it("brackets the event type when present") {
+            val output = captureStdout {
+                logger.logSseEvent(sseEvent(eventType = "ping", data = "tick"))
+            }
+            output shouldContain "SSE ▼ [ping] \"tick\""
+        }
+
+        it("omits the bracket when event type is null") {
+            val output = captureStdout { logger.logSseEvent(sseEvent(eventType = null)) }
+            output shouldContain "SSE ▼ \"tick\""
+            output shouldNotContain "▼ ["
+        }
+
+        it("truncates data longer than 80 chars with ellipsis") {
+            val output = captureStdout { logger.logSseEvent(sseEvent(data = "x".repeat(100))) }
+            output shouldContain "\"" + "x".repeat(80) + "...\""
+        }
+
+        it("renders byteCount with correct unit") {
+            val output = captureStdout { logger.logSseEvent(sseEvent(byteCount = 2_048)) }
+            output shouldContain "(2 kB)"
         }
     }
 })
 
-private fun captureStdout(block: () -> Unit): String {
-    val original = System.out
-    val buffer = ByteArrayOutputStream()
-    System.setOut(PrintStream(buffer))
-    try {
-        block()
-    } finally {
-        System.setOut(original)
-    }
-    return buffer.toString()
-}
+private fun sseWith(
+    status: SseStatus,
+    failureMessage: String? = null,
+) = SseConnection(
+    url = "https://x/events",
+    status = status,
+    failureMessage = failureMessage,
+    timestamp = 0,
+)
+
+private fun sseEvent(
+    eventType: String? = null,
+    data: String = "tick",
+    byteCount: Long = 4,
+) = SseEvent(
+    connectionId = 1,
+    eventType = eventType,
+    data = data,
+    byteCount = byteCount,
+    timestamp = 0,
+)
 
 private fun socketWith(
     status: SocketStatus,

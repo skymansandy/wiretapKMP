@@ -31,6 +31,7 @@ internal val WiretapSseEnabledKey = AttributeKey<Boolean>("WiretapSseEnabled")
 @ExperimentalWiretapSseApi
 class WiretapSsePluginHandler internal constructor(
     internal val enabled: Boolean,
+    internal val consoleLogging: Boolean,
 )
 
 /**
@@ -69,11 +70,14 @@ val WiretapKtorSsePlugin =
 
         override fun prepare(block: WiretapSseConfig.() -> Unit): WiretapSsePluginHandler {
             val config = WiretapSseConfig().apply(block)
-            return WiretapSsePluginHandler(config.enabled)
+            return WiretapSsePluginHandler(
+                enabled = config.enabled,
+                consoleLogging = config.consoleLogging,
+            )
         }
 
         override fun install(plugin: WiretapSsePluginHandler, scope: HttpClient) {
-            val deps = SsePluginDeps()
+            val deps = SsePluginDeps(plugin.consoleLogging)
 
             // Store enabled flag in request attributes
             scope.requestPipeline.intercept(HttpRequestPipeline.State) {

@@ -15,10 +15,19 @@ class WiretapHttpConfigTest : DescribeSpec({
             val config = WiretapHttpConfig()
 
             config.enabled shouldBe true
+            config.consoleLogging shouldBe true
             config.shouldLog("any-url", "GET") shouldBe true
             config.headerAction("Authorization") shouldBe HeaderAction.Keep
             config.logRetention shouldBe LogRetention.Forever
             config.maxContentLength shouldBe WiretapHttpConfig.MAX_CONTENT_LENGTH
+        }
+    }
+
+    describe("consoleLogging") {
+        it("can be flipped off per installation") {
+            val config = WiretapHttpConfig().apply { consoleLogging = false }
+
+            config.consoleLogging shouldBe false
         }
     }
 

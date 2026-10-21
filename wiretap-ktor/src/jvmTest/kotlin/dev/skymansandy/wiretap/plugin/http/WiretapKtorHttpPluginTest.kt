@@ -21,11 +21,14 @@ import dev.skymansandy.wiretap.domain.model.matchers.UrlMatcher
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
 import dev.skymansandy.wiretap.ktor.testing.EmbeddedTestServer
+import dev.skymansandy.wiretap.ktor.testing.RecordingWiretapLogger
 import dev.skymansandy.wiretap.ktor.testing.installTestKoin
 import dev.skymansandy.wiretap.ktor.testing.teardownTestKoin
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.java.Java
@@ -49,6 +52,7 @@ class WiretapKtorHttpPluginTest : DescribeSpec({
 
     val httpLogManager = mock<HttpLogManager>(MockMode.autoUnit)
     val findMatchingRule = mock<FindMatchingRuleUseCase>(MockMode.autoUnit)
+    val wiretapLogger = RecordingWiretapLogger()
 
     lateinit var server: EmbeddedTestServer
     lateinit var client: HttpClient
@@ -60,7 +64,7 @@ class WiretapKtorHttpPluginTest : DescribeSpec({
     }
 
     beforeEach {
-        installTestKoin(httpLogManager, findMatchingRule)
+        installTestKoin(httpLogManager, findMatchingRule, wiretapLogger)
         everySuspend { httpLogManager.logHttpAndGetId(any()) } returns 42L
         everySuspend { findMatchingRule.invoke(any(), any(), any(), any()) } returns null
         server = EmbeddedTestServer {
@@ -80,6 +84,31 @@ class WiretapKtorHttpPluginTest : DescribeSpec({
         runBlocking { client.close() }
         server.stop()
         teardownTestKoin()
+    }
+
+    describe("consoleLogging") {
+        it("prints captured traffic by default") {
+            runTest(timeout = 10.seconds) {
+                client.get("http://127.0.0.1:${server.port}/echo")
+
+                eventually(5.seconds) { wiretapLogger.httpLogs.shouldNotBeEmpty() }
+            }
+        }
+
+        it("keeps this client's traffic out of the console when disabled") {
+            runTest(timeout = 10.seconds) {
+                val quiet = newClient { consoleLogging = false }
+
+                quiet.get("http://127.0.0.1:${server.port}/echo")
+
+                // Still captured for the inspector, just not printed.
+                eventually(5.seconds) {
+                    verifySuspend { httpLogManager.logHttpAndGetId(any()) }
+                }
+                wiretapLogger.httpLogs.shouldBeEmpty()
+                quiet.close()
+            }
+        }
     }
 
     describe("end-to-end roundtrip") {

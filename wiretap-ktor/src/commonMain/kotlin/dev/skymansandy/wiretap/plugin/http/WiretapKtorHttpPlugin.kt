@@ -14,7 +14,10 @@ import dev.skymansandy.wiretap.domain.model.config.http.LogRetention
 import dev.skymansandy.wiretap.domain.model.config.http.WiretapHttpConfig
 import dev.skymansandy.wiretap.domain.model.config.http.applyHeaderAction
 import dev.skymansandy.wiretap.domain.orchestrator.HttpLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.withConsoleLogging
 import dev.skymansandy.wiretap.domain.usecase.FindMatchingRuleUseCase
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
+import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentNanoTime
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.util.truncateBody
@@ -85,7 +88,7 @@ private val RequestHeadersKey = AttributeKey<Map<String, String>>("WiretapReques
 @OptIn(InternalAPI::class)
 val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapHttpConfig) {
     val config = pluginConfig
-    val deps = WiretapDeps()
+    val deps = WiretapDeps(config.consoleLogging)
     val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     val sessionInitialized = AtomicBoolean(false)
 
@@ -324,11 +327,19 @@ val WiretapKtorHttpPlugin = createClientPlugin("WiretapPlugin", ::WiretapHttpCon
     }, client)
 }
 
-private class WiretapDeps : KoinComponent {
+@OptIn(InternalWiretapApi::class)
+private class WiretapDeps(consoleLogging: Boolean) : KoinComponent {
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    val httpLogManager: HttpLogManager by inject()
+    private val wiretapLogger: WiretapLogger by inject()
+    private val sharedHttpLogManager: HttpLogManager by inject()
+
+    val httpLogManager: HttpLogManager by lazy {
+        if (consoleLogging) sharedHttpLogManager.withConsoleLogging(wiretapLogger)
+        else sharedHttpLogManager
+    }
+
     val findMatchingRule: FindMatchingRuleUseCase by inject()
 }
 

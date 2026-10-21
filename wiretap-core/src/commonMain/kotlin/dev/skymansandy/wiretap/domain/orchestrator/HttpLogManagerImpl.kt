@@ -9,12 +9,10 @@ import dev.skymansandy.wiretap.domain.model.HttpLog
 import dev.skymansandy.wiretap.domain.model.HttpLogFilter
 import dev.skymansandy.wiretap.domain.repository.HttpRepository
 import dev.skymansandy.wiretap.helper.launcher.WiretapNotificationHook
-import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import kotlinx.coroutines.flow.Flow
 
 internal class HttpLogManagerImpl(
     private val httpRepository: HttpRepository,
-    private val wiretapLogger: WiretapLogger,
     private val notificationHook: WiretapNotificationHook,
 ) : HttpLogManager {
 
@@ -31,21 +29,18 @@ internal class HttpLogManagerImpl(
 
     override suspend fun logHttp(entry: HttpLog) {
         httpRepository.save(entry)
-        wiretapLogger.logHttp(entry)
         notificationHook.onNewHttpLog(entry)
     }
 
     override suspend fun logHttpAndGetId(entry: HttpLog): Long {
         val id = httpRepository.saveAndGetId(entry)
         val entryWithId = entry.copy(id = id)
-        wiretapLogger.logHttp(entryWithId)
         notificationHook.onNewHttpLog(entryWithId)
         return id
     }
 
     override suspend fun updateHttp(entry: HttpLog) {
         httpRepository.update(entry)
-        wiretapLogger.logHttp(entry)
         notificationHook.onNewHttpLog(entry)
     }
 

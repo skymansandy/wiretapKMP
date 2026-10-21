@@ -12,6 +12,8 @@ import dev.skymansandy.wiretap.domain.model.SocketMessageType
 import dev.skymansandy.wiretap.domain.model.SocketStatus
 import dev.skymansandy.wiretap.domain.model.config.ws.WiretapWsConfig
 import dev.skymansandy.wiretap.domain.orchestrator.SocketLogManager
+import dev.skymansandy.wiretap.domain.orchestrator.withConsoleLogging
+import dev.skymansandy.wiretap.helper.logger.WiretapLogger
 import dev.skymansandy.wiretap.helper.markers.InternalWiretapApi
 import dev.skymansandy.wiretap.helper.util.currentTimeMillis
 import dev.skymansandy.wiretap.helper.ws.decodeBinaryFrame
@@ -45,7 +47,14 @@ internal class WiretapOkHttpWebSocketListener(
 
     override fun getKoin(): Koin = WiretapDi.getKoin()
 
-    private val socketLogManager: SocketLogManager by inject()
+    private val wiretapLogger: WiretapLogger by inject()
+    private val sharedSocketLogManager: SocketLogManager by inject()
+
+    private val socketLogManager: SocketLogManager by lazy {
+        if (config.consoleLogging) sharedSocketLogManager.withConsoleLogging(wiretapLogger)
+        else sharedSocketLogManager
+    }
+
     private val logScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile
