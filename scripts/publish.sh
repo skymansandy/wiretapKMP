@@ -41,7 +41,7 @@ OPTIONS:
     --all                Publish all modules (skip module selection prompt)
     --spm                Run spmDevBuild for URLSession modules (local SPM dev build)
     --module <name>      Publish only a specific module (can be repeated)
-    --version <version>  Override the version (default: from gradle.properties)
+    --version <version>  Override the version (default: from version.properties)
     --dry-run            Print what would be executed without running
     -h, --help           Show this help message
 
@@ -202,7 +202,7 @@ prompt_version() {
     fi
 
     local default_version
-    default_version=$(grep 'wiretap.version=' "$PROJECT_ROOT/gradle.properties" | cut -d'=' -f2)
+    default_version=$(grep 'wiretap.version=' "$PROJECT_ROOT/version.properties" | cut -d'=' -f2)
 
     echo ""
     echo -e "${BOLD}Version to publish:${RESET} ${CYAN}${default_version}${RESET}"
@@ -278,7 +278,7 @@ echo -e "  Target:  ${GREEN}${TARGET}${RESET}"
 if [[ -n "$VERSION_OVERRIDE" ]]; then
     echo -e "  Version: ${GREEN}${VERSION_OVERRIDE}${RESET}"
 else
-    echo -e "  Version: ${GREEN}$(grep 'wiretap.version=' "$PROJECT_ROOT/gradle.properties" | cut -d'=' -f2)${RESET}"
+    echo -e "  Version: ${GREEN}$(grep 'wiretap.version=' "$PROJECT_ROOT/version.properties" | cut -d'=' -f2)${RESET}"
 fi
 if [[ "$SPM" == true ]]; then
     echo -e "  SPM:     ${GREEN}yes${RESET}"

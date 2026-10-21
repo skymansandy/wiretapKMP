@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader
@@ -20,6 +22,16 @@ plugins {
     alias(libs.plugins.bcv) apply false
     alias(libs.plugins.ktorfit) apply false
 }
+
+// Version lives in version.properties so a release bump is a one-line diff that no
+// build config depends on. fileContents keeps the read tracked by the configuration cache.
+// -Pwiretap.version=<version> overrides it for local or one-off publishes.
+val versionFile = layout.projectDirectory.file("version.properties")
+val versionText = providers.fileContents(versionFile).asText.orNull
+    ?: error("Missing ${versionFile.asFile.name}")
+val wiretapVersion = findProperty("wiretap.version") as String?
+    ?: Properties().apply { load(versionText.reader()) }.getProperty("wiretap.version")
+    ?: error("wiretap.version missing from ${versionFile.asFile.name}")
 
 dependencies {
     listOf(
@@ -87,7 +99,6 @@ subprojects {
 
     if (name in publishableModules) {
         val wiretapGroup = findProperty("wiretap.group") as String
-        val wiretapVersion = findProperty("wiretap.version") as String
 
         group = wiretapGroup
         version = wiretapVersion
